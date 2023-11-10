@@ -7,7 +7,7 @@ import (
 )
 
 // New returns a new auth command.
-func New(mmaker manipcli.ManipulatorMaker, help string) *cobra.Command {
+func New(mmaker manipcli.ManipulatorMaker, help string, defaultAudience []string) *cobra.Command {
 
 	// cmd is the root cmd for authentication subcommand.
 	cmd := &cobra.Command{
@@ -17,7 +17,7 @@ func New(mmaker manipcli.ManipulatorMaker, help string) *cobra.Command {
 		TraverseChildren: true,
 	}
 	cmd.PersistentFlags().Duration("validity", 0, "The validity of the requested token.")
-	cmd.PersistentFlags().StringSlice("audience", nil, "Requested audience for the token.")
+	cmd.PersistentFlags().StringSlice("audience", defaultAudience, "Requested audience for the token.")
 	cmd.PersistentFlags().StringSlice("cloak", nil, "Cloak identity claims. Only claims with a prefix matching of of the given string will be used in the token.")
 	cmd.PersistentFlags().Bool("qrcode", false, "If passed, display the token as a QR code.")
 	cmd.PersistentFlags().Bool("check", false, "If passed, display the decoded token")

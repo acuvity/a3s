@@ -86,7 +86,7 @@ func main() {
 		return nil
 	}
 
-	authCmd := authcmd.New(mmaker, help.Load("auth"))
+	authCmd := authcmd.New(mmaker, help.Load("auth"), nil)
 	authCmd.PersistentFlags().AddFlagSet(mflags)
 
 	importCmd := importcmd.MakeImportCmd(mmaker)
