@@ -1,4 +1,4 @@
-package flagsets
+package authcmd
 
 import (
 	"github.com/spf13/pflag"

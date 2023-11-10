@@ -2,19 +2,18 @@ package authcmd
 
 import (
 	"github.com/spf13/cobra"
-	"go.aporeto.io/a3s/cmd/a3sctl/internal/help"
 	"go.aporeto.io/a3s/pkgs/permissions"
 	"go.aporeto.io/manipulate/manipcli"
 )
 
 // New returns a new auth command.
-func New(mmaker manipcli.ManipulatorMaker) *cobra.Command {
+func New(mmaker manipcli.ManipulatorMaker, help string) *cobra.Command {
 
 	// cmd is the root cmd for authentication subcommand.
 	cmd := &cobra.Command{
 		Use:              "auth",
 		Short:            "Authenticate and retrieve a token.",
-		Long:             help.Load("auth"),
+		Long:             help,
 		TraverseChildren: true,
 	}
 	cmd.PersistentFlags().Duration("validity", 0, "The validity of the requested token.")

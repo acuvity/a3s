@@ -10,8 +10,8 @@ import (
 	"github.com/ghodss/yaml"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"go.aporeto.io/a3s/cmd/a3sctl/internal/authcmd"
 	"go.aporeto.io/a3s/pkgs/api"
+	"go.aporeto.io/a3s/pkgs/cli/authcmd"
 	"go.aporeto.io/manipulate"
 	"go.aporeto.io/manipulate/manipcli"
 )

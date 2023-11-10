@@ -7,8 +7,8 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"go.aporeto.io/a3s/cmd/a3sctl/internal/helpers"
 	"go.aporeto.io/a3s/pkgs/authlib"
+	"go.aporeto.io/a3s/pkgs/cli/helpers"
 	"go.aporeto.io/a3s/pkgs/permissions"
 	"go.aporeto.io/a3s/pkgs/token"
 	"go.aporeto.io/manipulate/manipcli"

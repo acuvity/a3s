@@ -10,13 +10,12 @@ import (
 	"github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"go.aporeto.io/a3s/cmd/a3sctl/internal/authcmd"
 	"go.aporeto.io/a3s/cmd/a3sctl/internal/compcmd"
-	"go.aporeto.io/a3s/cmd/a3sctl/internal/flagsets"
 	"go.aporeto.io/a3s/cmd/a3sctl/internal/help"
 	"go.aporeto.io/a3s/cmd/a3sctl/internal/importcmd"
 	"go.aporeto.io/a3s/pkgs/api"
 	"go.aporeto.io/a3s/pkgs/bootstrap"
+	"go.aporeto.io/a3s/pkgs/cli/authcmd"
 	"go.aporeto.io/a3s/pkgs/conf"
 	"go.aporeto.io/manipulate/manipcli"
 	"go.uber.org/zap"
@@ -69,7 +68,7 @@ func main() {
 
 	apiCmd := manipcli.New(api.Manager(), mmaker, manipcli.OptionArgumentsPrefix("with"))
 	apiCmd.PersistentFlags().AddFlagSet(mflags)
-	apiCmd.PersistentFlags().AddFlagSet(flagsets.MakeAutoAuthFlags())
+	apiCmd.PersistentFlags().AddFlagSet(authcmd.MakeAutoAuthFlags())
 	apiCmd.PersistentPreRunE = func(cmd *cobra.Command, args []string) error {
 		if err := rootCmd.PersistentPreRunE(cmd, args); err != nil {
 			return err
@@ -87,7 +86,7 @@ func main() {
 		return nil
 	}
 
-	authCmd := authcmd.New(mmaker)
+	authCmd := authcmd.New(mmaker, help.Load("auth"))
 	authCmd.PersistentFlags().AddFlagSet(mflags)
 
 	importCmd := importcmd.MakeImportCmd(mmaker)

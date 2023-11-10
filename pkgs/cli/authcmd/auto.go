@@ -11,8 +11,7 @@ import (
 	"github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"go.aporeto.io/a3s/cmd/a3sctl/internal/flagsets"
-	"go.aporeto.io/a3s/cmd/a3sctl/internal/helpers"
+	"go.aporeto.io/a3s/pkgs/cli/helpers"
 	"go.aporeto.io/a3s/pkgs/token"
 	"go.aporeto.io/manipulate/manipcli"
 	"go.uber.org/zap"
@@ -57,7 +56,7 @@ func makeAutoCmd(mmaker manipcli.ManipulatorMaker) *cobra.Command {
 
 	cmd.Flags().Bool("check", false, "Display information about the token")
 
-	cmd.Flags().AddFlagSet(flagsets.MakeAutoAuthFlags())
+	cmd.Flags().AddFlagSet(MakeAutoAuthFlags())
 
 	cmd.SetHelpFunc(func(cmd *cobra.Command, args []string) {
 		_ = cmd.Flags().MarkHidden("namespace")
