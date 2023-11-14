@@ -57,7 +57,7 @@ func TestNewAuthorizer(t *testing.T) {
 		_ = p.Connect(context.Background())
 
 		r := permissions.NewMockRetriever()
-		a := New(context.Background(), r, p, OptionIgnoredResources("r1", "r2")).(*authorizer)
+		a := New(context.Background(), r, nil, p, OptionIgnoredResources("r1", "r2")).(*authorizer)
 
 		Convey("Then a should be correct", func() {
 			So(a.retriever, ShouldEqual, r)
@@ -75,7 +75,7 @@ func TestIsAuthorized(t *testing.T) {
 		_ = p.Connect(context.Background())
 
 		r := permissions.NewMockRetriever()
-		a := New(context.Background(), r, p, OptionIgnoredResources("r1", "r2")).(*authorizer)
+		a := New(context.Background(), r, nil, p, OptionIgnoredResources("r1", "r2")).(*authorizer)
 
 		Convey("Callin on an ignored resource should worlk", func() {
 
@@ -147,7 +147,7 @@ func TestIsAuthorized(t *testing.T) {
 				return "get"
 			})
 
-			a = New(context.Background(), r, p,
+			a = New(context.Background(), r, nil, p,
 				OptionIgnoredResources("r1", "r2"),
 				OptionOperationTransformer(transformer),
 			).(*authorizer)
@@ -234,7 +234,7 @@ func TestCheckPermissions(t *testing.T) {
 		_ = p.Connect(context.Background())
 
 		r := permissions.NewMockRetriever()
-		a := New(context.Background(), r, p, OptionIgnoredResources("r1", "r2")).(*authorizer)
+		a := New(context.Background(), r, nil, p, OptionIgnoredResources("r1", "r2")).(*authorizer)
 
 		Convey("Calling on an ignored resource should work", func() {
 			ok, err := a.CheckAuthorization(context.Background(), []string{}, "retrieve-many", "/", "r1")

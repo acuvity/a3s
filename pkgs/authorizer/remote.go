@@ -31,10 +31,12 @@ func NewRemote(ctx context.Context, m manipulate.Manipulator, r permissions.Retr
 
 	subscriber.Start(ctx, pcfg)
 
+	c := NewCreator(m)
 	return &remoteAuthorizer{
 		Authorizer: New(
 			ctx,
 			r,
+			c,
 			&webSocketPubSub{subscriber: subscriber},
 			options...,
 		),

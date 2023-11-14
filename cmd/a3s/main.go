@@ -249,6 +249,7 @@ func main() {
 	pauthz := authorizer.New(
 		ctx,
 		retriever,
+		nil,
 		pubsub,
 		authorizer.OptionIgnoredResources(publicResources...),
 	)

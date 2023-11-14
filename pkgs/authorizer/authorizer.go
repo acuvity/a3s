@@ -55,6 +55,7 @@ type Authorizer interface {
 }
 
 type authorizer struct {
+	creator              UserNamespaceCreator
 	retriever            permissions.Retriever
 	ignoredResources     map[string]struct{}
 	operationTransformer OperationTransformer
@@ -65,7 +66,7 @@ type authorizer struct {
 // The authorizer aggressively chache the authentication results and uses the pubsub
 // to update the state of cache, by dropping parts of cache affected by a change in namespace
 // or Authorization policies.
-func New(ctx context.Context, retriever permissions.Retriever, pubsub bahamut.PubSubClient, options ...Option) Authorizer {
+func New(ctx context.Context, retriever permissions.Retriever, creator UserNamespaceCreator, pubsub bahamut.PubSubClient, options ...Option) Authorizer {
 
 	cfg := config{}
 	for _, opt := range options {
@@ -84,6 +85,7 @@ func New(ctx context.Context, retriever permissions.Retriever, pubsub bahamut.Pu
 
 	return &authorizer{
 		retriever:            retriever,
+		creator:              creator,
 		ignoredResources:     ignored,
 		operationTransformer: cfg.operationTransformer,
 		cache:                authCache,
@@ -134,6 +136,12 @@ func (a *authorizer) IsAuthorized(ctx bahamut.Context) (bahamut.AuthAction, erro
 	}
 
 	if ok {
+		if a.creator != nil && ok {
+			err = a.creator.Creator(ctx.Context(), ctx.Claims())
+			if err != nil {
+				return bahamut.AuthActionKO, nil
+			}
+		}
 		return bahamut.AuthActionOK, nil
 	}
 
@@ -184,15 +192,7 @@ func (a *authorizer) CheckAuthorization(ctx context.Context, claims []string, op
 		time.Hour+time.Duration(rand.Int63n(60*30))*time.Second,
 	)
 
-	allowed := perms.Allows(operation, resource)
-	if allowed {
-		err := checkAndCreateUserNamespaaceIfNeeded(claims)
-		if err != nil {
-			return false, err
-		}
-	}
-
-	return allowed, nil
+	return perms.Allows(operation, resource), nil
 }
 
 func hash(claims []string, remoteaddr string, id string, restrictions permissions.Restrictions) string {
