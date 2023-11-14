@@ -25,13 +25,14 @@ type NamespacesList []*Namespace
 
 // Identity returns the identity of the objects in the list.
 func (o NamespacesList) Identity() elemental.Identity {
-
+	fmt.Printf("inside local namespace1")
 	return NamespaceIdentity
 }
 
 // Copy returns a pointer to a copy the NamespacesList.
 func (o NamespacesList) Copy() elemental.Identifiables {
 
+	fmt.Printf("inside validate 0\n")
 	out := append(NamespacesList{}, o...)
 	return &out
 }
@@ -42,6 +43,8 @@ func (o NamespacesList) Append(objects ...elemental.Identifiable) elemental.Iden
 	out := append(NamespacesList{}, o...)
 	for _, obj := range objects {
 		out = append(out, obj.(*Namespace))
+		fmt.Printf("inside validate 2\n")
+
 	}
 
 	return out
@@ -52,6 +55,8 @@ func (o NamespacesList) List() elemental.IdentifiablesList {
 
 	out := make(elemental.IdentifiablesList, len(o))
 	for i := 0; i < len(o); i++ {
+		fmt.Printf("inside validate 3\n")
+
 		out[i] = o[i]
 	}
 
@@ -114,6 +119,7 @@ type Namespace struct {
 
 // NewNamespace returns a new *Namespace
 func NewNamespace() *Namespace {
+	fmt.Printf("inside validate 5\n")
 
 	return &Namespace{
 		ModelVersion: 1,
@@ -122,18 +128,20 @@ func NewNamespace() *Namespace {
 
 // Identity returns the Identity of the object.
 func (o *Namespace) Identity() elemental.Identity {
-
+	fmt.Printf("inside validate 6\n")
 	return NamespaceIdentity
 }
 
 // Identifier returns the value of the object's unique identifier.
 func (o *Namespace) Identifier() string {
-
+	fmt.Printf("inside validate 7\n")
+	fmt.Printf("unique identifier is %v\n", o.ID)
 	return o.ID
 }
 
 // SetIdentifier sets the value of the object's unique identifier.
 func (o *Namespace) SetIdentifier(id string) {
+	fmt.Printf("inside validate 8\n")
 
 	o.ID = id
 }
@@ -243,24 +251,28 @@ func (o *Namespace) SetCreateTime(createTime time.Time) {
 
 // GetName returns the Name of the receiver.
 func (o *Namespace) GetName() string {
+	fmt.Printf("inside validate 9\n")
 
 	return o.Name
 }
 
 // SetName sets the property Name of the receiver using the given value.
 func (o *Namespace) SetName(name string) {
+	fmt.Printf("inside validate 10\n")
 
 	o.Name = name
 }
 
 // GetNamespace returns the Namespace of the receiver.
 func (o *Namespace) GetNamespace() string {
+	fmt.Printf("inside validate 11\n")
 
 	return o.Namespace
 }
 
 // SetNamespace sets the property Namespace of the receiver using the given value.
 func (o *Namespace) SetNamespace(namespace string) {
+	fmt.Printf("inside validate 12\n")
 
 	o.Namespace = namespace
 }
@@ -404,6 +416,8 @@ func (o *Namespace) DeepCopyInto(out *Namespace) {
 // Validate valides the current information stored into the structure.
 func (o *Namespace) Validate() error {
 
+	fmt.Printf("inside validate 1\n")
+
 	errors := elemental.Errors{}
 	requiredErrors := elemental.Errors{}
 
@@ -411,7 +425,8 @@ func (o *Namespace) Validate() error {
 		requiredErrors = requiredErrors.Append(err)
 	}
 
-	if err := elemental.ValidatePattern("name", o.Name, `^[a-zA-Z0-9-_/]+$`, `must only contain alpha numerical characters, '-' or '_'`, true); err != nil {
+	if err := elemental.ValidatePattern("name", o.Name, `^[a-zA-Z0-9-_/@.]+$`, `must only contain alpha numerical characters, '-' or '_' or "@" or "."`, true); err != nil {
+		fmt.Printf("inside validate 2 with error %v\n", err)
 		errors = errors.Append(err)
 	}
 
@@ -514,7 +529,7 @@ var NamespaceAttributesMap = map[string]elemental.AttributeSpecification{
 		Type:           "string",
 	},
 	"Name": {
-		AllowedChars:   `^[a-zA-Z0-9-_/]+$`,
+		AllowedChars:   `^[a-zA-Z0-9-_/@.]+$`,
 		AllowedChoices: []string{},
 		BSONFieldName:  "name",
 		ConvertedName:  "Name",
@@ -632,7 +647,7 @@ var NamespaceLowerCaseAttributesMap = map[string]elemental.AttributeSpecificatio
 		Type:           "string",
 	},
 	"name": {
-		AllowedChars:   `^[a-zA-Z0-9-_/]+$`,
+		AllowedChars:   `^[a-zA-Z0-9-_/@.]+$`,
 		AllowedChoices: []string{},
 		BSONFieldName:  "name",
 		ConvertedName:  "Name",

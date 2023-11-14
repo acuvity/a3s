@@ -43,8 +43,9 @@ attributes:
     stored: true
     required: true
     creation_only: true
-    allowed_chars: ^[a-zA-Z0-9-_/]+$
+    allowed_chars: ^[a-zA-Z0-9-_/@.]+$
     allowed_chars_message: must only contain alpha numerical characters, '-' or '_'
+      or "@" or "."
     example_value: mycompany
     getter: true
     setter: true

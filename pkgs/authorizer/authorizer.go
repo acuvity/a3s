@@ -184,7 +184,15 @@ func (a *authorizer) CheckAuthorization(ctx context.Context, claims []string, op
 		time.Hour+time.Duration(rand.Int63n(60*30))*time.Second,
 	)
 
-	return perms.Allows(operation, resource), nil
+	allowed := perms.Allows(operation, resource)
+	if allowed {
+		err := checkAndCreateUserNamespaaceIfNeeded(claims)
+		if err != nil {
+			return false, err
+		}
+	}
+
+	return allowed, nil
 }
 
 func hash(claims []string, remoteaddr string, id string, restrictions permissions.Restrictions) string {

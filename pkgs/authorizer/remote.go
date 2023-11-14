@@ -2,6 +2,7 @@ package authorizer
 
 import (
 	"context"
+	"fmt"
 
 	"go.aporeto.io/a3s/pkgs/api"
 	"go.aporeto.io/a3s/pkgs/permissions"
@@ -19,6 +20,7 @@ type remoteAuthorizer struct {
 // Updates of the namespace/authorization state comes from the websocket.
 func NewRemote(ctx context.Context, m manipulate.Manipulator, r permissions.Retriever, options ...Option) Authorizer {
 
+	fmt.Printf("here1 using local acuvity newRemote\n")
 	subscriber := maniphttp.NewSubscriber(
 		m,
 		maniphttp.SubscriberOptionRecursive(true),
