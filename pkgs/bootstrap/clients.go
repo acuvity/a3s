@@ -204,8 +204,6 @@ func MakeA3SRemoteAuth(
 	requiredIssuer string,
 	requiredAudience string,
 ) (*authenticator.Authenticator, authorizer.Authorizer, error) {
-
-	fmt.Printf("here from local makea3sremoteauth\n")
 	jwks, err := token.NewRemoteJWKS(
 		ctx,
 		maniphttp.ExtractClient(m),

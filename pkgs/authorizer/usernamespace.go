@@ -28,7 +28,6 @@ func createUserNamespaceIfNeeded(m manipulate.Manipulator, user string) error {
 	c, err := m.Count(mctx, api.NamespaceIdentity)
 
 	if err != nil {
-		fmt.Println("reached 1")
 
 		return fmt.Errorf("unable to check if user namespace exists: %w", err)
 	}
@@ -40,8 +39,6 @@ func createUserNamespaceIfNeeded(m manipulate.Manipulator, user string) error {
 	}
 
 	if c > 1 {
-		fmt.Println("reached 3")
-
 		return errors.New("more than one namespace / found for user" + user)
 	}
 
@@ -50,7 +47,6 @@ func createUserNamespaceIfNeeded(m manipulate.Manipulator, user string) error {
 
 	mctx = manipulate.NewContext(context.Background(), manipulate.ContextOptionNamespace("/users"))
 	if err := m.Create(mctx, ns); err != nil {
-		fmt.Println("reached 6")
 		return fmt.Errorf("unable to create user %s namespace: %w", user, err)
 
 	}
