@@ -411,7 +411,7 @@ func (o *Namespace) Validate() error {
 		requiredErrors = requiredErrors.Append(err)
 	}
 
-	if err := elemental.ValidatePattern("name", o.Name, `^[a-zA-Z0-9-_/]+$`, `must only contain alpha numerical characters, '-' or '_'`, true); err != nil {
+	if err := elemental.ValidatePattern("name", o.Name, `^[a-zA-Z0-9-_/@.]+$`, `must only contain alpha numerical characters, '-' or '_' or '@' or '.'`, true); err != nil {
 		errors = errors.Append(err)
 	}
 
@@ -514,7 +514,7 @@ var NamespaceAttributesMap = map[string]elemental.AttributeSpecification{
 		Type:           "string",
 	},
 	"Name": {
-		AllowedChars:   `^[a-zA-Z0-9-_/]+$`,
+		AllowedChars:   `^[a-zA-Z0-9-_/@.]+$`,
 		AllowedChoices: []string{},
 		BSONFieldName:  "name",
 		ConvertedName:  "Name",
@@ -632,7 +632,7 @@ var NamespaceLowerCaseAttributesMap = map[string]elemental.AttributeSpecificatio
 		Type:           "string",
 	},
 	"name": {
-		AllowedChars:   `^[a-zA-Z0-9-_/]+$`,
+		AllowedChars:   `^[a-zA-Z0-9-_/@.]+$`,
 		AllowedChoices: []string{},
 		BSONFieldName:  "name",
 		ConvertedName:  "Name",
