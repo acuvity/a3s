@@ -25,6 +25,7 @@ type NamespacesList []*Namespace
 
 // Identity returns the identity of the objects in the list.
 func (o NamespacesList) Identity() elemental.Identity {
+
 	return NamespaceIdentity
 }
 
@@ -41,7 +42,6 @@ func (o NamespacesList) Append(objects ...elemental.Identifiable) elemental.Iden
 	out := append(NamespacesList{}, o...)
 	for _, obj := range objects {
 		out = append(out, obj.(*Namespace))
-
 	}
 
 	return out
@@ -52,7 +52,6 @@ func (o NamespacesList) List() elemental.IdentifiablesList {
 
 	out := make(elemental.IdentifiablesList, len(o))
 	for i := 0; i < len(o); i++ {
-
 		out[i] = o[i]
 	}
 
@@ -123,16 +122,19 @@ func NewNamespace() *Namespace {
 
 // Identity returns the Identity of the object.
 func (o *Namespace) Identity() elemental.Identity {
+
 	return NamespaceIdentity
 }
 
 // Identifier returns the value of the object's unique identifier.
 func (o *Namespace) Identifier() string {
+
 	return o.ID
 }
 
 // SetIdentifier sets the value of the object's unique identifier.
 func (o *Namespace) SetIdentifier(id string) {
+
 	o.ID = id
 }
 
@@ -241,21 +243,25 @@ func (o *Namespace) SetCreateTime(createTime time.Time) {
 
 // GetName returns the Name of the receiver.
 func (o *Namespace) GetName() string {
+
 	return o.Name
 }
 
 // SetName sets the property Name of the receiver using the given value.
 func (o *Namespace) SetName(name string) {
+
 	o.Name = name
 }
 
 // GetNamespace returns the Namespace of the receiver.
 func (o *Namespace) GetNamespace() string {
+
 	return o.Namespace
 }
 
 // SetNamespace sets the property Namespace of the receiver using the given value.
 func (o *Namespace) SetNamespace(namespace string) {
+
 	o.Namespace = namespace
 }
 
@@ -397,6 +403,7 @@ func (o *Namespace) DeepCopyInto(out *Namespace) {
 
 // Validate valides the current information stored into the structure.
 func (o *Namespace) Validate() error {
+
 	errors := elemental.Errors{}
 	requiredErrors := elemental.Errors{}
 
@@ -404,7 +411,7 @@ func (o *Namespace) Validate() error {
 		requiredErrors = requiredErrors.Append(err)
 	}
 
-	if err := elemental.ValidatePattern("name", o.Name, `^[a-zA-Z0-9-_/@.]+$`, `must only contain alpha numerical characters, '-' or '_' or "@" or "."`, true); err != nil {
+	if err := elemental.ValidatePattern("name", o.Name, `^[a-zA-Z0-9-_/@.]+$`, `must only contain alpha numerical characters, '-' or '_' or '@' or '.'`, true); err != nil {
 		errors = errors.Append(err)
 	}
 

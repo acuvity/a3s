@@ -18,6 +18,7 @@ type remoteAuthorizer struct {
 // This is meant to be use by external bahamut service.
 // Updates of the namespace/authorization state comes from the websocket.
 func NewRemote(ctx context.Context, m manipulate.Manipulator, r permissions.Retriever, options ...Option) Authorizer {
+
 	subscriber := maniphttp.NewSubscriber(
 		m,
 		maniphttp.SubscriberOptionRecursive(true),
@@ -31,12 +32,10 @@ func NewRemote(ctx context.Context, m manipulate.Manipulator, r permissions.Retr
 
 	subscriber.Start(ctx, pcfg)
 
-	c := NewCreator(m)
 	return &remoteAuthorizer{
 		Authorizer: New(
 			ctx,
 			r,
-			c,
 			&webSocketPubSub{subscriber: subscriber},
 			options...,
 		),
