@@ -19,6 +19,7 @@ import (
 	"go.aporeto.io/a3s/internal/issuer/oidcissuer"
 	"go.aporeto.io/a3s/internal/issuer/remotea3sissuer"
 	"go.aporeto.io/a3s/internal/oidcceremony"
+	"go.aporeto.io/a3s/internal/usernamespace"
 	"go.aporeto.io/a3s/pkgs/api"
 	"go.aporeto.io/a3s/pkgs/permissions"
 	"go.aporeto.io/a3s/pkgs/token"
@@ -184,6 +185,11 @@ func (p *IssueProcessor) ProcessCreate(bctx bahamut.Context) (err error) {
 	)
 	if err != nil {
 		return err
+	}
+
+	// TODO: Move to a generic framework.
+	if err = usernamespace.Create(bctx.Context(), p.manipulator, idt.Identity); err != nil {
+		return fmt.Errorf("error creating user namespace %s", err)
 	}
 
 	req.Validity = time.Until(idt.ExpiresAt.Time).Round(time.Second).String()
