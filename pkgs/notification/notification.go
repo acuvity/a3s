@@ -3,15 +3,15 @@ package notification
 import (
 	"context"
 	"fmt"
+	"log/slog"
 
 	"go.aporeto.io/bahamut"
-	"go.uber.org/zap"
 )
 
 // A Message represents the content of a notification.
 type Message struct {
-	Type string `json:"t"`
 	Data any    `json:"d"`
+	Type string `json:"t"`
 }
 
 // Handler is the type of function that can be Registered
@@ -35,14 +35,14 @@ func Subscribe(ctx context.Context, pubsub bahamut.PubSubClient, topic string, h
 				go func(p *bahamut.Publication) {
 					msg := &Message{}
 					if err := p.Decode(&msg); err != nil {
-						zap.L().Error("Unable to decode notification message", zap.Error(err))
+						slog.Error("Unable to decode notification message", err)
 						return
 					}
 					handler(msg)
 				}(pub)
 
 			case err := <-errors:
-				zap.L().Error("Received error from nats in notification", zap.Error(err))
+				slog.Error("Received error from nats in notification", err)
 
 			case <-ctx.Done():
 				d()

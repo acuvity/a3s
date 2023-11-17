@@ -6,6 +6,7 @@ import (
 	"crypto/x509"
 	"errors"
 	"fmt"
+	"log/slog"
 	"net"
 	"net/http"
 	"net/url"
@@ -37,7 +38,6 @@ import (
 	"go.aporeto.io/manipulate"
 	"go.aporeto.io/manipulate/manipmongo"
 	"go.aporeto.io/tg/tglib"
-	"go.uber.org/zap"
 
 	gwpush "go.aporeto.io/bahamut/gateway/upstreamer/push"
 )
@@ -72,7 +72,8 @@ func main() {
 
 	if cfg.InitDB {
 		if err := createMongoDBAccount(cfg.MongoConf, cfg.InitDBUsername); err != nil {
-			zap.L().Fatal("Unable to create mongodb account", zap.Error(err))
+			slog.Error("Unable to create mongodb account", err)
+			os.Exit(1)
 		}
 
 		if !cfg.InitContinue {
@@ -82,7 +83,8 @@ func main() {
 
 	m := bootstrap.MakeMongoManipulator(cfg.MongoConf, &hasher.Hasher{}, api.Manager())
 	if err := indexes.Ensure(m, api.Manager(), "a3s"); err != nil {
-		zap.L().Fatal("Unable to ensure indexes", zap.Error(err))
+		slog.Error("Unable to ensure indexes", err)
+		os.Exit(1)
 	}
 
 	if err := manipmongo.EnsureIndex(m, elemental.MakeIdentity("oidccache", "oidccache"), mgo.Index{
@@ -90,7 +92,8 @@ func main() {
 		ExpireAfter: 1 * time.Minute,
 		Name:        "index_expiration_exp",
 	}); err != nil {
-		zap.L().Fatal("Unable to create exp expiration index for oidccache", zap.Error(err))
+		slog.Error("Unable to create exp expiration index for oidccache", err)
+		os.Exit(1)
 	}
 
 	if err := manipmongo.EnsureIndex(m, api.NamespaceDeletionRecordIdentity, mgo.Index{
@@ -98,47 +101,49 @@ func main() {
 		ExpireAfter: 24 * time.Hour,
 		Name:        "index_expiration_deletetime",
 	}); err != nil {
-		zap.L().Fatal("Unable to create expiration index for namesapce deletion records", zap.Error(err))
+		slog.Error("Unable to create expiration index for namesapce deletion records", err)
+		os.Exit(1)
 	}
 
 	if err := createRootNamespaceIfNeeded(m); err != nil {
-		zap.L().Fatal("Unable to handle root namespace", zap.Error(err))
+		slog.Error("Unable to handle root namespace", err)
+		os.Exit(1)
 	}
 
 	if cfg.Init {
 		if cfg.InitRootUserCAPath != "" {
 			initialized, err := initRootPermissions(ctx, m, cfg.InitRootUserCAPath, cfg.JWT.JWTIssuer, cfg.InitContinue)
 			if err != nil {
-				zap.L().Fatal("Unable to initialize root permissions", zap.Error(err))
-				return
+				slog.Error("Unable to initialize root permissions", err)
+				os.Exit(1)
 			}
 
 			if initialized {
-				zap.L().Info("Root auth initialized")
+				slog.Info("Root auth initialized")
 			}
 		}
 
 		if cfg.InitPlatformCAPath != "" {
 			initialized, err := initPlatformPermissions(ctx, m, cfg.InitPlatformCAPath, cfg.JWT.JWTIssuer, cfg.InitContinue)
 			if err != nil {
-				zap.L().Fatal("Unable to initialize platform permissions", zap.Error(err))
-				return
+				slog.Error("Unable to initialize platform permissions", err)
+				os.Exit(1)
 			}
 
 			if initialized {
-				zap.L().Info("Platform auth initialized")
+				slog.Info("Platform auth initialized")
 			}
 		}
 
 		if cfg.InitData != "" {
 			initialized, err := initData(ctx, m, cfg.InitData)
 			if err != nil {
-				zap.L().Fatal("Unable to init provisionning data", zap.Error(err))
-				return
+				slog.Error("Unable to init provisionning data", err)
+				os.Exit(1)
 			}
 
 			if initialized {
-				zap.L().Info("Initial provisionning initialized")
+				slog.Info("Initial provisionning initialized")
 			}
 		}
 
@@ -149,22 +154,25 @@ func main() {
 
 	jwtCert, jwtKey, err := cfg.JWT.JWTCertificate()
 	if err != nil {
-		zap.L().Fatal("Unable to get JWT certificate", zap.Error(err))
+		slog.Error("Unable to get JWT certificate", err)
+		os.Exit(1)
 	}
 
-	zap.L().Info("JWT info configured",
-		zap.String("iss", cfg.JWT.JWTIssuer),
-		zap.String("aud", cfg.JWT.JWTAudience),
+	slog.Info("JWT info configured",
+		"iss", cfg.JWT.JWTIssuer,
+		"aud", cfg.JWT.JWTAudience,
 	)
 
 	jwks := token.NewJWKS()
 	if err := jwks.AppendWithPrivate(jwtCert, jwtKey); err != nil {
-		zap.L().Fatal("unable to build JWKS", zap.Error(err))
+		slog.Error("unable to build JWKS", err)
+		os.Exit(1)
 	}
 
 	if cfg.MTLSHeader.Enabled {
 		if cfg.MTLSHeader.Passphrase == "" {
-			zap.L().Fatal("You must pass --mtls-header-passphrase when --mtls-header-enabled is set")
+			slog.Error("You must pass --mtls-header-passphrase when --mtls-header-enabled is set")
+			os.Exit(1)
 		}
 		var cipher string
 		switch len(cfg.MTLSHeader.Passphrase) {
@@ -175,9 +183,13 @@ func main() {
 		case 32:
 			cipher = "AES-256"
 		default:
-			zap.L().Fatal("The value for --mtls-header-passphrase must be 16, 24 or 32 bytes long to select AES-128, AES-192 or AES-256")
+			slog.Error("The value for --mtls-header-passphrase must be 16, 24 or 32 bytes long to select AES-128, AES-192 or AES-256")
+			os.Exit(1)
 		}
-		zap.L().Info("MTLS header trust set", zap.String("header", cfg.MTLSHeader.HeaderKey), zap.String("cipher", cipher))
+		slog.Info("MTLS header trust set",
+			"header", cfg.MTLSHeader.HeaderKey,
+			"cipher", cipher,
+		)
 	}
 
 	publicAPIURL := cfg.PublicAPIURL
@@ -185,7 +197,7 @@ func main() {
 		publicAPIURL = fmt.Sprintf("https://%s", getNotifierEndpoint(cfg.ListenAddress))
 	}
 
-	zap.L().Info("Announced public API", zap.String("url", publicAPIURL))
+	slog.Info("Announced public API", "url", publicAPIURL)
 	cookiePolicy := http.SameSiteDefaultMode
 	switch cfg.JWT.JWTCookiePolicy {
 	case "strict":
@@ -195,44 +207,45 @@ func main() {
 	case "none":
 		cookiePolicy = http.SameSiteNoneMode
 	}
-	zap.L().Info("Cookie policy set", zap.String("policy", cfg.JWT.JWTCookiePolicy))
+	slog.Info("Cookie policy set", "policy", cfg.JWT.JWTCookiePolicy)
 
 	cookieDomain := cfg.JWT.JWTCookieDomain
 	if cookieDomain == "" {
 		u, err := url.Parse(publicAPIURL)
 		if err != nil {
-			zap.L().Fatal("Unable to parse publicAPIURL", zap.Error(err))
+			slog.Error("Unable to parse publicAPIURL", err)
+			os.Exit(1)
 		}
 		cookieDomain = u.Hostname()
 	}
-	zap.L().Info("Cookie domain set", zap.String("domain", cookieDomain))
+	slog.Info("Cookie domain set", "domain", cookieDomain)
 
 	trustedIssuers, err := cfg.JWT.TrustedIssuers()
 	if err != nil {
-		zap.L().Fatal("Unable to build trusted issuers list", zap.Error(err))
+		slog.Error("Unable to build trusted issuers list", err)
+		os.Exit(1)
 	}
 	if len(trustedIssuers) > 0 {
-		zap.L().Info("Trusted issuers set",
-			zap.Strings(
-				"issuers",
-				func() []string {
-					out := make([]string, len(trustedIssuers))
-					for i, o := range trustedIssuers {
-						out[i] = o.URL
-					}
-					return out
-				}(),
-			),
+		slog.Info("Trusted issuers set",
+			"issuers",
+			func() []string {
+				out := make([]string, len(trustedIssuers))
+				for i, o := range trustedIssuers {
+					out[i] = o.URL
+				}
+				return out
+			}(),
 		)
 	}
 
 	if cfg.NATSURL == "" {
 		nserver, err := bootstrap.MakeNATSServer(&cfg.NATSPublisherConf.NATSConf)
 		if err != nil {
-			zap.L().Fatal("Unable to make nats server", zap.Error(err))
+			slog.Error("Unable to make nats server", err)
+			os.Exit(1)
 		}
 		nserver.Start()
-		zap.L().Info("NATS server started", zap.String("url", cfg.NATSURL))
+		slog.Info("NATS server started", "url", cfg.NATSURL)
 	}
 
 	pubsub := bootstrap.MakeNATSClient(cfg.NATSConf)
@@ -291,12 +304,12 @@ func main() {
 			)...,
 		)
 
-		zap.L().Info(
+		slog.Info(
 			"Gateway announcement configured",
-			zap.String("address", gwAnnouncedAddress),
-			zap.String("topic", cfg.GWTopic),
-			zap.String("prefix", cfg.GWAnnouncePrefix),
-			zap.Any("overrides", cfg.GWOverridePrivate),
+			"address", gwAnnouncedAddress,
+			"topic", cfg.GWTopic,
+			"prefix", cfg.GWAnnouncePrefix,
+			"overrides", cfg.GWOverridePrivate,
 		)
 	}
 
@@ -304,7 +317,8 @@ func main() {
 	bmanipPool := x509.NewCertPool()
 	bmanipPool.AppendCertsFromPEM(certData)
 	if err != nil {
-		zap.L().Fatal("Unable to read server TLS certificate", zap.Error(err))
+		slog.Error("Unable to read server TLS certificate", err)
+		os.Exit(1)
 	}
 	bmanipMaker := bearermanip.Configure(
 		ctx,
@@ -317,16 +331,19 @@ func main() {
 	server := bahamut.New(opts...)
 
 	if err := server.RegisterCustomRouteHandler("/.well-known/jwks.json", makeJWKSHandler(jwks)); err != nil {
-		zap.L().Fatal("Unable to install jwks handler", zap.Error(err))
+		slog.Error("Unable to install jwks handler", err)
+		os.Exit(1)
 	}
 
 	if err := server.RegisterCustomRouteHandler("/ui/login.html", makeUILoginHandler(publicAPIURL)); err != nil {
-		zap.L().Fatal("Unable to install UI login handler", zap.Error(err))
+		slog.Error("Unable to install UI login handler", err)
+		os.Exit(1)
 	}
 
 	// Reusing `makeUILoginHandler` since we are serving the same html file. The UI will render the content based on the URL.
 	if err := server.RegisterCustomRouteHandler("/ui/request.html", makeUILoginHandler(publicAPIURL)); err != nil {
-		zap.L().Fatal("Unable to install UI request handler", zap.Error(err))
+		slog.Error("Unable to install UI request handler", err)
+		os.Exit(1)
 	}
 
 	bahamut.RegisterProcessorOrDie(server,
@@ -392,7 +409,7 @@ func createMongoDBAccount(cfg conf.MongoConf, username string) error {
 		return fmt.Errorf("unable to upsert the user: %w", err)
 	}
 
-	zap.L().Info("Successfully created mongodb account", zap.String("user", username))
+	slog.Info("Successfully created mongodb account", "user", username)
 
 	return nil
 }
@@ -705,7 +722,7 @@ func makeNamespaceCleaner(ctx context.Context, m manipulate.Manipulator) notific
 			)
 
 			if err := m.DeleteMany(mctx, i); err != nil {
-				zap.L().Error("Unable to clean namespace", zap.String("ns", ns), zap.Error(err))
+				slog.Error("Unable to clean namespace", "ns", ns, err)
 			}
 		}
 	}
@@ -715,21 +732,25 @@ func getNotifierEndpoint(listenAddress string) string {
 
 	_, port, err := net.SplitHostPort(listenAddress)
 	if err != nil {
-		zap.L().Fatal("Unable to parse listen address", zap.Error(err))
+		slog.Error("Unable to parse listen address", err)
+		os.Exit(1)
 	}
 
 	host, err := os.Hostname()
 	if err != nil {
-		zap.L().Fatal("Unable to retrieve hostname", zap.Error(err))
+		slog.Error("Unable to retrieve hostname", err)
+		os.Exit(1)
 	}
 
 	addrs, err := net.LookupHost(host)
 	if err != nil {
-		zap.L().Fatal("Unable to resolve hostname", zap.Error(err))
+		slog.Error("Unable to resolve hostname", err)
+		os.Exit(1)
 	}
 
 	if len(addrs) == 0 {
-		zap.L().Fatal("Unable to find any IP in resolved hostname")
+		slog.Error("Unable to find any IP in resolved hostname")
+		os.Exit(1)
 	}
 
 	var endpoint string

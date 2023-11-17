@@ -4,7 +4,9 @@ import (
 	"context"
 	"crypto/tls"
 	"errors"
+	"log/slog"
 	"net/http"
+	"os"
 
 	"github.com/fatih/structs"
 	"github.com/opentracing/opentracing-go"
@@ -14,8 +16,6 @@ import (
 	"go.aporeto.io/bahamut/gateway/upstreamer/push"
 	"go.aporeto.io/elemental"
 	"go.aporeto.io/manipulate"
-	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
 )
 
 // ConfigureBahamut returns a list of bahamut.Option based on provided configuration.
@@ -32,10 +32,7 @@ func ConfigureBahamut(
 
 	modelManagers := map[int]elemental.ModelManager{0: apiManager, 1: apiManager}
 
-	l, err := zap.NewStdLogAt(zap.L(), zapcore.DebugLevel)
-	if err != nil {
-		zap.L().Fatal("Unable to create logger for bahamut HTTP server", zap.Error(err))
-	}
+	l := slog.NewLogLogger(slog.Default().Handler(), slog.LevelDebug)
 
 	// Default options.
 	opts = []bahamut.Option{
@@ -59,11 +56,12 @@ func ConfigureBahamut(
 			bahamut.OptMaxConnection(c.MaxConnections),
 		)
 
-		zap.L().Info("Max TCP connections", zap.Int("max", c.MaxConnections))
+		slog.Info("Max TCP connections", "max", c.MaxConnections)
 
 		tlscfg, err := c.TLSConfig()
 		if err != nil {
-			zap.L().Fatal("Unable to configure tls", zap.Error(err))
+			slog.Error("Unable to configure tls", err)
+			os.Exit(1)
 		}
 
 		if tlscfg != nil {
@@ -88,9 +86,9 @@ func ConfigureBahamut(
 					),
 				),
 			)
-			zap.L().Info("CORS origin configured",
-				zap.String("default", c.CORSDefaultOrigin),
-				zap.Strings("additional", c.CORSAdditionalOrigins),
+			slog.Info("CORS origin configured",
+				"default", c.CORSDefaultOrigin,
+				"additional", c.CORSAdditionalOrigins,
 			)
 		}
 	}
@@ -117,9 +115,9 @@ func ConfigureBahamut(
 		c := f.Value().(conf.RateLimitingConf)
 		if c.RateLimitingEnabled {
 			opts = append(opts, bahamut.OptRateLimiting(float64(c.RateLimitingRPS), c.RateLimitingBurst))
-			zap.L().Info("Rate limit configured",
-				zap.Int("rps", c.RateLimitingRPS),
-				zap.Int("burst", c.RateLimitingBurst),
+			slog.Info("Rate limit configured",
+				"rps", c.RateLimitingRPS,
+				"burst", c.RateLimitingBurst,
 			)
 		}
 	}
@@ -128,10 +126,10 @@ func ConfigureBahamut(
 		c := f.Value().(conf.HTTPTimeoutsConf)
 		opts = append(opts, bahamut.OptTimeouts(c.TimeoutRead, c.TimeoutWrite, c.TimeoutIdle))
 
-		zap.L().Debug("Timeouts configured",
-			zap.Duration("read", c.TimeoutRead),
-			zap.Duration("write", c.TimeoutWrite),
-			zap.Duration("idle", c.TimeoutIdle),
+		slog.Debug("Timeouts configured",
+			"read", c.TimeoutRead,
+			"write", c.TimeoutWrite,
+			"idle", c.TimeoutIdle,
 		)
 	}
 
@@ -176,10 +174,10 @@ func MakeBahamutGatewayNotifier(
 		bahamut.OptPreStopHook(nw.MakeStopHook()),
 	)
 
-	zap.L().Info(
+	slog.Info(
 		"Gateway topic set",
-		zap.String("topic", gatewayTopic),
-		zap.String("service", serviceName),
+		"topic", gatewayTopic,
+		"service", serviceName,
 	)
 
 	return opts

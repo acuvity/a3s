@@ -3,6 +3,7 @@ package authcmd
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"os"
 	"time"
@@ -13,7 +14,6 @@ import (
 	"go.aporeto.io/a3s/pkgs/permissions"
 	"go.aporeto.io/a3s/pkgs/token"
 	"go.aporeto.io/manipulate/manipcli"
-	"go.uber.org/zap"
 )
 
 type oidcAuthData struct {
@@ -128,7 +128,8 @@ func startOIDCCallbackServer(srvCtx context.Context, out chan oidcAuthData) {
 	go func() {
 		if err := server.ListenAndServe(); err != nil {
 			if err != http.ErrServerClosed {
-				zap.L().Fatal("Unable to start temporary webserver", zap.Error(err))
+				slog.Error("Unable to start temporary webserver", err)
+				os.Exit(1)
 			}
 		}
 	}()

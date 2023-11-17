@@ -3,13 +3,13 @@ package jobs
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"math/rand"
 	"time"
 
 	"go.aporeto.io/a3s/pkgs/api"
 	"go.aporeto.io/elemental"
 	"go.aporeto.io/manipulate"
-	"go.uber.org/zap"
 )
 
 const (
@@ -43,9 +43,9 @@ func ScheduleOrphanedObjectsDeleteJob(
 
 		case <-ticker.C:
 			if err := DeleteOrphanedObjects(ctx, nsm, m, identities); err != nil {
-				zap.L().Error(
+				slog.Error(
 					"Unable to complete job DeleteOrphanedObjects",
-					zap.Error(err),
+					err,
 				)
 			}
 

@@ -1,13 +1,13 @@
 package indexes
 
 import (
+	"log/slog"
 	"strings"
 
 	"github.com/globalsign/mgo"
 	"go.aporeto.io/elemental"
 	"go.aporeto.io/manipulate"
 	"go.aporeto.io/manipulate/manipmongo"
-	"go.uber.org/zap"
 )
 
 // Ensure ensures the indexes declared in the specs are aligned.
@@ -17,7 +17,7 @@ func Ensure(m manipulate.Manipulator, model elemental.ModelManager, packageName 
 
 	for ident, mIndexes := range indexes {
 		if err = manipmongo.EnsureIndex(m, ident, mIndexes...); err != nil {
-			zap.L().Warn("Unable to ensure index", zap.Error(err))
+			slog.Warn("Unable to ensure index", err)
 		}
 	}
 
