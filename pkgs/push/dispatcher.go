@@ -2,6 +2,7 @@ package push
 
 import (
 	"fmt"
+	"log/slog"
 
 	"go.aporeto.io/a3s/pkgs/api"
 	"go.aporeto.io/a3s/pkgs/authorizer"
@@ -9,7 +10,6 @@ import (
 	"go.aporeto.io/a3s/pkgs/token"
 	"go.aporeto.io/bahamut"
 	"go.aporeto.io/elemental"
-	"go.uber.org/zap"
 )
 
 var pushSessionIdentity = "pushsession"
@@ -54,7 +54,7 @@ func (g *dispatcher) OnPushSessionInit(session bahamut.PushSession) (bool, error
 	)
 
 	if err != nil {
-		zap.L().Error("Unable to authorize session", zap.Error(err))
+		slog.Error("Unable to authorize session", err)
 		return false, err
 	}
 
@@ -63,12 +63,12 @@ func (g *dispatcher) OnPushSessionInit(session bahamut.PushSession) (bool, error
 
 // OnPushSessionStart is part of the bahamut.PushDispatchHandler interface
 func (g *dispatcher) OnPushSessionStart(session bahamut.PushSession) {
-	zap.L().Debug("Push session started", zap.Strings("claims", session.Claims()))
+	slog.Debug("Push session started", "claims", session.Claims())
 }
 
 // OnPushSessionStop is part of the bahamut.PushDispatchHandler interface
 func (g *dispatcher) OnPushSessionStop(session bahamut.PushSession) {
-	zap.L().Debug("Push session stopped", zap.Strings("claims", session.Claims()))
+	slog.Debug("Push session stopped", "claims", session.Claims())
 }
 
 // SummarizeEvent is part of the bahamut.PushDispatchHandler interface

@@ -3,6 +3,7 @@ package authcmd
 import (
 	"crypto/sha256"
 	"fmt"
+	"log/slog"
 	"os"
 	"path"
 	"time"
@@ -14,7 +15,6 @@ import (
 	"go.aporeto.io/a3s/pkgs/cli/helpers"
 	"go.aporeto.io/a3s/pkgs/token"
 	"go.aporeto.io/manipulate/manipcli"
-	"go.uber.org/zap"
 )
 
 func makeAutoCmd(mmaker manipcli.ManipulatorMaker) *cobra.Command {
@@ -105,7 +105,7 @@ func HandleAutoAuth(
 ) error {
 
 	if viper.GetString("token") != "" {
-		zap.L().Debug("autoauth: using --token")
+		slog.Debug("autoauth: using --token")
 		return nil
 	}
 
@@ -154,7 +154,7 @@ func HandleAutoAuth(
 
 		switch method {
 		case "mtls", "MTLS":
-			zap.L().Debug("autoauth: retrieving token using autoauth.mtls")
+			slog.Debug("autoauth: retrieving token using autoauth.mtls")
 			t, err := GetMTLSToken(
 				mmaker,
 				os.ExpandEnv(viper.GetString("autoauth.mtls.cert")),
@@ -174,7 +174,7 @@ func HandleAutoAuth(
 			data = []byte(t)
 
 		case "ldap", "LDAP":
-			zap.L().Debug("autoauth: retrieving token using autoauth.ldap")
+			slog.Debug("autoauth: retrieving token using autoauth.ldap")
 			t, err := GetLDAPToken(
 				mmaker,
 				helpers.ReadFlag("username: ", "autoauth.ldap.user", false),
@@ -193,7 +193,7 @@ func HandleAutoAuth(
 			data = []byte(t)
 
 		case "http", "HTTP":
-			zap.L().Debug("autoauth: retrieving token using autoauth.http")
+			slog.Debug("autoauth: retrieving token using autoauth.http")
 			t, err := GetHTTPToken(
 				mmaker,
 				helpers.ReadFlag("username: ", "autoauth.http.user", false),
@@ -222,7 +222,10 @@ func HandleAutoAuth(
 		if err := os.WriteFile(tokenCache, data, 0600); err != nil {
 			return fmt.Errorf("unable to write token cache: %w", err)
 		}
-		zap.L().Debug("autoauth: token cached", zap.String("path", tokenCache))
+		slog.Debug("autoauth: token cached",
+			"path",
+			tokenCache,
+		)
 	}
 
 	idt := &token.IdentityToken{}
@@ -232,14 +235,14 @@ func HandleAutoAuth(
 	}
 
 	if time.Until(idt.ExpiresAt.Time) <= time.Duration(idt.ExpiresAt.Unix()/2) {
-		zap.L().Debug("autoauth: token about to expire. removing", zap.String("path", tokenCache))
+		slog.Debug("autoauth: token about to expire. removing", "path", tokenCache)
 		if err := os.Remove(tokenCache); err != nil {
 			return fmt.Errorf("unable to clean currently cached token: %w", err)
 		}
 		return HandleAutoAuth(mmaker, method, overrideAudience, overrideCloak, refresh, false)
 	}
 
-	zap.L().Debug("autoauth: token set from cache", zap.String("path", tokenCache))
+	slog.Debug("autoauth: token set from cache", "path", tokenCache)
 	viper.Set("token", string(data))
 
 	return nil

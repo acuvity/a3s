@@ -1,6 +1,7 @@
 package processors
 
 import (
+	"log/slog"
 	"net/http"
 	"strings"
 	"time"
@@ -12,7 +13,6 @@ import (
 	"go.aporeto.io/bahamut"
 	"go.aporeto.io/elemental"
 	"go.aporeto.io/manipulate"
-	"go.uber.org/zap"
 )
 
 // A NamespacesProcessor is a bahamut processor for Namespaces.
@@ -80,9 +80,9 @@ func (p *NamespacesProcessor) ProcessDelete(bctx bahamut.Context) error {
 			ndr.DeleteTime = time.Now()
 
 			if err := p.manipulator.Create(manipulate.NewContext(bctx.Context()), ndr); err != nil {
-				zap.L().Error("Unable to create namespace deletion record",
-					zap.String("namespace", ndr.Namespace),
-					zap.Error(err),
+				slog.Error("Unable to create namespace deletion record",
+					"namespace", ndr.Namespace,
+					err,
 				)
 			}
 

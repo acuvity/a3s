@@ -1,10 +1,10 @@
 module go.aporeto.io/a3s
 
-go 1.20
+go 1.21
 
 require (
 	go.aporeto.io/bahamut v1.148.1-0.20230918174422-3c4160cac883
-	go.aporeto.io/elemental v1.123.1-0.20230918174256-2fe0520e6a71
+	go.aporeto.io/elemental v1.123.1-0.20231116202419-3d09d6d39dcc
 	go.aporeto.io/manipulate v1.135.1-0.20230918174435-3581994d0a01
 	go.aporeto.io/tg v1.50.1
 )
@@ -23,6 +23,7 @@ require (
 	github.com/golang-jwt/jwt/v4 v4.4.3
 	github.com/hokaccha/go-prettyjson v0.0.0-20211117102719-0474bc63780f
 	github.com/karlseguin/ccache/v2 v2.0.8
+	github.com/lmittmann/tint v1.0.3
 	github.com/mdp/qrterminal v1.0.1
 	github.com/mitchellh/copystructure v1.2.0
 	github.com/mitchellh/go-homedir v1.1.0
@@ -38,7 +39,6 @@ require (
 	github.com/uber/jaeger-client-go v2.30.0+incompatible
 	github.com/ugorji/go/codec v1.2.11
 	go.uber.org/automaxprocs v1.5.3
-	go.uber.org/zap v1.26.0
 	golang.org/x/oauth2 v0.13.0
 	golang.org/x/term v0.13.0
 )
@@ -117,6 +117,7 @@ require (
 	go.aporeto.io/wsc v1.52.0 // indirect
 	go.uber.org/atomic v1.11.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
+	go.uber.org/zap v1.26.0 // indirect
 	golang.org/x/crypto v0.14.0 // indirect
 	golang.org/x/exp v0.0.0-20231006140011-7918f672742d // indirect
 	golang.org/x/net v0.17.0 // indirect

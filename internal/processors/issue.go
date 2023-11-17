@@ -34,15 +34,15 @@ import (
 type IssueProcessor struct {
 	manipulator          manipulate.Manipulator
 	jwks                 *token.JWKS
-	maxValidity          time.Duration
-	defaultValidity      time.Duration
 	audience             string
-	cookieSameSitePolicy http.SameSite
 	cookieDomain         string
 	issuer               string
-	mtlsHeaderEnabled    bool
 	mtlsHeaderKey        string
 	mtlsHeaderPass       string
+	maxValidity          time.Duration
+	defaultValidity      time.Duration
+	cookieSameSitePolicy http.SameSite
+	mtlsHeaderEnabled    bool
 }
 
 // NewIssueProcessor returns a new IssueProcessor.

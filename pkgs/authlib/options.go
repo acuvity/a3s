@@ -7,11 +7,11 @@ import (
 )
 
 type config struct {
-	validity     time.Duration
 	opaque       map[string]string
-	audience     []string
 	restrictions permissions.Restrictions
+	audience     []string
 	cloak        []string
+	validity     time.Duration
 	refresh      bool
 }
 

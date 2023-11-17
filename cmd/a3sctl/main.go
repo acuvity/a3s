@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"fmt"
+	"log/slog"
 	"os"
 	"path"
 	"strings"
@@ -18,7 +19,6 @@ import (
 	"go.aporeto.io/a3s/pkgs/cli/authcmd"
 	"go.aporeto.io/a3s/pkgs/conf"
 	"go.aporeto.io/manipulate/manipcli"
-	"go.uber.org/zap"
 )
 
 var (
@@ -120,16 +120,18 @@ func initCobra() {
 
 	home, err := homedir.Dir()
 	if err != nil {
-		zap.L().Fatal("unable to find home dir", zap.Error(err))
+		slog.Error("unable to find home dir", err)
+		os.Exit(1)
 	}
 
 	configPath := path.Join(home, ".config", "a3sctl")
 	if _, err := os.Stat(configPath); os.IsNotExist(err) {
 		if err := os.Mkdir(configPath, os.ModePerm); err != nil {
-			zap.L().Fatal("unable to create config folder",
-				zap.String("path", configPath),
-				zap.Error(err),
+			slog.Error("unable to create config folder",
+				"path", configPath,
+				err,
 			)
+			os.Exit(1)
 		}
 	}
 
@@ -139,20 +141,22 @@ func initCobra() {
 
 	if cfgFile != "" {
 		if _, err := os.Stat(cfgFile); os.IsNotExist(err) {
-			zap.L().Fatal("config file does not exist", zap.Error(err))
+			slog.Error("config file does not exist", err)
+			os.Exit(1)
 		}
 
 		viper.SetConfigType("yaml")
 		viper.SetConfigFile(cfgFile)
 
 		if err = viper.ReadInConfig(); err != nil {
-			zap.L().Fatal("unable to read config",
-				zap.String("path", cfgFile),
-				zap.Error(err),
+			slog.Error("unable to read config",
+				"path", cfgFile,
+				err,
 			)
+			os.Exit(1)
 		}
 
-		zap.L().Debug("using config file", zap.String("path", cfgFile))
+		slog.Debug("using config file", "path", cfgFile)
 		return
 	}
 
@@ -172,11 +176,10 @@ func initCobra() {
 
 	if err = viper.ReadInConfig(); err != nil {
 		if !errors.As(err, &viper.ConfigFileNotFoundError{}) {
-			zap.L().Fatal("unable to read config",
-				zap.Error(err),
-			)
+			slog.Error("unable to read config", err)
+			os.Exit(1)
 		}
 	}
 
-	zap.L().Debug("using config name", zap.String("name", cfgName))
+	slog.Debug("using config name", "name", cfgName)
 }

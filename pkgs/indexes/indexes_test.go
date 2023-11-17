@@ -11,14 +11,14 @@ import (
 
 func TestGetIndexes(t *testing.T) {
 	type args struct {
-		packageName string
-		identity    elemental.Identity
 		model       elemental.ModelManager
+		identity    elemental.Identity
+		packageName string
 	}
 	tests := []struct {
-		name         string
-		args         args
 		wantMIndexes map[elemental.Identity][]mgo.Index
+		args         args
+		name         string
 	}{
 		{
 			name: "all indexes",

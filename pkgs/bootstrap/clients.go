@@ -4,6 +4,8 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
+	"log/slog"
+	"os"
 	"time"
 
 	"go.aporeto.io/a3s/pkgs/authenticator"
@@ -19,7 +21,6 @@ import (
 	"go.aporeto.io/manipulate/maniphttp"
 	"go.aporeto.io/manipulate/manipmongo"
 	"go.aporeto.io/tg/tglib"
-	"go.uber.org/zap"
 )
 
 // MakeNATSClient returns a connected pubsub server client.
@@ -35,7 +36,8 @@ func MakeNATSClient(cfg conf.NATSConf) bahamut.PubSubClient {
 
 	tlscfg, err := cfg.TLSConfig()
 	if err != nil {
-		zap.L().Fatal("Unable to prepare TLS config for nats", zap.Error(err))
+		slog.Error("Unable to prepare TLS config for nats", err)
+		os.Exit(1)
 	}
 
 	if tlscfg != nil {
@@ -48,10 +50,11 @@ func MakeNATSClient(cfg conf.NATSConf) bahamut.PubSubClient {
 	defer cancel()
 
 	if err := pubsub.Connect(ctx); err != nil {
-		zap.L().Fatal("Could not connect to nats", zap.Error(err))
+		slog.Error("Could not connect to nats", err)
+		os.Exit(1)
 	}
 
-	zap.L().Info("Connected to nats", zap.String("server", cfg.NATSURL))
+	slog.Info("Connected to nats", "server", cfg.NATSURL)
 
 	return pubsub
 }
@@ -85,11 +88,11 @@ func MakeMongoManipulator(cfg conf.MongoConf, hasher sharder.Hasher, model eleme
 			manipmongo.OptionTranslateKeysFromModelManager(model),
 			manipmongo.OptionDefaultRetryFunc(func(i manipulate.RetryInfo) error {
 				info := i.(manipmongo.RetryInfo)
-				zap.L().Debug("mongo manipulator retry",
-					zap.Int("try", info.Try()),
-					zap.String("operation", string(info.Operation)),
-					zap.String("identity", info.Identity.Name),
-					zap.Error(info.Err()),
+				slog.Debug("mongo manipulator retry",
+					"try", info.Try(),
+					"operation", string(info.Operation),
+					"identity", info.Identity.Name,
+					info.Err(),
 				)
 				return nil
 			}),
@@ -106,7 +109,8 @@ func MakeMongoManipulator(cfg conf.MongoConf, hasher sharder.Hasher, model eleme
 
 	tlscfg, err := cfg.TLSConfig()
 	if err != nil {
-		zap.L().Fatal("Unable to prepare TLS config for mongodb", zap.Error(err))
+		slog.Error("Unable to prepare TLS config for mongodb", err)
+		os.Exit(1)
 	}
 
 	if tlscfg != nil {
@@ -116,20 +120,22 @@ func MakeMongoManipulator(cfg conf.MongoConf, hasher sharder.Hasher, model eleme
 	if cfg.MongoAttrEncryptKey != "" {
 		encrypter, err := elemental.NewAESAttributeEncrypter(cfg.MongoAttrEncryptKey)
 		if err != nil {
-			zap.L().Fatal("Unable to create mongodb attribute encrypter", zap.Error(err))
+			slog.Error("Unable to create mongodb attribute encrypter", err)
+			os.Exit(1)
 		}
 		opts = append(opts, manipmongo.OptionAttributeEncrypter(encrypter))
-		zap.L().Info("Attribute encryption", zap.String("status", "enabled"))
+		slog.Info("Attribute encryption", "status", "enabled")
 	} else {
-		zap.L().Warn("Attribute encryption", zap.String("status", "disabled"))
+		slog.Warn("Attribute encryption", "status", "disabled")
 	}
 
 	m, err := manipmongo.New(cfg.MongoURL, cfg.MongoDBName, opts...)
 	if err != nil {
-		zap.L().Fatal("Unable to connect to mongo", zap.Error(err))
+		slog.Error("Unable to connect to mongo", err)
+		os.Exit(1)
 	}
 
-	zap.L().Info("Connected to mongodb", zap.String("url", cfg.MongoURL), zap.String("db", cfg.MongoDBName))
+	slog.Info("Connected to mongodb", "url", cfg.MongoURL, "db", cfg.MongoDBName)
 
 	return m
 }
@@ -174,11 +180,11 @@ func MakeA3SManipulator(ctx context.Context, a3sConfig conf.A3SClientConf) (mani
 		maniphttp.OptionTLSConfig(tlsConfig),
 		maniphttp.OptionDefaultRetryFunc(func(i manipulate.RetryInfo) error {
 			info := i.(maniphttp.RetryInfo)
-			zap.L().Debug("a3s manipulator retry",
-				zap.Int("try", info.Try()),
-				zap.String("method", info.Method),
-				zap.String("url", info.URL),
-				zap.Error(info.Err()),
+			slog.Debug("a3s manipulator retry",
+				"try", info.Try(),
+				"method", info.Method,
+				"url", info.URL,
+				info.Err(),
 			)
 			return nil
 		}),

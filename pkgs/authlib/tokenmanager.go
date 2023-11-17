@@ -2,10 +2,10 @@ package authlib
 
 import (
 	"context"
+	"log/slog"
 	"time"
 
 	"go.aporeto.io/manipulate"
-	"go.uber.org/zap"
 )
 
 var tickDuration = 1 * time.Minute
@@ -16,8 +16,8 @@ type TokenIssuerFunc func(context.Context, time.Duration) (string, error)
 
 // A PeriodicTokenManager issues an renew tokens periodically.
 type PeriodicTokenManager struct {
-	validity   time.Duration
 	issuerFunc TokenIssuerFunc
+	validity   time.Duration
 }
 
 // NewPeriodicTokenManager returns a new PeriodicTokenManager backed by midgard.
@@ -60,7 +60,7 @@ func (m *PeriodicTokenManager) Run(ctx context.Context, tokenCh chan string) {
 			cancel()
 
 			if err != nil {
-				zap.L().Error("Unable to renew token", zap.Error(err))
+				slog.Error("Unable to renew token", err)
 				break
 			}
 
