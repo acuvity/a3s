@@ -506,7 +506,7 @@ func TestDelete(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(preWriteHookCalled, ShouldBeTrue)
 			So(preWriteObj, ShouldNotBeNil)
-			So(preWriteOrig, ShouldBeNil)
+			So(preWriteOrig, ShouldNotBeNil)
 			So(postWriteHookCalled, ShouldBeTrue)
 			So(postWriteObj, ShouldNotBeNil)
 		})
