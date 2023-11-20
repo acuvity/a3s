@@ -193,7 +193,7 @@ func Delete(bctx bahamut.Context, m manipulate.Manipulator, obj elemental.Identi
 	bctx.SetOutputData(obj)
 
 	if cfg.preHook != nil {
-		if err := cfg.preHook(obj, nil); err != nil {
+		if err := cfg.preHook(obj, obj); err != nil {
 			return ErrPreWriteHook{Err: err}
 		}
 	}
