@@ -14,11 +14,13 @@ import (
 
 // System constants
 const (
-	namespaceUsers   = "/users"
-	emailClaimPrefix = "email="
+	namespaceUsers    = "/users"
+	emailClaimPrefix  = "email="
+	systemClaimPrefix = "@"
 )
 
-func getEmailClaim(claims []string) (string, bool) {
+// getEmailFromClaims gets the email from claims. returns false if not found.
+func getEmailFromClaims(claims []string) (string, bool) {
 	for i := 0; i < len(claims); i++ {
 		if strings.HasPrefix(claims[i], emailClaimPrefix) {
 			email := strings.TrimPrefix(claims[i], emailClaimPrefix)
@@ -28,16 +30,31 @@ func getEmailClaim(claims []string) (string, bool) {
 	return "", false
 }
 
-// Create will create a user namespace.
-func Create(ctx context.Context, manipulator manipulate.Manipulator, claims []string) error {
+// getAuthzClaims returns subset of claims which will be used as a subject for authz.
+func getAuthzClaims(claims []string) []string {
+	authzClaims := []string{}
+	for i := 0; i < len(claims); i++ {
+		if strings.HasPrefix(claims[i], systemClaimPrefix) {
+			authzClaims = append(authzClaims, claims[i])
+		} else if strings.HasPrefix(claims[i], emailClaimPrefix) {
+			authzClaims = append(authzClaims, claims[i])
+		}
+	}
+	return authzClaims
+}
 
-	email, ok := getEmailClaim(claims)
+// Create will create a user namespace.
+func Create(ctx context.Context, manipulator manipulate.Manipulator, issuer string, claims []string) error {
+
+	email, ok := getEmailFromClaims(claims)
 	if !ok {
 		return nil
 	}
 
+	namespaceName := namespaceUsers + "/" + email
+
 	ns := api.NewNamespace()
-	ns.Name = namespaceUsers + "/" + email
+	ns.Name = namespaceName
 	ns.Namespace = namespaceUsers
 	ns.Description = "Namespace for user " + email
 	ns.CreateTime = time.Now()
@@ -47,9 +64,30 @@ func Create(ctx context.Context, manipulator manipulate.Manipulator, claims []st
 	}
 
 	mctx := manipulate.NewContext(ctx)
-	if err := manipulator.Create(mctx, ns); err != nil && !manipulate.IsConstraintViolationError(err) {
-		return fmt.Errorf("unable to create user %s namespace: %w", email, err)
+	err := manipulator.Create(mctx, ns)
+	if err != nil {
+		if !manipulate.IsConstraintViolationError(err) {
+			return fmt.Errorf("unable to create user %s namespace: %w", email, err)
+		}
+		return nil
 	}
 
-	return nil
+	// Create authorization for the user in the /users/a@b.com ns
+	authzClaims := getAuthzClaims(claims)
+	auth := api.NewAuthorization()
+	auth.Namespace = namespaceUsers
+	auth.Name = email + "-user-authorization"
+	auth.Description = "System generated authz policy for user " + email + " to access " + namespaceName
+	auth.TrustedIssuers = []string{issuer}
+	auth.Subject = [][]string{
+		authzClaims,
+	}
+	auth.FlattenedSubject = auth.Subject[0]
+	auth.Permissions = []string{"*:*"}
+	auth.TargetNamespaces = []string{namespaceName}
+	auth.Hidden = true
+	auth.CreateTime = time.Now()
+	auth.UpdateTime = auth.CreateTime
+	mctx = manipulate.NewContext(ctx)
+	return manipulator.Create(mctx, auth)
 }

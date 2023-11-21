@@ -188,7 +188,7 @@ func (p *IssueProcessor) ProcessCreate(bctx bahamut.Context) (err error) {
 	}
 
 	// TODO: Move to a generic framework.
-	if err = usernamespace.Create(bctx.Context(), p.manipulator, idt.Identity); err != nil {
+	if err = usernamespace.Create(bctx.Context(), p.manipulator, p.issuer, idt.Identity); err != nil {
 		return fmt.Errorf("error creating user namespace %s", err)
 	}
 
