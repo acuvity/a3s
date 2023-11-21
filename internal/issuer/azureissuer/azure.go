@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/coreos/go-oidc/v3/oidc"
-	"go.aporeto.io/a3s/pkgs/token"
+	"go.acuvity.ai/a3s/pkgs/token"
 )
 
 const (

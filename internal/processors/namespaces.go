@@ -6,13 +6,13 @@ import (
 	"strings"
 	"time"
 
-	"go.aporeto.io/a3s/pkgs/api"
-	"go.aporeto.io/a3s/pkgs/crud"
-	"go.aporeto.io/a3s/pkgs/notification"
-	"go.aporeto.io/a3s/pkgs/nscache"
-	"go.aporeto.io/bahamut"
-	"go.aporeto.io/elemental"
-	"go.aporeto.io/manipulate"
+	"go.acuvity.ai/a3s/pkgs/api"
+	"go.acuvity.ai/a3s/pkgs/crud"
+	"go.acuvity.ai/a3s/pkgs/notification"
+	"go.acuvity.ai/a3s/pkgs/nscache"
+	"go.acuvity.ai/bahamut"
+	"go.acuvity.ai/elemental"
+	"go.acuvity.ai/manipulate"
 )
 
 // A NamespacesProcessor is a bahamut processor for Namespaces.

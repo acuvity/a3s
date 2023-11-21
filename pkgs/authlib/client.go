@@ -4,9 +4,9 @@ import (
 	"context"
 	"encoding/json"
 
-	"go.aporeto.io/a3s/pkgs/api"
-	"go.aporeto.io/a3s/pkgs/authlib/internal/providers"
-	"go.aporeto.io/manipulate"
+	"go.acuvity.ai/a3s/pkgs/api"
+	"go.acuvity.ai/a3s/pkgs/authlib/internal/providers"
+	"go.acuvity.ai/manipulate"
 )
 
 // A Client to authenticate and retrieve an A3S token

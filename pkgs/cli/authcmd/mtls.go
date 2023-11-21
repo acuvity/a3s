@@ -7,13 +7,13 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"go.aporeto.io/a3s/pkgs/authlib"
-	"go.aporeto.io/a3s/pkgs/cli/helpers"
-	"go.aporeto.io/a3s/pkgs/permissions"
-	"go.aporeto.io/a3s/pkgs/token"
-	"go.aporeto.io/manipulate/manipcli"
-	"go.aporeto.io/manipulate/maniphttp"
-	"go.aporeto.io/tg/tglib"
+	"go.acuvity.ai/a3s/pkgs/authlib"
+	"go.acuvity.ai/a3s/pkgs/cli/helpers"
+	"go.acuvity.ai/a3s/pkgs/permissions"
+	"go.acuvity.ai/a3s/pkgs/token"
+	"go.acuvity.ai/manipulate/manipcli"
+	"go.acuvity.ai/manipulate/maniphttp"
+	"go.acuvity.ai/tg/tglib"
 )
 
 func makeMTLSCmd(mmaker manipcli.ManipulatorMaker, restrictions *permissions.Restrictions) *cobra.Command {

@@ -6,8 +6,8 @@ import (
 	"strings"
 	"time"
 
-	"go.aporeto.io/a3s/pkgs/api"
-	"go.aporeto.io/manipulate"
+	"go.acuvity.ai/a3s/pkgs/api"
+	"go.acuvity.ai/manipulate"
 )
 
 // This file has code to create a user namespace. Needs to be converted to generic a3s capability.

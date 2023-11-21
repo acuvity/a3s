@@ -4,7 +4,7 @@ import (
 	"sync"
 	"testing"
 
-	"go.aporeto.io/elemental"
+	"go.acuvity.ai/elemental"
 )
 
 type mockedOperationTransformerMethods struct {

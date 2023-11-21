@@ -13,12 +13,12 @@ import (
 	"time"
 
 	. "github.com/smartystreets/goconvey/convey"
-	"go.aporeto.io/a3s/pkgs/api"
-	"go.aporeto.io/bahamut/gateway"
-	"go.aporeto.io/elemental"
-	"go.aporeto.io/manipulate"
-	"go.aporeto.io/manipulate/maniptest"
-	"go.aporeto.io/tg/tglib"
+	"go.acuvity.ai/a3s/pkgs/api"
+	"go.acuvity.ai/bahamut/gateway"
+	"go.acuvity.ai/elemental"
+	"go.acuvity.ai/manipulate"
+	"go.acuvity.ai/manipulate/maniptest"
+	"go.acuvity.ai/tg/tglib"
 )
 
 func getECCert() (*x509.Certificate, crypto.PrivateKey) {

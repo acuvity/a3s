@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
-	"go.aporeto.io/a3s/pkgs/permissions"
+	"go.acuvity.ai/a3s/pkgs/permissions"
 )
 
 func TestOption(t *testing.T) {

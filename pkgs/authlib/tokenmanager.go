@@ -5,7 +5,7 @@ import (
 	"log/slog"
 	"time"
 
-	"go.aporeto.io/manipulate"
+	"go.acuvity.ai/manipulate"
 )
 
 var tickDuration = 1 * time.Minute

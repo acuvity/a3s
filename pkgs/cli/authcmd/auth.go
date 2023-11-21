@@ -2,8 +2,8 @@ package authcmd
 
 import (
 	"github.com/spf13/cobra"
-	"go.aporeto.io/a3s/pkgs/permissions"
-	"go.aporeto.io/manipulate/manipcli"
+	"go.acuvity.ai/a3s/pkgs/permissions"
+	"go.acuvity.ai/manipulate/manipcli"
 )
 
 // New returns a new auth command.

@@ -12,13 +12,13 @@ import (
 
 	"github.com/golang-jwt/jwt/v4"
 	. "github.com/smartystreets/goconvey/convey"
-	"go.aporeto.io/a3s/pkgs/notification"
-	"go.aporeto.io/a3s/pkgs/nscache"
-	"go.aporeto.io/a3s/pkgs/permissions"
-	"go.aporeto.io/a3s/pkgs/token"
-	"go.aporeto.io/bahamut"
-	"go.aporeto.io/elemental"
-	"go.aporeto.io/tg/tglib"
+	"go.acuvity.ai/a3s/pkgs/notification"
+	"go.acuvity.ai/a3s/pkgs/nscache"
+	"go.acuvity.ai/a3s/pkgs/permissions"
+	"go.acuvity.ai/a3s/pkgs/token"
+	"go.acuvity.ai/bahamut"
+	"go.acuvity.ai/elemental"
+	"go.acuvity.ai/tg/tglib"
 )
 
 func getECCert() (*x509.Certificate, crypto.PrivateKey) {

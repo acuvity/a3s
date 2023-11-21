@@ -5,7 +5,7 @@ import (
 	"time"
 
 	. "github.com/smartystreets/goconvey/convey"
-	"go.aporeto.io/a3s/pkgs/permissions"
+	"go.acuvity.ai/a3s/pkgs/permissions"
 )
 
 func TestBahamut_Options(t *testing.T) {

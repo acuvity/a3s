@@ -1,6 +1,6 @@
 package authorizer
 
-import "go.aporeto.io/a3s/pkgs/permissions"
+import "go.acuvity.ai/a3s/pkgs/permissions"
 
 type config struct {
 	ignoredResources     []string

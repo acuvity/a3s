@@ -9,12 +9,12 @@ import (
 	"github.com/globalsign/mgo/bson"
 	. "github.com/smartystreets/goconvey/convey"
 	"github.com/spaolacci/murmur3"
-	"go.aporeto.io/a3s/pkgs/api"
-	"go.aporeto.io/elemental"
-	testmodel "go.aporeto.io/elemental/test/model"
-	"go.aporeto.io/manipulate"
-	"go.aporeto.io/manipulate/manipmongo"
-	"go.aporeto.io/manipulate/maniptest"
+	"go.acuvity.ai/a3s/pkgs/api"
+	"go.acuvity.ai/elemental"
+	testmodel "go.acuvity.ai/elemental/test/model"
+	"go.acuvity.ai/manipulate"
+	"go.acuvity.ai/manipulate/manipmongo"
+	"go.acuvity.ai/manipulate/maniptest"
 )
 
 type testHasher struct{}

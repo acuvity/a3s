@@ -14,8 +14,8 @@ import (
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
-	"go.aporeto.io/a3s/pkgs/api"
-	"go.aporeto.io/tg/tglib"
+	"go.acuvity.ai/a3s/pkgs/api"
+	"go.acuvity.ai/tg/tglib"
 )
 
 func getECCert(subject pkix.Name, opts ...tglib.IssueOption) (*x509.Certificate, crypto.PrivateKey) {

@@ -9,9 +9,9 @@ import (
 	"time"
 
 	"github.com/karlseguin/ccache/v2"
-	"go.aporeto.io/a3s/pkgs/token"
-	"go.aporeto.io/bahamut"
-	"go.aporeto.io/elemental"
+	"go.acuvity.ai/a3s/pkgs/token"
+	"go.acuvity.ai/bahamut"
+	"go.acuvity.ai/elemental"
 )
 
 // A Authenticator is a bahamut.Authenticator compliant structure to authentify

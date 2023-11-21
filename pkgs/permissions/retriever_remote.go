@@ -3,8 +3,8 @@ package permissions
 import (
 	"context"
 
-	"go.aporeto.io/a3s/pkgs/api"
-	"go.aporeto.io/manipulate"
+	"go.acuvity.ai/a3s/pkgs/api"
+	"go.acuvity.ai/manipulate"
 )
 
 type remoteRetriever struct {

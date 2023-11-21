@@ -1,6 +1,6 @@
 package authorizer
 
-import "go.aporeto.io/elemental"
+import "go.acuvity.ai/elemental"
 
 // A OperationTransformer is an interface that can transform the operation being evaluated.
 type OperationTransformer interface {

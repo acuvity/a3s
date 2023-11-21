@@ -4,10 +4,10 @@ import (
 	"reflect"
 	"time"
 
-	"go.aporeto.io/a3s/pkgs/importing"
-	"go.aporeto.io/bahamut"
-	"go.aporeto.io/elemental"
-	"go.aporeto.io/manipulate"
+	"go.acuvity.ai/a3s/pkgs/importing"
+	"go.acuvity.ai/bahamut"
+	"go.acuvity.ai/elemental"
+	"go.acuvity.ai/manipulate"
 )
 
 // A Timeable is an object that can keep track of

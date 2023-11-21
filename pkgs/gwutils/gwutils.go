@@ -9,11 +9,11 @@ import (
 	"strings"
 
 	"github.com/karlseguin/ccache/v2"
-	"go.aporeto.io/a3s/pkgs/api"
-	"go.aporeto.io/bahamut/gateway"
-	"go.aporeto.io/elemental"
-	"go.aporeto.io/manipulate"
-	"go.aporeto.io/tg/tglib"
+	"go.acuvity.ai/a3s/pkgs/api"
+	"go.acuvity.ai/bahamut/gateway"
+	"go.acuvity.ai/elemental"
+	"go.acuvity.ai/manipulate"
+	"go.acuvity.ai/tg/tglib"
 )
 
 // MakeTLSPeerCertificateVerifier returns a function you can use as

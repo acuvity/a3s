@@ -11,7 +11,7 @@ import (
 	"net/http"
 	"time"
 
-	"go.aporeto.io/bahamut"
+	"go.acuvity.ai/bahamut"
 )
 
 // GenerateNonce generate a nonce.

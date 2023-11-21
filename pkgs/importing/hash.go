@@ -9,7 +9,7 @@ import (
 	"github.com/mitchellh/copystructure"
 	"github.com/mitchellh/hashstructure"
 	"github.com/mitchellh/mapstructure"
-	"go.aporeto.io/elemental"
+	"go.acuvity.ai/elemental"
 )
 
 // Hash computes the hash of the given identifiable in its current state.

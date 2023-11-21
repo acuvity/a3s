@@ -11,9 +11,9 @@ import (
 	"net/http"
 	"strings"
 
-	"go.aporeto.io/a3s/pkgs/api"
-	"go.aporeto.io/a3s/pkgs/token"
-	"go.aporeto.io/tg/tglib"
+	"go.acuvity.ai/a3s/pkgs/api"
+	"go.acuvity.ai/a3s/pkgs/token"
+	"go.acuvity.ai/tg/tglib"
 )
 
 // An IdentityModifier can modify a set of claims that are about

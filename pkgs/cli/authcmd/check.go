@@ -6,8 +6,8 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"go.aporeto.io/a3s/pkgs/token"
-	"go.aporeto.io/manipulate/manipcli"
+	"go.acuvity.ai/a3s/pkgs/token"
+	"go.acuvity.ai/manipulate/manipcli"
 )
 
 func makeCheckCmd(mmaker manipcli.ManipulatorMaker) *cobra.Command {

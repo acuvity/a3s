@@ -6,8 +6,8 @@ import (
 	"time"
 
 	. "github.com/smartystreets/goconvey/convey"
-	"go.aporeto.io/a3s/pkgs/notification"
-	"go.aporeto.io/bahamut"
+	"go.acuvity.ai/a3s/pkgs/notification"
+	"go.acuvity.ai/bahamut"
 )
 
 func TestNewCache(t *testing.T) {

@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"go.aporeto.io/elemental"
+	"go.acuvity.ai/elemental"
 )
 
 // ValidateDuration valides the given string is a parseable Go duration.

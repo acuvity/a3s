@@ -7,9 +7,9 @@ import (
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"go.aporeto.io/a3s/pkgs/api"
-	"go.aporeto.io/a3s/pkgs/token"
-	"go.aporeto.io/manipulate/manipcli"
+	"go.acuvity.ai/a3s/pkgs/api"
+	"go.acuvity.ai/a3s/pkgs/token"
+	"go.acuvity.ai/manipulate/manipcli"
 )
 
 func makePermsCmd(mmaker manipcli.ManipulatorMaker) *cobra.Command {

@@ -1,6 +1,6 @@
 package importing
 
-import "go.aporeto.io/elemental"
+import "go.acuvity.ai/elemental"
 
 // An Importable is the interface an object
 // must satisfy in order to be importable.

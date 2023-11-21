@@ -1,12 +1,12 @@
-module go.aporeto.io/a3s
+module go.acuvity.ai/a3s
 
 go 1.21
 
 require (
-	go.aporeto.io/bahamut v1.148.1-0.20230918174422-3c4160cac883
-	go.aporeto.io/elemental v1.123.1-0.20231116202419-3d09d6d39dcc
-	go.aporeto.io/manipulate v1.135.1-0.20230918174435-3581994d0a01
-	go.aporeto.io/tg v1.50.1
+	go.acuvity.ai/bahamut v1.148.1-0.20230918174422-3c4160cac883
+	go.acuvity.ai/elemental v1.123.1-0.20231116202419-3d09d6d39dcc
+	go.acuvity.ai/manipulate v1.135.1-0.20230918174435-3581994d0a01
+	go.acuvity.ai/tg v1.50.1
 )
 
 require (
@@ -114,7 +114,7 @@ require (
 	github.com/vulcand/oxy/v2 v2.0.0-20221121151423-d5cb734e4467 // indirect
 	github.com/vulcand/predicate v1.2.0 // indirect
 	github.com/yusufpapurcu/wmi v1.2.2 // indirect
-	go.aporeto.io/wsc v1.52.0 // indirect
+	go.acuvity.ai/wsc v1.52.0 // indirect
 	go.uber.org/atomic v1.11.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/zap v1.26.0 // indirect

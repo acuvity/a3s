@@ -14,9 +14,9 @@ import (
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
-	"go.aporeto.io/a3s/pkgs/api"
-	"go.aporeto.io/a3s/pkgs/token"
-	"go.aporeto.io/tg/tglib"
+	"go.acuvity.ai/a3s/pkgs/api"
+	"go.acuvity.ai/a3s/pkgs/token"
+	"go.acuvity.ai/tg/tglib"
 )
 
 func getCA() (*x509.Certificate, crypto.PrivateKey) {

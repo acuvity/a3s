@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
-	"go.aporeto.io/a3s/pkgs/api"
+	"go.acuvity.ai/a3s/pkgs/api"
 )
 
 func TestHash(t *testing.T) {

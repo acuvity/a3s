@@ -7,9 +7,9 @@ import (
 	"strings"
 
 	mapset "github.com/deckarep/golang-set"
-	"go.aporeto.io/a3s/pkgs/api"
-	"go.aporeto.io/elemental"
-	"go.aporeto.io/manipulate"
+	"go.acuvity.ai/a3s/pkgs/api"
+	"go.acuvity.ai/elemental"
+	"go.acuvity.ai/manipulate"
 )
 
 // A Retriever is an object that can retrieve permissions

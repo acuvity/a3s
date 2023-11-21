@@ -5,8 +5,8 @@ import (
 	"testing"
 
 	"github.com/globalsign/mgo"
-	"go.aporeto.io/a3s/pkgs/api"
-	"go.aporeto.io/elemental"
+	"go.acuvity.ai/a3s/pkgs/api"
+	"go.acuvity.ai/elemental"
 )
 
 func TestGetIndexes(t *testing.T) {

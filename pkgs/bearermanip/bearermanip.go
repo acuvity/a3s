@@ -4,10 +4,10 @@ import (
 	"context"
 	"crypto/tls"
 
-	"go.aporeto.io/a3s/pkgs/token"
-	"go.aporeto.io/bahamut"
-	"go.aporeto.io/manipulate"
-	"go.aporeto.io/manipulate/maniphttp"
+	"go.acuvity.ai/a3s/pkgs/token"
+	"go.acuvity.ai/bahamut"
+	"go.acuvity.ai/manipulate"
+	"go.acuvity.ai/manipulate/maniphttp"
 )
 
 // MakerFunc is a functon you can use to create a bearer manipulator.
