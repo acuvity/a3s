@@ -14,6 +14,8 @@ import (
 	"strings"
 	"time"
 
+	goplugin "plugin"
+
 	"github.com/ghodss/yaml"
 	"github.com/globalsign/mgo"
 	"go.acuvity.ai/a3s/internal/hasher"
@@ -31,6 +33,7 @@ import (
 	"go.acuvity.ai/a3s/pkgs/notification"
 	"go.acuvity.ai/a3s/pkgs/nscache"
 	"go.acuvity.ai/a3s/pkgs/permissions"
+	"go.acuvity.ai/a3s/pkgs/plugin"
 	"go.acuvity.ai/a3s/pkgs/push"
 	"go.acuvity.ai/a3s/pkgs/token"
 	"go.acuvity.ai/bahamut"
@@ -346,6 +349,39 @@ func main() {
 		os.Exit(1)
 	}
 
+	var pluginModifier plugin.Modifier
+	if cfg.PluginModifier != "" {
+		p, err := goplugin.Open(cfg.PluginModifier)
+		if err != nil {
+			slog.Error("Unable to load plugin",
+				"plugin", cfg.PluginModifier,
+				err,
+			)
+			os.Exit(1)
+		}
+		pmaker, err := p.Lookup("MakePlugin")
+		if err != nil {
+			slog.Error("Unable to find 'MakePlugin' symbol in plugin",
+				"plugin", cfg.PluginModifier,
+				err,
+			)
+			os.Exit(1)
+		}
+
+		pfunc, ok := pmaker.(func() plugin.Modifier)
+		if !ok {
+			slog.Error("Symbol 'MakePlugin' is not a plugin.Maker",
+				"plugin", cfg.PluginModifier,
+				"type", fmt.Sprintf("%T", pfunc),
+			)
+			os.Exit(1)
+		}
+
+		pluginModifier = pfunc()
+
+		slog.Info("Plugin loaded", "plugin", cfg.PluginModifier)
+	}
+
 	bahamut.RegisterProcessorOrDie(server,
 		processors.NewIssueProcessor(
 			m,
@@ -359,6 +395,7 @@ func main() {
 			cfg.MTLSHeader.Enabled,
 			cfg.MTLSHeader.HeaderKey,
 			cfg.MTLSHeader.Passphrase,
+			pluginModifier,
 		),
 		api.IssueIdentity,
 	)

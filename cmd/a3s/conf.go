@@ -27,6 +27,7 @@ type Conf struct {
 	InitPlatformCAPath string `mapstructure:"init-platform-ca"  desc:"Path to the platform CA to use to initialize platform permissions"`
 	InitRootUserCAPath string `mapstructure:"init-root-ca"      desc:"Path to the root CA to use to initialize root permissions"`
 	InitData           string `mapstructure:"init-data"         desc:"Path to an import file containing initial provisionning data"`
+	PluginModifier     string `mapstructure:"plugin-modifier"  desc:"Path to a go plugin implemeting the plugin.Modifier interface"`
 
 	JWT        JWTConf        `mapstructure:",squash"`
 	MTLSHeader MTLSHeaderConf `mapstructure:",squash"`

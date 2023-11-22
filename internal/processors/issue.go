@@ -19,9 +19,9 @@ import (
 	"go.acuvity.ai/a3s/internal/issuer/oidcissuer"
 	"go.acuvity.ai/a3s/internal/issuer/remotea3sissuer"
 	"go.acuvity.ai/a3s/internal/oidcceremony"
-	"go.acuvity.ai/a3s/internal/usernamespace"
 	"go.acuvity.ai/a3s/pkgs/api"
 	"go.acuvity.ai/a3s/pkgs/permissions"
+	"go.acuvity.ai/a3s/pkgs/plugin"
 	"go.acuvity.ai/a3s/pkgs/token"
 	"go.acuvity.ai/bahamut"
 	"go.acuvity.ai/bahamut/authorizer/mtls"
@@ -33,6 +33,7 @@ import (
 // A IssueProcessor is a bahamut processor for Issue.
 type IssueProcessor struct {
 	manipulator          manipulate.Manipulator
+	pluginModifier       plugin.Modifier
 	jwks                 *token.JWKS
 	audience             string
 	cookieDomain         string
@@ -58,6 +59,7 @@ func NewIssueProcessor(
 	mtlsHeaderEnabled bool,
 	mtlsHeaderKey string,
 	mtlsHeaderPass string,
+	pluginModifier plugin.Modifier,
 ) *IssueProcessor {
 
 	return &IssueProcessor{
@@ -72,6 +74,7 @@ func NewIssueProcessor(
 		mtlsHeaderEnabled:    mtlsHeaderEnabled,
 		mtlsHeaderKey:        mtlsHeaderKey,
 		mtlsHeaderPass:       mtlsHeaderPass,
+		pluginModifier:       pluginModifier,
 	}
 }
 
@@ -174,6 +177,12 @@ func (p *IssueProcessor) ProcessCreate(bctx bahamut.Context) (err error) {
 		idt.Refresh = true
 	}
 
+	if p.pluginModifier != nil {
+		if idt, err = p.pluginModifier.Token(bctx.Context(), p.manipulator, idt); err != nil {
+			return fmt.Errorf("plugin: unable to run Token: %w", err)
+		}
+	}
+
 	k := p.jwks.GetLast()
 	tkn, err := idt.JWT(
 		k.PrivateKey(),
@@ -185,11 +194,6 @@ func (p *IssueProcessor) ProcessCreate(bctx bahamut.Context) (err error) {
 	)
 	if err != nil {
 		return err
-	}
-
-	// TODO: Move to a generic framework.
-	if err = usernamespace.Create(bctx.Context(), p.manipulator, p.issuer, idt.Identity); err != nil {
-		return fmt.Errorf("error creating user namespace %s", err)
 	}
 
 	req.Validity = time.Until(idt.ExpiresAt.Time).Round(time.Second).String()
