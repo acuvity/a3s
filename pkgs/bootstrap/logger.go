@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/lmittmann/tint"
-	"go.aporeto.io/a3s/pkgs/conf"
+	"go.acuvity.ai/a3s/pkgs/conf"
 )
 
 // ConfigureLogger configures the logging subsystem.

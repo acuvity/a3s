@@ -8,8 +8,8 @@ import (
 	"fmt"
 	"net"
 
-	"go.aporeto.io/a3s/pkgs/conf"
-	"go.aporeto.io/tg/tglib"
+	"go.acuvity.ai/a3s/pkgs/conf"
+	"go.acuvity.ai/tg/tglib"
 
 	natsserver "github.com/nats-io/nats-server/v2/server"
 )

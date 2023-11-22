@@ -5,8 +5,8 @@ import (
 	"reflect"
 	"testing"
 
-	"go.aporeto.io/a3s/pkgs/api"
-	"go.aporeto.io/elemental"
+	"go.acuvity.ai/a3s/pkgs/api"
+	"go.acuvity.ai/elemental"
 )
 
 func TestHash(t *testing.T) {

@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
-	"go.aporeto.io/elemental"
+	"go.acuvity.ai/elemental"
 )
 
 func TestOptions(t *testing.T) {

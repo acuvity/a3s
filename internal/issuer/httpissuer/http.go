@@ -10,10 +10,10 @@ import (
 	"net/http"
 	"strings"
 
-	"go.aporeto.io/a3s/internal/identitymodifier"
-	"go.aporeto.io/a3s/pkgs/api"
-	"go.aporeto.io/a3s/pkgs/token"
-	"go.aporeto.io/tg/tglib"
+	"go.acuvity.ai/a3s/internal/identitymodifier"
+	"go.acuvity.ai/a3s/pkgs/api"
+	"go.acuvity.ai/a3s/pkgs/token"
+	"go.acuvity.ai/tg/tglib"
 )
 
 // A Credentials represents user provided Credentials.

@@ -4,8 +4,8 @@ import (
 	"time"
 
 	"github.com/globalsign/mgo/bson"
-	"go.aporeto.io/manipulate"
-	"go.aporeto.io/manipulate/manipmongo"
+	"go.acuvity.ai/manipulate"
+	"go.acuvity.ai/manipulate/manipmongo"
 	"golang.org/x/oauth2"
 )
 

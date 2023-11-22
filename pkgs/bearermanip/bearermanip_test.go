@@ -6,9 +6,9 @@ import (
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
-	"go.aporeto.io/bahamut"
-	"go.aporeto.io/elemental"
-	"go.aporeto.io/manipulate/maniphttp"
+	"go.acuvity.ai/bahamut"
+	"go.acuvity.ai/elemental"
+	"go.acuvity.ai/manipulate/maniphttp"
 )
 
 func TestConfigure(t *testing.T) {

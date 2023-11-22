@@ -34,7 +34,12 @@ jobs:
           go install golang.org/x/vuln/cmd/govulncheck@latest
 
       - name: build
+        env:
+          GOPRIVATE: github.com/acuvity,go.acuvity.ai
+          GOPROXY: https://proxy.golang.org,direct
+          GOTOKEN: ${{ secrets.GO_PRIVATE_REPO_PAT }}
         run: |
+          git config --global url."https://acuvity:${GOTOKEN}@github.com/acuvity".insteadOf "https://github.com/acuvity"
           make
 
       - uses: PaloAltoNetworks/cov@3.0.0

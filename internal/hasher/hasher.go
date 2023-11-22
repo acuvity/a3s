@@ -4,9 +4,9 @@ import (
 	"fmt"
 
 	"github.com/spaolacci/murmur3"
-	"go.aporeto.io/a3s/pkgs/api"
-	"go.aporeto.io/a3s/pkgs/sharder"
-	"go.aporeto.io/elemental"
+	"go.acuvity.ai/a3s/pkgs/api"
+	"go.acuvity.ai/a3s/pkgs/sharder"
+	"go.acuvity.ai/elemental"
 )
 
 // A Hasher computes the zone and zhash of

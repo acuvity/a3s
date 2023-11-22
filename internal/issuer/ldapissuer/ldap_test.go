@@ -8,7 +8,7 @@ import (
 
 	"github.com/go-ldap/ldap/v3"
 	. "github.com/smartystreets/goconvey/convey"
-	"go.aporeto.io/a3s/pkgs/api"
+	"go.acuvity.ai/a3s/pkgs/api"
 )
 
 func TestErrLDAP(t *testing.T) {

@@ -1,10 +1,10 @@
 package processors
 
 import (
-	"go.aporeto.io/a3s/pkgs/api"
-	"go.aporeto.io/a3s/pkgs/crud"
-	"go.aporeto.io/bahamut"
-	"go.aporeto.io/manipulate"
+	"go.acuvity.ai/a3s/pkgs/api"
+	"go.acuvity.ai/a3s/pkgs/crud"
+	"go.acuvity.ai/bahamut"
+	"go.acuvity.ai/manipulate"
 )
 
 // A OIDCSourcesProcessor is a bahamut processor for OIDCSource.

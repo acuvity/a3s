@@ -7,10 +7,10 @@ import (
 	"strings"
 	"time"
 
-	"go.aporeto.io/a3s/pkgs/authenticator"
-	"go.aporeto.io/a3s/pkgs/conf"
-	"go.aporeto.io/a3s/pkgs/lombric"
-	"go.aporeto.io/tg/tglib"
+	"go.acuvity.ai/a3s/pkgs/authenticator"
+	"go.acuvity.ai/a3s/pkgs/conf"
+	"go.acuvity.ai/a3s/pkgs/lombric"
+	"go.acuvity.ai/tg/tglib"
 )
 
 var (

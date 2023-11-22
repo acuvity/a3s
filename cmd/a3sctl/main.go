@@ -11,14 +11,14 @@ import (
 	"github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"go.aporeto.io/a3s/cmd/a3sctl/internal/compcmd"
-	"go.aporeto.io/a3s/cmd/a3sctl/internal/help"
-	"go.aporeto.io/a3s/cmd/a3sctl/internal/importcmd"
-	"go.aporeto.io/a3s/pkgs/api"
-	"go.aporeto.io/a3s/pkgs/bootstrap"
-	"go.aporeto.io/a3s/pkgs/cli/authcmd"
-	"go.aporeto.io/a3s/pkgs/conf"
-	"go.aporeto.io/manipulate/manipcli"
+	"go.acuvity.ai/a3s/cmd/a3sctl/internal/compcmd"
+	"go.acuvity.ai/a3s/cmd/a3sctl/internal/help"
+	"go.acuvity.ai/a3s/cmd/a3sctl/internal/importcmd"
+	"go.acuvity.ai/a3s/pkgs/api"
+	"go.acuvity.ai/a3s/pkgs/bootstrap"
+	"go.acuvity.ai/a3s/pkgs/cli/authcmd"
+	"go.acuvity.ai/a3s/pkgs/conf"
+	"go.acuvity.ai/manipulate/manipcli"
 )
 
 var (

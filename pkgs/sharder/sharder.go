@@ -4,9 +4,9 @@ import (
 	"errors"
 
 	"github.com/globalsign/mgo/bson"
-	"go.aporeto.io/elemental"
-	"go.aporeto.io/manipulate"
-	"go.aporeto.io/manipulate/manipmongo"
+	"go.acuvity.ai/elemental"
+	"go.acuvity.ai/manipulate"
+	"go.acuvity.ai/manipulate/manipmongo"
 )
 
 // ErrNotZonable indicates that the object is Shardable and

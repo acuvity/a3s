@@ -6,9 +6,9 @@ import (
 	"sort"
 	"strings"
 
-	"go.aporeto.io/a3s/internal/identitymodifier"
-	"go.aporeto.io/a3s/pkgs/api"
-	"go.aporeto.io/a3s/pkgs/token"
+	"go.acuvity.ai/a3s/internal/identitymodifier"
+	"go.acuvity.ai/a3s/pkgs/api"
+	"go.acuvity.ai/a3s/pkgs/token"
 )
 
 // New returns a new Azure issuer.

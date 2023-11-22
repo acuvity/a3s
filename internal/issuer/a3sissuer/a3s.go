@@ -5,8 +5,8 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v4"
-	"go.aporeto.io/a3s/pkgs/permissions"
-	"go.aporeto.io/a3s/pkgs/token"
+	"go.acuvity.ai/a3s/pkgs/permissions"
+	"go.acuvity.ai/a3s/pkgs/token"
 )
 
 // New retrurns new A3S issuer.

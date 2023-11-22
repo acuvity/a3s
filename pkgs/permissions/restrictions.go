@@ -6,7 +6,7 @@ import (
 
 	"github.com/apparentlymart/go-cidr/cidr"
 	"github.com/golang-jwt/jwt/v4"
-	"go.aporeto.io/elemental"
+	"go.acuvity.ai/elemental"
 )
 
 // ErrRestrictionsViolation represents an error

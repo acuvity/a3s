@@ -3,7 +3,7 @@ package crud
 import (
 	"fmt"
 
-	"go.aporeto.io/elemental"
+	"go.acuvity.ai/elemental"
 )
 
 // A ErrPreWriteHook is the kind of error returned when execution

@@ -10,8 +10,8 @@ import (
 	"strings"
 
 	"github.com/golang-jwt/jwt/v4"
-	"go.aporeto.io/bahamut"
-	"go.aporeto.io/elemental"
+	"go.acuvity.ai/bahamut"
+	"go.acuvity.ai/elemental"
 )
 
 // FromRequest retrieves the token from the given elemental.Request

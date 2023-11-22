@@ -5,8 +5,8 @@ import (
 	"time"
 
 	"github.com/karlseguin/ccache/v2"
-	"go.aporeto.io/a3s/pkgs/notification"
-	"go.aporeto.io/bahamut"
+	"go.acuvity.ai/a3s/pkgs/notification"
+	"go.acuvity.ai/bahamut"
 )
 
 // Constants for notification topics.

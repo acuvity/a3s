@@ -32,8 +32,8 @@ package plugin
 import (
 	"context"
 
-	"go.aporeto.io/a3s/pkgs/token"
-	"go.aporeto.io/manipulate"
+	"go.acuvity.ai/a3s/pkgs/token"
+	"go.acuvity.ai/manipulate"
 )
 
 // A Modifier is the interface an A3S plugin

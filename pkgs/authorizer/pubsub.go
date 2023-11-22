@@ -3,11 +3,11 @@ package authorizer
 import (
 	"context"
 
-	"go.aporeto.io/a3s/pkgs/api"
-	"go.aporeto.io/a3s/pkgs/notification"
-	"go.aporeto.io/a3s/pkgs/nscache"
-	"go.aporeto.io/bahamut"
-	"go.aporeto.io/manipulate"
+	"go.acuvity.ai/a3s/pkgs/api"
+	"go.acuvity.ai/a3s/pkgs/notification"
+	"go.acuvity.ai/a3s/pkgs/nscache"
+	"go.acuvity.ai/bahamut"
+	"go.acuvity.ai/manipulate"
 )
 
 type eventData struct {

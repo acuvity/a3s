@@ -3,9 +3,9 @@ package crud
 import (
 	"net/http"
 
-	"go.aporeto.io/bahamut"
-	"go.aporeto.io/elemental"
-	"go.aporeto.io/manipulate"
+	"go.acuvity.ai/bahamut"
+	"go.acuvity.ai/elemental"
+	"go.acuvity.ai/manipulate"
 )
 
 // translateContext translates the given bahamut.Context to a manipulate.Context

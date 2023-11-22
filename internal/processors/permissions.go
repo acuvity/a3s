@@ -1,9 +1,9 @@
 package processors
 
 import (
-	"go.aporeto.io/a3s/pkgs/api"
-	"go.aporeto.io/a3s/pkgs/permissions"
-	"go.aporeto.io/bahamut"
+	"go.acuvity.ai/a3s/pkgs/api"
+	"go.acuvity.ai/a3s/pkgs/permissions"
+	"go.acuvity.ai/bahamut"
 )
 
 // A PermissionsProcessor is a bahamut processor for Permissionss.

@@ -3,11 +3,11 @@ package bootstrap
 import (
 	"crypto/x509"
 
-	"go.aporeto.io/a3s/pkgs/token"
-	"go.aporeto.io/bahamut"
-	"go.aporeto.io/bahamut/authorizer/mtls"
-	"go.aporeto.io/bahamut/authorizer/simple"
-	"go.aporeto.io/elemental"
+	"go.acuvity.ai/a3s/pkgs/token"
+	"go.acuvity.ai/bahamut"
+	"go.acuvity.ai/bahamut/authorizer/mtls"
+	"go.acuvity.ai/bahamut/authorizer/simple"
+	"go.acuvity.ai/elemental"
 )
 
 // MakeCNExcluderFunc returns an mtls.VerifierFunc that rejects mtls verification

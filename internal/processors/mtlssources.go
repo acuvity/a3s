@@ -3,13 +3,13 @@ package processors
 import (
 	"fmt"
 
-	"go.aporeto.io/a3s/pkgs/api"
-	"go.aporeto.io/a3s/pkgs/crud"
-	"go.aporeto.io/a3s/pkgs/token"
-	"go.aporeto.io/bahamut"
-	"go.aporeto.io/elemental"
-	"go.aporeto.io/manipulate"
-	"go.aporeto.io/tg/tglib"
+	"go.acuvity.ai/a3s/pkgs/api"
+	"go.acuvity.ai/a3s/pkgs/crud"
+	"go.acuvity.ai/a3s/pkgs/token"
+	"go.acuvity.ai/bahamut"
+	"go.acuvity.ai/elemental"
+	"go.acuvity.ai/manipulate"
+	"go.acuvity.ai/tg/tglib"
 )
 
 // A MTLSSourcesProcessor is a bahamut processor for MTLSSource.

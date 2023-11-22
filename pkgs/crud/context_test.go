@@ -5,9 +5,9 @@ import (
 	"reflect"
 	"testing"
 
-	"go.aporeto.io/bahamut"
-	"go.aporeto.io/elemental"
-	"go.aporeto.io/manipulate"
+	"go.acuvity.ai/bahamut"
+	"go.acuvity.ai/elemental"
+	"go.acuvity.ai/manipulate"
 )
 
 func TestTranslateContext(t *testing.T) {

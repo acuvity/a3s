@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 
-	"go.aporeto.io/bahamut"
+	"go.acuvity.ai/bahamut"
 )
 
 // A Message represents the content of a notification.

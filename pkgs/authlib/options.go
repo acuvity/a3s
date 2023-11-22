@@ -3,7 +3,7 @@ package authlib
 import (
 	"time"
 
-	"go.aporeto.io/a3s/pkgs/permissions"
+	"go.acuvity.ai/a3s/pkgs/permissions"
 )
 
 type config struct {

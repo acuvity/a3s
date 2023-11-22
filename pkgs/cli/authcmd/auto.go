@@ -12,9 +12,9 @@ import (
 	"github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"go.aporeto.io/a3s/pkgs/cli/helpers"
-	"go.aporeto.io/a3s/pkgs/token"
-	"go.aporeto.io/manipulate/manipcli"
+	"go.acuvity.ai/a3s/pkgs/cli/helpers"
+	"go.acuvity.ai/a3s/pkgs/token"
+	"go.acuvity.ai/manipulate/manipcli"
 )
 
 func makeAutoCmd(mmaker manipcli.ManipulatorMaker) *cobra.Command {

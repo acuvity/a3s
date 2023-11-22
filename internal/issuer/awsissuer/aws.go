@@ -9,7 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/sts"
-	"go.aporeto.io/a3s/pkgs/token"
+	"go.acuvity.ai/a3s/pkgs/token"
 )
 
 // New returns a new Issuer from the given information.

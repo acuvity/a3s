@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v4"
-	"go.aporeto.io/a3s/pkgs/token"
-	"go.aporeto.io/tg/tglib"
+	"go.acuvity.ai/a3s/pkgs/token"
+	"go.acuvity.ai/tg/tglib"
 )
 
 const (

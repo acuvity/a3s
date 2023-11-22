@@ -12,8 +12,8 @@ import (
 
 	"github.com/golang-jwt/jwt/v4"
 	. "github.com/smartystreets/goconvey/convey"
-	"go.aporeto.io/a3s/pkgs/permissions"
-	"go.aporeto.io/tg/tglib"
+	"go.acuvity.ai/a3s/pkgs/permissions"
+	"go.acuvity.ai/tg/tglib"
 )
 
 func getECCert() (*x509.Certificate, crypto.PrivateKey) {

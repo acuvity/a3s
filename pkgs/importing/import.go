@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"net/http"
 
-	"go.aporeto.io/elemental"
-	"go.aporeto.io/manipulate"
+	"go.acuvity.ai/elemental"
+	"go.acuvity.ai/manipulate"
 )
 
 // Import preforms the importing of the given

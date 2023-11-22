@@ -3,11 +3,11 @@ package authorizer
 import (
 	"context"
 
-	"go.aporeto.io/a3s/pkgs/api"
-	"go.aporeto.io/a3s/pkgs/permissions"
-	"go.aporeto.io/elemental"
-	"go.aporeto.io/manipulate"
-	"go.aporeto.io/manipulate/maniphttp"
+	"go.acuvity.ai/a3s/pkgs/api"
+	"go.acuvity.ai/a3s/pkgs/permissions"
+	"go.acuvity.ai/elemental"
+	"go.acuvity.ai/manipulate"
+	"go.acuvity.ai/manipulate/maniphttp"
 )
 
 type remoteAuthorizer struct {

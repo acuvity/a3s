@@ -10,12 +10,12 @@ import (
 
 	"github.com/fatih/structs"
 	"github.com/opentracing/opentracing-go"
-	"go.aporeto.io/a3s/pkgs/conf"
-	"go.aporeto.io/bahamut"
-	"go.aporeto.io/bahamut/authorizer/simple"
-	"go.aporeto.io/bahamut/gateway/upstreamer/push"
-	"go.aporeto.io/elemental"
-	"go.aporeto.io/manipulate"
+	"go.acuvity.ai/a3s/pkgs/conf"
+	"go.acuvity.ai/bahamut"
+	"go.acuvity.ai/bahamut/authorizer/simple"
+	"go.acuvity.ai/bahamut/gateway/upstreamer/push"
+	"go.acuvity.ai/elemental"
+	"go.acuvity.ai/manipulate"
 )
 
 // ConfigureBahamut returns a list of bahamut.Option based on provided configuration.

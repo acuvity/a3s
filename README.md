@@ -97,9 +97,9 @@ folder.
 
 First, install the tools needed:
 
-    go install go.aporeto.io/tg@master
-    go install go.aporeto.io/elemental/cmd/elegen@master
-    go install go.aporeto.io/regolithe/cmd/rego@master
+    go install go.acuvity.ai/tg@master
+    go install go.acuvity.ai/elemental/cmd/elegen@master
+    go install go.acuvity.ai/regolithe/cmd/rego@master
     go install github.com/aporeto-inc/go-bindata/go-bindata@master
 
 Then generate the needed certificates:
@@ -313,7 +313,7 @@ example, we use `tg`, but you can use any PKI tool you like.
       --signing-cert myca-cert.pem \
       --signing-cert-key myca-key.pem
 
-> NOTE: tg can be installed by running `go install go.aporeto.io/tg@master`
+> NOTE: tg can be installed by running `go install go.acuvity.ai/tg@master`
 >
 > NOTE: Not protecting a private key with a passphrase is bad. Don't do this in
 > production.

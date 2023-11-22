@@ -1,12 +1,13 @@
-module go.aporeto.io/a3s
+module go.acuvity.ai/a3s
 
 go 1.21
 
 require (
-	go.aporeto.io/bahamut v1.148.1-0.20230918174422-3c4160cac883
-	go.aporeto.io/elemental v1.123.1-0.20231116202419-3d09d6d39dcc
-	go.aporeto.io/manipulate v1.135.1-0.20230918174435-3581994d0a01
-	go.aporeto.io/tg v1.50.1
+	go.acuvity.ai/bahamut v0.0.0-20231122010138-ddeaad1d6ae8
+	go.acuvity.ai/elemental v0.0.0-20231122005432-a4b35bbdaca3
+	go.acuvity.ai/manipulate v0.0.0-20231122005955-22472d485779
+	go.acuvity.ai/tg v0.0.0-20231122004536-47ae4ba0efc0
+	go.acuvity.ai/wsc v0.0.0-20231122003955-dc50470c8ac6 // indirect
 )
 
 require (
@@ -114,7 +115,6 @@ require (
 	github.com/vulcand/oxy/v2 v2.0.0-20221121151423-d5cb734e4467 // indirect
 	github.com/vulcand/predicate v1.2.0 // indirect
 	github.com/yusufpapurcu/wmi v1.2.2 // indirect
-	go.aporeto.io/wsc v1.52.0 // indirect
 	go.uber.org/atomic v1.11.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/crypto v0.14.0 // indirect
@@ -130,10 +130,4 @@ require (
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	k8s.io/helm v2.17.0+incompatible // indirect
 	rsc.io/qr v0.2.0 // indirect
-)
-
-replace (
-	go.aporeto.io/bahamut => github.com/acuvity/bahamut v0.0.0-20231117183359-7f84c605ac34
-	go.aporeto.io/elemental => github.com/acuvity/elemental v0.0.0-20231117181803-b20e45f12c4c
-	go.aporeto.io/manipulate => github.com/acuvity/manipulate v0.0.0-20231117182526-e36b1a14bd64
 )

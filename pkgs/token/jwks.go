@@ -14,7 +14,7 @@ import (
 	"net/http"
 	"sync"
 
-	"go.aporeto.io/elemental"
+	"go.acuvity.ai/elemental"
 )
 
 // Various errors returned by a JWKS.

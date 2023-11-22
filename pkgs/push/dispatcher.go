@@ -4,12 +4,12 @@ import (
 	"fmt"
 	"log/slog"
 
-	"go.aporeto.io/a3s/pkgs/api"
-	"go.aporeto.io/a3s/pkgs/authorizer"
-	"go.aporeto.io/a3s/pkgs/permissions"
-	"go.aporeto.io/a3s/pkgs/token"
-	"go.aporeto.io/bahamut"
-	"go.aporeto.io/elemental"
+	"go.acuvity.ai/a3s/pkgs/api"
+	"go.acuvity.ai/a3s/pkgs/authorizer"
+	"go.acuvity.ai/a3s/pkgs/permissions"
+	"go.acuvity.ai/a3s/pkgs/token"
+	"go.acuvity.ai/bahamut"
+	"go.acuvity.ai/elemental"
 )
 
 var pushSessionIdentity = "pushsession"

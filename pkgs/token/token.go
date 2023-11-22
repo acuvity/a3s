@@ -9,7 +9,7 @@ import (
 
 	"github.com/gofrs/uuid"
 	"github.com/golang-jwt/jwt/v4"
-	"go.aporeto.io/a3s/pkgs/permissions"
+	"go.acuvity.ai/a3s/pkgs/permissions"
 )
 
 // An Issuer is an object that can issue IdentityToken.
