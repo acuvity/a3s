@@ -27,24 +27,27 @@ type parsedClaims struct {
 }
 
 // parse returns parsed claims. returns nil in case of error.
-func parse(claims []string) *parsedClaims {
+func parse(idt *token.IdentityToken) *parsedClaims {
 
+	emailClaim := ""
 	p := &parsedClaims{}
-	for i := 0; i < len(claims); i++ {
-		if strings.HasPrefix(claims[i], "@") {
-			p.claims = append(p.claims, claims[i])
-		}
-		if strings.HasPrefix(claims[i], "email=") {
-			p.email = strings.TrimPrefix(claims[i], "email=")
+	for i := 0; i < len(idt.Identity); i++ {
+		if strings.HasPrefix(idt.Identity[i], "email=") {
+			p.email = strings.TrimPrefix(idt.Identity[i], "email=")
 			p.domain = strings.Split(p.email, "@")[1]
+			emailClaim = idt.Identity[i]
 		}
 	}
-	if len(p.claims) == 0 {
-		return nil
-	}
+
 	if p.email == "" || p.domain == "" {
 		return nil
 	}
+
+	p.claims = append(p.claims, "@source:namespace="+idt.Source.Namespace)
+	p.claims = append(p.claims, "@source:type="+idt.Source.Type)
+	p.claims = append(p.claims, "@source:name="+idt.Source.Name)
+	p.claims = append(p.claims, emailClaim)
+
 	return p
 }
 
@@ -52,7 +55,7 @@ type pluginModifier struct{}
 
 func (p *pluginModifier) Token(ctx context.Context, m manipulate.Manipulator, idt *token.IdentityToken) (*token.IdentityToken, error) {
 
-	pc := parse(idt.Identity)
+	pc := parse(idt)
 	if pc == nil {
 		return idt, nil
 	}
