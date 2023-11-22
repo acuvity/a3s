@@ -33,6 +33,7 @@ import (
 	"go.acuvity.ai/a3s/pkgs/notification"
 	"go.acuvity.ai/a3s/pkgs/nscache"
 	"go.acuvity.ai/a3s/pkgs/permissions"
+	"go.acuvity.ai/a3s/pkgs/plugin"
 	"go.acuvity.ai/a3s/pkgs/push"
 	"go.acuvity.ai/a3s/pkgs/token"
 	"go.acuvity.ai/bahamut"
