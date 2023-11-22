@@ -65,10 +65,10 @@ codegen: api ui generate
 ## Main build
 
 a3s:
-	cd cmd/a3s && CGO_ENABLED=0 go build -ldflags="-w -s" -trimpath
+	cd cmd/a3s && CGO_ENABLED=1 go build -ldflags="-w -s" -trimpath
 
 a3s_linux:
-	cd cmd/a3s && CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-w -s" -trimpath
+	cd cmd/a3s && CGO_ENABLED=1 GOOS=linux GOARCH=amd64 go build -ldflags="-w -s" -trimpath
 
 cli:
 	cd cmd/a3sctl && CGO_ENABLED=0 go install -ldflags="-w -s" -trimpath
