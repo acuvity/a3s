@@ -58,7 +58,7 @@ func parse(idt *token.IdentityToken) *parsedClaims {
 
 type pluginModifier struct{}
 
-func (p *pluginModifier) Token(ctx context.Context, m manipulate.Manipulator, idt *token.IdentityToken) (*token.IdentityToken, error) {
+func (p *pluginModifier) Token(ctx context.Context, m manipulate.Manipulator, idt *token.IdentityToken, issuer string) (*token.IdentityToken, error) {
 
 	pc := parse(idt)
 	if pc == nil {
@@ -91,7 +91,7 @@ func (p *pluginModifier) Token(ctx context.Context, m manipulate.Manipulator, id
 	auth.Namespace = namespaceOrgs
 	auth.Name = pc.domain + "-owner-authorization"
 	auth.Description = "org: " + pc.domain + " owner: " + pc.email + " ns: " + ns.Namespace
-	auth.TrustedIssuers = []string{idt.Issuer}
+	auth.TrustedIssuers = []string{issuer}
 	auth.Subject = [][]string{
 		pc.claims,
 	}

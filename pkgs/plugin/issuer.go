@@ -44,7 +44,7 @@ type Modifier interface {
 	// Token will be called just before A3S returns a token.
 	// This gives a chance to modify the token or take additional
 	// action upon delivering a token.
-	Token(context.Context, manipulate.Manipulator, *token.IdentityToken) (*token.IdentityToken, error)
+	Token(context.Context, manipulate.Manipulator, *token.IdentityToken, string) (*token.IdentityToken, error)
 }
 
 // Maker is the type of the main entry point of a plugin.
