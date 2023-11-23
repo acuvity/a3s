@@ -178,7 +178,7 @@ func (p *IssueProcessor) ProcessCreate(bctx bahamut.Context) (err error) {
 	}
 
 	if p.pluginModifier != nil {
-		if idt, err = p.pluginModifier.Token(bctx.Context(), p.manipulator, idt); err != nil {
+		if idt, err = p.pluginModifier.Token(bctx.Context(), p.manipulator, idt, p.issuer); err != nil {
 			return fmt.Errorf("plugin: unable to run Token: %w", err)
 		}
 	}
