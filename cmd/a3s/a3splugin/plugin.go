@@ -29,6 +29,11 @@ type parsedClaims struct {
 // parse returns parsed claims. returns nil in case of error.
 func parse(idt *token.IdentityToken) *parsedClaims {
 
+	// HACK: To be reviewed on what needs to be done here.
+	if idt.Source.Type == "mtls" {
+		return nil
+	}
+
 	emailClaim := ""
 	p := &parsedClaims{}
 	for i := 0; i < len(idt.Identity); i++ {
@@ -65,7 +70,7 @@ func (p *pluginModifier) Token(ctx context.Context, m manipulate.Manipulator, id
 	ns := api.NewNamespace()
 	ns.Name = namespaceName
 	ns.Namespace = namespaceOrgs
-	ns.Description = "Namespace for organization " + pc.domain
+	ns.Description = "org: " + pc.domain
 	ns.CreateTime = time.Now()
 	ns.UpdateTime = ns.CreateTime
 	if err := ns.Validate(); err != nil {
@@ -84,7 +89,7 @@ func (p *pluginModifier) Token(ctx context.Context, m manipulate.Manipulator, id
 	// Create authorization for the user in the /orgs namespace for org namespace /orgs/b.com
 	auth := api.NewAuthorization()
 	auth.Namespace = namespaceOrgs
-	auth.Name = pc.email + "-owner-authorization"
+	auth.Name = pc.domain + "-owner-authorization"
 	auth.Description = "org: " + pc.domain + " owner: " + pc.email + " ns: " + ns.Namespace
 	auth.TrustedIssuers = []string{idt.Issuer}
 	auth.Subject = [][]string{
