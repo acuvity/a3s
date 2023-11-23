@@ -65,6 +65,11 @@ func (p *pluginModifier) Token(ctx context.Context, m manipulate.Manipulator, id
 		return idt, nil
 	}
 
+	// Do not support gmail users
+	if pc.domain == "gmail.com" {
+		return idt, nil
+	}
+
 	namespaceName := namespaceOrgs + "/" + pc.domain
 
 	ns := api.NewNamespace()
