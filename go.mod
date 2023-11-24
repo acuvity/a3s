@@ -24,6 +24,7 @@ require (
 	github.com/golang-jwt/jwt/v4 v4.5.0
 	github.com/hokaccha/go-prettyjson v0.0.0-20211117102719-0474bc63780f
 	github.com/karlseguin/ccache/v2 v2.0.8
+	github.com/karlseguin/ccache/v3 v3.0.5
 	github.com/lmittmann/tint v1.0.3
 	github.com/mdp/qrterminal v1.0.1
 	github.com/mitchellh/copystructure v1.2.0

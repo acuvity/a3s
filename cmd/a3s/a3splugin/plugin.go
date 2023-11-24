@@ -6,6 +6,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/karlseguin/ccache/v3"
+
 	"go.acuvity.ai/a3s/pkgs/api"
 	"go.acuvity.ai/a3s/pkgs/plugin"
 	"go.acuvity.ai/a3s/pkgs/token"
@@ -17,6 +19,7 @@ const (
 	namespaceOrgs     = "/orgs"
 	emailClaimPrefix  = "email="
 	systemClaimPrefix = "@"
+	cacheExpiration   = time.Hour * 12
 )
 
 // parsedClaims contains information related to the claims
@@ -48,6 +51,11 @@ func parse(idt *token.IdentityToken) *parsedClaims {
 		return nil
 	}
 
+	// Do not support gmail users
+	if p.domain == "gmail.com" {
+		return nil
+	}
+
 	p.claims = append(p.claims, "@source:namespace="+idt.Source.Namespace)
 	p.claims = append(p.claims, "@source:type="+idt.Source.Type)
 	p.claims = append(p.claims, "@source:name="+idt.Source.Name)
@@ -56,17 +64,25 @@ func parse(idt *token.IdentityToken) *parsedClaims {
 	return p
 }
 
-type pluginModifier struct{}
+type pluginModifier struct {
+	ccache *ccache.Cache[error]
+}
 
 func (p *pluginModifier) Token(ctx context.Context, m manipulate.Manipulator, idt *token.IdentityToken, issuer string) (*token.IdentityToken, error) {
+
+	if p.ccache == nil {
+		p.ccache = ccache.New(ccache.Configure[error]())
+	}
 
 	pc := parse(idt)
 	if pc == nil {
 		return idt, nil
 	}
 
-	// Do not support gmail users
-	if pc.domain == "gmail.com" {
+	item := p.ccache.Get(pc.domain)
+	if item != nil {
+		// Refresh the expiration
+		p.ccache.Set(pc.domain, nil, cacheExpiration)
 		return idt, nil
 	}
 
@@ -79,16 +95,15 @@ func (p *pluginModifier) Token(ctx context.Context, m manipulate.Manipulator, id
 	ns.CreateTime = time.Now()
 	ns.UpdateTime = ns.CreateTime
 	if err := ns.Validate(); err != nil {
-		return idt, err
+		return nil, err
 	}
 
 	mctx := manipulate.NewContext(ctx)
 	err := m.Create(mctx, ns)
 	if err != nil {
 		if !manipulate.IsConstraintViolationError(err) {
-			return idt, fmt.Errorf("unable to create organization %s namespace: %w", pc, err)
+			return nil, fmt.Errorf("unable to create organization %s namespace: %w", pc, err)
 		}
-		return idt, nil
 	}
 
 	// Create authorization for the user in the /orgs namespace for org namespace /orgs/b.com
@@ -107,7 +122,15 @@ func (p *pluginModifier) Token(ctx context.Context, m manipulate.Manipulator, id
 	auth.CreateTime = time.Now()
 	auth.UpdateTime = auth.CreateTime
 	mctx = manipulate.NewContext(ctx)
-	return idt, m.Create(mctx, auth)
+	err = m.Create(mctx, auth)
+	if err != nil {
+		if !manipulate.IsConstraintViolationError(err) {
+			return nil, fmt.Errorf("unable to create organization %s namespace: %w", pc, err)
+		}
+	}
+
+	p.ccache.Set(pc.domain, nil, cacheExpiration)
+	return idt, nil
 }
 
 // MakePlugin is the entry point for the A3S plugin.
