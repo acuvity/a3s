@@ -65,11 +65,11 @@ codegen: api ui generate
 ## Main build
 
 a3s:
-	cd cmd/a3s && CGO_ENABLED=1 go build -ldflags="-w -s"
+	cd cmd/a3s && CGO_ENABLED=1 go build -ldflags="-w -s" -trimpath
 	cd cmd/a3s/a3splugin && make plugin
 
 a3s_linux:
-	cd cmd/a3s && CGO_ENABLED=1 GOOS=linux GOARCH=amd64 go build -ldflags="-w -s"
+	cd cmd/a3s && CGO_ENABLED=1 GOOS=linux GOARCH=amd64 go build -ldflags="-w -s" -trimpath
 	cd cmd/a3s/a3splugin && make plugin_linux
 
 cli:
