@@ -31,9 +31,23 @@ var (
 		http.StatusForbidden,
 	)
 
+	ErrInvalidToken = elemental.NewError(
+		"Forbidden",
+		"Invalid token.",
+		"a3s:authorizer",
+		http.StatusForbidden,
+	)
+
 	ErrMissingToken = elemental.NewError(
 		"Forbidden",
 		"Missing token in either Authorization header or X-A3S-Token in cookies",
+		"a3s:authorizer",
+		http.StatusForbidden,
+	)
+
+	ErrRevokedToken = elemental.NewError(
+		"Forbidden",
+		"Token is marked as revoked",
 		"a3s:authorizer",
 		http.StatusForbidden,
 	)
@@ -58,7 +72,8 @@ type authorizer struct {
 	retriever            permissions.Retriever
 	ignoredResources     map[string]struct{}
 	operationTransformer OperationTransformer
-	cache                *nscache.NamespacedCache
+	authCache            *nscache.NamespacedCache
+	revocationCache      *nscache.NamespacedCache
 }
 
 // New creates a new Authorizer using the given permissions.Retriever and PubSubClient.
@@ -78,7 +93,9 @@ func New(ctx context.Context, retriever permissions.Retriever, pubsub bahamut.Pu
 	}
 
 	authCache := nscache.New(pubsub, 24000)
+	revocationCache := nscache.New(pubsub, 24000)
 	if pubsub != nil {
+		revocationCache.Start(ctx)
 		authCache.Start(ctx)
 	}
 
@@ -86,7 +103,8 @@ func New(ctx context.Context, retriever permissions.Retriever, pubsub bahamut.Pu
 		retriever:            retriever,
 		ignoredResources:     ignored,
 		operationTransformer: cfg.operationTransformer,
-		cache:                authCache,
+		authCache:            authCache,
+		revocationCache:      revocationCache,
 	}
 }
 
@@ -99,24 +117,29 @@ func (a *authorizer) IsAuthorized(ctx bahamut.Context) (bahamut.AuthAction, erro
 		return bahamut.AuthActionOK, nil
 	}
 
-	token := token.FromRequest(req)
-	if token == "" {
+	t := token.FromRequest(req)
+	if t == "" {
 		return bahamut.AuthActionKO, ErrMissingToken
 	}
 
-	restrictions, err := permissions.GetRestrictions(token)
+	idt, err := token.ParseUnverified(t)
 	if err != nil {
-		return bahamut.AuthActionKO, elemental.NewError(
-			"Forbidden",
-			err.Error(),
-			"a3s:authorizer",
-			http.StatusForbidden,
-		)
+		return bahamut.AuthActionKO, ErrInvalidToken
 	}
 
 	operation := string(req.Operation)
 	if a.operationTransformer != nil {
 		operation = a.operationTransformer.Transform(req.Operation)
+	}
+
+	opts := []OptionCheck{
+		OptionCheckTokenID(idt.ID),
+		OptionCheckID(req.ObjectID),
+		OptionCheckSourceIP(req.ClientIP),
+	}
+
+	if idt.Restrictions != nil {
+		opts = append(opts, OptionCheckRestrictions(*idt.Restrictions))
 	}
 
 	ok, err := a.CheckAuthorization(
@@ -125,9 +148,7 @@ func (a *authorizer) IsAuthorized(ctx bahamut.Context) (bahamut.AuthAction, erro
 		operation,
 		req.Namespace,
 		req.Identity.Category,
-		OptionCheckRestrictions(restrictions),
-		OptionCheckID(req.ObjectID),
-		OptionCheckSourceIP(req.ClientIP),
+		opts...,
 	)
 	if err != nil {
 		return bahamut.AuthActionKO, err
@@ -159,9 +180,25 @@ func (a *authorizer) CheckAuthorization(ctx context.Context, claims []string, op
 		return false, ErrInvalidNamespace
 	}
 
+	exp := time.Hour + time.Duration(rand.Int63n(60*30))*time.Second
 	key := hash(claims, cfg.sourceIP, cfg.id, cfg.restrictions)
 
-	if r := a.cache.Get(ns, key); r != nil && !r.Expired() {
+	// Handle token revocation
+	if r := a.revocationCache.Get(ns, key); r == nil || r.Expired() {
+		revoked, err := a.retriever.Revoked(ctx, ns, cfg.tokenID)
+		if err != nil {
+			return false, err
+		}
+		a.revocationCache.Set(ns, key, revoked, exp)
+	}
+
+	if r := a.revocationCache.Get(ns, key); r != nil && !r.Expired() {
+		if r.Value().(bool) {
+			return false, ErrRevokedToken
+		}
+	}
+
+	if r := a.authCache.Get(ns, key); r != nil && !r.Expired() {
 		perms := r.Value().(permissions.PermissionMap)
 		return perms.Allows(operation, resource), nil
 	}
@@ -177,12 +214,7 @@ func (a *authorizer) CheckAuthorization(ctx context.Context, claims []string, op
 		return false, err
 	}
 
-	a.cache.Set(
-		ns,
-		key,
-		perms,
-		time.Hour+time.Duration(rand.Int63n(60*30))*time.Second,
-	)
+	a.authCache.Set(ns, key, perms, exp)
 
 	return perms.Allows(operation, resource), nil
 }

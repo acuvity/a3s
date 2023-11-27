@@ -1101,6 +1101,48 @@
           "namespace"
         ],
         "type": "object"
+      },
+      "revocation": {
+        "description": "A Revocation allows to mark a token as revoked based on its ID (jti).",
+        "properties": {
+          "ID": {
+            "description": "ID is the identifier of the object.",
+            "readOnly": true,
+            "type": "string"
+          },
+          "createTime": {
+            "description": "Creation date of the object.",
+            "format": "date-time",
+            "readOnly": true,
+            "type": "string"
+          },
+          "expiration": {
+            "description": "The expiration date of the token.",
+            "example": "2023-11-08T18:38:04.51Z",
+            "format": "date-time",
+            "type": "string"
+          },
+          "namespace": {
+            "description": "The namespace of the object.",
+            "readOnly": true,
+            "type": "string"
+          },
+          "tokenID": {
+            "description": "The ID of the revoked token.",
+            "example": "ff199ae8-8e15-4daf-9c90-155d9cba90c2",
+            "type": "string"
+          },
+          "updateTime": {
+            "description": "Last update date of the object.",
+            "format": "date-time",
+            "readOnly": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "tokenID"
+        ],
+        "type": "object"
       }
     }
   },
@@ -2319,6 +2361,123 @@
           "a3s"
         ]
       }
+    },
+    "/revocations": {
+      "get": {
+        "description": "Retrieves the list of revoked tokens.",
+        "operationId": "get-all-revocations",
+        "parameters": [
+          {
+            "description": "This is an example.",
+            "example": "hello == world",
+            "in": "query",
+            "name": "q",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/revocation"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "n/a"
+          }
+        },
+        "tags": [
+          "core",
+          "a3s"
+        ]
+      },
+      "post": {
+        "description": "Mark a token as revoked based on its ID.",
+        "operationId": "create-a-new-revocation",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/revocation"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/revocation"
+                }
+              }
+            },
+            "description": "n/a"
+          }
+        },
+        "tags": [
+          "core",
+          "a3s"
+        ]
+      }
+    },
+    "/revocations/{id}": {
+      "delete": {
+        "description": "Deletes a particular revocation.",
+        "operationId": "delete-revocation-by-ID",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/revocation"
+                }
+              }
+            },
+            "description": "n/a"
+          }
+        },
+        "tags": [
+          "core",
+          "a3s"
+        ]
+      },
+      "get": {
+        "description": "Get a particular revocation object.",
+        "operationId": "get-revocation-by-ID",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/revocation"
+                }
+              }
+            },
+            "description": "n/a"
+          }
+        },
+        "tags": [
+          "core",
+          "a3s"
+        ]
+      },
+      "parameters": [
+        {
+          "in": "path",
+          "name": "id",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ]
     }
   },
   "tags": [

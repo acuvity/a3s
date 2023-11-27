@@ -62,7 +62,7 @@ func TestNewAuthorizer(t *testing.T) {
 		Convey("Then a should be correct", func() {
 			So(a.retriever, ShouldEqual, r)
 			So(len(a.ignoredResources), ShouldEqual, 2)
-			So(a.cache, ShouldNotBeNil)
+			So(a.authCache, ShouldNotBeNil)
 		})
 	})
 }
@@ -112,7 +112,7 @@ func TestIsAuthorized(t *testing.T) {
 
 			action, err := a.IsAuthorized(bctx)
 			So(err, ShouldNotBeNil)
-			So(err.Error(), ShouldEqual, "error 403 (a3s:authorizer): Forbidden: unable to compute authz restrictions from token: invalid character '\\u009e' looking for beginning of value")
+			So(err.Error(), ShouldEqual, "error 403 (a3s:authorizer): Forbidden: Invalid token.")
 			So(action, ShouldEqual, bahamut.AuthActionKO)
 		})
 
@@ -258,6 +258,46 @@ func TestCheckPermissions(t *testing.T) {
 			So(err, ShouldNotBeNil)
 			So(err.Error(), ShouldEqual, "error 403 (a3s:authorizer): Forbidden: Invalid X-Namespace header. A namespace must start with /")
 			So(ok, ShouldBeFalse)
+		})
+
+		Convey("Calling with a revoked token should fail", func() {
+
+			r.MockRevoked(t, func(context.Context, string, string) (bool, error) {
+				return true, nil
+			})
+
+			ok, err := a.CheckAuthorization(context.Background(), []string{}, "retrieve-many", "/", "r0")
+
+			So(err, ShouldNotBeNil)
+			So(err.Error(), ShouldEqual, "error 403 (a3s:authorizer): Forbidden: Token is marked as revoked")
+			So(ok, ShouldBeFalse)
+
+			Convey("Calling one more time should use the cache and work", func() {
+
+				r.MockRevoked(t, func(context.Context, string, string) (bool, error) {
+					return false, nil // this simulates a changes that was not pushed, so cache will be used.
+				})
+
+				ok, err := a.CheckAuthorization(context.Background(), []string{}, "retrieve-many", "/", "r0")
+
+				So(err, ShouldNotBeNil)
+				So(err.Error(), ShouldEqual, "error 403 (a3s:authorizer): Forbidden: Token is marked as revoked")
+				So(ok, ShouldBeFalse)
+
+				Convey("Calling once again after a push should fail", func() {
+
+					pub := bahamut.NewPublication(nscache.NotificationNamespaceChanges)
+					_ = pub.Encode(notification.Message{Data: "/"})
+					_ = p.Publish(pub)
+
+					time.Sleep(300 * time.Millisecond) // give a bit of time
+
+					ok, err := a.CheckAuthorization(context.Background(), []string{}, "retrieve-many", "/", "r0")
+
+					So(err, ShouldBeNil)
+					So(ok, ShouldBeFalse)
+				})
+			})
 		})
 
 		Convey("Calling when retriever grants permission should work", func() {

@@ -21,6 +21,7 @@ var (
 		"namespacedeletionrecord": NamespaceDeletionRecordIdentity,
 		"oidcsource":              OIDCSourceIdentity,
 		"permissions":             PermissionsIdentity,
+		"revocation":              RevocationIdentity,
 		"root":                    RootIdentity,
 	}
 
@@ -39,6 +40,7 @@ var (
 		"namespacedeletionrecords": NamespaceDeletionRecordIdentity,
 		"oidcsources":              OIDCSourceIdentity,
 		"permissions":              PermissionsIdentity,
+		"revocations":              RevocationIdentity,
 		"root":                     RootIdentity,
 	}
 
@@ -108,7 +110,14 @@ var (
 			{"namespace", "name"},
 		},
 		"permissions": nil,
-		"root":        nil,
+		"revocation": {
+			{":shard", ":unique", "zone", "zHash"},
+			{"namespace"},
+			{"namespace", "ID"},
+			{"namespace", "tokenid"},
+			{"tokenid"},
+		},
+		"root": nil,
 	}
 )
 
@@ -175,6 +184,8 @@ func (f modelManager) Identifiable(identity elemental.Identity) elemental.Identi
 		return NewOIDCSource()
 	case PermissionsIdentity:
 		return NewPermissions()
+	case RevocationIdentity:
+		return NewRevocation()
 	case RootIdentity:
 		return NewRoot()
 	default:
@@ -212,6 +223,8 @@ func (f modelManager) SparseIdentifiable(identity elemental.Identity) elemental.
 		return NewSparseOIDCSource()
 	case PermissionsIdentity:
 		return NewSparsePermissions()
+	case RevocationIdentity:
+		return NewSparseRevocation()
 	default:
 		return nil
 	}
@@ -257,6 +270,8 @@ func (f modelManager) Identifiables(identity elemental.Identity) elemental.Ident
 		return &OIDCSourcesList{}
 	case PermissionsIdentity:
 		return &PermissionsList{}
+	case RevocationIdentity:
+		return &RevocationsList{}
 	default:
 		return nil
 	}
@@ -292,6 +307,8 @@ func (f modelManager) SparseIdentifiables(identity elemental.Identity) elemental
 		return &SparseOIDCSourcesList{}
 	case PermissionsIdentity:
 		return &SparsePermissionsList{}
+	case RevocationIdentity:
+		return &SparseRevocationsList{}
 	default:
 		return nil
 	}
@@ -333,6 +350,7 @@ func AllIdentities() []elemental.Identity {
 		NamespaceDeletionRecordIdentity,
 		OIDCSourceIdentity,
 		PermissionsIdentity,
+		RevocationIdentity,
 		RootIdentity,
 	}
 }
@@ -366,6 +384,8 @@ func AliasesForIdentity(identity elemental.Identity) []string {
 	case OIDCSourceIdentity:
 		return []string{}
 	case PermissionsIdentity:
+		return []string{}
+	case RevocationIdentity:
 		return []string{}
 	case RootIdentity:
 		return []string{}

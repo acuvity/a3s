@@ -38,8 +38,8 @@ type Restrictions struct {
 func GetRestrictions(tokenString string) (Restrictions, error) {
 
 	s := struct {
-		R Restrictions `json:"restrictions"`
 		jwt.Claims
+		R Restrictions `json:"restrictions"`
 	}{}
 
 	parser := jwt.Parser{}

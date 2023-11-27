@@ -108,6 +108,15 @@ func main() {
 		os.Exit(1)
 	}
 
+	if err := manipmongo.EnsureIndex(m, api.RevocationIdentity, mgo.Index{
+		Key:         []string{"expiration"},
+		ExpireAfter: 1 * time.Minute,
+		Name:        "index_revocation_expiration",
+	}); err != nil {
+		slog.Error("Unable to create revocation expiration index for expiration", err)
+		os.Exit(1)
+	}
+
 	if err := createRootNamespaceIfNeeded(m); err != nil {
 		slog.Error("Unable to handle root namespace", err)
 		os.Exit(1)
@@ -410,6 +419,7 @@ func main() {
 	bahamut.RegisterProcessorOrDie(server, processors.NewNamespaceDeletionRecordsProcessor(m), api.NamespaceDeletionRecordIdentity)
 	bahamut.RegisterProcessorOrDie(server, processors.NewAuthorizationProcessor(m, pubsub, retriever, cfg.JWT.JWTIssuer), api.AuthorizationIdentity)
 	bahamut.RegisterProcessorOrDie(server, processors.NewImportProcessor(bmanipMaker, pauthz), api.ImportIdentity)
+	bahamut.RegisterProcessorOrDie(server, processors.NewRevocationsProcessor(m, pubsub), api.RevocationIdentity)
 
 	// Object clean up
 	notification.Subscribe(

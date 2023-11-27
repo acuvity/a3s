@@ -92,3 +92,11 @@ relations:
 - rest_name: permissions
   create:
     description: Sends a permissions request.
+
+- rest_name: revocation
+  get:
+    description: Retrieves the list of revoked tokens.
+    global_parameters:
+    - $queryable
+  create:
+    description: Mark a token as revoked based on its ID.

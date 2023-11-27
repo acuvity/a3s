@@ -2,6 +2,7 @@ package authorizer
 
 import (
 	"context"
+	"sync"
 
 	"go.acuvity.ai/a3s/pkgs/api"
 	"go.acuvity.ai/a3s/pkgs/notification"
@@ -15,6 +16,12 @@ type eventData struct {
 	Name      string `json:"name" msgpack:"name"`
 }
 
+type subscription struct {
+	errors chan error
+	pubs   chan *bahamut.Publication
+	topic  string
+}
+
 // webSocketPubSub is a naive bahamut.PubSubClient internal implementation
 // that is backed by a manipulate.Subscriber. This is used to
 // make the Authorizer working when used by third party clients that
@@ -24,28 +31,27 @@ type eventData struct {
 // namespace cache.
 type webSocketPubSub struct {
 	subscriber manipulate.Subscriber
+	subs       []subscription
+	sublock    sync.RWMutex
 }
 
-// not implemented. These are just here to satisfy the bahamut.PubSubClient interface.
-func (w *webSocketPubSub) Connect(context.Context) error { return nil }
-func (w *webSocketPubSub) Disconnect() error             { return nil }
-func (w *webSocketPubSub) Publish(*bahamut.Publication, ...bahamut.PubSubOptPublish) error {
-	return nil
-}
-
-func (w *webSocketPubSub) Subscribe(pubs chan *bahamut.Publication, errors chan error, topic string, opts ...bahamut.PubSubOptSubscribe) func() {
+func (w *webSocketPubSub) Connect(context.Context) error {
 
 	sendErr := func(err error) {
-		select {
-		case errors <- err:
-		default:
+		for _, sub := range w.subs {
+			select {
+			case sub.errors <- err:
+			default:
+			}
 		}
 	}
 
 	sendPub := func(pub *bahamut.Publication) {
-		select {
-		case pubs <- pub:
-		default:
+		for _, sub := range w.subs {
+			select {
+			case sub.pubs <- pub:
+			default:
+			}
 		}
 	}
 
@@ -56,11 +62,13 @@ func (w *webSocketPubSub) Subscribe(pubs chan *bahamut.Publication, errors chan 
 
 			case evt := <-w.subscriber.Events():
 
-				// We decode the vent in a generic container structure.
+				// We decode the event in a generic container structure.
 				d := &eventData{}
 				if err := evt.Decode(d); err != nil {
+					w.sublock.RLock()
 					sendErr(err)
-					break
+					w.sublock.RUnlock()
+					continue
 				}
 
 				// We prepare a notification Message that the authorizer
@@ -76,16 +84,21 @@ func (w *webSocketPubSub) Subscribe(pubs chan *bahamut.Publication, errors chan 
 					msg.Data = d.Name
 				case api.AuthorizationIdentity.Name:
 					msg.Data = d.Namespace
+				case api.RevocationIdentity.Name:
+					msg.Data = d.Namespace
 				}
 
 				// Then we create a publication and wrap the msg inside.
-				p := bahamut.NewPublication(topic)
-				if err := p.Encode(msg); err != nil {
-					sendErr(err)
-					break
+				w.sublock.RLock()
+				for _, sub := range w.subs {
+					p := bahamut.NewPublication(sub.topic)
+					if err := p.Encode(msg); err != nil {
+						sendErr(err)
+						continue
+					}
+					sendPub(p)
 				}
-
-				sendPub(p)
+				w.sublock.RUnlock()
 
 			case st := <-w.subscriber.Status():
 				if st == manipulate.SubscriberStatusFinalDisconnection {
@@ -96,8 +109,29 @@ func (w *webSocketPubSub) Subscribe(pubs chan *bahamut.Publication, errors chan 
 				sendErr(err)
 			}
 		}
-
 	}()
 
+	return nil
+}
+
+func (w *webSocketPubSub) Subscribe(pubs chan *bahamut.Publication, errors chan error, topic string, opts ...bahamut.PubSubOptSubscribe) func() {
+
+	w.sublock.Lock()
+	w.subs = append(
+		w.subs,
+		subscription{
+			pubs:   pubs,
+			errors: errors,
+			topic:  topic,
+		},
+	)
+	w.sublock.Unlock()
+
 	return func() { w.subscriber.Status() <- manipulate.SubscriberStatusFinalDisconnection }
+}
+
+// not implemented. These are just here to satisfy the bahamut.PubSubClient interface.
+func (w *webSocketPubSub) Disconnect() error { return nil }
+func (w *webSocketPubSub) Publish(*bahamut.Publication, ...bahamut.PubSubOptPublish) error {
+	return nil
 }

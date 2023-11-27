@@ -20,6 +20,9 @@ type Retriever interface {
 	// clams on the given namespace for the given id (optional)
 	// from the given address with the given restrictions.
 	Permissions(ctx context.Context, claims []string, ns string, opts ...RetrieverOption) (PermissionMap, error)
+
+	// Revoked returns true if the given token ID is in a revocation list.
+	Revoked(ctx context.Context, namespace string, tokenID string) (bool, error)
 }
 
 type retriever struct {
@@ -133,6 +136,25 @@ func (a *retriever) Permissions(ctx context.Context, claims []string, ns string,
 	}
 
 	return out, nil
+}
+
+func (a *retriever) Revoked(ctx context.Context, namespace string, tokenID string) (bool, error) {
+
+	c, err := a.manipulator.Count(
+		manipulate.NewContext(
+			ctx,
+			manipulate.ContextOptionNamespace(namespace),
+			manipulate.ContextOptionPropagated(true),
+			manipulate.ContextOptionFilter(
+				elemental.NewFilterComposer().
+					WithKey("tokenID").Equals(tokenID).
+					Done(),
+			),
+		),
+		api.RevocationIdentity,
+	)
+
+	return c > 0, err
 }
 
 func (a *retriever) resolvePoliciesMatchingClaims(ctx context.Context, claims []string, ns string) (api.AuthorizationsList, error) {

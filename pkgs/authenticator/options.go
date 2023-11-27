@@ -20,8 +20,8 @@ func OptionIgnoredResources(identities ...string) Option {
 // A RemoteIssuer holds the URL and the
 // CertPool containing a CA to validate the server
 type RemoteIssuer struct {
-	URL  string
 	Pool *x509.CertPool
+	URL  string
 }
 
 // OptionExternalTrustedIssuers sets the list of additionally trusted issuers.

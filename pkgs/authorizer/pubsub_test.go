@@ -20,7 +20,6 @@ func TestNotImplemented(t *testing.T) {
 	// free coverage \o/
 	Convey("Given an authorizer", t, func() {
 		s := webSocketPubSub{}
-		So(s.Connect(context.Background()), ShouldBeNil)
 		So(s.Disconnect(), ShouldBeNil)
 		So(s.Publish(nil), ShouldBeNil)
 	})
@@ -32,6 +31,7 @@ func TestSubscribe(t *testing.T) {
 
 		s := maniptest.NewTestSubscriber()
 		a := webSocketPubSub{subscriber: s}
+		_ = a.Connect(context.Background())
 		chInEvents := make(chan *elemental.Event, 2)
 		chInStatus := make(chan manipulate.SubscriberStatus, 2)
 		chInErrors := make(chan error, 2)
@@ -69,6 +69,15 @@ func TestSubscribe(t *testing.T) {
 			d := a.Subscribe(chOutPubs, chOutErrs, "topic")
 			defer d()
 			chInEvents <- elemental.NewEvent(elemental.EventUpdate, &api.Authorization{Namespace: "/the/ns"})
+			checkPresent(chOutPubs)
+		})
+
+		Convey("when I receive a push from a revocation", func() {
+			chOutPubs := make(chan *bahamut.Publication, 2)
+			chOutErrs := make(chan error, 2)
+			d := a.Subscribe(chOutPubs, chOutErrs, "topic")
+			defer d()
+			chInEvents <- elemental.NewEvent(elemental.EventUpdate, &api.Revocation{Namespace: "/the/ns"})
 			checkPresent(chOutPubs)
 		})
 

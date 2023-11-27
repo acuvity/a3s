@@ -29,15 +29,13 @@ func NewRemote(ctx context.Context, m manipulate.Manipulator, r permissions.Retr
 	pcfg := elemental.NewPushConfig()
 	pcfg.FilterIdentity(api.NamespaceIdentity.Name)
 	pcfg.FilterIdentity(api.AuthorizationIdentity.Name)
+	pcfg.FilterIdentity(api.RevocationIdentity.Name)
 
 	subscriber.Start(ctx, pcfg)
+	wsps := &webSocketPubSub{subscriber: subscriber}
+	_ = wsps.Connect(ctx)
 
 	return &remoteAuthorizer{
-		Authorizer: New(
-			ctx,
-			r,
-			&webSocketPubSub{subscriber: subscriber},
-			options...,
-		),
+		Authorizer: New(ctx, r, wsps, options...),
 	}
 }

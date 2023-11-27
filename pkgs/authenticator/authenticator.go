@@ -18,11 +18,11 @@ import (
 // requests using an a3s token.
 type Authenticator struct {
 	jwks                   *token.JWKS
-	issuer                 string
 	externalTrustedIssuers map[string]RemoteIssuer
-	audience               string
 	ignoredResources       map[string]struct{}
 	trustedJWKsCache       *ccache.Cache
+	issuer                 string
+	audience               string
 }
 
 // New returns a new Authenticator that will use the provided JWKS

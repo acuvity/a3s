@@ -43,4 +43,10 @@ func TestOptionCheck(t *testing.T) {
 		OptionCheckRestrictions(r)(cfg)
 		So(cfg.restrictions, ShouldResemble, r)
 	})
+
+	Convey("OptionCheckTokenID should work", t, func() {
+		cfg := &checkConfig{}
+		OptionCheckTokenID("abc")(cfg)
+		So(cfg.tokenID, ShouldEqual, "abc")
+	})
 }

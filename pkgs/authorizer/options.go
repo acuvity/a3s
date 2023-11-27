@@ -3,8 +3,8 @@ package authorizer
 import "go.acuvity.ai/a3s/pkgs/permissions"
 
 type config struct {
-	ignoredResources     []string
 	operationTransformer OperationTransformer
+	ignoredResources     []string
 }
 
 // An Option can be used to configure various options in the Authorizer.
@@ -27,6 +27,7 @@ func OptionOperationTransformer(t OperationTransformer) Option {
 type checkConfig struct {
 	sourceIP     string
 	id           string
+	tokenID      string
 	restrictions permissions.Restrictions
 }
 
@@ -51,5 +52,12 @@ func OptionCheckID(id string) OptionCheck {
 func OptionCheckRestrictions(r permissions.Restrictions) OptionCheck {
 	return func(cfg *checkConfig) {
 		cfg.restrictions = r
+	}
+}
+
+// OptionCheckTokenID sets token ID to check if it got revoked.
+func OptionCheckTokenID(id string) OptionCheck {
+	return func(cfg *checkConfig) {
+		cfg.tokenID = id
 	}
 }

@@ -186,3 +186,67 @@ func TestPermissions(t *testing.T) {
 		})
 	})
 }
+
+func TestRevoked(t *testing.T) {
+
+	Convey("Given a remote permissions retriever", t, func() {
+
+		m := maniptest.NewTestManipulator()
+		r := NewRemoteRetriever(m)
+
+		Convey("When retrieving revocations is OK and not revoked", func() {
+
+			var expectedIdentity elemental.Identity
+			var expectedFilter *elemental.Filter
+			var expectedNamespace string
+			m.MockCount(t, func(mctx manipulate.Context, identity elemental.Identity) (int, error) {
+				expectedIdentity = identity
+				expectedFilter = mctx.Filter()
+				expectedNamespace = mctx.Namespace()
+				return 0, nil
+			})
+
+			revoked, err := r.Revoked(context.Background(), "/ns", "abcdef")
+
+			So(err, ShouldBeNil)
+			So(expectedIdentity.IsEqual(api.RevocationIdentity), ShouldBeTrue)
+			So(expectedNamespace, ShouldEqual, "/ns")
+			So(expectedFilter.String(), ShouldEqual, `tokenID == "abcdef"`)
+			So(revoked, ShouldBeFalse)
+		})
+
+		Convey("When retrieving revocations is OK and is revoked", func() {
+
+			var expectedIdentity elemental.Identity
+			var expectedFilter *elemental.Filter
+			var expectedNamespace string
+			m.MockCount(t, func(mctx manipulate.Context, identity elemental.Identity) (int, error) {
+				expectedIdentity = identity
+				expectedNamespace = mctx.Namespace()
+				expectedFilter = mctx.Filter()
+				return 1, nil
+			})
+
+			revoked, err := r.Revoked(context.Background(), "/ns", "abcdef")
+
+			So(err, ShouldBeNil)
+			So(expectedIdentity.IsEqual(api.RevocationIdentity), ShouldBeTrue)
+			So(expectedNamespace, ShouldEqual, "/ns")
+			So(expectedFilter.String(), ShouldEqual, `tokenID == "abcdef"`)
+			So(revoked, ShouldBeTrue)
+		})
+
+		Convey("When retrieving revocations is not OK", func() {
+
+			m.MockCount(t, func(mctx manipulate.Context, identity elemental.Identity) (int, error) {
+				return 0, fmt.Errorf("boom")
+			})
+
+			revoked, err := r.Revoked(context.Background(), "/", "abcdef")
+
+			So(err, ShouldNotBeNil)
+			So(err.Error(), ShouldEqual, "unable to retrieve revocations: boom")
+			So(revoked, ShouldBeFalse)
+		})
+	})
+}
