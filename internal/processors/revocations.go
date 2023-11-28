@@ -1,6 +1,8 @@
 package processors
 
 import (
+	"time"
+
 	"go.acuvity.ai/a3s/pkgs/api"
 	"go.acuvity.ai/a3s/pkgs/crud"
 	"go.acuvity.ai/a3s/pkgs/notification"
@@ -26,6 +28,12 @@ func NewRevocationsProcessor(manipulator manipulate.Manipulator, pubsub bahamut.
 
 // ProcessCreate handles the creates requests for Revocation.
 func (p *RevocationProcessor) ProcessCreate(bctx bahamut.Context) error {
+
+	revocation := bctx.InputData().(*api.Revocation)
+	if revocation.Expiration.IsZero() {
+		revocation.Expiration = time.Now().Add(24 * time.Hour)
+	}
+
 	return crud.Create(
 		bctx,
 		p.manipulator,
