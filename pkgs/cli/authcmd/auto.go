@@ -116,9 +116,9 @@ func HandleAutoAuth(
 
 	cache, ok := os.LookupEnv("XDG_HOME_CACHE")
 	if ok {
-		cache = path.Join(home, cache, "a3scl")
+		cache = path.Join(home, cache, viper.GetEnvPrefix())
 	} else {
-		cache = path.Join(home, ".cache", "a3sctl")
+		cache = path.Join(home, ".cache", viper.GetEnvPrefix())
 	}
 
 	if _, err := os.Stat(cache); os.IsNotExist(err) {
