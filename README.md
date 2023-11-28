@@ -70,6 +70,7 @@ particular namespace.
   * [Permissions](#permissions)
   * [Target namespaces](#target-namespaces)
   * [Examples](#examples)
+* [Revoke a token](#revoke-a-token)
 * [Check for permissions from your app](#check-for-permissions-from-your-app)
 * [Using a3sctl](#using-a3sctl)
   * [Completion](#completion)
@@ -681,6 +682,33 @@ We can create the authorization described above with the following command:
 
 > NOTE: If you omit `--target-namespace`, then the authorization applies to its
 > own namespace and children.
+
+## Revoke a token
+
+A3S provides an API to record revocation records of issued tokens. Since JWTs
+are self contained in term of validity verification, it is needed to add an
+extra step when it is required to block an already issued token. To do so, you
+need to write a `Revocation` referencing the token by its `jit`. It is your
+responsability to remember the IDs of the tokens you want to be able to revoke.
+
+To revoke a token with a `jit` equals to `23c8abfd-7f4e-48a3-b3be-3e733eea4131`:
+
+     a3sctl api create revocation \
+      --namespace /my/namespace \
+      --with.expiration 2024-10-10T00:00:00.0Z \
+      --with.token-id 23c8abfd-7f4e-48a3-b3be-3e733eea4131
+
+The expiration date must be used to define when the revocation should end.
+If you don't want the expiration to end, set the expiration date to the
+expiration date of the tokens, so the DB can be correctly cleared when the
+revocation is moot since the token is expired.
+
+Revocation applies to the namespace in which they are created and below (they
+always propagate down). If we have the following namespaces `/a/b/c` and
+`/x/y/z` and the `Revocation` is written in `/a/b`, the token will be revoked
+for requests made in `/a/b` and `/a/b/c` but not `/a` or `/x` and children.
+
+The default expiration is not provided it 24h in the future.
 
 ## Check for permissions from your app
 
