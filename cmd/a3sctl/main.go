@@ -18,7 +18,9 @@ import (
 	"go.acuvity.ai/a3s/pkgs/bootstrap"
 	"go.acuvity.ai/a3s/pkgs/cli/authcmd"
 	"go.acuvity.ai/a3s/pkgs/conf"
+	"go.acuvity.ai/manipulate"
 	"go.acuvity.ai/manipulate/manipcli"
+	"go.acuvity.ai/manipulate/maniphttp"
 )
 
 var (
@@ -59,7 +61,14 @@ func main() {
 	}
 	mflags := manipcli.ManipulatorFlagSet()
 	_ = mflags.MarkHidden("tracking-id")
-	mmaker := manipcli.ManipulatorMakerFromFlags()
+	mmaker := manipcli.ManipulatorMakerFromFlags(
+		maniphttp.OptionDefaultRetryFunc(
+			func(r manipulate.RetryInfo) error {
+				slog.Debug("manipulate retrying", r.Err())
+				return nil
+			},
+		),
+	)
 
 	rootCmd.PersistentFlags().Bool("version", false, "show version")
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default: $HOME/.config/a3sctl/default.yaml)")
