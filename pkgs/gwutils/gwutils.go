@@ -70,6 +70,7 @@ func MakeTLSPeerCertificateVerifier(
 
 			mctx := manipulate.NewContext(
 				tctx,
+				manipulate.ContextOptionRecursive(true),
 				manipulate.ContextOptionFilter(
 					elemental.NewFilterComposer().
 						WithKey("subjectKeyIDs").Equals(authorityKeyID).
