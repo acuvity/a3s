@@ -3,6 +3,7 @@ package permissions
 import (
 	"context"
 	"fmt"
+	"net/http"
 
 	"go.acuvity.ai/a3s/pkgs/api"
 	"go.acuvity.ai/elemental"
@@ -94,6 +95,10 @@ func (a *remoteRetriever) Revoked(ctx context.Context, namespace string, tokenID
 		api.RevocationIdentity,
 	)
 	if err != nil {
+		if elemental.IsErrorWithCode(err, http.StatusForbidden) {
+			return false, nil
+		}
+
 		return false, fmt.Errorf("unable to retrieve revocations: %w", err)
 	}
 
