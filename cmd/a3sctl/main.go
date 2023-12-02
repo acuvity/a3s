@@ -18,6 +18,7 @@ import (
 	"go.acuvity.ai/a3s/pkgs/cli/authcmd"
 	"go.acuvity.ai/a3s/pkgs/cli/importcmd"
 	"go.acuvity.ai/a3s/pkgs/conf"
+	"go.acuvity.ai/elemental"
 	"go.acuvity.ai/manipulate"
 	"go.acuvity.ai/manipulate/manipcli"
 	"go.acuvity.ai/manipulate/maniphttp"
@@ -70,15 +71,7 @@ func main() {
 		),
 	)
 
-	rootCmd.PersistentFlags().Bool("version", false, "show version")
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default: $HOME/.config/a3sctl/default.yaml)")
-	rootCmd.PersistentFlags().StringVar(&cfgName, "config-name", "", "default config name (default: default)")
-	rootCmd.PersistentFlags().StringVar(&logLevel, "log-level", "warn", "Log level. Can be debug, info, warn or error")
-
-	apiCmd := manipcli.New(api.Manager(), mmaker, manipcli.OptionArgumentsPrefix("with"))
-	apiCmd.PersistentFlags().AddFlagSet(mflags)
-	apiCmd.PersistentFlags().AddFlagSet(authcmd.MakeAutoAuthFlags())
-	apiCmd.PersistentPreRunE = func(cmd *cobra.Command, args []string) error {
+	handleAutoAuth := func(cmd *cobra.Command, args []string) error {
 		if err := rootCmd.PersistentPreRunE(cmd, args); err != nil {
 			return err
 		}
@@ -95,11 +88,22 @@ func main() {
 		return nil
 	}
 
+	rootCmd.PersistentFlags().Bool("version", false, "show version")
+	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default: $HOME/.config/a3sctl/default.yaml)")
+	rootCmd.PersistentFlags().StringVar(&cfgName, "config-name", "", "default config name (default: default)")
+	rootCmd.PersistentFlags().StringVar(&logLevel, "log-level", "warn", "Log level. Can be debug, info, warn or error")
+
+	apiCmd := manipcli.New(api.Manager(), mmaker, manipcli.OptionArgumentsPrefix("with"))
+	apiCmd.PersistentFlags().AddFlagSet(mflags)
+	apiCmd.PersistentFlags().AddFlagSet(authcmd.MakeAutoAuthFlags())
+	apiCmd.PersistentPreRunE = handleAutoAuth
+
 	authCmd := authcmd.New(mmaker, help.Load("auth"), nil)
 	authCmd.PersistentFlags().AddFlagSet(mflags)
 
-	importCmd := importcmd.MakeImportCmd(mmaker)
+	importCmd := importcmd.MakeImportCmd(mmaker, func() elemental.Identifiable { return api.NewImport() })
 	importCmd.PersistentFlags().AddFlagSet(mflags)
+	importCmd.PersistentPreRunE = handleAutoAuth
 
 	compCmd := compcmd.New()
 

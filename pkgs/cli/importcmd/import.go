@@ -10,14 +10,13 @@ import (
 	"github.com/ghodss/yaml"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"go.acuvity.ai/a3s/pkgs/api"
-	"go.acuvity.ai/a3s/pkgs/cli/authcmd"
+	"go.acuvity.ai/elemental"
 	"go.acuvity.ai/manipulate"
 	"go.acuvity.ai/manipulate/manipcli"
 )
 
 // MakeImportCmd returns the import sub command.
-func MakeImportCmd(mmaker manipcli.ManipulatorMaker) *cobra.Command {
+func MakeImportCmd(mmaker manipcli.ManipulatorMaker, importMaker func() elemental.Identifiable) *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:              "import <path-or-url>",
@@ -25,17 +24,6 @@ func MakeImportCmd(mmaker manipcli.ManipulatorMaker) *cobra.Command {
 		TraverseChildren: true,
 		Args:             cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-
-			if err := authcmd.HandleAutoAuth(
-				mmaker,
-				viper.GetString("auto-auth-method"),
-				viper.GetStringSlice("audience"),
-				viper.GetStringSlice("cloak"),
-				viper.GetBool("refresh"),
-				true,
-			); err != nil {
-				return err
-			}
 
 			fFile := args[0]
 			fAPI := viper.GetString("api")
@@ -71,7 +59,7 @@ func MakeImportCmd(mmaker manipcli.ManipulatorMaker) *cobra.Command {
 				return nil
 			}
 
-			importFile := api.NewImport()
+			importFile := importMaker()
 			if err := yaml.Unmarshal(data, importFile); err != nil {
 				return err
 			}
@@ -105,7 +93,7 @@ func MakeImportCmd(mmaker manipcli.ManipulatorMaker) *cobra.Command {
 				return err
 			}
 
-			fmt.Fprintf(os.Stderr, "Successfully %s data with label '%s' in namespace %s\n", actionString, importFile.Label, fNamespace)
+			fmt.Fprintf(os.Stderr, "Successfully %s data in namespace %s\n", actionString, fNamespace)
 
 			return nil
 		},
