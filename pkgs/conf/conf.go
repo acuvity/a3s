@@ -49,16 +49,16 @@ type HealthConfiguration struct {
 // APIServerConf holds the basic server conf.
 type APIServerConf struct {
 	PublicAPIURL          string   `mapstructure:"public-api-url"            desc:"Publicly announced API URL"`
-	CORSAdditionalOrigins []string `mapstructure:"cors-additional-origins"   desc:"Set additional allowed origin for CORS"`
 	CORSDefaultOrigin     string   `mapstructure:"cors-default-origin"       desc:"Set the default allowed origin for CORS"`
 	ListenAddress         string   `mapstructure:"listen"                    desc:"Listening address"                                    default:":443"`
-	MaxConnections        int      `mapstructure:"max-conns"                 desc:"Max number concurrent TCP connection"`
-	MaxProcs              int      `mapstructure:"max-procs"                 desc:"Set the max number thread Go will start"`
 	TLSCertificate        string   `mapstructure:"tls-cert"                  desc:"Path to the certificate for https"`
 	TLSClientCA           string   `mapstructure:"tls-client-ca"             desc:"Path to the CA to use to verify client certificates"`
-	TLSDisable            bool     `mapstructure:"tls-disable"               desc:"Completely disable TLS support"`
 	TLSKey                string   `mapstructure:"tls-key"                   desc:"Path to the key for https"`
 	TLSKeyPass            string   `mapstructure:"tls-key-pass"              desc:"Password for the key"                                 secret:"true" file:"true"`
+	CORSAdditionalOrigins []string `mapstructure:"cors-additional-origins"   desc:"Set additional allowed origin for CORS"`
+	MaxConnections        int      `mapstructure:"max-conns"                 desc:"Max number concurrent TCP connection"`
+	MaxProcs              int      `mapstructure:"max-procs"                 desc:"Set the max number thread Go will start"`
+	TLSDisable            bool     `mapstructure:"tls-disable"               desc:"Completely disable TLS support"`
 }
 
 // TLSConfig returns the configured TLS configuration as *tls.Config.
@@ -97,20 +97,20 @@ func (c *APIServerConf) TLSConfig() (*tls.Config, error) {
 
 // MongoConf holds the configuration for mongo db authentication.
 type MongoConf struct {
+	MongoTLSCA          string `mapstructure:"mongo-custom-ca"      desc:"Custom certificate authority"`
 	MongoAttrEncryptKey string `mapstructure:"mongo-encryption-key" desc:"Key to use for attributes encryption"         secret:"true" file:"true"`
-	MongoAuthDB         string `mapstructure:"mongo-auth-db"        desc:"Database to use for authenticating"           default:"admin"`
 	MongoConsistency    string `mapstructure:"mongo-consistency"    desc:"Set the read consistency"                     default:"nearest" allowed:"strong,monotonic,eventual,nearest,weakest"`
 	MongoDBName         string `mapstructure:"mongo-db"             desc:"Database name in MongoDB"                     default:"override-me"`
 	MongoPassword       string `mapstructure:"mongo-pass"           desc:"Password to use to connect to Mongo"          secret:"true" file:"true"`
-	MongoPoolSize       int    `mapstructure:"mongo-pool-size"      desc:"Maximum size of the connection pool"          default:"4096"`
-	MongoTLSCA          string `mapstructure:"mongo-custom-ca"      desc:"Custom certificate authority"`
+	MongoUser           string `mapstructure:"mongo-user"           desc:"User to use to connect to MongoDB"`
+	MongoAuthDB         string `mapstructure:"mongo-auth-db"        desc:"Database to use for authenticating"           default:"admin"`
 	MongoTLSCertificate string `mapstructure:"mongo-tls-cert"       desc:"Path to the client certificate"`
+	MongoTLSKey         string `mapstructure:"mongo-tls-key"        desc:"Path to the client key"`
+	MongoURL            string `mapstructure:"mongo-url"            desc:"Mongo connection string"                      required:"true"`
+	MongoTLSKeyPass     string `mapstructure:"mongo-tls-key-pass"   desc:"Password for the client key"                  secret:"true" file:"true"`
+	MongoPoolSize       int    `mapstructure:"mongo-pool-size"      desc:"Maximum size of the connection pool"          default:"4096"`
 	MongoTLSDisable     bool   `mapstructure:"mongo-tls-disable"    desc:"Set this to completely disable TLS"           hidden:"true"`
 	MongoTLSSkip        bool   `mapstructure:"mongo-tls-skip"       desc:"Skip CA verification"`
-	MongoTLSKey         string `mapstructure:"mongo-tls-key"        desc:"Path to the client key"`
-	MongoTLSKeyPass     string `mapstructure:"mongo-tls-key-pass"   desc:"Password for the client key"                  secret:"true" file:"true"`
-	MongoURL            string `mapstructure:"mongo-url"            desc:"Mongo connection string"                      required:"true"`
-	MongoUser           string `mapstructure:"mongo-user"           desc:"User to use to connect to MongoDB"`
 }
 
 // TLSConfig returns the configured TLS configuration as *tls.Config.
@@ -159,19 +159,18 @@ func (c *MongoConf) TLSConfig() (*tls.Config, error) {
 
 // NATSConf holds the configuration for pubsub connection.
 type NATSConf struct {
-	NATSClientID       string `mapstructure:"nats-client-id"                 desc:"Nats client ID"`
-	NATSClusterID      string `mapstructure:"nats-cluster-id"                desc:"Nats cluster ID"                                                      default:"test-cluster"`
-	NATSPassword       string `mapstructure:"nats-pass"                      desc:"Password to use to connect to Nats"                                   secret:"true" file:"true"`
-	NATSTLSCA          string `mapstructure:"nats-tls-ca"                    desc:"Path to the CA used by Nats"`
-	NATSTLSCertificate string `mapstructure:"nats-tls-cert"                  desc:"Path to the client certificate"`
-	NATSTLSDisable     bool   `mapstructure:"nats-tls-disable"               desc:"Disable TLS completely"`
-	NATSTLSKey         string `mapstructure:"nats-tls-key"                   desc:"Path to the client key"`
-	NATSTLSKeyPass     string `mapstructure:"nats-tls-key-pass"              desc:"Password for the client key"                                          secret:"true" file:"true"`
-	NATSTLSSkip        bool   `mapstructure:"nats-tls-skip"                  desc:"Skip CA verification"`
-	NATSURL            string `mapstructure:"nats-url"                       desc:"URL of the nats service. If empty, start an in-memory nats server."`
-	NATSUser           string `mapstructure:"nats-user"                      desc:"User name to use to connect to Nats"                                  secret:"true" file:"true"`
-
 	NATSCustomTLSConfig *tls.Config
+	NATSClientID        string `mapstructure:"nats-client-id"                 desc:"Nats client ID"`
+	NATSClusterID       string `mapstructure:"nats-cluster-id"                desc:"Nats cluster ID"                                                      default:"test-cluster"`
+	NATSPassword        string `mapstructure:"nats-pass"                      desc:"Password to use to connect to Nats"                                   secret:"true" file:"true"`
+	NATSTLSCA           string `mapstructure:"nats-tls-ca"                    desc:"Path to the CA used by Nats"`
+	NATSTLSCertificate  string `mapstructure:"nats-tls-cert"                  desc:"Path to the client certificate"`
+	NATSTLSKey          string `mapstructure:"nats-tls-key"                   desc:"Path to the client key"`
+	NATSTLSKeyPass      string `mapstructure:"nats-tls-key-pass"              desc:"Password for the client key"                                          secret:"true" file:"true"`
+	NATSURL             string `mapstructure:"nats-url"                       desc:"URL of the nats service. If empty, start an in-memory nats server."`
+	NATSUser            string `mapstructure:"nats-user"                      desc:"User name to use to connect to Nats"                                  secret:"true" file:"true"`
+	NATSTLSDisable      bool   `mapstructure:"nats-tls-disable"               desc:"Disable TLS completely"`
+	NATSTLSSkip         bool   `mapstructure:"nats-tls-skip"                  desc:"Skip CA verification"`
 }
 
 // TLSConfig returns the configured TLS configuration as *tls.Config.
@@ -239,13 +238,14 @@ type NATSConsumerConf struct {
 
 // MTLSHeaderConf holds the conf for the secure MTLS header.
 type MTLSHeaderConf struct {
-	Enabled    bool   `mapstructure:"mtls-header-enabled"    desc:"Trust the value of the defined header containing a user certificate. This is insecure if there is no proper tls verification happening upstream"`
 	HeaderKey  string `mapstructure:"mtls-header-key"        desc:"The header to check for user certificates" default:"x-tls-certificate"`
 	Passphrase string `mapstructure:"mtls-header-passphrase" desc:"The passphrase to decrypt the AES encrypted header content. It is mandatory if --mtls-header-enabled is set."`
+	Enabled    bool   `mapstructure:"mtls-header-enabled"    desc:"Trust the value of the defined header containing a user certificate. This is insecure if there is no proper tls verification happening upstream"`
 }
 
 // A3SClientConf holds a3s config.
 type A3SClientConf struct {
+	systemCAPool            *x509.CertPool
 	A3SURL                  string `mapstructure:"a3s-url"               desc:"URL of the a3s server"                                `
 	A3SNamespace            string `mapstructure:"a3s-namespace"         desc:"Namespace"`
 	A3SCertificateAuthority string `mapstructure:"a3s-cacert"            desc:"Path to the CA certificate"                           secret:"true" file:"true"`
@@ -253,8 +253,6 @@ type A3SClientConf struct {
 	A3SClientKey            string `mapstructure:"a3s-key"               desc:"Path to the client key"                               secret:"true" file:"true"`
 	A3SClientKeyPass        string `mapstructure:"a3s-key-pass"          desc:"Password for the client key"                          secret:"true" file:"true"`
 	A3SourceName            string `mapstructure:"a3s-source-name"       desc:"Name of the source to utilize by default"             default:"gateway"`
-
-	systemCAPool *x509.CertPool
 }
 
 // SystemCAPool returns the system signing pool
@@ -285,8 +283,8 @@ func (c *A3SClientConf) SystemCAPool() (*x509.CertPool, error) {
 type GatewayConf struct {
 	GWAnnouncedAddress string   `mapstructure:"gw-announce-address" desc:"If set, announce as the service address to the gateway"`
 	GWTopic            string   `mapstructure:"gw-topic"            desc:"Topic to use for gateway services discovery"`
-	GWOverridePrivate  []string `mapstructure:"gw-override-private" desc:"Overrides the api public/private. In form <name>:<override>. namespace:private makes namespaces api private on the gateway"`
 	GWAnnouncePrefix   string   `mapstructure:"gw-announce-prefix"  desc:"Sets the prefix to use for the bahaamut gateway announcement"`
+	GWOverridePrivate  []string `mapstructure:"gw-override-private" desc:"Overrides the api public/private. In form <name>:<override>. namespace:private makes namespaces api private on the gateway"`
 }
 
 // GWPrivateOverrides returns the private overrides in the needed format.
@@ -300,11 +298,11 @@ func (c *GatewayConf) GWPrivateOverrides() map[elemental.Identity]bool {
 
 		if parts[0] == "*" {
 			for _, i := range api.AllIdentities() {
-				out[i] = parts[1] == "public"
+				out[i] = parts[1] == "private"
 			}
 			continue
 		}
-		out[identity] = parts[1] == "public"
+		out[identity] = parts[1] == "private"
 	}
 
 	return out

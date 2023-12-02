@@ -33,7 +33,6 @@
           },
           "importHash": {
             "description": "The hash of the structure used to compare with new import version.",
-            "readOnly": true,
             "type": "string"
           },
           "importLabel": {
@@ -99,7 +98,6 @@
           },
           "importHash": {
             "description": "The hash of the structure used to compare with new import version.",
-            "readOnly": true,
             "type": "string"
           },
           "importLabel": {
@@ -252,7 +250,6 @@
           },
           "importHash": {
             "description": "The hash of the structure used to compare with new import version.",
-            "readOnly": true,
             "type": "string"
           },
           "importLabel": {
@@ -749,7 +746,6 @@
           },
           "importHash": {
             "description": "The hash of the structure used to compare with new import version.",
-            "readOnly": true,
             "type": "string"
           },
           "importLabel": {
@@ -834,7 +830,6 @@
           },
           "importHash": {
             "description": "The hash of the structure used to compare with new import version.",
-            "readOnly": true,
             "type": "string"
           },
           "importLabel": {
@@ -974,7 +969,6 @@
           },
           "importHash": {
             "description": "The hash of the structure used to compare with new import version.",
-            "readOnly": true,
             "type": "string"
           },
           "importLabel": {
