@@ -33,6 +33,23 @@ attributes:
     - color=blue
     - size=big
 
+  - name: collectAccessibleNamespaces
+    description: |-
+      If true, the property collectedAccssibleNamespaces will be filled with the list
+      of
+      allowed namespaces.
+    type: boolean
+    exposed: true
+
+  - name: collectedAccessibleNamespaces
+    description: |-
+      If collectAccessibleNamespaces is true, this property will contain the list of
+      accessible namespaces.
+    type: list
+    exposed: true
+    subtype: string
+    read_only: true
+
   - name: error
     description: Return an eventual error.
     type: string

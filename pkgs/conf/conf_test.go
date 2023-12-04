@@ -261,8 +261,8 @@ func TestGatewayConf_GWPrivateOverrides(t *testing.T) {
 			},
 			nil,
 			map[elemental.Identity]bool{
-				api.NamespaceIdentity:     true,
-				api.AuthorizationIdentity: false,
+				api.NamespaceIdentity:     false,
+				api.AuthorizationIdentity: true,
 			},
 		},
 		{
@@ -276,7 +276,7 @@ func TestGatewayConf_GWPrivateOverrides(t *testing.T) {
 			func() map[elemental.Identity]bool {
 				m := map[elemental.Identity]bool{}
 				for _, ident := range api.AllIdentities() {
-					m[ident] = true
+					m[ident] = false
 				}
 				return m
 			}(),
@@ -292,7 +292,7 @@ func TestGatewayConf_GWPrivateOverrides(t *testing.T) {
 			func() map[elemental.Identity]bool {
 				m := map[elemental.Identity]bool{}
 				for _, ident := range api.AllIdentities() {
-					m[ident] = false
+					m[ident] = true
 				}
 				return m
 			}(),
@@ -308,9 +308,9 @@ func TestGatewayConf_GWPrivateOverrides(t *testing.T) {
 			func() map[elemental.Identity]bool {
 				m := map[elemental.Identity]bool{}
 				for _, ident := range api.AllIdentities() {
-					m[ident] = false
+					m[ident] = true
 				}
-				m[api.NamespaceIdentity] = true
+				m[api.NamespaceIdentity] = false
 				return m
 			}(),
 		},

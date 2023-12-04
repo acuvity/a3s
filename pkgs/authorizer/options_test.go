@@ -49,4 +49,11 @@ func TestOptionCheck(t *testing.T) {
 		OptionCheckTokenID("abc")(cfg)
 		So(cfg.tokenID, ShouldEqual, "abc")
 	})
+
+	Convey("Option should work", t, func() {
+		cfg := &checkConfig{}
+		ns := &[]string{}
+		OptionCollectAccessibleNamespaces(ns)(cfg)
+		So(cfg.accessibleNamespaces, ShouldEqual, ns)
+	})
 }

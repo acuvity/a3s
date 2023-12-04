@@ -92,6 +92,15 @@ type Permissions struct {
 	// The list of claims.
 	Claims []string `json:"claims" msgpack:"claims" bson:"-" mapstructure:"claims,omitempty"`
 
+	// If true, the property collectedAccssibleNamespaces will be filled with the list
+	// of
+	// allowed namespaces.
+	CollectAccessibleNamespaces bool `json:"collectAccessibleNamespaces" msgpack:"collectAccessibleNamespaces" bson:"-" mapstructure:"collectAccessibleNamespaces,omitempty"`
+
+	// If collectAccessibleNamespaces is true, this property will contain the list of
+	// accessible namespaces.
+	CollectedAccessibleNamespaces []string `json:"collectedAccessibleNamespaces" msgpack:"collectedAccessibleNamespaces" bson:"-" mapstructure:"collectedAccessibleNamespaces,omitempty"`
+
 	// Return an eventual error.
 	Error string `json:"error,omitempty" msgpack:"error,omitempty" bson:"-" mapstructure:"error,omitempty"`
 
@@ -120,11 +129,12 @@ type Permissions struct {
 func NewPermissions() *Permissions {
 
 	return &Permissions{
-		ModelVersion:          1,
-		Claims:                []string{},
-		Permissions:           map[string]map[string]bool{},
-		RestrictedNetworks:    []string{},
-		RestrictedPermissions: []string{},
+		ModelVersion:                  1,
+		Claims:                        []string{},
+		CollectedAccessibleNamespaces: []string{},
+		Permissions:                   map[string]map[string]bool{},
+		RestrictedNetworks:            []string{},
+		RestrictedPermissions:         []string{},
 	}
 }
 
@@ -213,6 +223,8 @@ func (o *Permissions) ToSparse(fields ...string) elemental.SparseIdentifiable {
 			ID:                             &o.ID,
 			IP:                             &o.IP,
 			Claims:                         &o.Claims,
+			CollectAccessibleNamespaces:    &o.CollectAccessibleNamespaces,
+			CollectedAccessibleNamespaces:  &o.CollectedAccessibleNamespaces,
 			Error:                          &o.Error,
 			Namespace:                      &o.Namespace,
 			OffloadPermissionsRestrictions: &o.OffloadPermissionsRestrictions,
@@ -232,6 +244,10 @@ func (o *Permissions) ToSparse(fields ...string) elemental.SparseIdentifiable {
 			sp.IP = &(o.IP)
 		case "claims":
 			sp.Claims = &(o.Claims)
+		case "collectAccessibleNamespaces":
+			sp.CollectAccessibleNamespaces = &(o.CollectAccessibleNamespaces)
+		case "collectedAccessibleNamespaces":
+			sp.CollectedAccessibleNamespaces = &(o.CollectedAccessibleNamespaces)
 		case "error":
 			sp.Error = &(o.Error)
 		case "namespace":
@@ -267,6 +283,12 @@ func (o *Permissions) Patch(sparse elemental.SparseIdentifiable) {
 	}
 	if so.Claims != nil {
 		o.Claims = *so.Claims
+	}
+	if so.CollectAccessibleNamespaces != nil {
+		o.CollectAccessibleNamespaces = *so.CollectAccessibleNamespaces
+	}
+	if so.CollectedAccessibleNamespaces != nil {
+		o.CollectedAccessibleNamespaces = *so.CollectedAccessibleNamespaces
 	}
 	if so.Error != nil {
 		o.Error = *so.Error
@@ -369,6 +391,10 @@ func (o *Permissions) ValueForAttribute(name string) any {
 		return o.IP
 	case "claims":
 		return o.Claims
+	case "collectAccessibleNamespaces":
+		return o.CollectAccessibleNamespaces
+	case "collectedAccessibleNamespaces":
+		return o.CollectedAccessibleNamespaces
 	case "error":
 		return o.Error
 	case "namespace":
@@ -415,6 +441,27 @@ var PermissionsAttributesMap = map[string]elemental.AttributeSpecification{
 		Required:       true,
 		SubType:        "string",
 		Type:           "list",
+	},
+	"CollectAccessibleNamespaces": {
+		AllowedChoices: []string{},
+		ConvertedName:  "CollectAccessibleNamespaces",
+		Description: `If true, the property collectedAccssibleNamespaces will be filled with the list
+of
+allowed namespaces.`,
+		Exposed: true,
+		Name:    "collectAccessibleNamespaces",
+		Type:    "boolean",
+	},
+	"CollectedAccessibleNamespaces": {
+		AllowedChoices: []string{},
+		ConvertedName:  "CollectedAccessibleNamespaces",
+		Description: `If collectAccessibleNamespaces is true, this property will contain the list of
+accessible namespaces.`,
+		Exposed:  true,
+		Name:     "collectedAccessibleNamespaces",
+		ReadOnly: true,
+		SubType:  "string",
+		Type:     "list",
 	},
 	"Error": {
 		AllowedChoices: []string{},
@@ -509,6 +556,27 @@ var PermissionsLowerCaseAttributesMap = map[string]elemental.AttributeSpecificat
 		Required:       true,
 		SubType:        "string",
 		Type:           "list",
+	},
+	"collectaccessiblenamespaces": {
+		AllowedChoices: []string{},
+		ConvertedName:  "CollectAccessibleNamespaces",
+		Description: `If true, the property collectedAccssibleNamespaces will be filled with the list
+of
+allowed namespaces.`,
+		Exposed: true,
+		Name:    "collectAccessibleNamespaces",
+		Type:    "boolean",
+	},
+	"collectedaccessiblenamespaces": {
+		AllowedChoices: []string{},
+		ConvertedName:  "CollectedAccessibleNamespaces",
+		Description: `If collectAccessibleNamespaces is true, this property will contain the list of
+accessible namespaces.`,
+		Exposed:  true,
+		Name:     "collectedAccessibleNamespaces",
+		ReadOnly: true,
+		SubType:  "string",
+		Type:     "list",
 	},
 	"error": {
 		AllowedChoices: []string{},
@@ -648,6 +716,15 @@ type SparsePermissions struct {
 	// The list of claims.
 	Claims *[]string `json:"claims,omitempty" msgpack:"claims,omitempty" bson:"-" mapstructure:"claims,omitempty"`
 
+	// If true, the property collectedAccssibleNamespaces will be filled with the list
+	// of
+	// allowed namespaces.
+	CollectAccessibleNamespaces *bool `json:"collectAccessibleNamespaces,omitempty" msgpack:"collectAccessibleNamespaces,omitempty" bson:"-" mapstructure:"collectAccessibleNamespaces,omitempty"`
+
+	// If collectAccessibleNamespaces is true, this property will contain the list of
+	// accessible namespaces.
+	CollectedAccessibleNamespaces *[]string `json:"collectedAccessibleNamespaces,omitempty" msgpack:"collectedAccessibleNamespaces,omitempty" bson:"-" mapstructure:"collectedAccessibleNamespaces,omitempty"`
+
 	// Return an eventual error.
 	Error *string `json:"error,omitempty" msgpack:"error,omitempty" bson:"-" mapstructure:"error,omitempty"`
 
@@ -741,6 +818,12 @@ func (o *SparsePermissions) ToPlain() elemental.PlainIdentifiable {
 	}
 	if o.Claims != nil {
 		out.Claims = *o.Claims
+	}
+	if o.CollectAccessibleNamespaces != nil {
+		out.CollectAccessibleNamespaces = *o.CollectAccessibleNamespaces
+	}
+	if o.CollectedAccessibleNamespaces != nil {
+		out.CollectedAccessibleNamespaces = *o.CollectedAccessibleNamespaces
 	}
 	if o.Error != nil {
 		out.Error = *o.Error

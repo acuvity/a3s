@@ -33,4 +33,10 @@ func TestRetrieverOptions(t *testing.T) {
 		So(cfg.offloadPermissionsRestrictions, ShouldBeTrue)
 	})
 
+	Convey("OptionPopulateAccessibleNamespaces should work", t, func() {
+		cfg := &config{}
+		out := &[]string{}
+		OptionCollectAccessibleNamespaces(out)(cfg)
+		So(cfg.accessibleNamespaces, ShouldEqual, out)
+	})
 }

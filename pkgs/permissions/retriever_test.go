@@ -103,11 +103,18 @@ func TestIsAuthorizedWithToken(t *testing.T) {
 				return nil
 			})
 
-			perms, err := r.Permissions(ctx, []string{"color=blue", "@issuer=toto"}, "/a")
+			collectedNamespaces := []string{}
+			perms, err := r.Permissions(
+				ctx,
+				[]string{"color=blue", "@issuer=toto"},
+				"/a",
+				OptionCollectAccessibleNamespaces(&collectedNamespaces),
+			)
 
 			So(err, ShouldBeNil)
 			So(perms.Allows("get", "things"), ShouldEqual, true)
 			So(expectedFilter.String(), ShouldEqual, `flattenedsubject in ["color=blue", "@issuer=toto"] and trustedissuers contains ["toto"] and disabled == false`)
+			So(collectedNamespaces, ShouldResemble, []string{"/a"})
 		})
 
 		Convey("When there is a policy matching twice using twice the same set", func() {

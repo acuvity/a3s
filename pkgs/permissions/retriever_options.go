@@ -1,6 +1,7 @@
 package permissions
 
 type config struct {
+	accessibleNamespaces           *[]string
 	id                             string
 	addr                           string
 	restrictions                   Restrictions
@@ -36,5 +37,14 @@ func OptionRetrieverRestrictions(r Restrictions) RetrieverOption {
 func OptionOffloadPermissionsRestrictions(offload bool) RetrieverOption {
 	return func(c *config) {
 		c.offloadPermissionsRestrictions = offload
+	}
+}
+
+// OptionCollectAccessibleNamespaces allows to pass a *[]string
+// that will be populated with the list of accessible namespaces
+// found during permissions computations.
+func OptionCollectAccessibleNamespaces(namespaces *[]string) RetrieverOption {
+	return func(c *config) {
+		c.accessibleNamespaces = namespaces
 	}
 }

@@ -108,88 +108,88 @@ func TestRestrictions_RestrictNamespace(t *testing.T) {
 	}
 	tests := []struct {
 		name    string
-		fields  fields
 		args    args
 		want    string
+		fields  fields
 		wantErr bool
 	}{
 		{
-			"no original, no requested",
-			fields{
+			name: "no original, no requested",
+			fields: fields{
 				"",
 				nil,
 				nil,
 			},
-			args{
+			args: args{
 				"",
 			},
-			"",
-			false,
+			want:    "",
+			wantErr: false,
 		},
 		{
-			"original, no requested",
-			fields{
+			name: "original, no requested",
+			fields: fields{
 				"/ns",
 				nil,
 				nil,
 			},
-			args{
+			args: args{
 				"",
 			},
-			"/ns",
-			false,
+			want:    "/ns",
+			wantErr: false,
 		},
 		{
-			"original, identical requested",
-			fields{
+			name: "original, identical requested",
+			fields: fields{
 				"/ns",
 				nil,
 				nil,
 			},
-			args{
+			args: args{
 				"/ns",
 			},
-			"/ns",
-			false,
+			want:    "/ns",
+			wantErr: false,
 		},
 		{
-			"original, child requested",
-			fields{
+			name: "original, child requested",
+			fields: fields{
 				"/ns",
 				nil,
 				nil,
 			},
-			args{
+			args: args{
 				"/ns/child",
 			},
-			"/ns/child",
-			false,
+			want:    "/ns/child",
+			wantErr: false,
 		},
 		{
-			"original, root requested",
-			fields{
+			name: "original, root requested",
+			fields: fields{
 				"/ns",
 				nil,
 				nil,
 			},
-			args{
+			args: args{
 				"/",
 			},
-			"",
-			true,
+			want:    "",
+			wantErr: true,
 		},
 		{
-			"original, / requested",
-			fields{
+			name: "original, / requested",
+			fields: fields{
 				"/parent/ns",
 				nil,
 				nil,
 			},
-			args{
+			args: args{
 				"/parent",
 			},
-			"",
-			true,
+			want:    "",
+			wantErr: true,
 		},
 	}
 	for _, tt := range tests {
@@ -641,51 +641,50 @@ func TestErrRestrictionsViolations(t *testing.T) {
 
 func TestRestrictions_Zero(t *testing.T) {
 	tests := []struct {
-		name    string
 		init    func(t *testing.T) Restrictions
-		inspect func(r Restrictions, t *testing.T) //inspects receiver after test run
-
-		want1 bool
+		inspect func(r Restrictions, t *testing.T)
+		name    string
+		want1   bool
 	}{
 		{
-			"non zero with ns",
-			func(*testing.T) Restrictions {
+			name: "non zero with ns",
+			init: func(*testing.T) Restrictions {
 				return Restrictions{Namespace: "/hello"}
 			},
-			nil,
-			false,
+			inspect: nil,
+			want1:   false,
 		},
 		{
-			"non zero with perms",
-			func(*testing.T) Restrictions {
+			name: "non zero with perms",
+			init: func(*testing.T) Restrictions {
 				return Restrictions{Permissions: []string{"hello"}}
 			},
-			nil,
-			false,
+			inspect: nil,
+			want1:   false,
 		},
 		{
-			"non zero with nets",
-			func(*testing.T) Restrictions {
+			name: "non zero with nets",
+			init: func(*testing.T) Restrictions {
 				return Restrictions{Networks: []string{"hello"}}
 			},
-			nil,
-			false,
+			inspect: nil,
+			want1:   false,
 		},
 		{
-			"zero",
-			func(*testing.T) Restrictions {
+			name: "zero",
+			init: func(*testing.T) Restrictions {
 				return Restrictions{}
 			},
-			nil,
-			true,
+			inspect: nil,
+			want1:   true,
 		},
 		{
-			"zero with empty arrays",
-			func(*testing.T) Restrictions {
+			name: "zero with empty arrays",
+			init: func(*testing.T) Restrictions {
 				return Restrictions{Permissions: []string{}, Networks: []string{}}
 			},
-			nil,
-			true,
+			inspect: nil,
+			want1:   true,
 		},
 	}
 

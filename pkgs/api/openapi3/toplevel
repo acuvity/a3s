@@ -1039,6 +1039,18 @@
             },
             "type": "array"
           },
+          "collectAccessibleNamespaces": {
+            "description": "If true, the property collectedAccssibleNamespaces will be filled with the list\nof\nallowed namespaces.",
+            "type": "boolean"
+          },
+          "collectedAccessibleNamespaces": {
+            "description": "If collectAccessibleNamespaces is true, this property will contain the list of\naccessible namespaces.",
+            "items": {
+              "type": "string"
+            },
+            "readOnly": true,
+            "type": "array"
+          },
           "error": {
             "description": "Return an eventual error.",
             "readOnly": true,

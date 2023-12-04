@@ -15,6 +15,10 @@ import (
 	"go.acuvity.ai/elemental"
 )
 
+// MetadataKeyAccessibleNamespaces is the bahamut.Context Metadata Key
+// that will contain the list of authorized namespaces.
+var MetadataKeyAccessibleNamespaces = struct{}{}
+
 // Various Authorizer errors.
 var (
 	ErrMissingNamespace = elemental.NewError(
@@ -52,6 +56,11 @@ var (
 		http.StatusForbidden,
 	)
 )
+
+type cachedAuth struct {
+	perms      permissions.PermissionMap
+	namespaces []string
+}
 
 // An Authorizer is a bahamut.Authorizer compliant structure
 // that can be used to authorize a session or a request.
@@ -109,9 +118,9 @@ func New(ctx context.Context, retriever permissions.Retriever, pubsub bahamut.Pu
 }
 
 // IsAuthorized is the main method that returns whether the API call is authorized or not.
-func (a *authorizer) IsAuthorized(ctx bahamut.Context) (bahamut.AuthAction, error) {
+func (a *authorizer) IsAuthorized(bctx bahamut.Context) (bahamut.AuthAction, error) {
 
-	req := ctx.Request()
+	req := bctx.Request()
 
 	if _, ok := a.ignoredResources[req.Identity.Category]; ok {
 		return bahamut.AuthActionOK, nil
@@ -132,10 +141,12 @@ func (a *authorizer) IsAuthorized(ctx bahamut.Context) (bahamut.AuthAction, erro
 		operation = a.operationTransformer.Transform(req.Operation)
 	}
 
+	collectedNamespaces := []string{}
 	opts := []OptionCheck{
 		OptionCheckTokenID(idt.ID),
 		OptionCheckID(req.ObjectID),
 		OptionCheckSourceIP(req.ClientIP),
+		OptionCollectAccessibleNamespaces(&collectedNamespaces),
 	}
 
 	if idt.Restrictions != nil {
@@ -143,8 +154,8 @@ func (a *authorizer) IsAuthorized(ctx bahamut.Context) (bahamut.AuthAction, erro
 	}
 
 	ok, err := a.CheckAuthorization(
-		ctx.Context(),
-		ctx.Claims(),
+		bctx.Context(),
+		bctx.Claims(),
 		operation,
 		req.Namespace,
 		req.Identity.Category,
@@ -155,6 +166,7 @@ func (a *authorizer) IsAuthorized(ctx bahamut.Context) (bahamut.AuthAction, erro
 	}
 
 	if ok {
+		bctx.SetMetadata(MetadataKeyAccessibleNamespaces, collectedNamespaces)
 		return bahamut.AuthActionOK, nil
 	}
 
@@ -199,14 +211,18 @@ func (a *authorizer) CheckAuthorization(ctx context.Context, claims []string, op
 	}
 
 	if r := a.authCache.Get(ns, key); r != nil && !r.Expired() {
-		perms := r.Value().(permissions.PermissionMap)
-		return perms.Allows(operation, resource), nil
+		cauth := r.Value().(cachedAuth)
+		if cfg.accessibleNamespaces != nil {
+			*cfg.accessibleNamespaces = cauth.namespaces
+		}
+		return cauth.perms.Allows(operation, resource), nil
 	}
 
 	ropts := []permissions.RetrieverOption{
 		permissions.OptionRetrieverSourceIP(cfg.sourceIP),
 		permissions.OptionRetrieverID(cfg.id),
 		permissions.OptionRetrieverRestrictions(cfg.restrictions),
+		permissions.OptionCollectAccessibleNamespaces(cfg.accessibleNamespaces),
 	}
 
 	perms, err := a.retriever.Permissions(ctx, claims, ns, ropts...)
@@ -214,7 +230,11 @@ func (a *authorizer) CheckAuthorization(ctx context.Context, claims []string, op
 		return false, err
 	}
 
-	a.authCache.Set(ns, key, perms, exp)
+	cauth := cachedAuth{perms: perms}
+	if cfg.accessibleNamespaces != nil {
+		cauth.namespaces = *cfg.accessibleNamespaces
+	}
+	a.authCache.Set(ns, key, cauth, exp)
 
 	return perms.Allows(operation, resource), nil
 }

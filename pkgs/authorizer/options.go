@@ -25,10 +25,11 @@ func OptionOperationTransformer(t OperationTransformer) Option {
 }
 
 type checkConfig struct {
-	sourceIP     string
-	id           string
-	tokenID      string
-	restrictions permissions.Restrictions
+	accessibleNamespaces *[]string
+	sourceIP             string
+	id                   string
+	tokenID              string
+	restrictions         permissions.Restrictions
 }
 
 // An OptionCheck can be used to configure various options when calling CheckPermissions.
@@ -59,5 +60,13 @@ func OptionCheckRestrictions(r permissions.Restrictions) OptionCheck {
 func OptionCheckTokenID(id string) OptionCheck {
 	return func(cfg *checkConfig) {
 		cfg.tokenID = id
+	}
+}
+
+// OptionCollectAccessibleNamespaces can be used to pass a *[]string
+// that will return the list of authorized namespaces.
+func OptionCollectAccessibleNamespaces(authorizedNamespaces *[]string) OptionCheck {
+	return func(cfg *checkConfig) {
+		cfg.accessibleNamespaces = authorizedNamespaces
 	}
 }

@@ -29,6 +29,11 @@ func (p *PermissionsProcessor) ProcessCreate(bctx bahamut.Context) error {
 		Permissions: req.RestrictedPermissions,
 	}
 
+	var accessibleNamespaces []string
+	if req.CollectAccessibleNamespaces {
+		accessibleNamespaces = []string{}
+	}
+
 	perms, err := p.retriever.Permissions(
 		bctx.Context(),
 		req.Claims,
@@ -37,6 +42,7 @@ func (p *PermissionsProcessor) ProcessCreate(bctx bahamut.Context) error {
 		permissions.OptionRetrieverSourceIP(req.IP),
 		permissions.OptionRetrieverRestrictions(restrictions),
 		permissions.OptionOffloadPermissionsRestrictions(req.OffloadPermissionsRestrictions),
+		permissions.OptionCollectAccessibleNamespaces(&accessibleNamespaces),
 	)
 
 	switch err {
@@ -44,6 +50,10 @@ func (p *PermissionsProcessor) ProcessCreate(bctx bahamut.Context) error {
 		req.Permissions = permsToMap(perms)
 	default:
 		req.Error = err.Error()
+	}
+
+	if len(accessibleNamespaces) > 0 {
+		req.CollectedAccessibleNamespaces = accessibleNamespaces
 	}
 
 	bctx.SetOutputData(req)

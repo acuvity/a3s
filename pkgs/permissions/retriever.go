@@ -68,6 +68,8 @@ func (a *retriever) Permissions(ctx context.Context, claims []string, ns string,
 	}
 
 	out := PermissionMap{}
+	accessibleNamespaces := map[string]struct{}{}
+
 	for _, p := range policies {
 
 		if len(p.Subject) == 0 || len(p.Subject[0]) == 0 {
@@ -102,6 +104,12 @@ func (a *retriever) Permissions(ctx context.Context, claims []string, ns string,
 			}
 		}
 
+		if cfg.accessibleNamespaces != nil {
+			for _, n := range p.TargetNamespaces {
+				accessibleNamespaces[n] = struct{}{}
+			}
+		}
+
 		for identity, perms := range Parse(p.Permissions, cfg.id) {
 			if _, ok := out[identity]; !ok {
 				out[identity] = perms
@@ -132,6 +140,12 @@ func (a *retriever) Permissions(ctx context.Context, claims []string, ns string,
 		}
 		if !valid {
 			return nil, nil
+		}
+	}
+
+	if cfg.accessibleNamespaces != nil {
+		for k := range accessibleNamespaces {
+			*cfg.accessibleNamespaces = append(*cfg.accessibleNamespaces, k)
 		}
 	}
 
