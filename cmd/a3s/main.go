@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"crypto/tls"
-	"crypto/x509"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -325,18 +324,11 @@ func main() {
 		)
 	}
 
-	certData, err := os.ReadFile(cfg.APIServerConf.TLSCertificate)
-	bmanipPool := x509.NewCertPool()
-	bmanipPool.AppendCertsFromPEM(certData)
-	if err != nil {
-		slog.Error("Unable to read server TLS certificate", err)
-		os.Exit(1)
-	}
 	bmanipMaker := bearermanip.Configure(
 		ctx,
 		publicAPIURL,
 		&tls.Config{
-			RootCAs: bmanipPool,
+			InsecureSkipVerify: true,
 		},
 	)
 

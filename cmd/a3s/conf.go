@@ -20,17 +20,19 @@ var (
 
 // Conf holds the main configuration flags.
 type Conf struct {
-	conf.LoggingConf         `mapstructure:",squash"`
-	InitPlatformCAPath       string `mapstructure:"init-platform-ca"  desc:"Path to the platform CA to use to initialize platform permissions"`
-	InitRootUserCAPath       string `mapstructure:"init-root-ca"      desc:"Path to the root CA to use to initialize root permissions"`
-	InitDBUsername           string `mapstructure:"init-db-username"  desc:"If init-db is set, this will define the username to use on db initialization"           default:"CN=a3s,OU=root,O=system"`
-	InitData                 string `mapstructure:"init-data"         desc:"Path to an import file containing initial provisionning data"`
-	PluginModifier           string `mapstructure:"plugin-modifier"  desc:"Path to a go plugin implemeting the plugin.Modifier interface"`
-	conf.NATSPublisherConf   `mapstructure:",squash"`
-	conf.GatewayConf         `mapstructure:",squash"`
+	conf.LoggingConf       `mapstructure:",squash"`
+	InitPlatformCAPath     string `mapstructure:"init-platform-ca"  desc:"Path to the platform CA to use to initialize platform permissions"`
+	InitRootUserCAPath     string `mapstructure:"init-root-ca"      desc:"Path to the root CA to use to initialize root permissions"`
+	InitDBUsername         string `mapstructure:"init-db-username"  desc:"If init-db is set, this will define the username to use on db initialization"           default:"CN=a3s,OU=root,O=system"`
+	InitData               string `mapstructure:"init-data"         desc:"Path to an import file containing initial provisionning data"`
+	PluginModifier         string `mapstructure:"plugin-modifier"  desc:"Path to a go plugin implemeting the plugin.Modifier interface"`
+	conf.NATSPublisherConf `mapstructure:",squash"`
+	conf.GatewayConf       `mapstructure:",squash"`
+	// conf.TLSConf             `mapstructure:",squash"`
+	conf.TLSAutoConf         `mapstructure:",squash"`
 	MTLSHeader               MTLSHeaderConf `mapstructure:",squash"`
-	conf.HealthConfiguration `mapstructure:",squash"`
 	conf.ProfilingConf       `mapstructure:",squash"`
+	conf.HealthConfiguration `mapstructure:",squash"`
 	conf.MongoConf           `mapstructure:",squash" override:"mongo-db=a3s"`
 	JWT                      JWTConf `mapstructure:",squash"`
 	conf.APIServerConf       `mapstructure:",squash"`

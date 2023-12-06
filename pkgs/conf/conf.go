@@ -1,9 +1,12 @@
 package conf
 
 import (
+	"crypto"
 	"crypto/tls"
 	"crypto/x509"
+	"crypto/x509/pkix"
 	"fmt"
+	"net"
 	"os"
 	"strings"
 	"time"
@@ -46,26 +49,35 @@ type HealthConfiguration struct {
 	EnableHealth        bool   `mapstructure:"health-enabled"           desc:"Enable the health check server"`
 }
 
-// APIServerConf holds the basic server conf.
-type APIServerConf struct {
-	PublicAPIURL          string   `mapstructure:"public-api-url"            desc:"Publicly announced API URL"`
-	CORSDefaultOrigin     string   `mapstructure:"cors-default-origin"       desc:"Set the default allowed origin for CORS"`
-	ListenAddress         string   `mapstructure:"listen"                    desc:"Listening address"                                    default:":443"`
-	TLSCertificate        string   `mapstructure:"tls-cert"                  desc:"Path to the certificate for https"`
-	TLSClientCA           string   `mapstructure:"tls-client-ca"             desc:"Path to the CA to use to verify client certificates"`
-	TLSKey                string   `mapstructure:"tls-key"                   desc:"Path to the key for https"`
-	TLSKeyPass            string   `mapstructure:"tls-key-pass"              desc:"Password for the key"                                 secret:"true" file:"true"`
-	CORSAdditionalOrigins []string `mapstructure:"cors-additional-origins"   desc:"Set additional allowed origin for CORS"`
-	MaxConnections        int      `mapstructure:"max-conns"                 desc:"Max number concurrent TCP connection"`
-	MaxProcs              int      `mapstructure:"max-procs"                 desc:"Set the max number thread Go will start"`
-	TLSDisable            bool     `mapstructure:"tls-disable"               desc:"Completely disable TLS support"`
+// TLSConf can be used as a conf for a server that needs a tls.Config.
+type TLSConf struct {
+	cert      *x509.Certificate
+	tlsConfig *tls.Config
+
+	TLSClientCA    string `mapstructure:"tls-client-ca"             desc:"Path to the CA to use to verify client certificates"`
+	TLSCertificate string `mapstructure:"tls-cert"                  desc:"Path to the certificate for https"`
+	TLSKey         string `mapstructure:"tls-key"                   desc:"Path to the key for https"`
+	TLSKeyPass     string `mapstructure:"tls-key-pass"              desc:"Password for the key"                                 secret:"true" file:"true"`
+	TLSDisable     bool   `mapstructure:"tls-disable"               desc:"Completely disable TLS support"`
+}
+
+// Certificate returns the computed certificate.
+func (c *TLSConf) Certificate() *x509.Certificate {
+	if c.cert == nil {
+		_, _ = c.TLSConfig()
+	}
+	return c.cert
 }
 
 // TLSConfig returns the configured TLS configuration as *tls.Config.
-func (c *APIServerConf) TLSConfig() (*tls.Config, error) {
+func (c *TLSConf) TLSConfig() (*tls.Config, error) {
 
 	if c.TLSDisable {
 		return nil, nil
+	}
+
+	if c.tlsConfig != nil {
+		return c.tlsConfig, nil
 	}
 
 	tlscfg := &tls.Config{}
@@ -85,6 +97,8 @@ func (c *APIServerConf) TLSConfig() (*tls.Config, error) {
 		if err != nil {
 			return nil, fmt.Errorf("unable to load client certificate: %w", err)
 		}
+		c.cert = cert
+
 		tlscert, err := tglib.ToTLSCertificate(cert, key)
 		if err != nil {
 			return nil, fmt.Errorf("unable to convert to tls.Certificate: %w", err)
@@ -92,7 +106,173 @@ func (c *APIServerConf) TLSConfig() (*tls.Config, error) {
 		tlscfg.Certificates = []tls.Certificate{tlscert}
 	}
 
+	c.tlsConfig = tlscfg
+
 	return tlscfg, nil
+}
+
+// TLSAutoConf can be used as a conf for a service that receives a CA it can
+// use to generate its own TLS certificates.
+type TLSAutoConf struct {
+	caKey     crypto.PrivateKey
+	caCert    *x509.Certificate
+	cert      *x509.Certificate
+	dnss      []string
+	ips       []string
+	tlsConfig *tls.Config
+
+	AutoTLSClientCA   string   `mapstructure:"auto-tls-client-ca"   desc:"Path to the CA to use to verify client certificates"`
+	AutoTLSCA         string   `mapstructure:"auto-tls-ca"          desc:"path to a CA used to automatically issue certificates"`
+	AutoTLSCAKey      string   `mapstructure:"auto-tls-ca-key"      desc:"path to the key of CA passed by auto-tls-ca"`
+	AutoTLSCAKeyPass  string   `mapstructure:"auto-tls-ca-key-pass" desc:"passphrase for the key passed by auto-tls-ca-key" secret:"true" file:"true"`
+	AutoTLSCommonName string   `mapstructure:"auto-tls-common-name" desc:"Set the pkix CommonName for the issued certificate"`
+	AutoTLSIPs        []string `mapstructure:"auto-tls-ip"          desc:"Set the IP SANs to use in the issued certificate. If set to 'auto', the IP will be auto discovered" default:"auto"`
+	AutoTLSDNSs       []string `mapstructure:"auto-tls-dns"         desc:"Set the DNS SANs to use in the issued certificate. If set to 'auto' the hostname will be auto discovred" default:"auto"`
+	AutoTLSDisable    bool     `mapstructure:"auto-tls-disable"     desc:"Completely disable TLS support"`
+}
+
+// Certificate returns the current certificate issued.
+func (c *TLSAutoConf) Certificate() *x509.Certificate {
+	if c.cert == nil {
+		_, _ = c.TLSConfig()
+	}
+	return c.cert
+}
+
+// Info returns IP and DNS SANs.
+func (c *TLSAutoConf) Info() (ips []string, dns []string) {
+	if c.cert == nil {
+		_, _ = c.TLSConfig()
+	}
+	return c.ips, c.dnss
+}
+
+// TLSConfig returns a TLS config using the configured CA to create the needed certificates.
+func (c *TLSAutoConf) TLSConfig() (*tls.Config, error) {
+
+	if c.AutoTLSDisable {
+		return nil, nil
+	}
+
+	if c.tlsConfig != nil {
+		return c.tlsConfig, nil
+	}
+
+	tlscfg := &tls.Config{}
+
+	if c.AutoTLSClientCA != "" {
+		caData, err := os.ReadFile(c.AutoTLSCA)
+		if err != nil {
+			return nil, fmt.Errorf("unable to load ca file: %w", err)
+		}
+		pool := x509.NewCertPool()
+		pool.AppendCertsFromPEM(caData)
+		tlscfg.ClientCAs = pool
+	}
+
+	var err error
+	if c.caCert == nil {
+		c.caCert, c.caKey, err = tglib.ReadCertificatePEM(c.AutoTLSCA, c.AutoTLSCAKey, c.AutoTLSCAKeyPass)
+		if err != nil {
+			return nil, fmt.Errorf("unable to load ca certificate for auto tls: %w", err)
+		}
+	}
+
+	var ips []string
+	var autoIPs bool
+	if len(c.AutoTLSIPs) == 1 && c.AutoTLSIPs[0] == "auto" {
+		autoIPs = true
+	}
+
+	var dnss []string
+	var autoDNSs bool
+	if len(c.AutoTLSDNSs) == 1 && c.AutoTLSDNSs[0] == "auto" {
+		autoDNSs = true
+	}
+
+	if autoDNSs || autoIPs {
+		host, err := os.Hostname()
+		if err != nil {
+			return nil, fmt.Errorf("unable to retrieve hostname: %w", err)
+		}
+
+		if autoDNSs {
+			dnss = []string{host}
+		}
+
+		if autoIPs {
+			addrs, err := net.LookupHost(host)
+			if err != nil {
+				return nil, fmt.Errorf("unable to resolve hostname: %w", err)
+			}
+
+			if len(addrs) == 0 {
+				return nil, fmt.Errorf("Unable to find any IP in resolved hostname")
+			}
+
+			ips = addrs
+		}
+	}
+
+	if len(dnss) == 0 {
+		dnss = c.AutoTLSDNSs
+	}
+
+	if len(ips) == 0 {
+		ips = c.AutoTLSIPs
+	}
+
+	netips := make([]net.IP, len(ips))
+	for i, ip := range ips {
+		netips[i] = net.ParseIP(ip)
+	}
+
+	c.dnss = dnss
+	c.ips = ips
+
+	opts := []tglib.IssueOption{
+		tglib.OptIssueIPSANs(netips...),
+		tglib.OptIssueDNSSANs(dnss...),
+		tglib.OptIssueSigner(c.caCert, c.caKey),
+		tglib.OptIssueTypeServerAuth(),
+	}
+
+	certPem, keyPem, err := tglib.Issue(pkix.Name{CommonName: c.AutoTLSCommonName}, opts...)
+	if err != nil {
+		return nil, fmt.Errorf("unable to issue auto tls certificate: %w", err)
+	}
+
+	key, err := tglib.PEMToKey(keyPem)
+	if err != nil {
+		return nil, fmt.Errorf("unable to convert key pem block to x509 key: %w", err)
+	}
+
+	cert, err := x509.ParseCertificate(certPem.Bytes)
+	if err != nil {
+		return nil, fmt.Errorf("unable to convert cert pem block to x509 key: %w", err)
+	}
+	c.cert = cert
+
+	tlsCert, err := tglib.ToTLSCertificate(cert, key)
+	if err != nil {
+		return nil, fmt.Errorf("unable to convert x509 cert and key to tls.Certificate: %w", err)
+	}
+
+	tlscfg.Certificates = append(tlscfg.Certificates, tlsCert)
+
+	c.tlsConfig = tlscfg
+
+	return tlscfg, nil
+}
+
+// APIServerConf holds the basic server conf.
+type APIServerConf struct {
+	PublicAPIURL          string   `mapstructure:"public-api-url"            desc:"Publicly announced API URL"`
+	CORSDefaultOrigin     string   `mapstructure:"cors-default-origin"       desc:"Set the default allowed origin for CORS"`
+	ListenAddress         string   `mapstructure:"listen"                    desc:"Listening address"                                    default:":443"`
+	CORSAdditionalOrigins []string `mapstructure:"cors-additional-origins"   desc:"Set additional allowed origin for CORS"`
+	MaxConnections        int      `mapstructure:"max-conns"                 desc:"Max number concurrent TCP connection"`
+	MaxProcs              int      `mapstructure:"max-procs"                 desc:"Set the max number thread Go will start"`
 }
 
 // MongoConf holds the configuration for mongo db authentication.

@@ -13,12 +13,12 @@ import (
 	"go.acuvity.ai/tg/tglib"
 )
 
-func TestAPIServerConf(t *testing.T) {
+func TestTLSConf(t *testing.T) {
 
 	_, clientpool, tlscert := makeFixtures()
 
 	Convey("disabled tls config", t, func() {
-		cfg := APIServerConf{
+		cfg := TLSConf{
 			TLSDisable: true,
 		}
 		tlscfg, err := cfg.TLSConfig()
@@ -27,17 +27,17 @@ func TestAPIServerConf(t *testing.T) {
 	})
 
 	Convey("tls config with client CA", t, func() {
-		cfg := APIServerConf{
+		cfg := TLSConf{
 			TLSClientCA: "fixtures/ca-cert.pem",
 		}
 		tlscfg, err := cfg.TLSConfig()
 		So(err, ShouldBeNil)
 		So(tlscfg, ShouldNotBeNil)
-		So(tlscfg.ClientCAs.Subjects(), ShouldResemble, clientpool.Subjects()) // nolint: staticcheck
+		So(tlscfg.ClientCAs.Equal(clientpool), ShouldBeTrue)
 	})
 
 	Convey("tls config with certificate", t, func() {
-		cfg := APIServerConf{
+		cfg := TLSConf{
 			TLSCertificate: "fixtures/cert-cert.pem",
 			TLSKey:         "fixtures/cert-key.pem",
 		}
@@ -48,7 +48,7 @@ func TestAPIServerConf(t *testing.T) {
 	})
 
 	Convey("tls config with bad certificate", t, func() {
-		cfg := APIServerConf{
+		cfg := TLSConf{
 			TLSCertificate: "fixtures/cert-key.pem",
 			TLSKey:         "fixtures/cert-key.pem",
 		}
@@ -59,7 +59,7 @@ func TestAPIServerConf(t *testing.T) {
 	})
 
 	Convey("tls config with bad ca", t, func() {
-		cfg := APIServerConf{
+		cfg := TLSConf{
 			TLSClientCA: "nope",
 		}
 		tlscfg, err := cfg.TLSConfig()
@@ -68,6 +68,73 @@ func TestAPIServerConf(t *testing.T) {
 		So(err.Error(), ShouldStartWith, "unable to load ca file:")
 	})
 }
+
+func TestAutoTLSConf(t *testing.T) {
+
+	Convey("disabled tls config", t, func() {
+		cfg := TLSAutoConf{
+			AutoTLSDisable: true,
+		}
+		tlscfg, err := cfg.TLSConfig()
+		So(err, ShouldBeNil)
+		So(tlscfg, ShouldBeNil)
+	})
+
+	Convey("tls config with CA without auto discovery ", t, func() {
+		cfg := TLSAutoConf{
+			AutoTLSCA:       "fixtures/ca-cert.pem",
+			AutoTLSCAKey:    "fixtures/ca-key.pem",
+			AutoTLSIPs:      []string{"1.1.1.1", "2.2.2.2"},
+			AutoTLSDNSs:     []string{"toto.com"},
+			AutoTLSClientCA: "fixtures/cert-cert.pem",
+		}
+		tlscfg, err := cfg.TLSConfig()
+		So(err, ShouldBeNil)
+		So(tlscfg, ShouldNotBeNil)
+
+		ips, dnss := cfg.Info()
+		So(ips, ShouldResemble, []string{"1.1.1.1", "2.2.2.2"})
+		So(dnss, ShouldResemble, []string{"toto.com"})
+	})
+
+	Convey("tls config with CA with auto discovery ", t, func() {
+		cfg := TLSAutoConf{
+			AutoTLSCA:    "fixtures/ca-cert.pem",
+			AutoTLSCAKey: "fixtures/ca-key.pem",
+			AutoTLSIPs:   []string{"auto"},
+			AutoTLSDNSs:  []string{"auto"},
+		}
+		tlscfg, err := cfg.TLSConfig()
+		So(err, ShouldBeNil)
+		So(tlscfg, ShouldNotBeNil)
+
+		ips, dnss := cfg.Info()
+		So(ips, ShouldNotContain, "auto")
+		So(dnss, ShouldNotContain, "auto")
+	})
+
+	Convey("tls config with bad ca", t, func() {
+		cfg := TLSAutoConf{
+			AutoTLSCA:    "fixtures/ca-key.pem",
+			AutoTLSCAKey: "fixtures/ca-key.pem",
+		}
+		tlscfg, err := cfg.TLSConfig()
+		So(tlscfg, ShouldBeNil)
+		So(err, ShouldNotBeNil)
+		So(err.Error(), ShouldStartWith, "unable to load ca certificate for auto tls:")
+	})
+
+	Convey("tls config with bad ca", t, func() {
+		cfg := TLSAutoConf{
+			AutoTLSClientCA: "nope",
+		}
+		tlscfg, err := cfg.TLSConfig()
+		So(tlscfg, ShouldBeNil)
+		So(err, ShouldNotBeNil)
+		So(err.Error(), ShouldStartWith, "unable to load ca file:")
+	})
+}
+
 func makeFixtures() (syspool *x509.CertPool, custompool *x509.CertPool, cert tls.Certificate) {
 
 	var err error
@@ -124,7 +191,7 @@ func TestMongoConf(t *testing.T) {
 		tlscfg, err := cfg.TLSConfig()
 		So(err, ShouldBeNil)
 		So(tlscfg, ShouldNotBeNil)
-		So(tlscfg.RootCAs.Subjects(), ShouldResemble, syspool.Subjects()) // nolint: staticcheck
+		So(tlscfg.RootCAs.Equal(syspool), ShouldBeTrue)
 	})
 
 	Convey("tls config with custom CA", t, func() {
@@ -134,7 +201,7 @@ func TestMongoConf(t *testing.T) {
 		tlscfg, err := cfg.TLSConfig()
 		So(err, ShouldBeNil)
 		So(tlscfg, ShouldNotBeNil)
-		So(tlscfg.RootCAs.Subjects(), ShouldResemble, cuspool.Subjects()) // nolint: staticcheck
+		So(tlscfg.RootCAs.Equal(cuspool), ShouldBeTrue)
 	})
 
 	Convey("tls config with certificate", t, func() {
@@ -198,7 +265,7 @@ func TestNATSConf(t *testing.T) {
 		tlscfg, err := cfg.TLSConfig()
 		So(err, ShouldBeNil)
 		So(tlscfg, ShouldNotBeNil)
-		So(tlscfg.RootCAs.Subjects(), ShouldResemble, syspool.Subjects()) // nolint: staticcheck
+		So(tlscfg.RootCAs.Equal(syspool), ShouldBeTrue)
 	})
 
 	Convey("tls config with custom CA", t, func() {
@@ -208,7 +275,7 @@ func TestNATSConf(t *testing.T) {
 		tlscfg, err := cfg.TLSConfig()
 		So(err, ShouldBeNil)
 		So(tlscfg, ShouldNotBeNil)
-		So(tlscfg.RootCAs.Subjects(), ShouldResemble, cuspool.Subjects()) // nolint: staticcheck
+		So(tlscfg.RootCAs.Equal(cuspool), ShouldBeTrue)
 	})
 
 	Convey("tls config with certificate", t, func() {
@@ -246,34 +313,30 @@ func TestNATSConf(t *testing.T) {
 
 func TestGatewayConf_GWPrivateOverrides(t *testing.T) {
 	tests := []struct {
-		name    string
-		init    func(t *testing.T) *GatewayConf
-		inspect func(r *GatewayConf, t *testing.T) //inspects receiver after test run
-
+		init  func(t *testing.T) *GatewayConf
 		want1 map[elemental.Identity]bool
+		name  string
 	}{
 		{
-			"simple override",
-			func(t *testing.T) *GatewayConf {
+			name: "simple override",
+			init: func(t *testing.T) *GatewayConf {
 				return &GatewayConf{
 					GWOverridePrivate: []string{"namespace:public", "authorization:private"},
 				}
 			},
-			nil,
-			map[elemental.Identity]bool{
+			want1: map[elemental.Identity]bool{
 				api.NamespaceIdentity:     false,
 				api.AuthorizationIdentity: true,
 			},
 		},
 		{
-			"* public override",
-			func(t *testing.T) *GatewayConf {
+			name: "* public override",
+			init: func(t *testing.T) *GatewayConf {
 				return &GatewayConf{
 					GWOverridePrivate: []string{"*:public"},
 				}
 			},
-			nil,
-			func() map[elemental.Identity]bool {
+			want1: func() map[elemental.Identity]bool {
 				m := map[elemental.Identity]bool{}
 				for _, ident := range api.AllIdentities() {
 					m[ident] = false
@@ -282,14 +345,13 @@ func TestGatewayConf_GWPrivateOverrides(t *testing.T) {
 			}(),
 		},
 		{
-			"* private override",
-			func(t *testing.T) *GatewayConf {
+			name: "* private override",
+			init: func(t *testing.T) *GatewayConf {
 				return &GatewayConf{
 					GWOverridePrivate: []string{"*:private"},
 				}
 			},
-			nil,
-			func() map[elemental.Identity]bool {
+			want1: func() map[elemental.Identity]bool {
 				m := map[elemental.Identity]bool{}
 				for _, ident := range api.AllIdentities() {
 					m[ident] = true
@@ -298,14 +360,13 @@ func TestGatewayConf_GWPrivateOverrides(t *testing.T) {
 			}(),
 		},
 		{
-			"mixed private override",
-			func(t *testing.T) *GatewayConf {
+			name: "mixed private override",
+			init: func(t *testing.T) *GatewayConf {
 				return &GatewayConf{
 					GWOverridePrivate: []string{"*:private", "namespace:public"},
 				}
 			},
-			nil,
-			func() map[elemental.Identity]bool {
+			want1: func() map[elemental.Identity]bool {
 				m := map[elemental.Identity]bool{}
 				for _, ident := range api.AllIdentities() {
 					m[ident] = true
@@ -320,10 +381,6 @@ func TestGatewayConf_GWPrivateOverrides(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			receiver := tt.init(t)
 			got1 := receiver.GWPrivateOverrides()
-
-			if tt.inspect != nil {
-				tt.inspect(receiver, t)
-			}
 
 			if !reflect.DeepEqual(got1, tt.want1) {
 				t.Errorf("GatewayConf.GWPrivateOverrides got1 = %v, want1: %v", got1, tt.want1)
