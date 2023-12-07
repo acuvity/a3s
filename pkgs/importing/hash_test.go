@@ -6,13 +6,11 @@ import (
 	"testing"
 
 	"go.acuvity.ai/a3s/pkgs/api"
-	"go.acuvity.ai/elemental"
 )
 
 func TestHash(t *testing.T) {
 	type args struct {
-		obj     Importable
-		manager elemental.ModelManager
+		obj Importable
 	}
 	tests := []struct {
 		name string
@@ -27,19 +25,6 @@ func TestHash(t *testing.T) {
 			func(*testing.T) args {
 				return args{
 					nil,
-					nil,
-				}
-			},
-			"",
-			true,
-			nil,
-		},
-		{
-			"nil manager",
-			func(*testing.T) args {
-				return args{
-					api.NewHTTPSource(),
-					nil,
 				}
 			},
 			"",
@@ -51,7 +36,6 @@ func TestHash(t *testing.T) {
 			func(*testing.T) args {
 				return args{
 					api.NewHTTPSource(),
-					api.Manager(),
 				}
 			},
 			"30e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -67,7 +51,6 @@ func TestHash(t *testing.T) {
 				o.Modifier.Method = api.IdentityModifierMethodPOST
 				return args{
 					o,
-					api.Manager(),
 				}
 			},
 			"39373933393238343838353037323338393835e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -84,7 +67,6 @@ func TestHash(t *testing.T) {
 				o.Namespace = "ns"
 				return args{
 					o,
-					api.Manager(),
 				}
 			},
 			"39373933393238343838353037323338393835e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -97,7 +79,7 @@ func TestHash(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			tArgs := tt.args(t)
 
-			got1, err := Hash(tArgs.obj, tArgs.manager)
+			got1, err := Hash(tArgs.obj)
 
 			if !reflect.DeepEqual(got1, tt.want1) {
 				t.Errorf("Hash got1 = %v, want1: %v", got1, tt.want1)
@@ -116,8 +98,7 @@ func TestHash(t *testing.T) {
 
 func Test_sanitize(t *testing.T) {
 	type args struct {
-		obj     Importable
-		manager elemental.ModelManager
+		obj Importable
 	}
 	tests := []struct {
 		name string
@@ -138,7 +119,6 @@ func Test_sanitize(t *testing.T) {
 				obj.Namespace = "should be removed because it's autogen"
 				return args{
 					obj,
-					api.Manager(),
 				}
 			},
 			map[string]any{
@@ -160,7 +140,6 @@ func Test_sanitize(t *testing.T) {
 				obj.Modifier = api.NewIdentityModifier()
 				return args{
 					obj,
-					api.Manager(),
 				}
 			},
 			map[string]any{
@@ -183,7 +162,6 @@ func Test_sanitize(t *testing.T) {
 				obj.Modifier.Certificate = "cert"
 				return args{
 					obj,
-					api.Manager(),
 				}
 			},
 			map[string]any{
@@ -208,7 +186,6 @@ func Test_sanitize(t *testing.T) {
 				obj.SecurityProtocol = api.LDAPSourceSecurityProtocolTLS
 				return args{
 					obj,
-					api.Manager(),
 				}
 			},
 			map[string]any{
@@ -230,7 +207,6 @@ func Test_sanitize(t *testing.T) {
 				obj.SecurityProtocol = api.LDAPSourceSecurityProtocolInbandTLS
 				return args{
 					obj,
-					api.Manager(),
 				}
 			},
 			map[string]any{
@@ -247,7 +223,7 @@ func Test_sanitize(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			tArgs := tt.args(t)
 
-			got1, err := sanitize(tArgs.obj, tArgs.manager)
+			got1, err := sanitize(tArgs.obj)
 
 			if !reflect.DeepEqual(got1, tt.want1) {
 				t.Errorf("sanitize got1 = %v, want1: %v", got1, tt.want1)

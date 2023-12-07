@@ -49,7 +49,7 @@ func Import(
 				return fmt.Errorf("object '%s[%d]' is not importable", obj.Identity().Name, i)
 			}
 
-			h, err := Hash(imp, manager)
+			h, err := Hash(imp)
 			if err != nil {
 				return fmt.Errorf("unable to hash '%s[%d]': %w", obj.Identity().Name, i, err)
 			}
