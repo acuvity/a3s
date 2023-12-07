@@ -25,7 +25,7 @@ func Hash(obj Importable, manager elemental.ModelManager) (string, error) {
 
 	data, err := sanitize(obj, manager)
 	if err != nil {
-		return "", fmt.Errorf("unable to sanitize data from indentifiable: %w", err)
+		return "", fmt.Errorf("unable to sanitize data from identifiable: %w", err)
 	}
 
 	return hash(data)
@@ -56,7 +56,7 @@ func sanitize(obj elemental.AttributeSpecifiable, manager elemental.ModelManager
 	// We convert the given object to a map.
 	data, err := toMap(obj)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("unable to convert importable to map: %w", err)
 	}
 
 	// Then we get a pristine object with the same identity.
@@ -65,7 +65,7 @@ func sanitize(obj elemental.AttributeSpecifiable, manager elemental.ModelManager
 	// And we also convert it to a map.
 	pdata, err := toMap(pobj)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("unable to convert reference importable to a map: %w", err)
 	}
 
 	// We remove all keys with a zero or default values.
@@ -87,12 +87,12 @@ func sanitize(obj elemental.AttributeSpecifiable, manager elemental.ModelManager
 
 			vv := manager.IdentifiableFromString(spec.SubType)
 			if err := mapstructure.Decode(v, vv); err != nil {
-				return nil, err
+				return nil, fmt.Errorf("unable to decode ref: %w", err)
 			}
 
 			m, err := sanitize(vv.(elemental.AttributeSpecifiable), manager)
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("unable to sub sanitize: %w", err)
 			}
 
 			// If in the end, the map is empty, we remove the key.
