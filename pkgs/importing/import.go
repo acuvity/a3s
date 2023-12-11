@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"go.acuvity.ai/elemental"
 	"go.acuvity.ai/manipulate"
@@ -12,8 +13,27 @@ import (
 // Import preforms the importing of the given
 // objects, in the given namespace, with the given label
 // using the given manipulator.
+//
 // If removeMode is true, all the objects with the given
 // label will be deleted.
+//
+// It is possible to import objects in subnamespaces by setting the
+// imported object's "namespace" property with a relative namepace, using
+// the unix './' notation.
+//
+// For example:
+//
+//	objects:
+//		- name: a
+//		- name: b namespace: ./subns
+//
+// If the base namespace is /ns, this would import object "a" in /ns  of the
+// import and "b" in in /ns/subns.
+//
+// Subns imports must start with './'
+//
+// This function is not responsible for ordering of imports, and subnamespaces
+// exist somehow (either already existing, of created earlier in the import)
 // This function does not make any permission check, and will
 // fail if the given manipulator does not bear sufficient permissions.
 func Import(
@@ -34,6 +54,10 @@ func Import(
 		return fmt.Errorf("label must not be empty")
 	}
 
+	if manager == nil {
+		return fmt.Errorf("manager must not be nil")
+	}
+
 	lst := objects.List()
 	hashed := make(map[string]Importable, len(lst))
 
@@ -47,6 +71,12 @@ func Import(
 			imp, ok := obj.(Importable)
 			if !ok {
 				return fmt.Errorf("object '%s[%d]' is not importable", obj.Identity().Name, i)
+			}
+
+			if ns := imp.GetNamespace(); ns != "" {
+				if !strings.HasPrefix(ns, "./") {
+					return fmt.Errorf("object '%s[%d] has a non relative namespace set: %s", obj.Identity(), i, ns)
+				}
 			}
 
 			h, err := Hash(imp, manager)
@@ -68,6 +98,7 @@ func Import(
 		manipulate.NewContext(
 			ctx,
 			manipulate.ContextOptionNamespace(namespace),
+			manipulate.ContextOptionRecursive(true),
 			manipulate.ContextOptionFilter(
 				elemental.NewFilterComposer().
 					WithKey("importLabel").Equals(label).
@@ -85,7 +116,8 @@ func Import(
 	// ones that have a matching hash, since they did not change.
 	for _, o := range currentObjects.List() {
 
-		h := o.(Importable).GetImportHash()
+		obj := o.(Importable)
+		h := obj.GetImportHash()
 
 		if _, ok := hashed[h]; ok {
 			delete(hashed, h)
@@ -95,7 +127,7 @@ func Import(
 		if err := m.Delete(
 			manipulate.NewContext(
 				ctx,
-				manipulate.ContextOptionNamespace(namespace),
+				manipulate.ContextOptionNamespace(obj.GetNamespace()),
 				manipulate.ContextOptionOverride(true),
 			),
 			o,
@@ -109,10 +141,17 @@ func Import(
 
 	// Finally, we create the remaining objects.
 	for _, o := range hashed {
+
+		ns := namespace
+		if localns := o.GetNamespace(); localns != "" {
+			ns = ns + "/" + strings.Replace(localns, "./", "", 1)
+			o.SetNamespace("")
+		}
+
 		if err := m.Create(
 			manipulate.NewContext(
 				ctx,
-				manipulate.ContextOptionNamespace(namespace),
+				manipulate.ContextOptionNamespace(ns),
 			),
 			o,
 		); err != nil {

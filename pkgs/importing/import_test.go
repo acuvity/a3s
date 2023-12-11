@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"slices"
 	"sort"
 	"strings"
 	"testing"
@@ -75,7 +76,7 @@ func TestImport(t *testing.T) {
 				false,
 			)
 			So(err, ShouldNotBeNil)
-			So(err.Error(), ShouldEqual, "unable to hash 'authorization[0]': manager must not be nil")
+			So(err.Error(), ShouldEqual, "manager must not be nil")
 		})
 
 		Convey("When I import, but retrieve many returns an error", func() {
@@ -343,6 +344,114 @@ func TestImport(t *testing.T) {
 			So(len(toCreate), ShouldEqual, 2)
 			So(toCreate[0].(*api.Authorization).Name, ShouldEqual, "2")
 			So(toCreate[1].(*api.Authorization).Name, ShouldEqual, "4")
+		})
+
+		Convey("When I import a list of objects using subnamespace with bad relative ns format", func() {
+
+			m.MockRetrieveMany(t, func(mctx manipulate.Context, dest elemental.Identifiables) error {
+				*dest.(*api.AuthorizationsList) = append(
+					*dest.(*api.AuthorizationsList),
+					&api.Authorization{
+						ID:          "1",
+						Name:        "1",
+						ImportHash:  "3132303033343839333331383835343436343834e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+						ImportLabel: "label",
+					},
+					&api.Authorization{
+						ID:          "2",
+						Name:        "2",
+						ImportHash:  "3132363235373937303539373039393132333639e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+						ImportLabel: "label",
+					},
+					&api.Authorization{
+						ID:          "3",
+						Name:        "3",
+						ImportHash:  "3",
+						ImportLabel: "label",
+					},
+				)
+				return nil
+			})
+
+			m.MockDelete(t, func(mctx manipulate.Context, object elemental.Identifiable) error {
+				return nil
+			})
+
+			m.MockCreate(t, func(mctx manipulate.Context, object elemental.Identifiable) error {
+				return nil
+			})
+
+			objs := api.AuthorizationsList{
+				&api.Authorization{
+					Name: "1",
+				},
+				&api.Authorization{
+					Name:        "2",
+					Description: "new",
+				},
+				&api.Authorization{
+					Namespace: "/not/a/relative/ns",
+					Name:      "4",
+				},
+			}
+
+			err := Import(context.Background(), api.Manager(), m, "/ns", "label", objs, false)
+			So(err, ShouldNotBeNil)
+			So(err.Error(), ShouldEqual, "object '<Identity authorization|authorizations>[2] has a non relative namespace set: /not/a/relative/ns")
+		})
+
+		Convey("When I import a list of objects using subnamespace", func() {
+
+			m.MockRetrieveMany(t, func(mctx manipulate.Context, dest elemental.Identifiables) error {
+				*dest.(*api.AuthorizationsList) = append(
+					*dest.(*api.AuthorizationsList),
+					&api.Authorization{
+						ID:          "1",
+						Name:        "1",
+						ImportHash:  "3132303033343839333331383835343436343834e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+						ImportLabel: "label",
+					},
+					&api.Authorization{
+						ID:          "2",
+						Name:        "2",
+						ImportHash:  "3132303033343839333331383835343436343834e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+						ImportLabel: "label",
+					},
+				)
+				return nil
+			})
+
+			var deleteNamespaces []string
+			m.MockDelete(t, func(mctx manipulate.Context, object elemental.Identifiable) error {
+				deleteNamespaces = append(deleteNamespaces, mctx.Namespace())
+				return nil
+			})
+
+			var createNamespaces []string
+			m.MockCreate(t, func(mctx manipulate.Context, object elemental.Identifiable) error {
+				createNamespaces = append(createNamespaces, mctx.Namespace())
+				return nil
+			})
+
+			objs := api.AuthorizationsList{
+				&api.Authorization{
+					Name:        "1",
+					Description: "new",
+				},
+				&api.Authorization{
+					Namespace: "./subns",
+					Name:      "2",
+				},
+			}
+
+			slices.Sort(deleteNamespaces)
+			slices.Sort(createNamespaces)
+
+			err := Import(context.Background(), api.Manager(), m, "/ns", "label", objs, false)
+			So(err, ShouldBeNil)
+			So(objs[1].Namespace, ShouldEqual, "")
+			So(deleteNamespaces, ShouldResemble, []string{"", ""}) // empty means default manip namespace.
+			So(createNamespaces, ShouldResemble, []string{"/ns", "/ns/subns"})
 		})
 	})
 }
