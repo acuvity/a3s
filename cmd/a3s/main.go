@@ -180,13 +180,13 @@ func main() {
 		os.Exit(1)
 	}
 
-	if cfg.MTLSHeader.Enabled {
-		if cfg.MTLSHeader.Passphrase == "" {
+	if cfg.MTLSHeaderConf.Enabled {
+		if cfg.MTLSHeaderConf.Passphrase == "" {
 			slog.Error("You must pass --mtls-header-passphrase when --mtls-header-enabled is set")
 			os.Exit(1)
 		}
 		var cipher string
-		switch len(cfg.MTLSHeader.Passphrase) {
+		switch len(cfg.MTLSHeaderConf.Passphrase) {
 		case 16:
 			cipher = "AES-128"
 		case 24:
@@ -198,7 +198,7 @@ func main() {
 			os.Exit(1)
 		}
 		slog.Info("MTLS header trust set",
-			"header", cfg.MTLSHeader.HeaderKey,
+			"header", cfg.MTLSHeaderConf.HeaderKey,
 			"cipher", cipher,
 		)
 	}
@@ -393,9 +393,9 @@ func main() {
 			cfg.JWT.JWTAudience,
 			cookiePolicy,
 			cookieDomain,
-			cfg.MTLSHeader.Enabled,
-			cfg.MTLSHeader.HeaderKey,
-			cfg.MTLSHeader.Passphrase,
+			cfg.MTLSHeaderConf.Enabled,
+			cfg.MTLSHeaderConf.HeaderKey,
+			cfg.MTLSHeaderConf.Passphrase,
 			pluginModifier,
 		),
 		api.IssueIdentity,

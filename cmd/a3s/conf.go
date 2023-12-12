@@ -29,20 +29,20 @@ type Conf struct {
 	InitRootUserCAPath string `mapstructure:"init-root-ca" desc:"Path to the root CA to use to initialize root permissions"`
 	PluginModifier     string `mapstructure:"plugin-modifier" desc:"Path to a go plugin implemeting the plugin.Modifier interface"`
 
-	JWT        JWTConf        `mapstructure:",squash"`
-	MTLSHeader MTLSHeaderConf `mapstructure:",squash"`
+	JWT JWTConf `mapstructure:",squash"`
 
 	conf.APIServerConf       `mapstructure:",squash"`
-	conf.TLSConf             `mapstructure:",squash"`
 	conf.GatewayConf         `mapstructure:",squash"`
 	conf.HTTPTimeoutsConf    `mapstructure:",squash"`
 	conf.HealthConfiguration `mapstructure:",squash"`
 	conf.LoggingConf         `mapstructure:",squash"`
+	conf.MTLSHeaderConf      `mapstructure:",squash"`
 	conf.MongoConf           `mapstructure:",squash" override:"mongo-db=a3s"`
 	conf.NATSPublisherConf   `mapstructure:",squash"`
 	conf.ProfilingConf       `mapstructure:",squash"`
 	conf.RateLimitingConf    `mapstructure:",squash"`
 	conf.TLSAutoConf         `mapstructure:",squash"`
+	conf.TLSConf             `mapstructure:",squash"`
 }
 
 // Prefix returns the configuration prefix.
@@ -125,11 +125,4 @@ func (c *JWTConf) TrustedIssuers() ([]authenticator.RemoteIssuer, error) {
 	}
 
 	return out, nil
-}
-
-// MTLSHeaderConf holds the configuration for trusted certificate header.
-type MTLSHeaderConf struct {
-	HeaderKey  string `mapstructure:"mtls-header-key" desc:"The header to check for user certificates" default:"x-tls-certificate"`
-	Passphrase string `mapstructure:"mtls-header-passphrase" desc:"The passphrase to decrypt the AES encrypted header content. It is mandatory if --mtls-header-enabled is set."`
-	Enabled    bool   `mapstructure:"mtls-header-enabled" desc:"Trust the value of the defined header containing a user certificate. This is insecure if there is no proper tls verification happening upstream"`
 }
