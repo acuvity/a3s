@@ -422,8 +422,8 @@ go.acuvity.ai/bahamut v0.0.0-20231122010138-ddeaad1d6ae8 h1:VTMZb+fqaxkzvNlDCq7C
 go.acuvity.ai/bahamut v0.0.0-20231122010138-ddeaad1d6ae8/go.mod h1:vBgI0xVdQszwN6FfePGMWfoX4tVcP489EqSpXDslcPc=
 go.acuvity.ai/elemental v0.0.0-20231122005432-a4b35bbdaca3 h1:kfpeLOKsJESo7VSlcIOxRr7GaB9SZLHO3qbOzB1jcKw=
 go.acuvity.ai/elemental v0.0.0-20231122005432-a4b35bbdaca3/go.mod h1:kx+eU0V7RcUcQdrXni9409fP5wfMUBqbQjrKiVB5SQg=
-go.acuvity.ai/manipulate v0.0.0-20231122005955-22472d485779 h1:scyDm0D6+7ZgwdvJR4EQUwLEZmbGzgTUZ6MWGBWiisA=
-go.acuvity.ai/manipulate v0.0.0-20231122005955-22472d485779/go.mod h1:i47AydZU2eEdmYeJtVbI2oxRtsYh8haj4aHr9nnvrbs=
+go.acuvity.ai/manipulate v0.0.0-20231129002616-83a9a374c1e7 h1:4mfWX1RIn+tn4c/Hqj2CupYGT2y28e86udl9FGzO7G0=
+go.acuvity.ai/manipulate v0.0.0-20231129002616-83a9a374c1e7/go.mod h1:i47AydZU2eEdmYeJtVbI2oxRtsYh8haj4aHr9nnvrbs=
 go.acuvity.ai/tg v0.0.0-20231122004536-47ae4ba0efc0 h1:+4p3rb3xued8A8nbBZxjHt6IzlQAcqB3ryNp/uSl78M=
 go.acuvity.ai/tg v0.0.0-20231122004536-47ae4ba0efc0/go.mod h1:qTHlyRc0Bl98d+RcmkETNDd7JyNeRvqWzUKQqC52wQg=
 go.acuvity.ai/wsc v0.0.0-20231122003955-dc50470c8ac6 h1:c21LkhIXcby1tNPSMGowCLqGS6NCmuv+PNU9WksmySg=
