@@ -50,63 +50,38 @@ func ConfigureBahamut(
 
 	_, okStaticTLS := cs.FieldOk(structs.Name(conf.TLSConf{}))
 	_, okAutoTLS := cs.FieldOk(structs.Name(conf.TLSAutoConf{}))
-	tlsConfigured := false
+
+	var staticConf conf.TLSConf
+	var autoConf conf.TLSAutoConf
 
 	if okStaticTLS {
 		if f, ok := cs.FieldOk(structs.Name(conf.TLSConf{})); ok {
-			c := f.Value().(conf.TLSConf)
-
-			if c.TLSCertificate != "" || !okAutoTLS {
-				tlscfg, err := c.TLSConfig()
-				if err != nil {
-					slog.Error("Unable to configure tls", err)
-					os.Exit(1)
-				}
-
-				if tlscfg != nil {
-					opts = append(opts,
-						bahamut.OptTLS(tlscfg.Certificates, nil),
-						bahamut.OptTLSNextProtos([]string{"h2"}), // enable http2 support.
-					)
-
-					if clientCA := tlscfg.ClientCAs; clientCA != nil {
-						opts = append(opts, bahamut.OptMTLS(clientCA, tls.RequireAndVerifyClientCert))
-					}
-				}
-				tlsConfigured = true
-
-				slog.Info("Static TLS configured")
-			}
+			staticConf = f.Value().(conf.TLSConf)
 		}
 	}
 
-	if okAutoTLS && !tlsConfigured {
+	if okAutoTLS {
 		if f, ok := cs.FieldOk(structs.Name(conf.TLSAutoConf{})); ok {
-			c := f.Value().(conf.TLSAutoConf)
-
-			tlscfg, err := c.TLSConfig()
-			if err != nil {
-				slog.Error("Unable to configure auto tls", err)
-				os.Exit(1)
-			}
-
-			if tlscfg != nil {
-				opts = append(opts,
-					bahamut.OptTLS(tlscfg.Certificates, nil),
-					bahamut.OptTLSNextProtos([]string{"h2"}), // enable http2 support.
-				)
-
-				if clientCA := tlscfg.ClientCAs; clientCA != nil {
-					opts = append(opts, bahamut.OptMTLS(clientCA, tls.RequireAndVerifyClientCert))
-				}
-			}
-
-			ips, dnss := c.Info()
-			slog.Info("Auto TLS configured",
-				"ips", ips,
-				"dns", dnss,
-			)
+			autoConf = f.Value().(conf.TLSAutoConf)
 		}
+	}
+
+	tlscfg, err := TLSConfig(autoConf, staticConf)
+	if err != nil {
+		slog.Error("Unable to configure tls", err)
+		os.Exit(1)
+	}
+
+	if tlscfg != nil {
+		opts = append(opts,
+			bahamut.OptTLS(tlscfg.Certificates, nil),
+			bahamut.OptTLSNextProtos([]string{"h2"}), // enable http2 support.
+		)
+
+		if clientCA := tlscfg.ClientCAs; clientCA != nil {
+			opts = append(opts, bahamut.OptMTLS(clientCA, tls.RequireAndVerifyClientCert))
+		}
+
 	}
 
 	if f, ok := cs.FieldOk(structs.Name(conf.APIServerConf{})); ok {

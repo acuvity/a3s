@@ -58,6 +58,7 @@ type TLSConf struct {
 	TLSKeyPass     string `mapstructure:"tls-key-pass" desc:"Password for the key" secret:"true" file:"true"`
 
 	cert      *x509.Certificate
+	clientCA  []*x509.Certificate
 	tlsConfig *tls.Config
 }
 
@@ -67,6 +68,14 @@ func (c *TLSConf) Certificate() *x509.Certificate {
 		_, _ = c.TLSConfig()
 	}
 	return c.cert
+}
+
+// ClientCertificateAuthority returns the computed Certificate authority to verify clients.
+func (c *TLSConf) ClientCertificateAuthority() []*x509.Certificate {
+	if c.clientCA == nil {
+		_, _ = c.TLSConfig()
+	}
+	return c.clientCA
 }
 
 // TLSConfig returns the configured TLS configuration as *tls.Config.
@@ -86,6 +95,10 @@ func (c *TLSConf) TLSConfig() (*tls.Config, error) {
 		caData, err := os.ReadFile(c.TLSClientCA)
 		if err != nil {
 			return nil, fmt.Errorf("unable to load ca file: %w", err)
+		}
+		c.clientCA, err = tglib.ParseCertificates(caData)
+		if err != nil {
+			return nil, fmt.Errorf("unable to parse to ca certificate: %w", err)
 		}
 		pool := x509.NewCertPool()
 		pool.AppendCertsFromPEM(caData)
@@ -126,6 +139,7 @@ type TLSAutoConf struct {
 	caKey     crypto.PrivateKey
 	caCert    *x509.Certificate
 	cert      *x509.Certificate
+	clientCA  []*x509.Certificate
 	dnss      []string
 	ips       []string
 	tlsConfig *tls.Config
@@ -137,6 +151,14 @@ func (c *TLSAutoConf) Certificate() *x509.Certificate {
 		_, _ = c.TLSConfig()
 	}
 	return c.cert
+}
+
+// ClientCertificateAuthority returns the computed Client Certificate authority used to verfy clients.
+func (c *TLSAutoConf) ClientCertificateAuthority() []*x509.Certificate {
+	if c.clientCA == nil {
+		_, _ = c.TLSConfig()
+	}
+	return c.clientCA
 }
 
 // Info returns IP and DNS SANs.
@@ -164,6 +186,10 @@ func (c *TLSAutoConf) TLSConfig() (*tls.Config, error) {
 		caData, err := os.ReadFile(c.AutoTLSCA)
 		if err != nil {
 			return nil, fmt.Errorf("unable to load ca file: %w", err)
+		}
+		c.clientCA, err = tglib.ParseCertificates(caData)
+		if err != nil {
+			return nil, fmt.Errorf("unable to parse to ca certificate: %w", err)
 		}
 		pool := x509.NewCertPool()
 		pool.AppendCertsFromPEM(caData)
@@ -222,10 +248,10 @@ func (c *TLSAutoConf) TLSConfig() (*tls.Config, error) {
 		ips = c.AutoTLSIPs
 	}
 
-	netips := make([]net.IP, len(ips))
-	for i, ip := range ips {
+	netips := []net.IP{}
+	for _, ip := range ips {
 		if pip := net.ParseIP(ip); pip != nil {
-			netips[i] = pip
+			netips = append(netips, pip)
 		}
 	}
 
