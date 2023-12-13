@@ -1,6 +1,7 @@
 package bootstrap
 
 import (
+	"io"
 	"log/slog"
 	"os"
 	"os/signal"
@@ -56,6 +57,8 @@ func configureLogger(name string, level string, format string) {
 			ReplaceAttr: errReplacer,
 			TimeFormat:  time.Stamp,
 		})
+	case "silent":
+		handler = slog.NewTextHandler(io.Discard, nil)
 	default:
 		handler = slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
 			Level:       lvl,
