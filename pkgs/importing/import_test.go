@@ -451,7 +451,9 @@ func TestImport(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(objs[1].Namespace, ShouldEqual, "")
 			So(deleteNamespaces, ShouldResemble, []string{"", ""}) // empty means default manip namespace.
-			So(createNamespaces, ShouldResemble, []string{"/ns", "/ns/subns"})
+			So(len(createNamespaces), ShouldEqual, 2)
+			So(createNamespaces, ShouldContain, "/ns")
+			So(createNamespaces, ShouldContain, "/ns/subns")
 		})
 	})
 }

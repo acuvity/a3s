@@ -20,8 +20,9 @@ import (
 	"go.acuvity.ai/a3s/internal/issuer/remotea3sissuer"
 	"go.acuvity.ai/a3s/internal/oidcceremony"
 	"go.acuvity.ai/a3s/pkgs/api"
+	"go.acuvity.ai/a3s/pkgs/modifier/binary"
+	"go.acuvity.ai/a3s/pkgs/modifier/plugin"
 	"go.acuvity.ai/a3s/pkgs/permissions"
-	"go.acuvity.ai/a3s/pkgs/plugin"
 	"go.acuvity.ai/a3s/pkgs/token"
 	"go.acuvity.ai/bahamut"
 	"go.acuvity.ai/bahamut/authorizer/mtls"
@@ -34,6 +35,7 @@ import (
 type IssueProcessor struct {
 	manipulator          manipulate.Manipulator
 	pluginModifier       plugin.Modifier
+	binaryModifier       *binary.Modifier
 	jwks                 *token.JWKS
 	audience             string
 	cookieDomain         string
@@ -60,6 +62,7 @@ func NewIssueProcessor(
 	mtlsHeaderKey string,
 	mtlsHeaderPass string,
 	pluginModifier plugin.Modifier,
+	binaryModifier *binary.Modifier,
 ) *IssueProcessor {
 
 	return &IssueProcessor{
@@ -75,6 +78,7 @@ func NewIssueProcessor(
 		mtlsHeaderKey:        mtlsHeaderKey,
 		mtlsHeaderPass:       mtlsHeaderPass,
 		pluginModifier:       pluginModifier,
+		binaryModifier:       binaryModifier,
 	}
 }
 
@@ -179,7 +183,13 @@ func (p *IssueProcessor) ProcessCreate(bctx bahamut.Context) (err error) {
 
 	if p.pluginModifier != nil {
 		if idt, err = p.pluginModifier.Token(bctx.Context(), p.manipulator, idt, p.issuer); err != nil {
-			return fmt.Errorf("plugin: unable to run Token: %w", err)
+			return fmt.Errorf("modifier: plugin: unable to run Token: %w", err)
+		}
+	}
+
+	if p.binaryModifier != nil {
+		if idt, err = p.binaryModifier.Write(bctx.Context(), idt, p.issuer); err != nil {
+			return fmt.Errorf("modifier: binary: unable to run Write: %w", err)
 		}
 	}
 

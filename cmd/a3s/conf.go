@@ -20,6 +20,8 @@ var (
 
 // Conf holds the main configuration flags.
 type Conf struct {
+	BinaryModifier     string `mapstructure:"binary-modifier" desc:"Path to modifier binary. If set, binary-modifier-sha256 must be set"`
+	BinaryModifierHash string `mapstructure:"binary-modifier-sha256" desc:"Sha256 hash of the binary-modifier"`
 	Init               bool   `mapstructure:"init" desc:"If set, initialize the root permissions using the CAs passed in --init-root-ca and --init-platform-ca"`
 	InitContinue       bool   `mapstructure:"init-continue" desc:"Continues normal boot after init."`
 	InitDB             bool   `mapstructure:"init-db" desc:"If set, initialize the database using the mongo config passed in and init-db-username"`

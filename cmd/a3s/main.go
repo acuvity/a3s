@@ -29,10 +29,11 @@ import (
 	"go.acuvity.ai/a3s/pkgs/importing"
 	"go.acuvity.ai/a3s/pkgs/indexes"
 	"go.acuvity.ai/a3s/pkgs/jobs"
+	"go.acuvity.ai/a3s/pkgs/modifier/binary"
+	"go.acuvity.ai/a3s/pkgs/modifier/plugin"
 	"go.acuvity.ai/a3s/pkgs/notification"
 	"go.acuvity.ai/a3s/pkgs/nscache"
 	"go.acuvity.ai/a3s/pkgs/permissions"
-	"go.acuvity.ai/a3s/pkgs/plugin"
 	"go.acuvity.ai/a3s/pkgs/push"
 	"go.acuvity.ai/a3s/pkgs/token"
 	"go.acuvity.ai/bahamut"
@@ -350,7 +351,24 @@ func main() {
 		os.Exit(1)
 	}
 
+	var binaryModifier *binary.Modifier
+	if cfg.BinaryModifier != "" {
+
+		if binaryModifier, err = binary.New(cfg.BinaryModifier, cfg.BinaryModifierHash, cfg.MongoConf); err != nil {
+			slog.Error("unable to initialize binary modifier", err)
+			os.Exit(1)
+		}
+
+		if err := binaryModifier.Run(ctx); err != nil {
+			slog.Error("unable to start binary modifier", err)
+			os.Exit(1)
+		}
+
+		slog.Info("Binary modifier started", "path", cfg.BinaryModifier)
+	}
+
 	var pluginModifier plugin.Modifier
+
 	if cfg.PluginModifier != "" {
 		p, err := goplugin.Open(cfg.PluginModifier)
 		if err != nil {
@@ -380,7 +398,7 @@ func main() {
 
 		pluginModifier = pfunc()
 
-		slog.Info("Plugin loaded", "plugin", cfg.PluginModifier)
+		slog.Info("Plugin modifier loaded", "path", cfg.PluginModifier)
 	}
 
 	bahamut.RegisterProcessorOrDie(server,
@@ -397,6 +415,7 @@ func main() {
 			cfg.MTLSHeaderConf.HeaderKey,
 			cfg.MTLSHeaderConf.Passphrase,
 			pluginModifier,
+			binaryModifier,
 		),
 		api.IssueIdentity,
 	)
