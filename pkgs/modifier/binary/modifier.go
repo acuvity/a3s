@@ -204,7 +204,6 @@ func (b *Modifier) Write(ctx context.Context, idt *token.IdentityToken, issuer s
 		if err := elemental.Decode(b.encoding, data, &response); err != nil {
 			return nil, fmt.Errorf("unable to decode modifier output '%s': %w", string(data), err)
 		}
-		fmt.Println(response.Error)
 		if response.Error != "" {
 			return nil, fmt.Errorf("binary modifier: error from binary: %s", response.Error)
 		}
