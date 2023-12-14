@@ -8,8 +8,12 @@ model:
   description: TODO.
   get:
     description: Retrieves the authorization with the given ID.
+    global_parameters:
+    - $queryable
   update:
     description: Updates the authorization with the given ID.
+    global_parameters:
+    - $queryable
   delete:
     description: Deletes the authorization with the given ID.
     global_parameters:
@@ -30,6 +34,8 @@ indexes:
   - propagate
 - - namespace
   - trustedIssuers
+- - namesace
+  - type
 
 # Attributes
 attributes:
@@ -58,6 +64,13 @@ attributes:
     exposed: true
     stored: true
 
+  - name: label
+    description: Allows users to set a label to categorize authorization policies.
+    type: string
+    exposed: true
+    subtype: string
+    stored: true
+
   - name: name
     description: The name of the Authorization.
     type: string
@@ -65,6 +78,16 @@ attributes:
     stored: true
     required: true
     example_value: my authorization
+
+  - name: opaque
+    description: Opaque allows to store abitrary data into the authorization.
+    type: external
+    exposed: true
+    subtype: map[string]string
+    stored: true
+    omit_empty: true
+    extensions:
+      noInit: true
 
   - name: permissions
     description: A list of permissions.

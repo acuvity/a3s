@@ -109,11 +109,17 @@ type Authorization struct {
 	// same import operation.
 	ImportLabel string `json:"importLabel,omitempty" msgpack:"importLabel,omitempty" bson:"importlabel,omitempty" mapstructure:"importLabel,omitempty"`
 
+	// Allows users to set a label to categorize authorization policies.
+	Label string `json:"label" msgpack:"label" bson:"label" mapstructure:"label,omitempty"`
+
 	// The name of the Authorization.
 	Name string `json:"name" msgpack:"name" bson:"name" mapstructure:"name,omitempty"`
 
 	// The namespace of the object.
 	Namespace string `json:"namespace" msgpack:"namespace" bson:"namespace" mapstructure:"namespace,omitempty"`
+
+	// Opaque allows to store abitrary data into the authorization.
+	Opaque map[string]string `json:"opaque,omitempty" msgpack:"opaque,omitempty" bson:"opaque,omitempty" mapstructure:"opaque,omitempty"`
 
 	// A list of permissions.
 	Permissions []string `json:"permissions" msgpack:"permissions" bson:"permissions" mapstructure:"permissions,omitempty"`
@@ -200,8 +206,10 @@ func (o *Authorization) GetBSON() (any, error) {
 	s.Hidden = o.Hidden
 	s.ImportHash = o.ImportHash
 	s.ImportLabel = o.ImportLabel
+	s.Label = o.Label
 	s.Name = o.Name
 	s.Namespace = o.Namespace
+	s.Opaque = o.Opaque
 	s.Permissions = o.Permissions
 	s.Propagate = o.Propagate
 	s.Subject = o.Subject
@@ -236,8 +244,10 @@ func (o *Authorization) SetBSON(raw bson.Raw) error {
 	o.Hidden = s.Hidden
 	o.ImportHash = s.ImportHash
 	o.ImportLabel = s.ImportLabel
+	o.Label = s.Label
 	o.Name = s.Name
 	o.Namespace = s.Namespace
+	o.Opaque = s.Opaque
 	o.Permissions = s.Permissions
 	o.Propagate = s.Propagate
 	o.Subject = s.Subject
@@ -403,8 +413,10 @@ func (o *Authorization) ToSparse(fields ...string) elemental.SparseIdentifiable 
 			Hidden:           &o.Hidden,
 			ImportHash:       &o.ImportHash,
 			ImportLabel:      &o.ImportLabel,
+			Label:            &o.Label,
 			Name:             &o.Name,
 			Namespace:        &o.Namespace,
+			Opaque:           &o.Opaque,
 			Permissions:      &o.Permissions,
 			Propagate:        &o.Propagate,
 			Subject:          &o.Subject,
@@ -436,10 +448,14 @@ func (o *Authorization) ToSparse(fields ...string) elemental.SparseIdentifiable 
 			sp.ImportHash = &(o.ImportHash)
 		case "importLabel":
 			sp.ImportLabel = &(o.ImportLabel)
+		case "label":
+			sp.Label = &(o.Label)
 		case "name":
 			sp.Name = &(o.Name)
 		case "namespace":
 			sp.Namespace = &(o.Namespace)
+		case "opaque":
+			sp.Opaque = &(o.Opaque)
 		case "permissions":
 			sp.Permissions = &(o.Permissions)
 		case "propagate":
@@ -495,11 +511,17 @@ func (o *Authorization) Patch(sparse elemental.SparseIdentifiable) {
 	if so.ImportLabel != nil {
 		o.ImportLabel = *so.ImportLabel
 	}
+	if so.Label != nil {
+		o.Label = *so.Label
+	}
 	if so.Name != nil {
 		o.Name = *so.Name
 	}
 	if so.Namespace != nil {
 		o.Namespace = *so.Namespace
+	}
+	if so.Opaque != nil {
+		o.Opaque = *so.Opaque
 	}
 	if so.Permissions != nil {
 		o.Permissions = *so.Permissions
@@ -629,10 +651,14 @@ func (o *Authorization) ValueForAttribute(name string) any {
 		return o.ImportHash
 	case "importLabel":
 		return o.ImportLabel
+	case "label":
+		return o.Label
 	case "name":
 		return o.Name
 	case "namespace":
 		return o.Namespace
+	case "opaque":
+		return o.Opaque
 	case "permissions":
 		return o.Permissions
 	case "propagate":
@@ -757,6 +783,17 @@ same import operation.`,
 		Stored:  true,
 		Type:    "string",
 	},
+	"Label": {
+		AllowedChoices: []string{},
+		BSONFieldName:  "label",
+		ConvertedName:  "Label",
+		Description:    `Allows users to set a label to categorize authorization policies.`,
+		Exposed:        true,
+		Name:           "label",
+		Stored:         true,
+		SubType:        "string",
+		Type:           "string",
+	},
 	"Name": {
 		AllowedChoices: []string{},
 		BSONFieldName:  "name",
@@ -782,6 +819,17 @@ same import operation.`,
 		Setter:         true,
 		Stored:         true,
 		Type:           "string",
+	},
+	"Opaque": {
+		AllowedChoices: []string{},
+		BSONFieldName:  "opaque",
+		ConvertedName:  "Opaque",
+		Description:    `Opaque allows to store abitrary data into the authorization.`,
+		Exposed:        true,
+		Name:           "opaque",
+		Stored:         true,
+		SubType:        "map[string]string",
+		Type:           "external",
 	},
 	"Permissions": {
 		AllowedChoices: []string{},
@@ -999,6 +1047,17 @@ same import operation.`,
 		Stored:  true,
 		Type:    "string",
 	},
+	"label": {
+		AllowedChoices: []string{},
+		BSONFieldName:  "label",
+		ConvertedName:  "Label",
+		Description:    `Allows users to set a label to categorize authorization policies.`,
+		Exposed:        true,
+		Name:           "label",
+		Stored:         true,
+		SubType:        "string",
+		Type:           "string",
+	},
 	"name": {
 		AllowedChoices: []string{},
 		BSONFieldName:  "name",
@@ -1024,6 +1083,17 @@ same import operation.`,
 		Setter:         true,
 		Stored:         true,
 		Type:           "string",
+	},
+	"opaque": {
+		AllowedChoices: []string{},
+		BSONFieldName:  "opaque",
+		ConvertedName:  "Opaque",
+		Description:    `Opaque allows to store abitrary data into the authorization.`,
+		Exposed:        true,
+		Name:           "opaque",
+		Stored:         true,
+		SubType:        "map[string]string",
+		Type:           "external",
 	},
 	"permissions": {
 		AllowedChoices: []string{},
@@ -1228,11 +1298,17 @@ type SparseAuthorization struct {
 	// same import operation.
 	ImportLabel *string `json:"importLabel,omitempty" msgpack:"importLabel,omitempty" bson:"importlabel,omitempty" mapstructure:"importLabel,omitempty"`
 
+	// Allows users to set a label to categorize authorization policies.
+	Label *string `json:"label,omitempty" msgpack:"label,omitempty" bson:"label,omitempty" mapstructure:"label,omitempty"`
+
 	// The name of the Authorization.
 	Name *string `json:"name,omitempty" msgpack:"name,omitempty" bson:"name,omitempty" mapstructure:"name,omitempty"`
 
 	// The namespace of the object.
 	Namespace *string `json:"namespace,omitempty" msgpack:"namespace,omitempty" bson:"namespace,omitempty" mapstructure:"namespace,omitempty"`
+
+	// Opaque allows to store abitrary data into the authorization.
+	Opaque *map[string]string `json:"opaque,omitempty" msgpack:"opaque,omitempty" bson:"opaque,omitempty" mapstructure:"opaque,omitempty"`
 
 	// A list of permissions.
 	Permissions *[]string `json:"permissions,omitempty" msgpack:"permissions,omitempty" bson:"permissions,omitempty" mapstructure:"permissions,omitempty"`
@@ -1330,11 +1406,17 @@ func (o *SparseAuthorization) GetBSON() (any, error) {
 	if o.ImportLabel != nil {
 		s.ImportLabel = o.ImportLabel
 	}
+	if o.Label != nil {
+		s.Label = o.Label
+	}
 	if o.Name != nil {
 		s.Name = o.Name
 	}
 	if o.Namespace != nil {
 		s.Namespace = o.Namespace
+	}
+	if o.Opaque != nil {
+		s.Opaque = o.Opaque
 	}
 	if o.Permissions != nil {
 		s.Permissions = o.Permissions
@@ -1403,11 +1485,17 @@ func (o *SparseAuthorization) SetBSON(raw bson.Raw) error {
 	if s.ImportLabel != nil {
 		o.ImportLabel = s.ImportLabel
 	}
+	if s.Label != nil {
+		o.Label = s.Label
+	}
 	if s.Name != nil {
 		o.Name = s.Name
 	}
 	if s.Namespace != nil {
 		o.Namespace = s.Namespace
+	}
+	if s.Opaque != nil {
+		o.Opaque = s.Opaque
 	}
 	if s.Permissions != nil {
 		o.Permissions = s.Permissions
@@ -1474,11 +1562,17 @@ func (o *SparseAuthorization) ToPlain() elemental.PlainIdentifiable {
 	if o.ImportLabel != nil {
 		out.ImportLabel = *o.ImportLabel
 	}
+	if o.Label != nil {
+		out.Label = *o.Label
+	}
 	if o.Name != nil {
 		out.Name = *o.Name
 	}
 	if o.Namespace != nil {
 		out.Namespace = *o.Namespace
+	}
+	if o.Opaque != nil {
+		out.Opaque = *o.Opaque
 	}
 	if o.Permissions != nil {
 		out.Permissions = *o.Permissions
@@ -1680,44 +1774,48 @@ func (o *SparseAuthorization) DeepCopyInto(out *SparseAuthorization) {
 }
 
 type mongoAttributesAuthorization struct {
-	ID               bson.ObjectId `bson:"_id,omitempty"`
-	CreateTime       time.Time     `bson:"createtime"`
-	Description      string        `bson:"description"`
-	Disabled         bool          `bson:"disabled"`
-	FlattenedSubject []string      `bson:"flattenedsubject"`
-	Hidden           bool          `bson:"hidden"`
-	ImportHash       string        `bson:"importhash,omitempty"`
-	ImportLabel      string        `bson:"importlabel,omitempty"`
-	Name             string        `bson:"name"`
-	Namespace        string        `bson:"namespace"`
-	Permissions      []string      `bson:"permissions"`
-	Propagate        bool          `bson:"propagate"`
-	Subject          [][]string    `bson:"subject"`
-	Subnets          []string      `bson:"subnets"`
-	TargetNamespaces []string      `bson:"targetnamespaces"`
-	TrustedIssuers   []string      `bson:"trustedissuers"`
-	UpdateTime       time.Time     `bson:"updatetime"`
-	ZHash            int           `bson:"zhash"`
-	Zone             int           `bson:"zone"`
+	ID               bson.ObjectId     `bson:"_id,omitempty"`
+	CreateTime       time.Time         `bson:"createtime"`
+	Description      string            `bson:"description"`
+	Disabled         bool              `bson:"disabled"`
+	FlattenedSubject []string          `bson:"flattenedsubject"`
+	Hidden           bool              `bson:"hidden"`
+	ImportHash       string            `bson:"importhash,omitempty"`
+	ImportLabel      string            `bson:"importlabel,omitempty"`
+	Label            string            `bson:"label"`
+	Name             string            `bson:"name"`
+	Namespace        string            `bson:"namespace"`
+	Opaque           map[string]string `bson:"opaque,omitempty"`
+	Permissions      []string          `bson:"permissions"`
+	Propagate        bool              `bson:"propagate"`
+	Subject          [][]string        `bson:"subject"`
+	Subnets          []string          `bson:"subnets"`
+	TargetNamespaces []string          `bson:"targetnamespaces"`
+	TrustedIssuers   []string          `bson:"trustedissuers"`
+	UpdateTime       time.Time         `bson:"updatetime"`
+	ZHash            int               `bson:"zhash"`
+	Zone             int               `bson:"zone"`
 }
 type mongoAttributesSparseAuthorization struct {
-	ID               bson.ObjectId `bson:"_id,omitempty"`
-	CreateTime       *time.Time    `bson:"createtime,omitempty"`
-	Description      *string       `bson:"description,omitempty"`
-	Disabled         *bool         `bson:"disabled,omitempty"`
-	FlattenedSubject *[]string     `bson:"flattenedsubject,omitempty"`
-	Hidden           *bool         `bson:"hidden,omitempty"`
-	ImportHash       *string       `bson:"importhash,omitempty"`
-	ImportLabel      *string       `bson:"importlabel,omitempty"`
-	Name             *string       `bson:"name,omitempty"`
-	Namespace        *string       `bson:"namespace,omitempty"`
-	Permissions      *[]string     `bson:"permissions,omitempty"`
-	Propagate        *bool         `bson:"propagate,omitempty"`
-	Subject          *[][]string   `bson:"subject,omitempty"`
-	Subnets          *[]string     `bson:"subnets,omitempty"`
-	TargetNamespaces *[]string     `bson:"targetnamespaces,omitempty"`
-	TrustedIssuers   *[]string     `bson:"trustedissuers,omitempty"`
-	UpdateTime       *time.Time    `bson:"updatetime,omitempty"`
-	ZHash            *int          `bson:"zhash,omitempty"`
-	Zone             *int          `bson:"zone,omitempty"`
+	ID               bson.ObjectId      `bson:"_id,omitempty"`
+	CreateTime       *time.Time         `bson:"createtime,omitempty"`
+	Description      *string            `bson:"description,omitempty"`
+	Disabled         *bool              `bson:"disabled,omitempty"`
+	FlattenedSubject *[]string          `bson:"flattenedsubject,omitempty"`
+	Hidden           *bool              `bson:"hidden,omitempty"`
+	ImportHash       *string            `bson:"importhash,omitempty"`
+	ImportLabel      *string            `bson:"importlabel,omitempty"`
+	Label            *string            `bson:"label,omitempty"`
+	Name             *string            `bson:"name,omitempty"`
+	Namespace        *string            `bson:"namespace,omitempty"`
+	Opaque           *map[string]string `bson:"opaque,omitempty"`
+	Permissions      *[]string          `bson:"permissions,omitempty"`
+	Propagate        *bool              `bson:"propagate,omitempty"`
+	Subject          *[][]string        `bson:"subject,omitempty"`
+	Subnets          *[]string          `bson:"subnets,omitempty"`
+	TargetNamespaces *[]string          `bson:"targetnamespaces,omitempty"`
+	TrustedIssuers   *[]string          `bson:"trustedissuers,omitempty"`
+	UpdateTime       *time.Time         `bson:"updatetime,omitempty"`
+	ZHash            *int               `bson:"zhash,omitempty"`
+	Zone             *int               `bson:"zone,omitempty"`
 }

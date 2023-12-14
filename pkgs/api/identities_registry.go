@@ -56,6 +56,7 @@ var (
 		},
 		"authorization": {
 			{":shard", ":unique", "zone", "zHash"},
+			{"namesace", "type"},
 			{"namespace"},
 			{"namespace", "ID"},
 			{"namespace", "flattenedSubject", "disabled"},

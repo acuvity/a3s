@@ -104,6 +104,10 @@
             "description": "The user-defined import label that allows the system to group resources from the\nsame import operation.",
             "type": "string"
           },
+          "label": {
+            "description": "Allows users to set a label to categorize authorization policies.",
+            "type": "string"
+          },
           "name": {
             "description": "The name of the Authorization.",
             "example": "my authorization",
@@ -113,6 +117,13 @@
             "description": "The namespace of the object.",
             "readOnly": true,
             "type": "string"
+          },
+          "opaque": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Opaque allows to store abitrary data into the authorization.",
+            "type": "object"
           },
           "permissions": {
             "description": "A list of permissions.",
@@ -1411,6 +1422,17 @@
       "get": {
         "description": "Retrieves the authorization with the given ID.",
         "operationId": "get-authorization-by-ID",
+        "parameters": [
+          {
+            "description": "This is an example.",
+            "example": "hello == world",
+            "in": "query",
+            "name": "q",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "content": {
@@ -1441,6 +1463,17 @@
       "put": {
         "description": "Updates the authorization with the given ID.",
         "operationId": "update-authorization-by-ID",
+        "parameters": [
+          {
+            "description": "This is an example.",
+            "example": "hello == world",
+            "in": "query",
+            "name": "q",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {

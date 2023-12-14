@@ -1299,9 +1299,17 @@ Parameters:
 
 Retrieves the authorization with the given ID.
 
+Parameters:
+
+- `q` (`string`): This is an example.
+
 ##### `PUT /authorizations/:id`
 
 Updates the authorization with the given ID.
+
+Parameters:
+
+- `q` (`string`): This is an example.
 
 #### Attributes
 
@@ -1348,6 +1356,12 @@ Type: `string`
 The user-defined import label that allows the system to group resources from the
 same import operation.
 
+##### `label`
+
+Type: `string`
+
+Allows users to set a label to categorize authorization policies.
+
 ##### `name` [`required`]
 
 Type: `string`
@@ -1359,6 +1373,12 @@ The name of the Authorization.
 Type: `string`
 
 The namespace of the object.
+
+##### `opaque`
+
+Type: `map[string]string`
+
+Opaque allows to store abitrary data into the authorization.
 
 ##### `permissions` [`required`]
 
