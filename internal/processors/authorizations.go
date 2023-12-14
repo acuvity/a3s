@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"sort"
+	"strings"
 
 	"go.acuvity.ai/a3s/pkgs/api"
 	"go.acuvity.ai/a3s/pkgs/crud"
@@ -91,6 +92,11 @@ func (p *AuthorizationsProcessor) makePreHook(ctx bahamut.Context) crud.PreWrite
 		auth := obj.(*api.Authorization)
 		auth.FlattenedSubject = flattenTags(auth.Subject)
 
+		for i, tns := range auth.TargetNamespaces {
+			if strings.HasPrefix(tns, "./") {
+				auth.TargetNamespaces[i] = ctx.Request().Namespace + "/" + strings.TrimPrefix(tns, ".")
+			}
+		}
 		if len(auth.TargetNamespaces) == 0 {
 			auth.TargetNamespaces = []string{ctx.Request().Namespace}
 		}
