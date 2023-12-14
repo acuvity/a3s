@@ -578,6 +578,41 @@ func TestIsAuthorizedWithToken(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(perms.Allows("get", "things"), ShouldEqual, true)
 		})
+
+		// Label
+		Convey("When there there is no label option", func() {
+
+			var expectedFilter *elemental.Filter
+			m.MockRetrieveMany(t, func(mctx manipulate.Context, dest elemental.Identifiables) error {
+				expectedFilter = mctx.Filter()
+				*dest.(*api.AuthorizationsList) = append(
+					*dest.(*api.AuthorizationsList),
+					makeAPIPol([]string{"things:get"}, nil),
+				)
+				return nil
+			})
+
+			_, err := r.Permissions(ctx, []string{"color=blue"}, "/a")
+			So(err, ShouldBeNil)
+			So(expectedFilter.String(), ShouldEqual, `flattenedsubject in ["color=blue"] and trustedissuers contains [""] and disabled == false`)
+		})
+
+		Convey("When there there is a label option", func() {
+
+			var expectedFilter *elemental.Filter
+			m.MockRetrieveMany(t, func(mctx manipulate.Context, dest elemental.Identifiables) error {
+				expectedFilter = mctx.Filter()
+				*dest.(*api.AuthorizationsList) = append(
+					*dest.(*api.AuthorizationsList),
+					makeAPIPol([]string{"things:get"}, nil),
+				)
+				return nil
+			})
+
+			_, err := r.Permissions(ctx, []string{"color=blue"}, "/a", OptionFilterLabel("the-label"))
+			So(err, ShouldBeNil)
+			So(expectedFilter.String(), ShouldEqual, `flattenedsubject in ["color=blue"] and trustedissuers contains [""] and disabled == false and label == "the-label"`)
+		})
 	})
 }
 

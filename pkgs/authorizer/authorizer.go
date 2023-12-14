@@ -223,6 +223,7 @@ func (a *authorizer) CheckAuthorization(ctx context.Context, claims []string, op
 		permissions.OptionRetrieverID(cfg.id),
 		permissions.OptionRetrieverRestrictions(cfg.restrictions),
 		permissions.OptionCollectAccessibleNamespaces(cfg.accessibleNamespaces),
+		permissions.OptionFilterLabel(cfg.label),
 	}
 
 	perms, err := a.retriever.Permissions(ctx, claims, ns, ropts...)

@@ -62,7 +62,7 @@ func (a *retriever) Permissions(ctx context.Context, claims []string, ns string,
 		}
 	}
 
-	policies, err := a.resolvePoliciesMatchingClaims(ctx, claims, ns)
+	policies, err := a.resolvePoliciesMatchingClaims(ctx, claims, ns, cfg.label)
 	if err != nil {
 		return nil, fmt.Errorf("unable to retrieve api authorizations: %s", err)
 	}
@@ -171,14 +171,14 @@ func (a *retriever) Revoked(ctx context.Context, namespace string, tokenID strin
 	return c > 0, err
 }
 
-func (a *retriever) resolvePoliciesMatchingClaims(ctx context.Context, claims []string, ns string) (api.AuthorizationsList, error) {
+func (a *retriever) resolvePoliciesMatchingClaims(ctx context.Context, claims []string, ns string, label string) (api.AuthorizationsList, error) {
 
 	mctx := manipulate.NewContext(
 		ctx,
 		manipulate.ContextOptionNamespace(ns),
 		manipulate.ContextOptionPropagated(true),
 		manipulate.ContextOptionFilter(
-			makeAPIAuthorizationPolicyRetrieveFilter(claims),
+			makeAPIAuthorizationPolicyRetrieveFilter(claims, label),
 		),
 	)
 
@@ -233,7 +233,7 @@ func validateClientIP(remoteAddr string, allowedSubnets map[string]any) (bool, e
 }
 
 // makeAPIAuthorizationPolicyRetrieveFilter creates a manipulate filter to retrieve the api authorization policies matching the claims.
-func makeAPIAuthorizationPolicyRetrieveFilter(claims []string) *elemental.Filter {
+func makeAPIAuthorizationPolicyRetrieveFilter(claims []string, label string) *elemental.Filter {
 
 	itags := []any{}
 	set := mapset.NewSet()
@@ -252,6 +252,10 @@ func makeAPIAuthorizationPolicyRetrieveFilter(claims []string) *elemental.Filter
 		WithKey("trustedissuers").Contains(issuer).
 		WithKey("disabled").Equals(false).
 		Done()
+
+	if label != "" {
+		filter = filter.WithKey("label").Equals(label).Done()
+	}
 
 	return filter
 }

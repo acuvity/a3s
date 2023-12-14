@@ -6,6 +6,7 @@ type config struct {
 	addr                           string
 	restrictions                   Restrictions
 	offloadPermissionsRestrictions bool
+	label                          string
 }
 
 // A RetrieverOption represents an option of the retriver.
@@ -46,5 +47,14 @@ func OptionOffloadPermissionsRestrictions(offload bool) RetrieverOption {
 func OptionCollectAccessibleNamespaces(namespaces *[]string) RetrieverOption {
 	return func(c *config) {
 		c.accessibleNamespaces = namespaces
+	}
+}
+
+// OptionFilterLabel allows to resolve policies only using those
+// having a mathing label. If empty, all policies will be taken into
+// account
+func OptionFilterLabel(label string) RetrieverOption {
+	return func(c *config) {
+		c.label = label
 	}
 }

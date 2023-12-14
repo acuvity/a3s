@@ -21,6 +21,12 @@ func TestOption(t *testing.T) {
 		OptionOperationTransformer(t)(cfg)
 		So(cfg.operationTransformer, ShouldResemble, t)
 	})
+
+	Convey("OptionDefaultFilterLabel should work", t, func() {
+		cfg := &config{}
+		OptionDefaultFilterLabel("label")(cfg)
+		So(cfg.defaultLabel, ShouldEqual, "label")
+	})
 }
 
 func TestOptionCheck(t *testing.T) {
@@ -50,10 +56,16 @@ func TestOptionCheck(t *testing.T) {
 		So(cfg.tokenID, ShouldEqual, "abc")
 	})
 
-	Convey("Option should work", t, func() {
+	Convey("OptionCollectAccessibleNamespaces should work", t, func() {
 		cfg := &checkConfig{}
 		ns := &[]string{}
 		OptionCollectAccessibleNamespaces(ns)(cfg)
 		So(cfg.accessibleNamespaces, ShouldEqual, ns)
+	})
+
+	Convey("OptionFilterLabel should work", t, func() {
+		cfg := &checkConfig{}
+		OptionFilterLabel("label")(cfg)
+		So(cfg.label, ShouldEqual, "label")
 	})
 }

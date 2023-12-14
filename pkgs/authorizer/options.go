@@ -5,6 +5,7 @@ import "go.acuvity.ai/a3s/pkgs/permissions"
 type config struct {
 	operationTransformer OperationTransformer
 	ignoredResources     []string
+	defaultLabel         string
 }
 
 // An Option can be used to configure various options in the Authorizer.
@@ -14,6 +15,15 @@ type Option func(*config)
 func OptionIgnoredResources(identities ...string) Option {
 	return func(cfg *config) {
 		cfg.ignoredResources = identities
+	}
+}
+
+// OptionDefaultFilterLabel allows to set a default label filter.
+// If set, only the authorization labeled with the same label
+// will be taken into account.
+func OptionDefaultFilterLabel(label string) Option {
+	return func(cfg *config) {
+		cfg.defaultLabel = label
 	}
 }
 
@@ -30,6 +40,7 @@ type checkConfig struct {
 	id                   string
 	tokenID              string
 	restrictions         permissions.Restrictions
+	label                string
 }
 
 // An OptionCheck can be used to configure various options when calling CheckPermissions.
@@ -68,5 +79,13 @@ func OptionCheckTokenID(id string) OptionCheck {
 func OptionCollectAccessibleNamespaces(authorizedNamespaces *[]string) OptionCheck {
 	return func(cfg *checkConfig) {
 		cfg.accessibleNamespaces = authorizedNamespaces
+	}
+}
+
+// OptionFilterLabel allows set a label to reduce the set of
+// policies to take into account when retrieving the permissions.
+func OptionFilterLabel(label string) OptionCheck {
+	return func(cfg *checkConfig) {
+		cfg.label = label
 	}
 }

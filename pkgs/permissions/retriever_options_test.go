@@ -39,4 +39,10 @@ func TestRetrieverOptions(t *testing.T) {
 		OptionCollectAccessibleNamespaces(out)(cfg)
 		So(cfg.accessibleNamespaces, ShouldEqual, out)
 	})
+
+	Convey("OptionFilerLabel should work", t, func() {
+		cfg := &config{}
+		OptionFilterLabel("label")(cfg)
+		So(cfg.label, ShouldEqual, "label")
+	})
 }

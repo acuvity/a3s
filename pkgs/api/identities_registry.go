@@ -56,12 +56,12 @@ var (
 		},
 		"authorization": {
 			{":shard", ":unique", "zone", "zHash"},
-			{"namesace", "type"},
 			{"namespace"},
 			{"namespace", "ID"},
 			{"namespace", "flattenedSubject", "disabled"},
 			{"namespace", "flattenedSubject", "propagate"},
 			{"namespace", "importLabel"},
+			{"namespace", "label"},
 			{"namespace", "trustedIssuers"},
 		},
 		"authz": nil,

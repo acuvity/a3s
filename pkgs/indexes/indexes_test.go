@@ -1,6 +1,7 @@
 package indexes
 
 import (
+	"encoding/json"
 	"reflect"
 	"testing"
 
@@ -61,6 +62,11 @@ func TestGetIndexes(t *testing.T) {
 						Background: true,
 					},
 					{
+						Name:       "index_authorization_namespace_label",
+						Key:        []string{"namespace", "label"},
+						Background: true,
+					},
+					{
 						Name:       "index_authorization_namespace_trustedissuers",
 						Key:        []string{"namespace", "trustedissuers"},
 						Background: true,
@@ -73,13 +79,16 @@ func TestGetIndexes(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 
 			if gotMIndexes := GetIndexes(tt.args.packageName, tt.args.model); !reflect.DeepEqual(gotMIndexes[tt.args.identity], tt.wantMIndexes[tt.args.identity]) {
+				d1, _ := json.MarshalIndent(gotMIndexes[tt.args.identity], "", "  ")
+				d2, _ := json.MarshalIndent(tt.wantMIndexes[tt.args.identity], "", "  ")
 				t.Errorf("GetIndexes()\n"+
 					"EXPECTED:\n"+
-					"%+v\n"+
+					"%s\n"+
 					"ACTUAL:\n"+
-					"%+v\n",
-					tt.wantMIndexes[tt.args.identity],
-					gotMIndexes[tt.args.identity])
+					"%s\n",
+					d2,
+					d1,
+				)
 			}
 		})
 	}

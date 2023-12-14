@@ -34,8 +34,8 @@ indexes:
   - propagate
 - - namespace
   - trustedIssuers
-- - namesace
-  - type
+- - namespace
+  - label
 
 # Attributes
 attributes:
