@@ -9,6 +9,7 @@ import (
 	"log/slog"
 	"os"
 	"os/exec"
+	"time"
 
 	"github.com/fatih/structs"
 	"go.acuvity.ai/a3s/pkgs/conf"
@@ -147,7 +148,7 @@ func (b *Modifier) Run(ctx context.Context) error {
 		for scanner.Scan() {
 
 			data := scanner.Bytes()
-			slog.Debug("Binary modifier: scanned stderr", "data", string(data))
+			slog.Debug("Binary modifier: message from plugin", "data", string(data))
 
 			select {
 			case b.stderr <- data:
@@ -198,6 +199,9 @@ func (b *Modifier) Write(ctx context.Context, idt *token.IdentityToken, issuer s
 		return nil, fmt.Errorf("unable to send idt to binary modifier: queue full")
 	}
 
+	subctx, cancel := context.WithTimeout(ctx, 1*time.Second)
+	defer cancel()
+
 	select {
 	case data := <-b.stdout:
 		response := Response{}
@@ -209,12 +213,7 @@ func (b *Modifier) Write(ctx context.Context, idt *token.IdentityToken, issuer s
 		}
 		return response.Token, nil
 
-	case err := <-b.stderr:
-		slog.Error("binary modifier: message from modifier", "message", string(err))
-
-	case <-ctx.Done():
-		return nil, ctx.Err()
+	case <-subctx.Done():
+		return idt, nil
 	}
-
-	return idt, nil
 }
