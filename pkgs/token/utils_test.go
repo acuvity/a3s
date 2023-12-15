@@ -50,6 +50,32 @@ func TestFromRequest(t *testing.T) {
 	})
 }
 
+func TestHTTPFromRequest(t *testing.T) {
+
+	Convey("Calling FromHTTPRequest with a bearer token", t, func() {
+		req, _ := http.NewRequest(http.MethodGet, "https://toto.com/namespaces", nil)
+		req.Header.Set("Authorization", "Bearer token")
+
+		t := FromHTTPRequest(req)
+		So(t, ShouldEqual, "token")
+	})
+
+	Convey("Calling FromHTTPRequest with a cookie token", t, func() {
+		req, _ := http.NewRequest(http.MethodGet, "https://toto.com/namespaces", nil)
+		req.AddCookie(&http.Cookie{Name: "x-a3s-token", Value: "token"})
+		t := FromHTTPRequest(req)
+		So(t, ShouldEqual, "token")
+	})
+
+	Convey("Calling FromHTTPRequest with both bearer and  cookie token", t, func() {
+		req, _ := http.NewRequest(http.MethodGet, "https://toto.com/namespaces", nil)
+		req.Header.Set("Authorization", "Bearer token1")
+		req.AddCookie(&http.Cookie{Name: "x-a3s-token", Value: "token2"})
+		t := FromHTTPRequest(req)
+		So(t, ShouldEqual, "token2")
+	})
+}
+
 func TestFromSession(t *testing.T) {
 
 	Convey("Calling FromRequest with a bearer token", t, func() {

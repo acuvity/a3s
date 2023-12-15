@@ -25,6 +25,23 @@ func FromRequest(req *elemental.Request) string {
 	return req.Password
 }
 
+// FromHTTPRequest retrieves the token from the given http.Request
+// first looking at the cookie x-a3s-token, then the Authorization header.
+func FromHTTPRequest(req *http.Request) string {
+
+	if cookie, err := req.Cookie("x-a3s-token"); err == nil {
+		return cookie.Value
+	}
+
+	authstring := req.Header.Get("Authorization")
+	parts := strings.SplitN(authstring, "Bearer ", 2)
+	if len(parts) < 2 {
+		return ""
+	}
+
+	return parts[1]
+}
+
 // FromSession retrieves the token from the given bahamut.Session
 // first looking at the cookie x-a3s-token, then the session.Token(.
 func FromSession(session bahamut.Session) string {
