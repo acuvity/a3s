@@ -93,12 +93,25 @@ type Namespace struct {
 	// The description of the object.
 	Description string `json:"description" msgpack:"description" bson:"description" mapstructure:"description,omitempty"`
 
+	// The hash of the structure used to compare with new import version.
+	ImportHash string `json:"importHash,omitempty" msgpack:"importHash,omitempty" bson:"importhash,omitempty" mapstructure:"importHash,omitempty"`
+
+	// The user-defined import label that allows the system to group resources from the
+	// same import operation.
+	ImportLabel string `json:"importLabel,omitempty" msgpack:"importLabel,omitempty" bson:"importlabel,omitempty" mapstructure:"importLabel,omitempty"`
+
+	// Allows users to set a label to categorize the namespace.
+	Label string `json:"label,omitempty" msgpack:"label,omitempty" bson:"label,omitempty" mapstructure:"label,omitempty"`
+
 	// The name of the namespace. When you create a namespace, only put its bare name,
 	// not its full path.
 	Name string `json:"name" msgpack:"name" bson:"name" mapstructure:"name,omitempty"`
 
 	// The namespace of the object.
 	Namespace string `json:"namespace" msgpack:"namespace" bson:"namespace" mapstructure:"namespace,omitempty"`
+
+	// Opaque allows to store abitrary data into the authorization.
+	Opaque map[string]any `json:"opaque,omitempty" msgpack:"opaque,omitempty" bson:"opaque,omitempty" mapstructure:"opaque,omitempty"`
 
 	// Last update date of the object.
 	UpdateTime time.Time `json:"updateTime" msgpack:"updateTime" bson:"updatetime" mapstructure:"updateTime,omitempty"`
@@ -153,8 +166,12 @@ func (o *Namespace) GetBSON() (any, error) {
 	}
 	s.CreateTime = o.CreateTime
 	s.Description = o.Description
+	s.ImportHash = o.ImportHash
+	s.ImportLabel = o.ImportLabel
+	s.Label = o.Label
 	s.Name = o.Name
 	s.Namespace = o.Namespace
+	s.Opaque = o.Opaque
 	s.UpdateTime = o.UpdateTime
 	s.ZHash = o.ZHash
 	s.Zone = o.Zone
@@ -178,8 +195,12 @@ func (o *Namespace) SetBSON(raw bson.Raw) error {
 	o.ID = s.ID.Hex()
 	o.CreateTime = s.CreateTime
 	o.Description = s.Description
+	o.ImportHash = s.ImportHash
+	o.ImportLabel = s.ImportLabel
+	o.Label = s.Label
 	o.Name = s.Name
 	o.Namespace = s.Namespace
+	o.Opaque = s.Opaque
 	o.UpdateTime = s.UpdateTime
 	o.ZHash = s.ZHash
 	o.Zone = s.Zone
@@ -239,6 +260,30 @@ func (o *Namespace) GetCreateTime() time.Time {
 func (o *Namespace) SetCreateTime(createTime time.Time) {
 
 	o.CreateTime = createTime
+}
+
+// GetImportHash returns the ImportHash of the receiver.
+func (o *Namespace) GetImportHash() string {
+
+	return o.ImportHash
+}
+
+// SetImportHash sets the property ImportHash of the receiver using the given value.
+func (o *Namespace) SetImportHash(importHash string) {
+
+	o.ImportHash = importHash
+}
+
+// GetImportLabel returns the ImportLabel of the receiver.
+func (o *Namespace) GetImportLabel() string {
+
+	return o.ImportLabel
+}
+
+// SetImportLabel sets the property ImportLabel of the receiver using the given value.
+func (o *Namespace) SetImportLabel(importLabel string) {
+
+	o.ImportLabel = importLabel
 }
 
 // GetName returns the Name of the receiver.
@@ -311,8 +356,12 @@ func (o *Namespace) ToSparse(fields ...string) elemental.SparseIdentifiable {
 			ID:          &o.ID,
 			CreateTime:  &o.CreateTime,
 			Description: &o.Description,
+			ImportHash:  &o.ImportHash,
+			ImportLabel: &o.ImportLabel,
+			Label:       &o.Label,
 			Name:        &o.Name,
 			Namespace:   &o.Namespace,
+			Opaque:      &o.Opaque,
 			UpdateTime:  &o.UpdateTime,
 			ZHash:       &o.ZHash,
 			Zone:        &o.Zone,
@@ -328,10 +377,18 @@ func (o *Namespace) ToSparse(fields ...string) elemental.SparseIdentifiable {
 			sp.CreateTime = &(o.CreateTime)
 		case "description":
 			sp.Description = &(o.Description)
+		case "importHash":
+			sp.ImportHash = &(o.ImportHash)
+		case "importLabel":
+			sp.ImportLabel = &(o.ImportLabel)
+		case "label":
+			sp.Label = &(o.Label)
 		case "name":
 			sp.Name = &(o.Name)
 		case "namespace":
 			sp.Namespace = &(o.Namespace)
+		case "opaque":
+			sp.Opaque = &(o.Opaque)
 		case "updateTime":
 			sp.UpdateTime = &(o.UpdateTime)
 		case "zHash":
@@ -360,11 +417,23 @@ func (o *Namespace) Patch(sparse elemental.SparseIdentifiable) {
 	if so.Description != nil {
 		o.Description = *so.Description
 	}
+	if so.ImportHash != nil {
+		o.ImportHash = *so.ImportHash
+	}
+	if so.ImportLabel != nil {
+		o.ImportLabel = *so.ImportLabel
+	}
+	if so.Label != nil {
+		o.Label = *so.Label
+	}
 	if so.Name != nil {
 		o.Name = *so.Name
 	}
 	if so.Namespace != nil {
 		o.Namespace = *so.Namespace
+	}
+	if so.Opaque != nil {
+		o.Opaque = *so.Opaque
 	}
 	if so.UpdateTime != nil {
 		o.UpdateTime = *so.UpdateTime
@@ -455,10 +524,18 @@ func (o *Namespace) ValueForAttribute(name string) any {
 		return o.CreateTime
 	case "description":
 		return o.Description
+	case "importHash":
+		return o.ImportHash
+	case "importLabel":
+		return o.ImportLabel
+	case "label":
+		return o.Label
 	case "name":
 		return o.Name
 	case "namespace":
 		return o.Namespace
+	case "opaque":
+		return o.Opaque
 	case "updateTime":
 		return o.UpdateTime
 	case "zHash":
@@ -513,6 +590,45 @@ var NamespaceAttributesMap = map[string]elemental.AttributeSpecification{
 		Stored:         true,
 		Type:           "string",
 	},
+	"ImportHash": {
+		AllowedChoices: []string{},
+		Autogenerated:  true,
+		BSONFieldName:  "importhash",
+		ConvertedName:  "ImportHash",
+		CreationOnly:   true,
+		Description:    `The hash of the structure used to compare with new import version.`,
+		Exposed:        true,
+		Getter:         true,
+		Name:           "importHash",
+		Setter:         true,
+		Stored:         true,
+		Type:           "string",
+	},
+	"ImportLabel": {
+		AllowedChoices: []string{},
+		BSONFieldName:  "importlabel",
+		ConvertedName:  "ImportLabel",
+		CreationOnly:   true,
+		Description: `The user-defined import label that allows the system to group resources from the
+same import operation.`,
+		Exposed: true,
+		Getter:  true,
+		Name:    "importLabel",
+		Setter:  true,
+		Stored:  true,
+		Type:    "string",
+	},
+	"Label": {
+		AllowedChoices: []string{},
+		BSONFieldName:  "label",
+		ConvertedName:  "Label",
+		Description:    `Allows users to set a label to categorize the namespace.`,
+		Exposed:        true,
+		Name:           "label",
+		Stored:         true,
+		SubType:        "string",
+		Type:           "string",
+	},
 	"Name": {
 		AllowedChars:   `^[a-zA-Z0-9-_/@.]+$`,
 		AllowedChoices: []string{},
@@ -543,6 +659,17 @@ not its full path.`,
 		Setter:         true,
 		Stored:         true,
 		Type:           "string",
+	},
+	"Opaque": {
+		AllowedChoices: []string{},
+		BSONFieldName:  "opaque",
+		ConvertedName:  "Opaque",
+		Description:    `Opaque allows to store abitrary data into the authorization.`,
+		Exposed:        true,
+		Name:           "opaque",
+		Stored:         true,
+		SubType:        "map[string]any",
+		Type:           "external",
 	},
 	"UpdateTime": {
 		AllowedChoices: []string{},
@@ -631,6 +758,45 @@ var NamespaceLowerCaseAttributesMap = map[string]elemental.AttributeSpecificatio
 		Stored:         true,
 		Type:           "string",
 	},
+	"importhash": {
+		AllowedChoices: []string{},
+		Autogenerated:  true,
+		BSONFieldName:  "importhash",
+		ConvertedName:  "ImportHash",
+		CreationOnly:   true,
+		Description:    `The hash of the structure used to compare with new import version.`,
+		Exposed:        true,
+		Getter:         true,
+		Name:           "importHash",
+		Setter:         true,
+		Stored:         true,
+		Type:           "string",
+	},
+	"importlabel": {
+		AllowedChoices: []string{},
+		BSONFieldName:  "importlabel",
+		ConvertedName:  "ImportLabel",
+		CreationOnly:   true,
+		Description: `The user-defined import label that allows the system to group resources from the
+same import operation.`,
+		Exposed: true,
+		Getter:  true,
+		Name:    "importLabel",
+		Setter:  true,
+		Stored:  true,
+		Type:    "string",
+	},
+	"label": {
+		AllowedChoices: []string{},
+		BSONFieldName:  "label",
+		ConvertedName:  "Label",
+		Description:    `Allows users to set a label to categorize the namespace.`,
+		Exposed:        true,
+		Name:           "label",
+		Stored:         true,
+		SubType:        "string",
+		Type:           "string",
+	},
 	"name": {
 		AllowedChars:   `^[a-zA-Z0-9-_/@.]+$`,
 		AllowedChoices: []string{},
@@ -661,6 +827,17 @@ not its full path.`,
 		Setter:         true,
 		Stored:         true,
 		Type:           "string",
+	},
+	"opaque": {
+		AllowedChoices: []string{},
+		BSONFieldName:  "opaque",
+		ConvertedName:  "Opaque",
+		Description:    `Opaque allows to store abitrary data into the authorization.`,
+		Exposed:        true,
+		Name:           "opaque",
+		Stored:         true,
+		SubType:        "map[string]any",
+		Type:           "external",
 	},
 	"updatetime": {
 		AllowedChoices: []string{},
@@ -778,12 +955,25 @@ type SparseNamespace struct {
 	// The description of the object.
 	Description *string `json:"description,omitempty" msgpack:"description,omitempty" bson:"description,omitempty" mapstructure:"description,omitempty"`
 
+	// The hash of the structure used to compare with new import version.
+	ImportHash *string `json:"importHash,omitempty" msgpack:"importHash,omitempty" bson:"importhash,omitempty" mapstructure:"importHash,omitempty"`
+
+	// The user-defined import label that allows the system to group resources from the
+	// same import operation.
+	ImportLabel *string `json:"importLabel,omitempty" msgpack:"importLabel,omitempty" bson:"importlabel,omitempty" mapstructure:"importLabel,omitempty"`
+
+	// Allows users to set a label to categorize the namespace.
+	Label *string `json:"label,omitempty" msgpack:"label,omitempty" bson:"label,omitempty" mapstructure:"label,omitempty"`
+
 	// The name of the namespace. When you create a namespace, only put its bare name,
 	// not its full path.
 	Name *string `json:"name,omitempty" msgpack:"name,omitempty" bson:"name,omitempty" mapstructure:"name,omitempty"`
 
 	// The namespace of the object.
 	Namespace *string `json:"namespace,omitempty" msgpack:"namespace,omitempty" bson:"namespace,omitempty" mapstructure:"namespace,omitempty"`
+
+	// Opaque allows to store abitrary data into the authorization.
+	Opaque *map[string]any `json:"opaque,omitempty" msgpack:"opaque,omitempty" bson:"opaque,omitempty" mapstructure:"opaque,omitempty"`
 
 	// Last update date of the object.
 	UpdateTime *time.Time `json:"updateTime,omitempty" msgpack:"updateTime,omitempty" bson:"updatetime,omitempty" mapstructure:"updateTime,omitempty"`
@@ -846,11 +1036,23 @@ func (o *SparseNamespace) GetBSON() (any, error) {
 	if o.Description != nil {
 		s.Description = o.Description
 	}
+	if o.ImportHash != nil {
+		s.ImportHash = o.ImportHash
+	}
+	if o.ImportLabel != nil {
+		s.ImportLabel = o.ImportLabel
+	}
+	if o.Label != nil {
+		s.Label = o.Label
+	}
 	if o.Name != nil {
 		s.Name = o.Name
 	}
 	if o.Namespace != nil {
 		s.Namespace = o.Namespace
+	}
+	if o.Opaque != nil {
+		s.Opaque = o.Opaque
 	}
 	if o.UpdateTime != nil {
 		s.UpdateTime = o.UpdateTime
@@ -886,11 +1088,23 @@ func (o *SparseNamespace) SetBSON(raw bson.Raw) error {
 	if s.Description != nil {
 		o.Description = s.Description
 	}
+	if s.ImportHash != nil {
+		o.ImportHash = s.ImportHash
+	}
+	if s.ImportLabel != nil {
+		o.ImportLabel = s.ImportLabel
+	}
+	if s.Label != nil {
+		o.Label = s.Label
+	}
 	if s.Name != nil {
 		o.Name = s.Name
 	}
 	if s.Namespace != nil {
 		o.Namespace = s.Namespace
+	}
+	if s.Opaque != nil {
+		o.Opaque = s.Opaque
 	}
 	if s.UpdateTime != nil {
 		o.UpdateTime = s.UpdateTime
@@ -924,11 +1138,23 @@ func (o *SparseNamespace) ToPlain() elemental.PlainIdentifiable {
 	if o.Description != nil {
 		out.Description = *o.Description
 	}
+	if o.ImportHash != nil {
+		out.ImportHash = *o.ImportHash
+	}
+	if o.ImportLabel != nil {
+		out.ImportLabel = *o.ImportLabel
+	}
+	if o.Label != nil {
+		out.Label = *o.Label
+	}
 	if o.Name != nil {
 		out.Name = *o.Name
 	}
 	if o.Namespace != nil {
 		out.Namespace = *o.Namespace
+	}
+	if o.Opaque != nil {
+		out.Opaque = *o.Opaque
 	}
 	if o.UpdateTime != nil {
 		out.UpdateTime = *o.UpdateTime
@@ -973,6 +1199,38 @@ func (o *SparseNamespace) GetCreateTime() (out time.Time) {
 func (o *SparseNamespace) SetCreateTime(createTime time.Time) {
 
 	o.CreateTime = &createTime
+}
+
+// GetImportHash returns the ImportHash of the receiver.
+func (o *SparseNamespace) GetImportHash() (out string) {
+
+	if o.ImportHash == nil {
+		return
+	}
+
+	return *o.ImportHash
+}
+
+// SetImportHash sets the property ImportHash of the receiver using the address of the given value.
+func (o *SparseNamespace) SetImportHash(importHash string) {
+
+	o.ImportHash = &importHash
+}
+
+// GetImportLabel returns the ImportLabel of the receiver.
+func (o *SparseNamespace) GetImportLabel() (out string) {
+
+	if o.ImportLabel == nil {
+		return
+	}
+
+	return *o.ImportLabel
+}
+
+// SetImportLabel sets the property ImportLabel of the receiver using the address of the given value.
+func (o *SparseNamespace) SetImportLabel(importLabel string) {
+
+	o.ImportLabel = &importLabel
 }
 
 // GetName returns the Name of the receiver.
@@ -1080,22 +1338,30 @@ func (o *SparseNamespace) DeepCopyInto(out *SparseNamespace) {
 }
 
 type mongoAttributesNamespace struct {
-	ID          bson.ObjectId `bson:"_id,omitempty"`
-	CreateTime  time.Time     `bson:"createtime"`
-	Description string        `bson:"description"`
-	Name        string        `bson:"name"`
-	Namespace   string        `bson:"namespace"`
-	UpdateTime  time.Time     `bson:"updatetime"`
-	ZHash       int           `bson:"zhash"`
-	Zone        int           `bson:"zone"`
+	ID          bson.ObjectId  `bson:"_id,omitempty"`
+	CreateTime  time.Time      `bson:"createtime"`
+	Description string         `bson:"description"`
+	ImportHash  string         `bson:"importhash,omitempty"`
+	ImportLabel string         `bson:"importlabel,omitempty"`
+	Label       string         `bson:"label,omitempty"`
+	Name        string         `bson:"name"`
+	Namespace   string         `bson:"namespace"`
+	Opaque      map[string]any `bson:"opaque,omitempty"`
+	UpdateTime  time.Time      `bson:"updatetime"`
+	ZHash       int            `bson:"zhash"`
+	Zone        int            `bson:"zone"`
 }
 type mongoAttributesSparseNamespace struct {
-	ID          bson.ObjectId `bson:"_id,omitempty"`
-	CreateTime  *time.Time    `bson:"createtime,omitempty"`
-	Description *string       `bson:"description,omitempty"`
-	Name        *string       `bson:"name,omitempty"`
-	Namespace   *string       `bson:"namespace,omitempty"`
-	UpdateTime  *time.Time    `bson:"updatetime,omitempty"`
-	ZHash       *int          `bson:"zhash,omitempty"`
-	Zone        *int          `bson:"zone,omitempty"`
+	ID          bson.ObjectId   `bson:"_id,omitempty"`
+	CreateTime  *time.Time      `bson:"createtime,omitempty"`
+	Description *string         `bson:"description,omitempty"`
+	ImportHash  *string         `bson:"importhash,omitempty"`
+	ImportLabel *string         `bson:"importlabel,omitempty"`
+	Label       *string         `bson:"label,omitempty"`
+	Name        *string         `bson:"name,omitempty"`
+	Namespace   *string         `bson:"namespace,omitempty"`
+	Opaque      *map[string]any `bson:"opaque,omitempty"`
+	UpdateTime  *time.Time      `bson:"updatetime,omitempty"`
+	ZHash       *int            `bson:"zhash,omitempty"`
+	Zone        *int            `bson:"zone,omitempty"`
 }

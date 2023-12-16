@@ -96,6 +96,8 @@ var (
 			{"name"},
 			{"namespace"},
 			{"namespace", "ID"},
+			{"namespace", "importLabel"},
+			{"namespace", "label"},
 			{"namespace", "name"},
 		},
 		"namespacedeletionrecord": {

@@ -120,7 +120,7 @@
           },
           "opaque": {
             "additionalProperties": {
-              "type": "string"
+              "type": "object"
             },
             "description": "Opaque allows to store abitrary data into the authorization.",
             "type": "object"
@@ -899,6 +899,18 @@
             "description": "The description of the object.",
             "type": "string"
           },
+          "importHash": {
+            "description": "The hash of the structure used to compare with new import version.",
+            "type": "string"
+          },
+          "importLabel": {
+            "description": "The user-defined import label that allows the system to group resources from the\nsame import operation.",
+            "type": "string"
+          },
+          "label": {
+            "description": "Allows users to set a label to categorize the namespace.",
+            "type": "string"
+          },
           "name": {
             "description": "The name of the namespace. When you create a namespace, only put its bare name,\nnot its full path.",
             "example": "mycompany",
@@ -908,6 +920,13 @@
             "description": "The namespace of the object.",
             "readOnly": true,
             "type": "string"
+          },
+          "opaque": {
+            "additionalProperties": {
+              "type": "object"
+            },
+            "description": "Opaque allows to store abitrary data into the authorization.",
+            "type": "object"
           },
           "updateTime": {
             "description": "Last update date of the object.",
@@ -2147,6 +2166,17 @@
       "delete": {
         "description": "Delete a particular namespace object.",
         "operationId": "delete-namespace-by-ID",
+        "parameters": [
+          {
+            "description": "This is an example.",
+            "example": "hello == world",
+            "in": "query",
+            "name": "q",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "content": {
@@ -2167,6 +2197,17 @@
       "get": {
         "description": "Get a particular namespace object.",
         "operationId": "get-namespace-by-ID",
+        "parameters": [
+          {
+            "description": "This is an example.",
+            "example": "hello == world",
+            "in": "query",
+            "name": "q",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "content": {
@@ -2197,6 +2238,17 @@
       "put": {
         "description": "Update a particular namespace object.",
         "operationId": "update-namespace-by-ID",
+        "parameters": [
+          {
+            "description": "This is an example.",
+            "example": "hello == world",
+            "in": "query",
+            "name": "q",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {

@@ -83,7 +83,7 @@ attributes:
     description: Opaque allows to store abitrary data into the authorization.
     type: external
     exposed: true
-    subtype: map[string]string
+    subtype: map[string]any
     stored: true
     omit_empty: true
     extensions:

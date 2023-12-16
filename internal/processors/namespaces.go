@@ -1,6 +1,7 @@
 package processors
 
 import (
+	"fmt"
 	"log/slog"
 	"net/http"
 	"strings"
@@ -33,22 +34,14 @@ func NewNamespacesProcessor(manipulator manipulate.Manipulator, pubsub bahamut.P
 func (p *NamespacesProcessor) ProcessCreate(bctx bahamut.Context) error {
 
 	ns := bctx.InputData().(*api.Namespace)
-
-	if strings.Contains(ns.Name, "/") {
-		return elemental.NewError(
-			"Validation Error",
-			"Name must not contain any '/' during creation",
-			"a3s",
-			http.StatusUnprocessableEntity,
-		)
-	}
-
 	rns := bctx.Request().Namespace
-	if rns == "/" {
-		rns = ""
+
+	name, err := alignNamespacName(ns.Name, rns)
+	if err != nil {
+		return err
 	}
 
-	ns.Name = strings.Join([]string{rns, ns.Name}, "/")
+	ns.Name = name
 
 	return crud.Create(bctx, p.manipulator, ns, crud.OptionPostWriteHook(p.makeNotify(bctx.Request().Operation)))
 }
@@ -107,4 +100,80 @@ func (p *NamespacesProcessor) makeNotify(op elemental.Operation) crud.PostWriteH
 			},
 		)
 	}
+}
+
+func alignNamespacName(name string, namespace string) (string, error) {
+
+	if name == "/" {
+		return "", elemental.NewError(
+			"Validation Error",
+			"You cannot create the / namespace",
+			"a3s",
+			http.StatusUnprocessableEntity,
+		)
+	}
+
+	if name == "" {
+		return "", elemental.NewError(
+			"Validation Error",
+			"Empty namespace name",
+			"a3s",
+			http.StatusUnprocessableEntity,
+		)
+	}
+
+	if strings.HasSuffix(name, "/") {
+		return "", elemental.NewError(
+			"Validation Error",
+			"Namespace must not terminate with /",
+			"a3s",
+			http.StatusUnprocessableEntity,
+		)
+	}
+
+	if strings.Contains(name, "//") {
+		return "", elemental.NewError(
+			"Validation Error",
+			"Namespace must not contain consecutive /",
+			"a3s",
+			http.StatusUnprocessableEntity,
+		)
+	}
+
+	if namespace == "" {
+		return "", elemental.NewError(
+			"Validation Error",
+			"Empty namespace",
+			"a3s",
+			http.StatusUnprocessableEntity,
+		)
+	}
+
+	if namespace == "/" {
+		namespace = ""
+	}
+
+	// If there is no slash, it's relative
+	// we just append the name to the namespace.
+	if !strings.Contains(name, "/") {
+		return strings.Join([]string{namespace, name}, "/"), nil
+	}
+
+	// Otherwise, we split on /
+	// And get the first parts
+	parts := strings.Split(name, "/")
+	first := strings.Join(parts[:len(parts)-1], "/")
+
+	// If this first part is not the same as the
+	// request namespace, it's game over
+	if first != namespace {
+		return "", elemental.NewError(
+			"Validation Error",
+			fmt.Sprintf("Full namespace name must be prefixed with request namespace. got: %s", first),
+			"a3s",
+			http.StatusUnprocessableEntity,
+		)
+	}
+
+	return name, nil
 }

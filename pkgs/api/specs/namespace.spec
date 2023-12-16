@@ -10,11 +10,18 @@ model:
     request is made against a namespace. Namespaces form a tree hierarchy.
   get:
     description: Get a particular namespace object.
+    global_parameters:
+    - $queryable
   update:
     description: Update a particular namespace object.
+    global_parameters:
+    - $queryable
   delete:
     description: Delete a particular namespace object.
+    global_parameters:
+    - $queryable
   extends:
+  - '@importable'
   - '@sharded'
   - '@identifiable'
   - '@timed'
@@ -24,6 +31,8 @@ indexes:
 - - namespace
   - name
 - - name
+- - namespace
+  - label
 
 # Attributes
 attributes:
@@ -33,6 +42,14 @@ attributes:
     type: string
     exposed: true
     stored: true
+
+  - name: label
+    description: Allows users to set a label to categorize the namespace.
+    type: string
+    exposed: true
+    subtype: string
+    stored: true
+    omit_empty: true
 
   - name: name
     description: |-
@@ -49,3 +66,13 @@ attributes:
     example_value: mycompany
     getter: true
     setter: true
+
+  - name: opaque
+    description: Opaque allows to store abitrary data into the authorization.
+    type: external
+    exposed: true
+    subtype: map[string]any
+    stored: true
+    omit_empty: true
+    extensions:
+      noInit: true
