@@ -437,7 +437,12 @@ func main() {
 		ctx,
 		pubsub,
 		nscache.NotificationNamespaceChanges,
-		makeNamespaceCleaner(ctx, m),
+		notification.MakeNamespaceCleaner(
+			ctx,
+			m,
+			api.Manager(),
+			api.NamespaceDeletionRecordIdentity,
+		),
 	)
 	go jobs.ScheduleOrphanedObjectsDeleteJob(
 		ctx,
@@ -754,35 +759,6 @@ func makeUILoginHandler(api string) http.HandlerFunc {
 
 		w.Header().Add("Content-Type", "text/html")
 		_, _ = w.Write(data)
-	}
-}
-
-func makeNamespaceCleaner(ctx context.Context, m manipulate.Manipulator) notification.Handler {
-
-	return func(msg *notification.Message) {
-
-		if msg.Type != string(elemental.OperationDelete) {
-			return
-		}
-
-		ns := msg.Data.(string)
-
-		for _, i := range api.Manager().AllIdentities() {
-
-			if i.IsEqual(api.NamespaceDeletionRecordIdentity) {
-				continue
-			}
-
-			mctx := manipulate.NewContext(
-				ctx,
-				manipulate.ContextOptionNamespace(ns),
-				manipulate.ContextOptionRecursive(true),
-			)
-
-			if err := m.DeleteMany(mctx, i); err != nil {
-				slog.Error("Unable to clean namespace", "ns", ns, err)
-			}
-		}
 	}
 }
 

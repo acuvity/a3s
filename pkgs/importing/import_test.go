@@ -58,11 +58,11 @@ func TestImport(t *testing.T) {
 				m,
 				"ns",
 				"label",
-				api.NamespacesList{api.NewNamespace()},
+				api.NamespaceDeletionRecordsList{api.NewNamespaceDeletionRecord()},
 				false,
 			)
 			So(err, ShouldNotBeNil)
-			So(err.Error(), ShouldEqual, "object 'namespace[0]' is not importable")
+			So(err.Error(), ShouldEqual, "object 'namespacedeletionrecord[0]' is not importable")
 		})
 
 		Convey("When I pass a a list containing a nil manager", func() {
@@ -101,7 +101,7 @@ func TestImport(t *testing.T) {
 
 				err := Import(context.Background(), api.Manager(), m, "/ns", "label", objs, false)
 				So(err, ShouldNotBeNil)
-				So(err.Error(), ShouldEqual, "unable to retrieve list of current objects: boom")
+				So(err.Error(), ShouldEqual, "unable to retrieve list of current authorizations: boom")
 			}
 		})
 
@@ -151,7 +151,7 @@ func TestImport(t *testing.T) {
 
 			err := Import(context.Background(), api.Manager(), m, "/ns", "label", objs, false)
 			So(err, ShouldNotBeNil)
-			So(err.Error(), ShouldEqual, "unable to delete existing object: paf")
+			So(err.Error(), ShouldEqual, "unable to delete existing authorization: paf")
 		})
 
 		Convey("When I import a list of objects but creates returns an error", func() {

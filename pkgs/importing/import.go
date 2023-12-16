@@ -107,7 +107,7 @@ func Import(
 		),
 		currentObjects,
 	); err != nil {
-		return fmt.Errorf("unable to retrieve list of current objects: %w", err)
+		return fmt.Errorf("unable to retrieve list of current %s: %w", currentObjects.Identity().Category, err)
 	}
 
 	// Then, we delete all the existing objects that have a hash
@@ -135,7 +135,7 @@ func Import(
 			if elemental.IsErrorWithCode(err, http.StatusNotFound) {
 				continue
 			}
-			return fmt.Errorf("unable to delete existing object: %w", err)
+			return fmt.Errorf("unable to delete existing %s: %w", obj.Identity().Name, err)
 		}
 	}
 
