@@ -207,6 +207,7 @@ func (p *IssueProcessor) ProcessCreate(bctx bahamut.Context) (err error) {
 	}
 
 	req.Validity = time.Until(idt.ExpiresAt.Time).Round(time.Second).String()
+	req.Claims = idt.Identity
 	req.InputLDAP = nil
 	req.InputAWS = nil
 	req.InputAzure = nil

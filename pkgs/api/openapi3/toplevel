@@ -413,6 +413,14 @@
             },
             "type": "array"
           },
+          "claims": {
+            "description": "The list of claims delivered in the token. This can be useful when the caller\nneeds to have information about the user when token is delivered as a secure\nhttpOnly cookie.",
+            "items": {
+              "type": "string"
+            },
+            "readOnly": true,
+            "type": "array"
+          },
           "cloak": {
             "description": "Sets a list of identity claim prefix to allow in the final token. This can be\nused to hide some information when asking for a token as not all systems need to\nknow all of the claims.",
             "example": [
