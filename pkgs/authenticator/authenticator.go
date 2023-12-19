@@ -59,7 +59,7 @@ func New(jwks *token.JWKS, issuer string, audience string, options ...Option) *A
 // AuthenticateSession authenticates the given session.
 func (a *Authenticator) AuthenticateSession(session bahamut.Session) (bahamut.AuthAction, error) {
 
-	action, claims, err := a.commonAuth(session.Context(), token.FromSession(session))
+	action, claims, err := a.CheckAuthentication(session.Context(), token.FromSession(session))
 	if err != nil {
 		return bahamut.AuthActionKO, err
 	}
@@ -78,7 +78,7 @@ func (a *Authenticator) AuthenticateRequest(bctx bahamut.Context) (bahamut.AuthA
 
 	token := token.FromRequest(bctx.Request())
 
-	action, claims, err := a.commonAuth(bctx.Context(), token)
+	action, claims, err := a.CheckAuthentication(bctx.Context(), token)
 	if err != nil {
 		return bahamut.AuthActionKO, err
 	}
@@ -88,7 +88,8 @@ func (a *Authenticator) AuthenticateRequest(bctx bahamut.Context) (bahamut.AuthA
 	return action, nil
 }
 
-func (a *Authenticator) commonAuth(ctx context.Context, tokenString string) (bahamut.AuthAction, []string, error) {
+// CheckAuthentication authenticates the given JWT string.
+func (a *Authenticator) CheckAuthentication(ctx context.Context, tokenString string) (bahamut.AuthAction, []string, error) {
 
 	if tokenString == "" {
 		return bahamut.AuthActionKO, nil, elemental.NewError(

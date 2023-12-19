@@ -98,7 +98,7 @@ func TestCommonAuth(t *testing.T) {
 				kid1,
 			)
 
-			action, claims, err := a.commonAuth(context.Background(), token)
+			action, claims, err := a.CheckAuthentication(context.Background(), token)
 
 			So(err, ShouldBeNil)
 			So(action, ShouldEqual, bahamut.AuthActionContinue)
@@ -114,7 +114,7 @@ func TestCommonAuth(t *testing.T) {
 				kid1,
 			)
 
-			action, claims, err := a.commonAuth(context.Background(), token)
+			action, claims, err := a.CheckAuthentication(context.Background(), token)
 
 			So(err, ShouldNotBeNil)
 			So(err.Error(), ShouldEqual, "error 401 (a3s:authn): Unauthorized: Authentication impossible from a refresh token")
@@ -131,7 +131,7 @@ func TestCommonAuth(t *testing.T) {
 				kid1,
 			)
 
-			action, claims, err := a.commonAuth(context.Background(), token)
+			action, claims, err := a.CheckAuthentication(context.Background(), token)
 
 			So(err, ShouldNotBeNil)
 			So(err.Error(), ShouldEqual, `error 401 (a3s:authn): Unauthorized: Authentication rejected with error: unable to parse jwt: crypto/ecdsa: verification error`)
@@ -143,7 +143,7 @@ func TestCommonAuth(t *testing.T) {
 
 			token := "that's not good"
 
-			action, claims, err := a.commonAuth(context.Background(), token)
+			action, claims, err := a.CheckAuthentication(context.Background(), token)
 
 			So(err, ShouldNotBeNil)
 			So(err.Error(), ShouldEqual, `error 401 (a3s:authn): Unauthorized: Authentication rejected with error: unable to parse jwt: token contains an invalid number of segments`)
@@ -155,7 +155,7 @@ func TestCommonAuth(t *testing.T) {
 
 			token := ""
 
-			action, claims, err := a.commonAuth(context.Background(), token)
+			action, claims, err := a.CheckAuthentication(context.Background(), token)
 
 			So(err, ShouldNotBeNil)
 			So(err.Error(), ShouldEqual, `error 401 (a3s:authn): Unauthorized: Missing token in Authorization header`)
