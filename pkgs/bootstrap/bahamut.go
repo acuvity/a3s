@@ -4,7 +4,9 @@ import (
 	"context"
 	"crypto/tls"
 	"errors"
+	"fmt"
 	"log/slog"
+	"net"
 	"net/http"
 	"os"
 
@@ -199,6 +201,47 @@ func MakeBahamutGatewayNotifier(
 	)
 
 	return opts
+}
+
+// GetPublicEndpoint will get the general endpoint based
+// on the listen address. It will get the port,
+// then use system construct to get the public IP
+// and append the port.
+func GetPublicEndpoint(listenAddress string) (string, error) {
+
+	_, port, err := net.SplitHostPort(listenAddress)
+	if err != nil {
+		return "", fmt.Errorf("unable to parse listen address: %w", err)
+	}
+
+	host, err := os.Hostname()
+	if err != nil {
+		return "", fmt.Errorf("unable to retrieve hostname: %w", err)
+	}
+
+	addrs, err := net.LookupHost(host)
+	if err != nil {
+		return "", fmt.Errorf("unable to resolve hostname: %w", err)
+	}
+
+	if len(addrs) == 0 {
+		return "", fmt.Errorf("unable to find any IP in resolved hostname: %w", err)
+	}
+
+	var endpoint string
+	for _, addr := range addrs {
+		ip := net.ParseIP(addr)
+		if len(ip.To4()) == net.IPv4len {
+			endpoint = addr
+			break
+		}
+	}
+
+	if endpoint == "" {
+		endpoint = addrs[0]
+	}
+
+	return fmt.Sprintf("%s:%s", endpoint, port), nil
 }
 
 // ErrorTransformer transforms a disconnected error into an not acceptable.

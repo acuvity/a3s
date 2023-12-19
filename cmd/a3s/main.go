@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
-	"net"
 	"net/http"
 	"net/url"
 	"os"
@@ -204,9 +203,15 @@ func main() {
 		)
 	}
 
+	automaticEndpoint, err := bootstrap.GetPublicEndpoint(cfg.ListenAddress)
+	if err != nil {
+		slog.Error("unable to get endpoint public IP: %w", err)
+		os.Exit(1)
+	}
+
 	publicAPIURL := cfg.PublicAPIURL
 	if publicAPIURL == "" {
-		publicAPIURL = fmt.Sprintf("https://%s", getNotifierEndpoint(cfg.ListenAddress))
+		publicAPIURL = fmt.Sprintf("https://%s", automaticEndpoint)
 	}
 
 	slog.Info("Announced public API", "url", publicAPIURL)
@@ -300,7 +305,7 @@ func main() {
 
 		gwAnnouncedAddress := cfg.GWAnnouncedAddress
 		if gwAnnouncedAddress == "" {
-			gwAnnouncedAddress = getNotifierEndpoint(cfg.ListenAddress)
+			gwAnnouncedAddress = automaticEndpoint
 		}
 
 		opts = append(
@@ -760,45 +765,4 @@ func makeUILoginHandler(api string) http.HandlerFunc {
 		w.Header().Add("Content-Type", "text/html")
 		_, _ = w.Write(data)
 	}
-}
-
-func getNotifierEndpoint(listenAddress string) string {
-
-	_, port, err := net.SplitHostPort(listenAddress)
-	if err != nil {
-		slog.Error("Unable to parse listen address", err)
-		os.Exit(1)
-	}
-
-	host, err := os.Hostname()
-	if err != nil {
-		slog.Error("Unable to retrieve hostname", err)
-		os.Exit(1)
-	}
-
-	addrs, err := net.LookupHost(host)
-	if err != nil {
-		slog.Error("Unable to resolve hostname", err)
-		os.Exit(1)
-	}
-
-	if len(addrs) == 0 {
-		slog.Error("Unable to find any IP in resolved hostname")
-		os.Exit(1)
-	}
-
-	var endpoint string
-	for _, addr := range addrs {
-		ip := net.ParseIP(addr)
-		if len(ip.To4()) == net.IPv4len {
-			endpoint = addr
-			break
-		}
-	}
-
-	if endpoint == "" {
-		endpoint = addrs[0]
-	}
-
-	return fmt.Sprintf("%s:%s", endpoint, port)
 }
