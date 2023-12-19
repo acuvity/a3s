@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"time"
 
@@ -221,17 +222,20 @@ func (p *IssueProcessor) ProcessCreate(bctx bahamut.Context) (err error) {
 		if domain == "" {
 			domain = p.cookieDomain
 		}
-		bctx.AddOutputCookies(
-			&http.Cookie{
-				Name:     "x-a3s-token",
-				Value:    tkn,
-				HttpOnly: true,
-				Secure:   true,
-				Expires:  idt.ExpiresAt.Time,
-				SameSite: p.cookieSameSitePolicy,
-				Domain:   domain,
-			},
-		)
+		c := &http.Cookie{
+			Name:     "x-a3s-token",
+			Value:    tkn,
+			HttpOnly: true,
+			Secure:   true,
+			Expires:  idt.ExpiresAt.Time,
+			SameSite: p.cookieSameSitePolicy,
+			Path:     "/",
+			Domain:   domain,
+		}
+		if err := c.Valid(); err != nil {
+			slog.Error("Cookie about to be delivered is not valid", err)
+		}
+		bctx.AddOutputCookies(c)
 	} else {
 		req.Token = tkn
 	}
