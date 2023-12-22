@@ -417,8 +417,8 @@ go.acuvity.ai/bahamut v0.0.0-20231222185948-4e51b32b97ff h1:OkOA0Bp000i4rKHu9IJ0
 go.acuvity.ai/bahamut v0.0.0-20231222185948-4e51b32b97ff/go.mod h1:BMrrwE3SluphzY7YNuEZNUaEg4o/oWLb0BwTvvYjRok=
 go.acuvity.ai/elemental v0.0.0-20231122005432-a4b35bbdaca3 h1:kfpeLOKsJESo7VSlcIOxRr7GaB9SZLHO3qbOzB1jcKw=
 go.acuvity.ai/elemental v0.0.0-20231122005432-a4b35bbdaca3/go.mod h1:kx+eU0V7RcUcQdrXni9409fP5wfMUBqbQjrKiVB5SQg=
-go.acuvity.ai/manipulate v0.0.0-20231129002616-83a9a374c1e7 h1:4mfWX1RIn+tn4c/Hqj2CupYGT2y28e86udl9FGzO7G0=
-go.acuvity.ai/manipulate v0.0.0-20231129002616-83a9a374c1e7/go.mod h1:i47AydZU2eEdmYeJtVbI2oxRtsYh8haj4aHr9nnvrbs=
+go.acuvity.ai/manipulate v0.0.0-20231215185334-8b73811df9a8 h1:OqsU/zSPRRIM4tAQZxd0Ju4tKPwJ9vDPq4n8KymZTC0=
+go.acuvity.ai/manipulate v0.0.0-20231215185334-8b73811df9a8/go.mod h1:i47AydZU2eEdmYeJtVbI2oxRtsYh8haj4aHr9nnvrbs=
 go.acuvity.ai/tg v0.0.0-20231122004536-47ae4ba0efc0 h1:+4p3rb3xued8A8nbBZxjHt6IzlQAcqB3ryNp/uSl78M=
 go.acuvity.ai/tg v0.0.0-20231122004536-47ae4ba0efc0/go.mod h1:qTHlyRc0Bl98d+RcmkETNDd7JyNeRvqWzUKQqC52wQg=
 go.acuvity.ai/wsc v0.0.0-20231122003955-dc50470c8ac6 h1:c21LkhIXcby1tNPSMGowCLqGS6NCmuv+PNU9WksmySg=
