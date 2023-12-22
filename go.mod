@@ -3,7 +3,7 @@ module go.acuvity.ai/a3s
 go 1.21
 
 require (
-	go.acuvity.ai/bahamut v0.0.0-20231122010138-ddeaad1d6ae8
+	go.acuvity.ai/bahamut v0.0.0-20231222185948-4e51b32b97ff
 	go.acuvity.ai/elemental v0.0.0-20231122005432-a4b35bbdaca3
 	go.acuvity.ai/manipulate v0.0.0-20231129002616-83a9a374c1e7
 	go.acuvity.ai/tg v0.0.0-20231122004536-47ae4ba0efc0
@@ -55,7 +55,6 @@ require (
 	github.com/araddon/dateparse v0.0.0-20210429162001-6b43995a97de // indirect
 	github.com/armon/go-proxyproto v0.0.0-20210323213023-7e956b284f0a // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
-	github.com/cespare/xxhash v1.1.0 // indirect
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/fatih/color v1.15.0 // indirect
 	github.com/fsnotify/fsnotify v1.7.0 // indirect
