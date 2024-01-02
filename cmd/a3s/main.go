@@ -205,7 +205,7 @@ func main() {
 
 	automaticEndpoint, err := bootstrap.GetPublicEndpoint(cfg.ListenAddress)
 	if err != nil {
-		slog.Error("unable to get endpoint public IP: %w", err)
+		slog.Error("Unable to get endpoint public IP", err)
 		os.Exit(1)
 	}
 
