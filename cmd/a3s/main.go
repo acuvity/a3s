@@ -121,9 +121,12 @@ func main() {
 		os.Exit(1)
 	}
 
+	defaultTrustedIssuers := append([]string{cfg.JWT.JWTIssuer}, cfg.JWT.JWTAdditionalIssuers...)
+
 	if cfg.Init {
+
 		if cfg.InitRootUserCAPath != "" {
-			initialized, err := initRootPermissions(ctx, m, cfg.InitRootUserCAPath, cfg.JWT.JWTIssuer, cfg.InitContinue)
+			initialized, err := initRootPermissions(ctx, m, cfg.InitRootUserCAPath, defaultTrustedIssuers, cfg.InitContinue)
 			if err != nil {
 				slog.Error("Unable to initialize root permissions", err)
 				os.Exit(1)
@@ -135,7 +138,7 @@ func main() {
 		}
 
 		if cfg.InitPlatformCAPath != "" {
-			initialized, err := initPlatformPermissions(ctx, m, cfg.InitPlatformCAPath, cfg.JWT.JWTIssuer, cfg.InitContinue)
+			initialized, err := initPlatformPermissions(ctx, m, cfg.InitPlatformCAPath, defaultTrustedIssuers, cfg.InitContinue)
 			if err != nil {
 				slog.Error("Unable to initialize platform permissions", err)
 				os.Exit(1)
@@ -171,6 +174,7 @@ func main() {
 
 	slog.Info("JWT info configured",
 		"iss", cfg.JWT.JWTIssuer,
+		"trusted", defaultTrustedIssuers,
 		"aud", cfg.JWT.JWTAudience,
 	)
 
@@ -433,7 +437,7 @@ func main() {
 	bahamut.RegisterProcessorOrDie(server, processors.NewAuthzProcessor(pauthz, jwks, cfg.JWT.JWTIssuer, cfg.JWT.JWTAudience), api.AuthzIdentity)
 	bahamut.RegisterProcessorOrDie(server, processors.NewNamespacesProcessor(m, pubsub), api.NamespaceIdentity)
 	bahamut.RegisterProcessorOrDie(server, processors.NewNamespaceDeletionRecordsProcessor(m), api.NamespaceDeletionRecordIdentity)
-	bahamut.RegisterProcessorOrDie(server, processors.NewAuthorizationProcessor(m, pubsub, retriever, cfg.JWT.JWTIssuer), api.AuthorizationIdentity)
+	bahamut.RegisterProcessorOrDie(server, processors.NewAuthorizationProcessor(m, pubsub, retriever, defaultTrustedIssuers), api.AuthorizationIdentity)
 	bahamut.RegisterProcessorOrDie(server, processors.NewImportProcessor(bmanipMaker, pauthz), api.ImportIdentity)
 	bahamut.RegisterProcessorOrDie(server, processors.NewRevocationsProcessor(m, pubsub), api.RevocationIdentity)
 
@@ -533,7 +537,7 @@ func createRootNamespaceIfNeeded(m manipulate.Manipulator) error {
 	return nil
 }
 
-func initRootPermissions(ctx context.Context, m manipulate.Manipulator, caPath string, issuer string, ifNeeded bool) (bool, error) {
+func initRootPermissions(ctx context.Context, m manipulate.Manipulator, caPath string, issuers []string, ifNeeded bool) (bool, error) {
 
 	caData, err := os.ReadFile(caPath)
 	if err != nil {
@@ -578,7 +582,7 @@ func initRootPermissions(ctx context.Context, m manipulate.Manipulator, caPath s
 	auth.Namespace = "/"
 	auth.Name = "root-mtls-authorization"
 	auth.Description = "Authorization to allow root users"
-	auth.TrustedIssuers = []string{issuer}
+	auth.TrustedIssuers = issuers
 	auth.Subject = [][]string{
 		{
 			"@source:type=mtls",
@@ -601,7 +605,7 @@ func initRootPermissions(ctx context.Context, m manipulate.Manipulator, caPath s
 	return true, nil
 }
 
-func initPlatformPermissions(ctx context.Context, m manipulate.Manipulator, caPath string, issuer string, ifNeeded bool) (bool, error) {
+func initPlatformPermissions(ctx context.Context, m manipulate.Manipulator, caPath string, issuers []string, ifNeeded bool) (bool, error) {
 
 	caData, err := os.ReadFile(caPath)
 	if err != nil {
@@ -647,7 +651,7 @@ func initPlatformPermissions(ctx context.Context, m manipulate.Manipulator, caPa
 	auth.Namespace = "/"
 	auth.Name = "platform-mtls-authorization"
 	auth.Description = "Authorization to allow internal services"
-	auth.TrustedIssuers = []string{issuer}
+	auth.TrustedIssuers = issuers
 	auth.Subject = [][]string{
 		{
 			"@source:type=mtls",

@@ -63,16 +63,17 @@ func newConf() Conf {
 
 // JWTConf holds the configuration related to jwt management.
 type JWTConf struct {
-	JWTAudience        string        `mapstructure:"jwt-audience" desc:"Default audience for delivered jwt"`
-	JWTCertPath        string        `mapstructure:"jwt-cert" desc:"Secret to use to sign the JWT" secret:"true" file:"true"`
-	JWTCookieDomain    string        `mapstructure:"jwt-cookie-domain" desc:"Defines the domain for the cookie"`
-	JWTCookiePolicy    string        `mapstructure:"jwt-cookie-policy" desc:"Define same site policy applied to token cookies" default:"strict" allowed:"strict,lax,none"`
-	JWTIssuer          string        `mapstructure:"jwt-issuer" desc:"Value used for issuer jwt field"`
-	JWTKeyPass         string        `mapstructure:"jwt-key-pass" desc:"JWT certificate key password" secret:"true" file:"true"`
-	JWTKeyPath         string        `mapstructure:"jwt-key" desc:"Path to the JWT certificate key pem file" secret:"true" file:"true"`
-	JWTTrustedIssuers  []string      `mapstructure:"jwt-trusted-issuer" desc:"List of externally trusted issuers"`
-	JWTDefaultValidity time.Duration `mapstructure:"jwt-default-validity" desc:"Default duration of the validity of the issued tokens" default:"24h"`
-	JWTMaxValidity     time.Duration `mapstructure:"jwt-max-validity" desc:"Maximum duration of the validity of the issued tokens" default:"720h"`
+	JWTAudience          string        `mapstructure:"jwt-audience" desc:"Default audience for delivered jwt"`
+	JWTCertPath          string        `mapstructure:"jwt-cert" desc:"Secret to use to sign the JWT" secret:"true" file:"true"`
+	JWTCookieDomain      string        `mapstructure:"jwt-cookie-domain" desc:"Defines the domain for the cookie"`
+	JWTCookiePolicy      string        `mapstructure:"jwt-cookie-policy" desc:"Define same site policy applied to token cookies" default:"strict" allowed:"strict,lax,none"`
+	JWTIssuer            string        `mapstructure:"jwt-issuer" desc:"Values used for issuer jwt field when not provided."`
+	JWTAdditionalIssuers []string      `mapstructure:"jwt-additional-issuer" desc:"Additional trusted issuers to add into authorizations"`
+	JWTKeyPass           string        `mapstructure:"jwt-key-pass" desc:"JWT certificate key password" secret:"true" file:"true"`
+	JWTKeyPath           string        `mapstructure:"jwt-key" desc:"Path to the JWT certificate key pem file" secret:"true" file:"true"`
+	JWTTrustedIssuers    []string      `mapstructure:"jwt-trusted-issuer" desc:"List of externally trusted issuers"`
+	JWTDefaultValidity   time.Duration `mapstructure:"jwt-default-validity" desc:"Default duration of the validity of the issued tokens" default:"24h"`
+	JWTMaxValidity       time.Duration `mapstructure:"jwt-max-validity" desc:"Maximum duration of the validity of the issued tokens" default:"720h"`
 
 	jwtKey  crypto.PrivateKey
 	jwtCert *x509.Certificate

@@ -19,19 +19,19 @@ import (
 
 // A AuthorizationsProcessor is a bahamut processor for Authorizations.
 type AuthorizationsProcessor struct {
-	manipulator manipulate.Manipulator
-	retriever   permissions.Retriever
-	pubsub      bahamut.PubSubClient
-	localIssuer string
+	manipulator  manipulate.Manipulator
+	retriever    permissions.Retriever
+	pubsub       bahamut.PubSubClient
+	localIssuers []string
 }
 
 // NewAuthorizationProcessor returns a new AuthorizationsProcessor.
-func NewAuthorizationProcessor(manipulator manipulate.Manipulator, pubsub bahamut.PubSubClient, retriever permissions.Retriever, localIssuer string) *AuthorizationsProcessor {
+func NewAuthorizationProcessor(manipulator manipulate.Manipulator, pubsub bahamut.PubSubClient, retriever permissions.Retriever, localIssuers []string) *AuthorizationsProcessor {
 	return &AuthorizationsProcessor{
-		manipulator: manipulator,
-		pubsub:      pubsub,
-		retriever:   retriever,
-		localIssuer: localIssuer,
+		manipulator:  manipulator,
+		pubsub:       pubsub,
+		retriever:    retriever,
+		localIssuers: localIssuers,
 	}
 }
 
@@ -102,7 +102,7 @@ func (p *AuthorizationsProcessor) makePreHook(ctx bahamut.Context) crud.PreWrite
 		}
 
 		if len(auth.TrustedIssuers) == 0 {
-			auth.TrustedIssuers = []string{p.localIssuer}
+			auth.TrustedIssuers = p.localIssuers
 		}
 
 		req := ctx.Request()
