@@ -10,6 +10,7 @@ var (
 		"a3ssource":        A3SSourceIdentity,
 		"authorization":    AuthorizationIdentity,
 		"authz":            AuthzIdentity,
+		"group":            GroupIdentity,
 		"httpsource":       HTTPSourceIdentity,
 		"identitymodifier": IdentityModifierIdentity,
 		"import":           ImportIdentity,
@@ -29,6 +30,7 @@ var (
 		"a3ssources":       A3SSourceIdentity,
 		"authorizations":   AuthorizationIdentity,
 		"authz":            AuthzIdentity,
+		"groups":           GroupIdentity,
 		"httpsources":      HTTPSourceIdentity,
 		"identitymodifier": IdentityModifierIdentity,
 		"import":           ImportIdentity,
@@ -65,6 +67,15 @@ var (
 			{"namespace", "trustedIssuers"},
 		},
 		"authz": nil,
+		"group": {
+			{":shard", ":unique", "zone", "zHash"},
+			{"namespace"},
+			{"namespace", "ID"},
+			{"namespace", "flattenedSubject", "disabled"},
+			{"namespace", "flattenedSubject", "propagate"},
+			{"namespace", "importLabel"},
+			{"namespace", "label"},
+		},
 		"httpsource": {
 			{":shard", ":unique", "zone", "zHash"},
 			{"namespace"},
@@ -167,6 +178,8 @@ func (f modelManager) Identifiable(identity elemental.Identity) elemental.Identi
 		return NewAuthorization()
 	case AuthzIdentity:
 		return NewAuthz()
+	case GroupIdentity:
+		return NewGroup()
 	case HTTPSourceIdentity:
 		return NewHTTPSource()
 	case IdentityModifierIdentity:
@@ -206,6 +219,8 @@ func (f modelManager) SparseIdentifiable(identity elemental.Identity) elemental.
 		return NewSparseAuthorization()
 	case AuthzIdentity:
 		return NewSparseAuthz()
+	case GroupIdentity:
+		return NewSparseGroup()
 	case HTTPSourceIdentity:
 		return NewSparseHTTPSource()
 	case IdentityModifierIdentity:
@@ -253,6 +268,8 @@ func (f modelManager) Identifiables(identity elemental.Identity) elemental.Ident
 		return &AuthorizationsList{}
 	case AuthzIdentity:
 		return &AuthzsList{}
+	case GroupIdentity:
+		return &GroupsList{}
 	case HTTPSourceIdentity:
 		return &HTTPSourcesList{}
 	case IdentityModifierIdentity:
@@ -290,6 +307,8 @@ func (f modelManager) SparseIdentifiables(identity elemental.Identity) elemental
 		return &SparseAuthorizationsList{}
 	case AuthzIdentity:
 		return &SparseAuthzsList{}
+	case GroupIdentity:
+		return &SparseGroupsList{}
 	case HTTPSourceIdentity:
 		return &SparseHTTPSourcesList{}
 	case IdentityModifierIdentity:
@@ -343,6 +362,7 @@ func AllIdentities() []elemental.Identity {
 		A3SSourceIdentity,
 		AuthorizationIdentity,
 		AuthzIdentity,
+		GroupIdentity,
 		HTTPSourceIdentity,
 		IdentityModifierIdentity,
 		ImportIdentity,
@@ -367,6 +387,8 @@ func AliasesForIdentity(identity elemental.Identity) []string {
 	case AuthorizationIdentity:
 		return []string{}
 	case AuthzIdentity:
+		return []string{}
+	case GroupIdentity:
 		return []string{}
 	case HTTPSourceIdentity:
 		return []string{}

@@ -35,17 +35,21 @@ func TestIsAuthorizedWithToken(t *testing.T) {
 		ctx             = context.Background()
 	)
 
-	makeAPIPol := func(perms []string, subnets []string) *api.Authorization {
+	makeAPIPolWithSubject := func(perms []string, subnets []string, subject [][]string) *api.Authorization {
 		apiauth := api.NewAuthorization()
 		apiauth.ID = "1"
 		apiauth.Namespace = "/a"
-		apiauth.Subject = [][]string{{"color=blue"}}
+		apiauth.Subject = subject
 		apiauth.TargetNamespaces = []string{"/a"}
 		apiauth.Permissions = perms
 		apiauth.Subnets = subnets
 		apiauth.FlattenedSubject = flattenTags(apiauth.Subject)
 
 		return apiauth
+	}
+
+	makeAPIPol := func(perms []string, subnets []string) *api.Authorization {
+		return makeAPIPolWithSubject(perms, subnets, [][]string{{"color=blue"}})
 	}
 
 	Convey("Given I have an authorizer and a token", t, func() {
@@ -95,11 +99,13 @@ func TestIsAuthorizedWithToken(t *testing.T) {
 
 			var expectedFilter *elemental.Filter
 			m.MockRetrieveMany(t, func(mctx manipulate.Context, dest elemental.Identifiables) error {
-				*dest.(*api.AuthorizationsList) = append(
-					*dest.(*api.AuthorizationsList),
-					makeAPIPol([]string{permSetAllowAll}, nil),
-				)
-				expectedFilter = mctx.Filter()
+				if dest.Identity().IsEqual(api.AuthorizationIdentity) {
+					*dest.(*api.AuthorizationsList) = append(
+						*dest.(*api.AuthorizationsList),
+						makeAPIPol([]string{permSetAllowAll}, nil),
+					)
+					expectedFilter = mctx.Filter()
+				}
 				return nil
 			})
 
@@ -120,11 +126,13 @@ func TestIsAuthorizedWithToken(t *testing.T) {
 		Convey("When there is a policy matching twice using twice the same set", func() {
 
 			m.MockRetrieveMany(t, func(mctx manipulate.Context, dest elemental.Identifiables) error {
-				*dest.(*api.AuthorizationsList) = append(
-					*dest.(*api.AuthorizationsList),
-					makeAPIPol([]string{"things:delete"}, nil),
-					makeAPIPol([]string{"things:get"}, nil),
-				)
+				if dest.Identity().IsEqual(api.AuthorizationIdentity) {
+					*dest.(*api.AuthorizationsList) = append(
+						*dest.(*api.AuthorizationsList),
+						makeAPIPol([]string{"things:delete"}, nil),
+						makeAPIPol([]string{"things:get"}, nil),
+					)
+				}
 				return nil
 			})
 
@@ -137,10 +145,12 @@ func TestIsAuthorizedWithToken(t *testing.T) {
 		Convey("When there is a policy matching with target namespace outside of restricted ns", func() {
 
 			m.MockRetrieveMany(t, func(mctx manipulate.Context, dest elemental.Identifiables) error {
-				*dest.(*api.AuthorizationsList) = append(
-					*dest.(*api.AuthorizationsList),
-					makeAPIPol([]string{permSetAllowAll}, nil),
-				)
+				if dest.Identity().IsEqual(api.AuthorizationIdentity) {
+					*dest.(*api.AuthorizationsList) = append(
+						*dest.(*api.AuthorizationsList),
+						makeAPIPol([]string{permSetAllowAll}, nil),
+					)
+				}
 				return nil
 			})
 
@@ -155,10 +165,12 @@ func TestIsAuthorizedWithToken(t *testing.T) {
 		Convey("When there is a policy matching with target namespace equals to restricted ns", func() {
 
 			m.MockRetrieveMany(t, func(mctx manipulate.Context, dest elemental.Identifiables) error {
-				*dest.(*api.AuthorizationsList) = append(
-					*dest.(*api.AuthorizationsList),
-					makeAPIPol([]string{permSetAllowAll}, nil),
-				)
+				if dest.Identity().IsEqual(api.AuthorizationIdentity) {
+					*dest.(*api.AuthorizationsList) = append(
+						*dest.(*api.AuthorizationsList),
+						makeAPIPol([]string{permSetAllowAll}, nil),
+					)
+				}
 				return nil
 			})
 
@@ -173,10 +185,12 @@ func TestIsAuthorizedWithToken(t *testing.T) {
 		Convey("When there is a policy matching with target namespace a child of restricted ns", func() {
 
 			m.MockRetrieveMany(t, func(mctx manipulate.Context, dest elemental.Identifiables) error {
-				*dest.(*api.AuthorizationsList) = append(
-					*dest.(*api.AuthorizationsList),
-					makeAPIPol([]string{permSetAllowAll}, nil),
-				)
+				if dest.Identity().IsEqual(api.AuthorizationIdentity) {
+					*dest.(*api.AuthorizationsList) = append(
+						*dest.(*api.AuthorizationsList),
+						makeAPIPol([]string{permSetAllowAll}, nil),
+					)
+				}
 				return nil
 			})
 
@@ -191,10 +205,12 @@ func TestIsAuthorizedWithToken(t *testing.T) {
 		Convey("When there is a policy matching with target namespace a parent of restricted ns", func() {
 
 			m.MockRetrieveMany(t, func(mctx manipulate.Context, dest elemental.Identifiables) error {
-				*dest.(*api.AuthorizationsList) = append(
-					*dest.(*api.AuthorizationsList),
-					makeAPIPol([]string{permSetAllowAll}, nil),
-				)
+				if dest.Identity().IsEqual(api.AuthorizationIdentity) {
+					*dest.(*api.AuthorizationsList) = append(
+						*dest.(*api.AuthorizationsList),
+						makeAPIPol([]string{permSetAllowAll}, nil),
+					)
+				}
 				return nil
 			})
 
@@ -212,10 +228,12 @@ func TestIsAuthorizedWithToken(t *testing.T) {
 			pol.TargetNamespaces = []string{"/az/b/c"}
 
 			m.MockRetrieveMany(t, func(mctx manipulate.Context, dest elemental.Identifiables) error {
-				*dest.(*api.AuthorizationsList) = append(
-					*dest.(*api.AuthorizationsList),
-					pol,
-				)
+				if dest.Identity().IsEqual(api.AuthorizationIdentity) {
+					*dest.(*api.AuthorizationsList) = append(
+						*dest.(*api.AuthorizationsList),
+						pol,
+					)
+				}
 				return nil
 			})
 
@@ -228,10 +246,12 @@ func TestIsAuthorizedWithToken(t *testing.T) {
 		Convey("When there is a policy that is not matching", func() {
 
 			m.MockRetrieveMany(t, func(mctx manipulate.Context, dest elemental.Identifiables) error {
-				*dest.(*api.AuthorizationsList) = append(
-					*dest.(*api.AuthorizationsList),
-					makeAPIPol([]string{"nope,*"}, nil),
-				)
+				if dest.Identity().IsEqual(api.AuthorizationIdentity) {
+					*dest.(*api.AuthorizationsList) = append(
+						*dest.(*api.AuthorizationsList),
+						makeAPIPol([]string{"nope,*"}, nil),
+					)
+				}
 				return nil
 			})
 
@@ -241,13 +261,43 @@ func TestIsAuthorizedWithToken(t *testing.T) {
 			So(perms.Allows("get", "things"), ShouldEqual, false)
 		})
 
+		Convey("When there is a policy matching a group", func() {
+
+			m.MockRetrieveMany(t, func(mctx manipulate.Context, dest elemental.Identifiables) error {
+				if dest.Identity().IsEqual(api.AuthorizationIdentity) {
+					*dest.(*api.AuthorizationsList) = append(
+						*dest.(*api.AuthorizationsList),
+						makeAPIPolWithSubject([]string{"things:get"}, nil, [][]string{{"@group:name=people"}}),
+					)
+				}
+				if dest.Identity().IsEqual(api.GroupIdentity) {
+					*dest.(*api.GroupsList) = append(
+						*dest.(*api.GroupsList),
+						&api.Group{
+							Name:             "people",
+							Subject:          [][]string{{"color=blue"}},
+							FlattenedSubject: []string{"color=blue"},
+						},
+					)
+				}
+				return nil
+			})
+
+			perms, err := r.Permissions(ctx, []string{"color=blue"}, "/a")
+
+			So(err, ShouldBeNil)
+			So(perms.Allows("get", "things"), ShouldEqual, true)
+		})
+
 		Convey("When there is a policy matching but not on the correct permission set", func() {
 
 			m.MockRetrieveMany(t, func(mctx manipulate.Context, dest elemental.Identifiables) error {
-				*dest.(*api.AuthorizationsList) = append(
-					*dest.(*api.AuthorizationsList),
-					makeAPIPol([]string{permSetOnBla}, nil),
-				)
+				if dest.Identity().IsEqual(api.AuthorizationIdentity) {
+					*dest.(*api.AuthorizationsList) = append(
+						*dest.(*api.AuthorizationsList),
+						makeAPIPol([]string{permSetOnBla}, nil),
+					)
+				}
 				return nil
 			})
 
@@ -260,10 +310,12 @@ func TestIsAuthorizedWithToken(t *testing.T) {
 		Convey("When there is a policy matching", func() {
 
 			m.MockRetrieveMany(t, func(mctx manipulate.Context, dest elemental.Identifiables) error {
-				*dest.(*api.AuthorizationsList) = append(
-					*dest.(*api.AuthorizationsList),
-					makeAPIPol([]string{"things:get"}, nil),
-				)
+				if dest.Identity().IsEqual(api.AuthorizationIdentity) {
+					*dest.(*api.AuthorizationsList) = append(
+						*dest.(*api.AuthorizationsList),
+						makeAPIPol([]string{"things:get"}, nil),
+					)
+				}
 				return nil
 			})
 
@@ -276,10 +328,12 @@ func TestIsAuthorizedWithToken(t *testing.T) {
 		Convey("When there is a policy with matching restriction", func() {
 
 			m.MockRetrieveMany(t, func(mctx manipulate.Context, dest elemental.Identifiables) error {
-				*dest.(*api.AuthorizationsList) = append(
-					*dest.(*api.AuthorizationsList),
-					makeAPIPol([]string{"things:get"}, []string{"10.0.0.0/8", "11.0.0.0/8"}),
-				)
+				if dest.Identity().IsEqual(api.AuthorizationIdentity) {
+					*dest.(*api.AuthorizationsList) = append(
+						*dest.(*api.AuthorizationsList),
+						makeAPIPol([]string{"things:get"}, []string{"10.0.0.0/8", "11.0.0.0/8"}),
+					)
+				}
 				return nil
 			})
 
@@ -294,10 +348,12 @@ func TestIsAuthorizedWithToken(t *testing.T) {
 		Convey("When there is a policy with not matching restriction", func() {
 
 			m.MockRetrieveMany(t, func(mctx manipulate.Context, dest elemental.Identifiables) error {
-				*dest.(*api.AuthorizationsList) = append(
-					*dest.(*api.AuthorizationsList),
-					makeAPIPol([]string{"things:get"}, []string{"10.0.0.0/8", "11.0.0.0/8"}),
-				)
+				if dest.Identity().IsEqual(api.AuthorizationIdentity) {
+					*dest.(*api.AuthorizationsList) = append(
+						*dest.(*api.AuthorizationsList),
+						makeAPIPol([]string{"things:get"}, []string{"10.0.0.0/8", "11.0.0.0/8"}),
+					)
+				}
 				return nil
 			})
 
@@ -312,10 +368,12 @@ func TestIsAuthorizedWithToken(t *testing.T) {
 		Convey("When there is a policy invalid IP", func() {
 
 			m.MockRetrieveMany(t, func(mctx manipulate.Context, dest elemental.Identifiables) error {
-				*dest.(*api.AuthorizationsList) = append(
-					*dest.(*api.AuthorizationsList),
-					makeAPIPol([]string{"things:get"}, []string{"10.0.0.0/8", "11.0.0.0/8"}),
-				)
+				if dest.Identity().IsEqual(api.AuthorizationIdentity) {
+					*dest.(*api.AuthorizationsList) = append(
+						*dest.(*api.AuthorizationsList),
+						makeAPIPol([]string{"things:get"}, []string{"10.0.0.0/8", "11.0.0.0/8"}),
+					)
+				}
 				return nil
 			})
 
@@ -331,10 +389,12 @@ func TestIsAuthorizedWithToken(t *testing.T) {
 		Convey("When there is a policy invalid declared CIDR", func() {
 
 			m.MockRetrieveMany(t, func(mctx manipulate.Context, dest elemental.Identifiables) error {
-				*dest.(*api.AuthorizationsList) = append(
-					*dest.(*api.AuthorizationsList),
-					makeAPIPol([]string{"things:get"}, []string{"dawf"}),
-				)
+				if dest.Identity().IsEqual(api.AuthorizationIdentity) {
+					*dest.(*api.AuthorizationsList) = append(
+						*dest.(*api.AuthorizationsList),
+						makeAPIPol([]string{"things:get"}, []string{"dawf"}),
+					)
+				}
 				return nil
 			})
 
@@ -353,10 +413,12 @@ func TestIsAuthorizedWithToken(t *testing.T) {
 			pol.Subject = [][]string{{}}
 
 			m.MockRetrieveMany(t, func(mctx manipulate.Context, dest elemental.Identifiables) error {
-				*dest.(*api.AuthorizationsList) = append(
-					*dest.(*api.AuthorizationsList),
-					pol,
-				)
+				if dest.Identity().IsEqual(api.AuthorizationIdentity) {
+					*dest.(*api.AuthorizationsList) = append(
+						*dest.(*api.AuthorizationsList),
+						pol,
+					)
+				}
 				return nil
 			})
 
@@ -372,10 +434,12 @@ func TestIsAuthorizedWithToken(t *testing.T) {
 			pol.Subject = [][]string{{""}}
 
 			m.MockRetrieveMany(t, func(mctx manipulate.Context, dest elemental.Identifiables) error {
-				*dest.(*api.AuthorizationsList) = append(
-					*dest.(*api.AuthorizationsList),
-					pol,
-				)
+				if dest.Identity().IsEqual(api.AuthorizationIdentity) {
+					*dest.(*api.AuthorizationsList) = append(
+						*dest.(*api.AuthorizationsList),
+						pol,
+					)
+				}
 				return nil
 			})
 
@@ -391,10 +455,12 @@ func TestIsAuthorizedWithToken(t *testing.T) {
 			pol.Subject = [][]string{nil}
 
 			m.MockRetrieveMany(t, func(mctx manipulate.Context, dest elemental.Identifiables) error {
-				*dest.(*api.AuthorizationsList) = append(
-					*dest.(*api.AuthorizationsList),
-					pol,
-				)
+				if dest.Identity().IsEqual(api.AuthorizationIdentity) {
+					*dest.(*api.AuthorizationsList) = append(
+						*dest.(*api.AuthorizationsList),
+						pol,
+					)
+				}
 				return nil
 			})
 
@@ -407,23 +473,44 @@ func TestIsAuthorizedWithToken(t *testing.T) {
 		Convey("When retrieving the policy fails", func() {
 
 			m.MockRetrieveMany(t, func(mctx manipulate.Context, dest elemental.Identifiables) error {
-				return fmt.Errorf("boom")
+				if dest.Identity().IsEqual(api.AuthorizationIdentity) {
+					return fmt.Errorf("boom")
+				}
+				return nil
 			})
 
 			perms, err := r.Permissions(ctx, []string{"color=blue"}, "/a")
 
 			So(err, ShouldNotBeNil)
-			So(err.Error(), ShouldEqual, "unable to retrieve api authorizations: boom")
+			So(err.Error(), ShouldEqual, "unable to resolve authorizations: boom")
+			So(perms.Allows("get", "things"), ShouldEqual, false)
+		})
+
+		Convey("When retrieving the groups fails", func() {
+
+			m.MockRetrieveMany(t, func(mctx manipulate.Context, dest elemental.Identifiables) error {
+				if dest.Identity().IsEqual(api.GroupIdentity) {
+					return fmt.Errorf("boom")
+				}
+				return nil
+			})
+
+			perms, err := r.Permissions(ctx, []string{"color=blue"}, "/a")
+
+			So(err, ShouldNotBeNil)
+			So(err.Error(), ShouldEqual, "unable to resolve groups: boom")
 			So(perms.Allows("get", "things"), ShouldEqual, false)
 		})
 
 		Convey("When retrieving the policy with an invalid allowedSubnet", func() {
 
 			m.MockRetrieveMany(t, func(mctx manipulate.Context, dest elemental.Identifiables) error {
-				*dest.(*api.AuthorizationsList) = append(
-					*dest.(*api.AuthorizationsList),
-					makeAPIPol([]string{}, []string{".2.2.2."}),
-				)
+				if dest.Identity().IsEqual(api.AuthorizationIdentity) {
+					*dest.(*api.AuthorizationsList) = append(
+						*dest.(*api.AuthorizationsList),
+						makeAPIPol([]string{}, []string{".2.2.2."}),
+					)
+				}
 				return nil
 			})
 
@@ -439,10 +526,12 @@ func TestIsAuthorizedWithToken(t *testing.T) {
 		Convey("When there is a policy matching but the namespace is restricted", func() {
 
 			m.MockRetrieveMany(t, func(mctx manipulate.Context, dest elemental.Identifiables) error {
-				*dest.(*api.AuthorizationsList) = append(
-					*dest.(*api.AuthorizationsList),
-					makeAPIPol([]string{"@auth:role=testrole2"}, nil),
-				)
+				if dest.Identity().IsEqual(api.AuthorizationIdentity) {
+					*dest.(*api.AuthorizationsList) = append(
+						*dest.(*api.AuthorizationsList),
+						makeAPIPol([]string{"@auth:role=testrole2"}, nil),
+					)
+				}
 				return nil
 			})
 
@@ -457,10 +546,12 @@ func TestIsAuthorizedWithToken(t *testing.T) {
 		Convey("When there is a policy matching but the permissions are restricted", func() {
 
 			m.MockRetrieveMany(t, func(mctx manipulate.Context, dest elemental.Identifiables) error {
-				*dest.(*api.AuthorizationsList) = append(
-					*dest.(*api.AuthorizationsList),
-					makeAPIPol([]string{permSetAllowAll}, nil),
-				)
+				if dest.Identity().IsEqual(api.AuthorizationIdentity) {
+					*dest.(*api.AuthorizationsList) = append(
+						*dest.(*api.AuthorizationsList),
+						makeAPIPol([]string{permSetAllowAll}, nil),
+					)
+				}
 				return nil
 			})
 
@@ -475,10 +566,12 @@ func TestIsAuthorizedWithToken(t *testing.T) {
 		Convey("When there is a policy matching but the permissions are restricted AND offloaded", func() {
 
 			m.MockRetrieveMany(t, func(mctx manipulate.Context, dest elemental.Identifiables) error {
-				*dest.(*api.AuthorizationsList) = append(
-					*dest.(*api.AuthorizationsList),
-					makeAPIPol([]string{permSetAllowAll}, nil),
-				)
+				if dest.Identity().IsEqual(api.AuthorizationIdentity) {
+					*dest.(*api.AuthorizationsList) = append(
+						*dest.(*api.AuthorizationsList),
+						makeAPIPol([]string{permSetAllowAll}, nil),
+					)
+				}
 				return nil
 			})
 
@@ -494,10 +587,12 @@ func TestIsAuthorizedWithToken(t *testing.T) {
 		Convey("When there is a policy matching but the networks are restricted", func() {
 
 			m.MockRetrieveMany(t, func(mctx manipulate.Context, dest elemental.Identifiables) error {
-				*dest.(*api.AuthorizationsList) = append(
-					*dest.(*api.AuthorizationsList),
-					makeAPIPol([]string{permSetAllowAll}, nil),
-				)
+				if dest.Identity().IsEqual(api.AuthorizationIdentity) {
+					*dest.(*api.AuthorizationsList) = append(
+						*dest.(*api.AuthorizationsList),
+						makeAPIPol([]string{permSetAllowAll}, nil),
+					)
+				}
 				return nil
 			})
 
@@ -530,10 +625,12 @@ func TestIsAuthorizedWithToken(t *testing.T) {
 		Convey("When there is a policy with id restriction and not id provided", func() {
 
 			m.MockRetrieveMany(t, func(mctx manipulate.Context, dest elemental.Identifiables) error {
-				*dest.(*api.AuthorizationsList) = append(
-					*dest.(*api.AuthorizationsList),
-					makeAPIPol([]string{"things:get:xyz,abc"}, nil),
-				)
+				if dest.Identity().IsEqual(api.AuthorizationIdentity) {
+					*dest.(*api.AuthorizationsList) = append(
+						*dest.(*api.AuthorizationsList),
+						makeAPIPol([]string{"things:get:xyz,abc"}, nil),
+					)
+				}
 				return nil
 			})
 
@@ -546,10 +643,12 @@ func TestIsAuthorizedWithToken(t *testing.T) {
 		Convey("When there is a policy with id restriction and not matching id provided", func() {
 
 			m.MockRetrieveMany(t, func(mctx manipulate.Context, dest elemental.Identifiables) error {
-				*dest.(*api.AuthorizationsList) = append(
-					*dest.(*api.AuthorizationsList),
-					makeAPIPol([]string{"things:get:xyz,abc"}, nil),
-				)
+				if dest.Identity().IsEqual(api.AuthorizationIdentity) {
+					*dest.(*api.AuthorizationsList) = append(
+						*dest.(*api.AuthorizationsList),
+						makeAPIPol([]string{"things:get:xyz,abc"}, nil),
+					)
+				}
 				return nil
 			})
 
@@ -564,10 +663,12 @@ func TestIsAuthorizedWithToken(t *testing.T) {
 		Convey("When there is a policy with id restriction and matching id provided", func() {
 
 			m.MockRetrieveMany(t, func(mctx manipulate.Context, dest elemental.Identifiables) error {
-				*dest.(*api.AuthorizationsList) = append(
-					*dest.(*api.AuthorizationsList),
-					makeAPIPol([]string{"things:get:xyz,abc"}, nil),
-				)
+				if dest.Identity().IsEqual(api.AuthorizationIdentity) {
+					*dest.(*api.AuthorizationsList) = append(
+						*dest.(*api.AuthorizationsList),
+						makeAPIPol([]string{"things:get:xyz,abc"}, nil),
+					)
+				}
 				return nil
 			})
 
@@ -582,36 +683,50 @@ func TestIsAuthorizedWithToken(t *testing.T) {
 		// Label
 		Convey("When there there is no label option", func() {
 
-			var expectedFilter *elemental.Filter
+			var expectedPolFilter *elemental.Filter
+			var expectedGroupFilter *elemental.Filter
 			m.MockRetrieveMany(t, func(mctx manipulate.Context, dest elemental.Identifiables) error {
-				expectedFilter = mctx.Filter()
-				*dest.(*api.AuthorizationsList) = append(
-					*dest.(*api.AuthorizationsList),
-					makeAPIPol([]string{"things:get"}, nil),
-				)
+				if dest.Identity().IsEqual(api.AuthorizationIdentity) {
+					expectedPolFilter = mctx.Filter()
+					*dest.(*api.AuthorizationsList) = append(
+						*dest.(*api.AuthorizationsList),
+						makeAPIPol([]string{"things:get"}, nil),
+					)
+				}
+				if dest.Identity().IsEqual(api.GroupIdentity) {
+					expectedGroupFilter = mctx.Filter()
+				}
 				return nil
 			})
 
 			_, err := r.Permissions(ctx, []string{"color=blue"}, "/a")
 			So(err, ShouldBeNil)
-			So(expectedFilter.String(), ShouldEqual, `flattenedsubject in ["color=blue"] and trustedissuers contains [""] and disabled == false`)
+			So(expectedPolFilter.String(), ShouldEqual, `flattenedsubject in ["color=blue"] and trustedissuers contains [""] and disabled == false`)
+			So(expectedGroupFilter.String(), ShouldEqual, `flattenedsubject in ["color=blue"] and disabled == false`)
 		})
 
 		Convey("When there there is a label option", func() {
 
-			var expectedFilter *elemental.Filter
+			var expectedPolFilter *elemental.Filter
+			var expectedGroupFilter *elemental.Filter
 			m.MockRetrieveMany(t, func(mctx manipulate.Context, dest elemental.Identifiables) error {
-				expectedFilter = mctx.Filter()
-				*dest.(*api.AuthorizationsList) = append(
-					*dest.(*api.AuthorizationsList),
-					makeAPIPol([]string{"things:get"}, nil),
-				)
+				if dest.Identity().IsEqual(api.AuthorizationIdentity) {
+					expectedPolFilter = mctx.Filter()
+					*dest.(*api.AuthorizationsList) = append(
+						*dest.(*api.AuthorizationsList),
+						makeAPIPol([]string{"things:get"}, nil),
+					)
+				}
+				if dest.Identity().IsEqual(api.GroupIdentity) {
+					expectedGroupFilter = mctx.Filter()
+				}
 				return nil
 			})
 
 			_, err := r.Permissions(ctx, []string{"color=blue"}, "/a", OptionFilterLabel("the-label"))
 			So(err, ShouldBeNil)
-			So(expectedFilter.String(), ShouldEqual, `flattenedsubject in ["color=blue"] and trustedissuers contains [""] and disabled == false and label == "the-label"`)
+			So(expectedPolFilter.String(), ShouldEqual, `flattenedsubject in ["color=blue"] and trustedissuers contains [""] and disabled == false and label == "the-label"`)
+			So(expectedGroupFilter.String(), ShouldEqual, `flattenedsubject in ["color=blue"] and disabled == false and label == "the-label"`)
 		})
 	})
 }
@@ -659,10 +774,12 @@ func TestPermissionsWithToken(t *testing.T) {
 		Convey("When I call Authorizations when I have the role testroles2", func() {
 
 			m.MockRetrieveMany(t, func(mctx manipulate.Context, dest elemental.Identifiables) error {
-				*dest.(*api.AuthorizationsList) = append(
-					*dest.(*api.AuthorizationsList),
-					makeAPIPol([]string{testrole2}, nil),
-				)
+				if dest.Identity().IsEqual(api.AuthorizationIdentity) {
+					*dest.(*api.AuthorizationsList) = append(
+						*dest.(*api.AuthorizationsList),
+						makeAPIPol([]string{testrole2}, nil),
+					)
+				}
 				return nil
 			})
 
@@ -677,10 +794,12 @@ func TestPermissionsWithToken(t *testing.T) {
 		Convey("When I call Authorizations when I have the role testroles1 and testrole3", func() {
 
 			m.MockRetrieveMany(t, func(mctx manipulate.Context, dest elemental.Identifiables) error {
-				*dest.(*api.AuthorizationsList) = append(
-					*dest.(*api.AuthorizationsList),
-					makeAPIPol([]string{testrole1, testrole3}, nil),
-				)
+				if dest.Identity().IsEqual(api.AuthorizationIdentity) {
+					*dest.(*api.AuthorizationsList) = append(
+						*dest.(*api.AuthorizationsList),
+						makeAPIPol([]string{testrole1, testrole3}, nil),
+					)
+				}
 				return nil
 			})
 
@@ -696,10 +815,12 @@ func TestPermissionsWithToken(t *testing.T) {
 		Convey("When I call Authorizations when I have with individual authotization", func() {
 
 			m.MockRetrieveMany(t, func(mctx manipulate.Context, dest elemental.Identifiables) error {
-				*dest.(*api.AuthorizationsList) = append(
-					*dest.(*api.AuthorizationsList),
-					makeAPIPol([]string{"r1:get,post", "r2:put"}, nil),
-				)
+				if dest.Identity().IsEqual(api.AuthorizationIdentity) {
+					*dest.(*api.AuthorizationsList) = append(
+						*dest.(*api.AuthorizationsList),
+						makeAPIPol([]string{"r1:get,post", "r2:put"}, nil),
+					)
+				}
 				return nil
 			})
 

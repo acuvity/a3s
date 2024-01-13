@@ -62,9 +62,22 @@ func (a *retriever) Permissions(ctx context.Context, claims []string, ns string,
 		}
 	}
 
-	policies, err := a.resolvePoliciesMatchingClaims(ctx, claims, ns, cfg.label)
+	groups, err := a.resolveGroupsMatchingClaims(ctx, claims, ns, cfg.label)
 	if err != nil {
-		return nil, fmt.Errorf("unable to retrieve api authorizations: %s", err)
+		return nil, fmt.Errorf("unable to resolve groups: %s", err)
+	}
+
+	var groupClaims []string
+	if len(groups) > 0 {
+		groupClaims = make([]string, len(groups))
+		for i, g := range groups {
+			groupClaims[i] = "@group:name=" + g.Name
+		}
+	}
+
+	policies, err := a.resolvePoliciesMatchingClaims(ctx, append(claims, groupClaims...), ns, cfg.label)
+	if err != nil {
+		return nil, fmt.Errorf("unable to resolve authorizations: %s", err)
 	}
 
 	out := PermissionMap{}
@@ -199,6 +212,34 @@ func (a *retriever) resolvePoliciesMatchingClaims(ctx context.Context, claims []
 	return matchingPolicies, nil
 }
 
+func (a *retriever) resolveGroupsMatchingClaims(ctx context.Context, claims []string, ns string, label string) (api.GroupsList, error) {
+
+	mctx := manipulate.NewContext(
+		ctx,
+		manipulate.ContextOptionNamespace(ns),
+		manipulate.ContextOptionPropagated(true),
+		manipulate.ContextOptionFilter(
+			makeGroupsRetrieveFilter(claims, label),
+		),
+	)
+
+	// Find all groups that are matching at least one claim
+	groups := api.GroupsList{}
+	if err := a.manipulator.RetrieveMany(mctx, &groups); err != nil {
+		return nil, err
+	}
+
+	// Ignore groups that are not matching all claims
+	matchingGroups := []*api.Group{}
+	for _, p := range groups {
+		if match(p.Subject, claims) {
+			matchingGroups = append(matchingGroups, p)
+		}
+	}
+
+	return matchingGroups, nil
+}
+
 func validateClientIP(remoteAddr string, allowedSubnets map[string]any) (bool, error) {
 
 	ipStr, _, err := net.SplitHostPort(remoteAddr)
@@ -232,7 +273,8 @@ func validateClientIP(remoteAddr string, allowedSubnets map[string]any) (bool, e
 	return false, nil
 }
 
-// makeAPIAuthorizationPolicyRetrieveFilter creates a manipulate filter to retrieve the api authorization policies matching the claims.
+// makeAPIAuthorizationPolicyRetrieveFilter creates a manipulate filter to
+// retrieve the api authorization policies matching the claims.
 func makeAPIAuthorizationPolicyRetrieveFilter(claims []string, label string) *elemental.Filter {
 
 	itags := []any{}
@@ -250,6 +292,30 @@ func makeAPIAuthorizationPolicyRetrieveFilter(claims []string, label string) *el
 	filter := elemental.NewFilterComposer().
 		WithKey("flattenedsubject").In(itags...).
 		WithKey("trustedissuers").Contains(issuer).
+		WithKey("disabled").Equals(false).
+		Done()
+
+	if label != "" {
+		filter = filter.WithKey("label").Equals(label).Done()
+	}
+
+	return filter
+}
+
+// makeGroupsRetrieveFilter creates a manipulate filter to
+// retrieve the groups matching the claims.
+func makeGroupsRetrieveFilter(claims []string, label string) *elemental.Filter {
+
+	itags := []any{}
+	set := mapset.NewSet()
+	for _, tag := range claims {
+		if set.Add(tag) {
+			itags = append(itags, tag)
+		}
+	}
+
+	filter := elemental.NewFilterComposer().
+		WithKey("flattenedsubject").In(itags...).
 		WithKey("disabled").Equals(false).
 		Done()
 

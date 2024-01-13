@@ -30,6 +30,14 @@ relations:
   create:
     description: Sends a authz request.
 
+- rest_name: group
+  get:
+    description: Retrieves the list of groups.
+    global_parameters:
+    - $queryable
+  create:
+    description: Creates a new groups.
+
 - rest_name: httpsource
   get:
     description: Retrieves the list of httpsources.
