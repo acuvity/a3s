@@ -154,17 +154,17 @@ func Update(bctx bahamut.Context, m manipulate.Manipulator, obj elemental.Identi
 		}
 	}
 
+	// We now reset the import hash, if any
+	if imp, ok := obj.(importing.Importable); ok {
+		imp.SetImportHash("")
+	}
+
 	if err := m.Update(mctx, obj); err != nil {
 		return err
 	}
 
 	if cfg.postHook != nil {
 		cfg.postHook(obj)
-	}
-
-	// We now reset the import hash, if any
-	if imp, ok := obj.(importing.Importable); ok {
-		imp.SetImportHash("")
 	}
 
 	bctx.SetOutputData(obj)
