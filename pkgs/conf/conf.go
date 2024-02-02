@@ -57,25 +57,25 @@ type TLSConf struct {
 	TLSKey         string `mapstructure:"tls-key" desc:"Path to the key for https"`
 	TLSKeyPass     string `mapstructure:"tls-key-pass" desc:"Password for the key" secret:"true" file:"true"`
 
-	cert      *x509.Certificate
-	clientCA  []*x509.Certificate
+	certs     []*x509.Certificate
+	clientCAs []*x509.Certificate
 	tlsConfig *tls.Config
 }
 
 // Certificate returns the computed certificate.
-func (c *TLSConf) Certificate() *x509.Certificate {
-	if c.cert == nil {
+func (c *TLSConf) Certificate() []*x509.Certificate {
+	if c.certs == nil {
 		_, _ = c.TLSConfig()
 	}
-	return c.cert
+	return c.certs
 }
 
 // ClientCertificateAuthority returns the computed Certificate authority to verify clients.
 func (c *TLSConf) ClientCertificateAuthority() []*x509.Certificate {
-	if c.clientCA == nil {
+	if c.clientCAs == nil {
 		_, _ = c.TLSConfig()
 	}
-	return c.clientCA
+	return c.clientCAs
 }
 
 // TLSConfig returns the configured TLS configuration as *tls.Config.
@@ -96,7 +96,7 @@ func (c *TLSConf) TLSConfig() (*tls.Config, error) {
 		if err != nil {
 			return nil, fmt.Errorf("unable to load ca file: %w", err)
 		}
-		c.clientCA, err = tglib.ParseCertificates(caData)
+		c.clientCAs, err = tglib.ParseCertificates(caData)
 		if err != nil {
 			return nil, fmt.Errorf("unable to parse to ca certificate: %w", err)
 		}
@@ -106,13 +106,13 @@ func (c *TLSConf) TLSConfig() (*tls.Config, error) {
 	}
 
 	if c.TLSCertificate != "" {
-		cert, key, err := tglib.ReadCertificatePEM(c.TLSCertificate, c.TLSKey, c.TLSKeyPass)
+		certs, key, err := tglib.ReadCertificatePEMs(c.TLSCertificate, c.TLSKey, c.TLSKeyPass)
 		if err != nil {
 			return nil, fmt.Errorf("unable to load client certificate: %w", err)
 		}
-		c.cert = cert
+		c.certs = certs
 
-		tlscert, err := tglib.ToTLSCertificate(cert, key)
+		tlscert, err := tglib.ToTLSCertificates(certs, key)
 		if err != nil {
 			return nil, fmt.Errorf("unable to convert to tls.Certificate: %w", err)
 		}
@@ -138,32 +138,32 @@ type TLSAutoConf struct {
 
 	caKey     crypto.PrivateKey
 	caCert    *x509.Certificate
-	cert      *x509.Certificate
-	clientCA  []*x509.Certificate
+	certs     []*x509.Certificate
+	clientCAs []*x509.Certificate
 	dnss      []string
 	ips       []string
 	tlsConfig *tls.Config
 }
 
 // Certificate returns the current certificate issued.
-func (c *TLSAutoConf) Certificate() *x509.Certificate {
-	if c.cert == nil {
+func (c *TLSAutoConf) Certificate() []*x509.Certificate {
+	if c.certs == nil {
 		_, _ = c.TLSConfig()
 	}
-	return c.cert
+	return c.certs
 }
 
 // ClientCertificateAuthority returns the computed Client Certificate authority used to verfy clients.
 func (c *TLSAutoConf) ClientCertificateAuthority() []*x509.Certificate {
-	if c.clientCA == nil {
+	if c.clientCAs == nil {
 		_, _ = c.TLSConfig()
 	}
-	return c.clientCA
+	return c.clientCAs
 }
 
 // Info returns IP and DNS SANs.
 func (c *TLSAutoConf) Info() (ips []string, dns []string) {
-	if c.cert == nil {
+	if c.certs == nil {
 		_, _ = c.TLSConfig()
 	}
 	return c.ips, c.dnss
@@ -187,7 +187,7 @@ func (c *TLSAutoConf) TLSConfig() (*tls.Config, error) {
 		if err != nil {
 			return nil, fmt.Errorf("unable to load ca file: %w", err)
 		}
-		c.clientCA, err = tglib.ParseCertificates(caData)
+		c.clientCAs, err = tglib.ParseCertificates(caData)
 		if err != nil {
 			return nil, fmt.Errorf("unable to parse to ca certificate: %w", err)
 		}
@@ -275,13 +275,13 @@ func (c *TLSAutoConf) TLSConfig() (*tls.Config, error) {
 		return nil, fmt.Errorf("unable to convert key pem block to x509 key: %w", err)
 	}
 
-	cert, err := x509.ParseCertificate(certPem.Bytes)
+	certs, err := x509.ParseCertificates(certPem.Bytes)
 	if err != nil {
 		return nil, fmt.Errorf("unable to convert cert pem block to x509 key: %w", err)
 	}
-	c.cert = cert
+	c.certs = certs
 
-	tlsCert, err := tglib.ToTLSCertificate(cert, key)
+	tlsCert, err := tglib.ToTLSCertificates(certs, key)
 	if err != nil {
 		return nil, fmt.Errorf("unable to convert x509 cert and key to tls.Certificate: %w", err)
 	}
