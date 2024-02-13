@@ -18,6 +18,8 @@ func translateContext(bctx bahamut.Context) (manipulate.Context, error) {
 		manipulate.ContextOptionNamespace(bctx.Request().Namespace),
 		manipulate.ContextOptionRecursive(bctx.Request().Recursive),
 		manipulate.ContextOptionPropagated(bctx.Request().Propagated),
+		manipulate.ContextOptionOrder(bctx.Request().Order...),
+		manipulate.ContextOptionAfter(bctx.Request().After, bctx.Request().Limit),
 	}
 
 	qfilter, err := manipulate.NewFiltersFromQueryParameters(bctx.Request().Parameters)
