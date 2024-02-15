@@ -12,45 +12,53 @@ import (
 // TLSConfig returns a *tls.Config given an TLSAutoConf and and manual TLSConfig
 func TLSConfig(autocfg conf.TLSAutoConf, manualcfg conf.TLSConf) (*tls.Config, error) {
 
-	var serverTLSConfig *tls.Config
-	var err error
+	out := &tls.Config{}
+	var clientCACert []*x509.Certificate
 
-	clientCACert := []*x509.Certificate{}
+	if !autocfg.AutoTLSDisable {
 
-	if autocfg.AutoTLSCA != "" && !autocfg.AutoTLSDisable {
-		serverTLSConfig, err = autocfg.TLSConfig()
-		if err != nil {
-			return nil, fmt.Errorf("unable to build server tls config from AutoTLS: %w", err)
-		}
-		clientCACert = append(clientCACert, autocfg.ClientCertificateAuthority()...)
-		ips, dnss := autocfg.Info()
-		slog.Info("Auto TLS configured",
-			"ips", ips,
-			"dns", dnss,
-		)
-	}
+		if autocfg.AutoTLSCA != "" {
 
-	if manualcfg.TLSCertificate != "" && !manualcfg.TLSDisable {
-		manualServerTLSConfig, err := manualcfg.TLSConfig()
-		if err != nil {
-			return nil, fmt.Errorf("unable to build server tls config: %w", err)
-		}
-
-		clientCACert = append(clientCACert, manualcfg.ClientCertificateAuthority()...)
-
-		if serverTLSConfig == nil {
-			serverTLSConfig = manualServerTLSConfig
-		} else {
-			serverTLSConfig.Certificates = append(serverTLSConfig.Certificates, manualServerTLSConfig.Certificates...)
-			caPool := x509.NewCertPool()
-			for _, ca := range clientCACert {
-				caPool.AddCert(ca)
+			cfg, err := autocfg.TLSConfig()
+			if err != nil {
+				return nil, fmt.Errorf("unable to build server tls config from AutoTLS: %w", err)
 			}
-			serverTLSConfig.ClientCAs = caPool
+
+			ips, dnss := autocfg.Info()
+			slog.Info("Auto TLS configured", "ips", ips, "dns", dnss)
+
+			out.Certificates = append(out.Certificates, cfg.Certificates...)
 		}
-		slog.Info("Manual TLS configured")
+
+		if autocfg.AutoTLSClientCA != "" {
+			clientCACert = append(clientCACert, autocfg.ClientCertificateAuthority()...)
+		}
 	}
 
-	return serverTLSConfig, nil
+	if !manualcfg.TLSDisable {
 
+		if manualcfg.TLSCertificate != "" {
+
+			cfg, err := manualcfg.TLSConfig()
+			if err != nil {
+				return nil, fmt.Errorf("unable to build server tls config: %w", err)
+			}
+			out.Certificates = append(out.Certificates, cfg.Certificates...)
+			slog.Info("Manual TLS configured")
+		}
+
+		if manualcfg.TLSClientCA != "" {
+			clientCACert = append(clientCACert, manualcfg.ClientCertificateAuthority()...)
+		}
+	}
+
+	if len(clientCACert) > 0 {
+		caPool := x509.NewCertPool()
+		for _, ca := range clientCACert {
+			caPool.AddCert(ca)
+		}
+		out.ClientCAs = caPool
+	}
+
+	return out, nil
 }
