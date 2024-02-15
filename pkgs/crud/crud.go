@@ -1,6 +1,7 @@
 package crud
 
 import (
+	"fmt"
 	"reflect"
 	"time"
 
@@ -160,7 +161,7 @@ func Update(bctx bahamut.Context, m manipulate.Manipulator, obj elemental.Identi
 
 	// We now reset the import hash, if any
 	if imp, ok := obj.(importing.Importable); ok {
-		imp.SetImportHash("")
+		imp.SetImportHash("dirty")
 	}
 
 	if err := m.Update(mctx, obj); err != nil {
