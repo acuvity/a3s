@@ -74,6 +74,10 @@ func RetrieveMany(bctx bahamut.Context, m manipulate.Manipulator, objs elemental
 		return err
 	}
 
+	// backport headers
+	bctx.SetCount(mctx.Count())
+	bctx.SetNext(mctx.Next())
+
 	bctx.SetOutputData(objs)
 
 	return nil
