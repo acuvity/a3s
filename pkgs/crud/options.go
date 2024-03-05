@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"go.acuvity.ai/elemental"
+	"go.acuvity.ai/manipulate"
 )
 
 // A ErrPreWriteHook is the kind of error returned when execution
@@ -28,8 +29,9 @@ type PreWriteHook func(obj elemental.Identifiable, orig elemental.Identifiable) 
 type PostWriteHook func(obj elemental.Identifiable)
 
 type cfg struct {
-	preHook  PreWriteHook
-	postHook PostWriteHook
+	preHook        PreWriteHook
+	postHook       PostWriteHook
+	contextOptions []manipulate.ContextOption
 }
 
 // An Option defines optional behaviors for the crud functions.
@@ -51,5 +53,12 @@ func OptionPreWriteHook(hook PreWriteHook) Option {
 func OptionPostWriteHook(hook PostWriteHook) Option {
 	return func(c *cfg) {
 		c.postHook = hook
+	}
+}
+
+// OptionManipulateContextOptions defines the manipulate.ContextOption that should be passed.
+func OptionManipulateContextOptions(contextOptions ...manipulate.ContextOption) Option {
+	return func(c *cfg) {
+		c.contextOptions = contextOptions
 	}
 }
