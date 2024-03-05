@@ -12,7 +12,7 @@ import (
 // It handles, namespace, recursive, propagate and the `q` parameter.
 // If your code needs to apply another filter, it will override the filter
 // created from the query parameter.
-func translateContext(bctx bahamut.Context) (manipulate.Context, error) {
+func translateContext(bctx bahamut.Context, defaultContextOptions ...manipulate.ContextOption) (manipulate.Context, error) {
 
 	opts := []manipulate.ContextOption{
 		manipulate.ContextOptionNamespace(bctx.Request().Namespace),
@@ -33,6 +33,10 @@ func translateContext(bctx bahamut.Context) (manipulate.Context, error) {
 	}
 	if qfilter != nil {
 		opts = append(opts, manipulate.ContextOptionFilter(qfilter))
+	}
+
+	if defaultContextOptions != nil {
+		opts = append(opts, defaultContextOptions...)
 	}
 
 	return manipulate.NewContext(bctx.Context(), opts...), err

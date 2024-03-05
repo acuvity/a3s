@@ -49,7 +49,7 @@ func Create(bctx bahamut.Context, m manipulate.Manipulator, obj elemental.Identi
 		}
 	}
 
-	if err := m.Create(manipulate.NewContext(bctx.Context()), obj); err != nil {
+	if err := m.Create(manipulate.NewContext(bctx.Context(), cfg.contextOptions...), obj); err != nil {
 		return err
 	}
 
@@ -65,7 +65,12 @@ func Create(bctx bahamut.Context, m manipulate.Manipulator, obj elemental.Identi
 // RetrieveMany performs the basic retrieve many operation.
 func RetrieveMany(bctx bahamut.Context, m manipulate.Manipulator, objs elemental.Identifiables, opts ...Option) error {
 
-	mctx, err := translateContext(bctx)
+	cfg := cfg{}
+	for _, o := range opts {
+		o(&cfg)
+	}
+
+	mctx, err := translateContext(bctx, cfg.contextOptions...)
 	if err != nil {
 		return err
 	}
@@ -84,9 +89,14 @@ func RetrieveMany(bctx bahamut.Context, m manipulate.Manipulator, objs elemental
 }
 
 // Retrieve performs the basic retrieve operation.
-func Retrieve(bctx bahamut.Context, m manipulate.Manipulator, obj elemental.Identifiable) error {
+func Retrieve(bctx bahamut.Context, m manipulate.Manipulator, obj elemental.Identifiable, opts ...Option) error {
 
-	mctx, err := translateContext(bctx)
+	cfg := cfg{}
+	for _, o := range opts {
+		o(&cfg)
+	}
+
+	mctx, err := translateContext(bctx, cfg.contextOptions...)
 	if err != nil {
 		return err
 	}
@@ -119,7 +129,7 @@ func Update(bctx bahamut.Context, m manipulate.Manipulator, obj elemental.Identi
 
 	obj.SetIdentifier(bctx.Request().ObjectID)
 
-	mctx, err := translateContext(bctx)
+	mctx, err := translateContext(bctx, cfg.contextOptions...)
 	if err != nil {
 		return err
 	}
@@ -184,7 +194,7 @@ func Delete(bctx bahamut.Context, m manipulate.Manipulator, obj elemental.Identi
 		o(&cfg)
 	}
 
-	mctx, err := translateContext(bctx)
+	mctx, err := translateContext(bctx, cfg.contextOptions...)
 	if err != nil {
 		return err
 	}
