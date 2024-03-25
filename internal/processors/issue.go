@@ -3,6 +3,7 @@ package processors
 import (
 	"context"
 	"crypto/tls"
+	"crypto/x509"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -248,7 +249,7 @@ func (p *IssueProcessor) ProcessCreate(bctx bahamut.Context) (err error) {
 func (p *IssueProcessor) handleCertificateIssue(ctx context.Context, req *api.Issue, tlsState *tls.ConnectionState, tlsHeader string) (token.Issuer, error) {
 
 	// We get the peer certificate.
-	cert := tlsState.PeerCertificates
+	var certs []*x509.Certificate
 
 	// If mtls header is enabled, and the header is not empty
 	// we will use it instead of the cert from the tls state.
@@ -267,16 +268,18 @@ func (p *IssueProcessor) handleCertificateIssue(ctx context.Context, req *api.Is
 		}
 
 		// Then we try to extract a certificate out of the decrypted blob.
-		cert, err = mtls.CertificatesFromHeader(header)
+		certs, err = mtls.CertificatesFromHeader(header)
 		if err != nil {
 			return nil, fmt.Errorf("unable to retrieve certificate from mtls header: %w", err)
 		}
 
 		// If we reach here, the decoded certificate from the header will be used to
 		// to match against the source.
+	} else {
+		certs = tlsState.PeerCertificates
 	}
 
-	if len(cert) == 0 {
+	if len(certs) == 0 {
 		return nil, elemental.NewError("Bad Request", "No user certificates", "a3s:authn", http.StatusBadRequest)
 	}
 
@@ -286,7 +289,7 @@ func (p *IssueProcessor) handleCertificateIssue(ctx context.Context, req *api.Is
 	}
 	src := out.(*api.MTLSSource)
 
-	iss, err := mtlsissuer.New(ctx, src, cert[0])
+	iss, err := mtlsissuer.New(ctx, src, certs[0])
 	if err != nil {
 		return nil, err
 	}

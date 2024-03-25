@@ -77,7 +77,7 @@ func (p *GroupsProcessors) makeNotify() crud.PostWriteHook {
 	}
 }
 
-func (p *GroupsProcessors) makePreHook(ctx bahamut.Context) crud.PreWriteHook {
+func (p *GroupsProcessors) makePreHook(_ bahamut.Context) crud.PreWriteHook {
 	return func(obj elemental.Identifiable, original elemental.Identifiable) error {
 		group := obj.(*api.Group)
 		group.FlattenedSubject = flattenTags(group.Subject)
