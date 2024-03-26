@@ -515,3 +515,35 @@ func (c *GatewayConf) GWPrivateOverrides() map[elemental.Identity]bool {
 
 	return out
 }
+
+// APIClientConf holds an API Configuration.
+type APIClientConf struct {
+	APICertificateAuthority string `mapstructure:"client-cacert" desc:"custom CA to talk to the backend. empty means system ca pool"`
+	APIClientCert           string `mapstructure:"client-cert" desc:"path to the api client certificate"`
+	APIClientKey            string `mapstructure:"client-key" desc:"path to the api client key"`
+	APIClientKeyPass        string `mapstructure:"client-key-pass" desc:"password for the api key" secret:"true" file:"true"`
+	APINamespace            string `mapstructure:"client-api-namespace" desc:"the namespace from where the client has access to" default:"/"`
+	APISourceName           string `mapstructure:"client-source-name" desc:"the source name to use to get a token" default:""`
+	APISourceNamespace      string `mapstructure:"client-source-namespace" desc:"the namespace of the source to use" default:"/"`
+	APIURL                  string `mapstructure:"client-api" desc:"url of the backend"`
+}
+
+// SystemCAPool returns the CA pool from the system or a new one using the provided CA.
+func (c *APIClientConf) SystemCAPool() (*x509.CertPool, error) {
+
+	if c.APICertificateAuthority == "" {
+		return x509.SystemCertPool()
+	}
+
+	data, err := os.ReadFile(c.APICertificateAuthority)
+	if err != nil {
+		return nil, err
+	}
+
+	certPool := x509.NewCertPool()
+	if !certPool.AppendCertsFromPEM(data) {
+		return nil, fmt.Errorf("unable to append system signing ca")
+	}
+
+	return certPool, nil
+}

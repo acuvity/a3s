@@ -232,3 +232,65 @@ func MakeA3SRemoteAuth(
 		),
 		nil
 }
+
+// MakeAPIManipulator returns a HTTP manipulator for an API.
+func MakeAPIManipulator(ctx context.Context, cfg conf.APIClientConf, options ...authlib.Option) (manipulate.Manipulator, error) {
+
+	cert, key, err := tglib.ReadCertificatePEM(
+		cfg.APIClientCert,
+		cfg.APIClientKey,
+		cfg.APIClientKeyPass,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("unable to read certificate %w", err)
+	}
+
+	clientCert, err := tglib.ToTLSCertificate(cert, key)
+	if err != nil {
+		return nil, fmt.Errorf("unable to convert client certificate: %w", err)
+	}
+
+	systemCAPool, err := cfg.SystemCAPool()
+	if err != nil {
+		return nil, fmt.Errorf("unable to get systemCAPool: %w", err)
+	}
+
+	tlsConfig := &tls.Config{
+		RootCAs:      systemCAPool,
+		Certificates: []tls.Certificate{clientCert},
+	}
+
+	m, err := maniphttp.New(
+		ctx,
+		cfg.APIURL,
+		maniphttp.OptionNamespace(cfg.APINamespace),
+		maniphttp.OptionTLSConfig(tlsConfig),
+		maniphttp.OptionTokenManager(
+			authlib.NewX509TokenManager(
+				cfg.APISourceNamespace,
+				cfg.APISourceName,
+				options...,
+			),
+		),
+		maniphttp.OptionDefaultRetryFunc(func(i manipulate.RetryInfo) error {
+			info := i.(maniphttp.RetryInfo)
+			slog.Debug("API manipulator retry",
+				"try", info.Try(),
+				"method", info.Method,
+				"url", info.URL,
+				info.Err(),
+			)
+			return nil
+		}),
+	)
+	if err != nil {
+		return nil, fmt.Errorf(
+			"unable to create http manipulator: namespace=%s, source=%s :%w",
+			cfg.APISourceNamespace,
+			cfg.APISourceName,
+			err,
+		)
+	}
+
+	return m, nil
+}
