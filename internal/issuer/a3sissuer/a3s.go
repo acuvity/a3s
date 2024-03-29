@@ -2,6 +2,7 @@ package a3sissuer
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/golang-jwt/jwt/v4"
@@ -78,6 +79,14 @@ func (c *a3sIssuer) fromToken(
 	if err != nil {
 		return ErrComputeRestrictions{Err: err}
 	}
+
+	claims := make([]string, 0, len(c.token.Identity))
+	for _, c := range c.token.Identity {
+		if !strings.HasPrefix(c, "@") {
+			claims = append(claims, c)
+		}
+	}
+	c.token.Identity = claims
 
 	return nil
 }
