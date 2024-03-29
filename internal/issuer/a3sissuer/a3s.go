@@ -16,6 +16,7 @@ func New(
 	requiredIssuer string,
 	audience jwt.ClaimStrings,
 	validity time.Duration,
+	skipValidityCap bool,
 ) (token.Issuer, error) {
 
 	c := newA3SIssuer()
@@ -25,6 +26,7 @@ func New(
 		requiredIssuer,
 		audience,
 		validity,
+		skipValidityCap,
 	); err != nil {
 		return nil, err
 	}
@@ -46,6 +48,7 @@ func (c *a3sIssuer) fromToken(
 	issuer string,
 	audience jwt.ClaimStrings,
 	validity time.Duration,
+	skipValidityCap bool,
 ) error {
 
 	orest, err := permissions.GetRestrictions(tokenString)
@@ -71,7 +74,7 @@ func (c *a3sIssuer) fromToken(
 		c.token.Restrictions = &orest
 	}
 
-	c.token.ExpiresAt, err = computeNewValidity(c.token.ExpiresAt, validity, c.token.Refresh)
+	c.token.ExpiresAt, err = computeNewValidity(c.token.ExpiresAt, validity, c.token.Refresh || skipValidityCap)
 	if err != nil {
 		return ErrComputeRestrictions{Err: err}
 	}
@@ -85,7 +88,7 @@ func (c *a3sIssuer) Issue() *token.IdentityToken {
 	return c.token
 }
 
-func computeNewValidity(originalExpUNIX *jwt.NumericDate, requestedValidity time.Duration, isRefresh bool) (*jwt.NumericDate, error) {
+func computeNewValidity(originalExpUNIX *jwt.NumericDate, requestedValidity time.Duration, skipCap bool) (*jwt.NumericDate, error) {
 
 	if originalExpUNIX == nil || originalExpUNIX.Unix() == 0 {
 		return nil, fmt.Errorf("unable to compute new validity: original expiration is zero")
@@ -98,7 +101,7 @@ func computeNewValidity(originalExpUNIX *jwt.NumericDate, requestedValidity time
 	now := time.Now()
 
 	originalExp := originalExpUNIX.Local()
-	if now.Add(requestedValidity).After(originalExp) && !isRefresh {
+	if now.Add(requestedValidity).After(originalExp) && !skipCap {
 		return nil, fmt.Errorf("the request validity is greater than the original non refresh token")
 	}
 

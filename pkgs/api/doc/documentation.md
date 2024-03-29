@@ -241,6 +241,13 @@ Type: `string`
 
 The original token.
 
+##### `waiveValiditySecret`
+
+Type: `string`
+
+If A3S has been started --jwt-waive-validity-secret and this propery matches it,
+no validity limit will be enforced.
+
 ### IssueAWS
 
 Additional issuing information for AWS STS token source.

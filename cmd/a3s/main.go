@@ -173,6 +173,9 @@ func main() {
 		"iss", cfg.JWT.JWTIssuer,
 		"aud", cfg.JWT.JWTAudience,
 	)
+	if cfg.JWT.JWTWaiveValiditySecret != "" {
+		slog.Info("JWT max validity waive secret configured")
+	}
 
 	jwks := token.NewJWKS()
 	if err := jwks.AppendWithPrivate(jwtCert, jwtKey); err != nil {
@@ -414,6 +417,7 @@ func main() {
 			cfg.JWT.JWTMaxValidity,
 			cfg.JWT.JWTIssuer,
 			cfg.JWT.JWTAudience,
+			cfg.JWT.JWTWaiveValiditySecret,
 			cookiePolicy,
 			cookieDomain,
 			cfg.MTLSHeaderConf.Enabled,

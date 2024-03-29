@@ -626,6 +626,10 @@
             "description": "The original token.",
             "example": "valid.jwt.token",
             "type": "string"
+          },
+          "waiveValiditySecret": {
+            "description": "If A3S has been started --jwt-waive-validity-secret and this propery matches it,\nno validity limit will be enforced.",
+            "type": "string"
           }
         },
         "required": [
