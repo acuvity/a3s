@@ -167,6 +167,7 @@ func (p *IssueProcessor) ProcessCreate(bctx bahamut.Context) (err error) {
 	}
 
 	idt := issuer.Issue()
+	idt.Opaque = req.Opaque
 
 	if err := idt.Restrict(permissions.Restrictions{
 		Namespace:   req.RestrictedNamespace,
@@ -198,14 +199,7 @@ func (p *IssueProcessor) ProcessCreate(bctx bahamut.Context) (err error) {
 	}
 
 	k := p.jwks.GetLast()
-	tkn, err := idt.JWT(
-		k.PrivateKey(),
-		k.KID,
-		p.issuer,
-		audience,
-		exp,
-		req.Cloak,
-	)
+	tkn, err := idt.JWT(k.PrivateKey(), k.KID, p.issuer, audience, exp, req.Cloak)
 	if err != nil {
 		return err
 	}
