@@ -612,6 +612,10 @@
           "validity": {
             "description": "Configures the maximum length of validity for a token, using\n[Golang duration syntax](https://golang.org/pkg/time/#example_Duration).",
             "type": "string"
+          },
+          "waiveValiditySecret": {
+            "description": "If A3S has been started --jwt-waive-validity-secret and this propery matches it,\nno validity limit will be enforced.",
+            "type": "string"
           }
         },
         "required": [
@@ -625,10 +629,6 @@
           "token": {
             "description": "The original token.",
             "example": "valid.jwt.token",
-            "type": "string"
-          },
-          "waiveValiditySecret": {
-            "description": "If A3S has been started --jwt-waive-validity-secret and this propery matches it,\nno validity limit will be enforced.",
             "type": "string"
           }
         },

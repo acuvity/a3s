@@ -19,13 +19,3 @@ attributes:
     exposed: true
     required: true
     example_value: valid.jwt.token
-
-  - name: waiveValiditySecret
-    friendly_name: Waive Validity Secret
-    description: |-
-      If A3S has been started --jwt-waive-validity-secret and this propery matches it,
-      no validity limit will be enforced.
-    type: string
-    exposed: true
-    secret: true
-    omit_empty: true

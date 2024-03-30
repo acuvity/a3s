@@ -221,6 +221,13 @@ Type: `string`
 Configures the maximum length of validity for a token, using
 [Golang duration syntax](https://golang.org/pkg/time/#example_Duration).
 
+##### `waiveValiditySecret`
+
+Type: `string`
+
+If A3S has been started --jwt-waive-validity-secret and this propery matches it,
+no validity limit will be enforced.
+
 ### IssueA3S
 
 Additional issuing information for A3S token source.
@@ -240,13 +247,6 @@ Additional issuing information for A3S token source.
 Type: `string`
 
 The original token.
-
-##### `waiveValiditySecret`
-
-Type: `string`
-
-If A3S has been started --jwt-waive-validity-secret and this propery matches it,
-no validity limit will be enforced.
 
 ### IssueAWS
 

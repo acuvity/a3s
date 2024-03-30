@@ -16,10 +16,6 @@ type IssueA3S struct {
 	// The original token.
 	Token string `json:"token" msgpack:"token" bson:"-" mapstructure:"token,omitempty"`
 
-	// If A3S has been started --jwt-waive-validity-secret and this propery matches it,
-	// no validity limit will be enforced.
-	WaiveValiditySecret string `json:"waiveValiditySecret,omitempty" msgpack:"waiveValiditySecret,omitempty" bson:"-" mapstructure:"waiveValiditySecret,omitempty"`
-
 	ModelVersion int `json:"-" msgpack:"-" bson:"_modelversion"`
 }
 
@@ -136,8 +132,6 @@ func (o *IssueA3S) ValueForAttribute(name string) any {
 	switch name {
 	case "token":
 		return o.Token
-	case "waiveValiditySecret":
-		return o.WaiveValiditySecret
 	}
 
 	return nil
@@ -154,16 +148,6 @@ var IssueA3SAttributesMap = map[string]elemental.AttributeSpecification{
 		Required:       true,
 		Type:           "string",
 	},
-	"WaiveValiditySecret": {
-		AllowedChoices: []string{},
-		ConvertedName:  "WaiveValiditySecret",
-		Description: `If A3S has been started --jwt-waive-validity-secret and this propery matches it,
-no validity limit will be enforced.`,
-		Exposed: true,
-		Name:    "waiveValiditySecret",
-		Secret:  true,
-		Type:    "string",
-	},
 }
 
 // IssueA3SLowerCaseAttributesMap represents the map of attribute for IssueA3S.
@@ -176,16 +160,6 @@ var IssueA3SLowerCaseAttributesMap = map[string]elemental.AttributeSpecification
 		Name:           "token",
 		Required:       true,
 		Type:           "string",
-	},
-	"waivevaliditysecret": {
-		AllowedChoices: []string{},
-		ConvertedName:  "WaiveValiditySecret",
-		Description: `If A3S has been started --jwt-waive-validity-secret and this propery matches it,
-no validity limit will be enforced.`,
-		Exposed: true,
-		Name:    "waiveValiditySecret",
-		Secret:  true,
-		Type:    "string",
 	},
 }
 

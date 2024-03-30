@@ -94,7 +94,7 @@ func (p *IssueProcessor) ProcessCreate(bctx bahamut.Context) (err error) {
 
 	validity, _ := time.ParseDuration(req.Validity) // elemental already validated this
 
-	if validity > p.maxValidity && (req.SourceType != api.IssueSourceTypeA3S || req.InputA3S.WaiveValiditySecret != p.waiveSecret) {
+	if validity > p.maxValidity && (req.WaiveValiditySecret != p.waiveSecret) {
 		return elemental.NewError(
 			"Invalid validity",
 			fmt.Sprintf("The requested validity '%s' is greater than the maximum allowed ('%s')", req.Validity, p.maxValidity),
@@ -157,7 +157,7 @@ func (p *IssueProcessor) ProcessCreate(bctx bahamut.Context) (err error) {
 		issuer, err = p.handleTokenIssue(req, validity, audience)
 		// we reset to 0 to skip setting exp during issuing of the token
 		// as the token issers already caps it.
-		if p.waiveSecret != req.InputA3S.WaiveValiditySecret {
+		if p.waiveSecret != req.WaiveValiditySecret {
 			exp = time.Time{}
 		}
 	}
@@ -373,7 +373,7 @@ func (p *IssueProcessor) handleTokenIssue(req *api.Issue, validity time.Duration
 		p.issuer,
 		audience,
 		validity,
-		req.InputA3S.WaiveValiditySecret == p.waiveSecret,
+		req.WaiveValiditySecret == p.waiveSecret,
 	)
 	if err != nil {
 		return nil, err

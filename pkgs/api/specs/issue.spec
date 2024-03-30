@@ -3,6 +3,7 @@ model:
   rest_name: issue
   resource_name: issue
   entity_name: Issue
+  friendly_name: Issue
   package: authn
   group: authn/issue
   description: Issues a new a normalized token using various authentication sources.
@@ -13,6 +14,7 @@ model:
 attributes:
   v1:
   - name: audience
+    friendly_name: Audience
     description: Requested audience for the delivered token.
     type: list
     exposed: true
@@ -23,6 +25,7 @@ attributes:
     omit_empty: true
 
   - name: claims
+    friendly_name: Claims
     description: |-
       The list of claims delivered in the token. This can be useful when the caller
       needs to have information about the user when token is delivered as a secure
@@ -35,6 +38,7 @@ attributes:
     omit_empty: true
 
   - name: cloak
+    friendly_name: Cloak
     description: |-
       Sets a list of identity claim prefix to allow in the final token. This can be
       used to hide some information when asking for a token as not all systems need to
@@ -48,18 +52,21 @@ attributes:
     omit_empty: true
 
   - name: cookie
+    friendly_name: Cookie
     description: If set, return the token as a secure cookie.
     type: boolean
     exposed: true
     omit_empty: true
 
   - name: cookieDomain
+    friendly_name: CookieDomain
     description: If set, use the provided domain for the delivered cookie.
     type: string
     exposed: true
     omit_empty: true
 
   - name: inputA3S
+    friendly_name: InputA3S
     description: Contains additional information for an A3S token source.
     type: ref
     exposed: true
@@ -70,6 +77,7 @@ attributes:
       refMode: pointer
 
   - name: inputAWS
+    friendly_name: InputAWS
     description: Contains additional information for an AWS STS token source.
     type: ref
     exposed: true
@@ -80,6 +88,7 @@ attributes:
       refMode: pointer
 
   - name: inputAzure
+    friendly_name: InputAzure
     description: Contains additional information for an Azure token source.
     type: ref
     exposed: true
@@ -90,6 +99,7 @@ attributes:
       refMode: pointer
 
   - name: inputGCP
+    friendly_name: InputGCP
     description: Contains additional information for an GCP token source.
     type: ref
     exposed: true
@@ -100,6 +110,7 @@ attributes:
       refMode: pointer
 
   - name: inputHTTP
+    friendly_name: InputHTTP
     description: Contains additional information for an HTTP source.
     type: ref
     exposed: true
@@ -110,6 +121,7 @@ attributes:
       refMode: pointer
 
   - name: inputLDAP
+    friendly_name: InputLDAP
     description: Contains additional information for an LDAP source.
     type: ref
     exposed: true
@@ -120,6 +132,7 @@ attributes:
       refMode: pointer
 
   - name: inputOIDC
+    friendly_name: InputOIDC
     description: Contains additional information for an OIDC source.
     type: ref
     exposed: true
@@ -130,6 +143,7 @@ attributes:
       refMode: pointer
 
   - name: inputRemoteA3S
+    friendly_name: InputRemoteA3S
     description: Contains additional information for a remote A3S token source.
     type: ref
     exposed: true
@@ -140,6 +154,7 @@ attributes:
       refMode: pointer
 
   - name: opaque
+    friendly_name: Opaque
     description: Opaque data that will be included in the issued token.
     type: external
     exposed: true
@@ -147,6 +162,7 @@ attributes:
     omit_empty: true
 
   - name: restrictedNamespace
+    friendly_name: RestrictedNamespace
     description: |-
       Restricts the namespace where the token can be used.
 
@@ -162,6 +178,7 @@ attributes:
     omit_empty: true
 
   - name: restrictedNetworks
+    friendly_name: RestrictedNetworks
     description: |-
       Restricts the networks from where the token can be used. This will reduce the
       existing set of authorized networks that normally apply to the token according
@@ -185,6 +202,7 @@ attributes:
     - $cidr_list_optional
 
   - name: restrictedPermissions
+    friendly_name: RestrictedPermissions
     description: |-
       Restricts the permissions of token. This will reduce the existing permissions
       that normally apply to the token according to the policy engine.
@@ -203,6 +221,7 @@ attributes:
     omit_empty: true
 
   - name: sourceName
+    friendly_name: SourceName
     description: The name of the source to use.
     type: string
     exposed: true
@@ -210,6 +229,7 @@ attributes:
     omit_empty: true
 
   - name: sourceNamespace
+    friendly_name: SourceNamespace
     description: The namespace of the source to use.
     type: string
     exposed: true
@@ -217,6 +237,7 @@ attributes:
     omit_empty: true
 
   - name: sourceType
+    friendly_name: SourceType
     description: |-
       The authentication source. This will define how to verify
       credentials from internal or external source of authentication.
@@ -237,6 +258,7 @@ attributes:
     example_value: OIDC
 
   - name: token
+    friendly_name: Token
     description: Issued token.
     type: string
     exposed: true
@@ -245,6 +267,7 @@ attributes:
     omit_empty: true
 
   - name: tokenType
+    friendly_name: TokenType
     description: The type of token to issue.
     type: enum
     exposed: true
@@ -255,6 +278,7 @@ attributes:
     omit_empty: true
 
   - name: validity
+    friendly_name: Validity
     description: |-
       Configures the maximum length of validity for a token, using
       [Golang duration syntax](https://golang.org/pkg/time/#example_Duration).
@@ -263,3 +287,13 @@ attributes:
     omit_empty: true
     validations:
     - $duration
+
+  - name: waiveValiditySecret
+    friendly_name: Waive Validity Secret
+    description: |-
+      If A3S has been started --jwt-waive-validity-secret and this propery matches it,
+      no validity limit will be enforced.
+    type: string
+    exposed: true
+    secret: true
+    omit_empty: true

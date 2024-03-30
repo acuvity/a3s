@@ -229,6 +229,10 @@ type Issue struct {
 	// [Golang duration syntax](https://golang.org/pkg/time/#example_Duration).
 	Validity string `json:"validity,omitempty" msgpack:"validity,omitempty" bson:"-" mapstructure:"validity,omitempty"`
 
+	// If A3S has been started --jwt-waive-validity-secret and this propery matches it,
+	// no validity limit will be enforced.
+	WaiveValiditySecret string `json:"waiveValiditySecret,omitempty" msgpack:"waiveValiditySecret,omitempty" bson:"-" mapstructure:"waiveValiditySecret,omitempty"`
+
 	ModelVersion int `json:"-" msgpack:"-" bson:"_modelversion"`
 }
 
@@ -352,6 +356,7 @@ func (o *Issue) ToSparse(fields ...string) elemental.SparseIdentifiable {
 			Token:                 &o.Token,
 			TokenType:             &o.TokenType,
 			Validity:              &o.Validity,
+			WaiveValiditySecret:   &o.WaiveValiditySecret,
 		}
 	}
 
@@ -404,6 +409,8 @@ func (o *Issue) ToSparse(fields ...string) elemental.SparseIdentifiable {
 			sp.TokenType = &(o.TokenType)
 		case "validity":
 			sp.Validity = &(o.Validity)
+		case "waiveValiditySecret":
+			sp.WaiveValiditySecret = &(o.WaiveValiditySecret)
 		}
 	}
 
@@ -485,6 +492,9 @@ func (o *Issue) Patch(sparse elemental.SparseIdentifiable) {
 	}
 	if so.Validity != nil {
 		o.Validity = *so.Validity
+	}
+	if so.WaiveValiditySecret != nil {
+		o.WaiveValiditySecret = *so.WaiveValiditySecret
 	}
 }
 
@@ -679,6 +689,8 @@ func (o *Issue) ValueForAttribute(name string) any {
 		return o.TokenType
 	case "validity":
 		return o.Validity
+	case "waiveValiditySecret":
+		return o.WaiveValiditySecret
 	}
 
 	return nil
@@ -921,6 +933,16 @@ credentials from internal or external source of authentication.`,
 		Name:    "validity",
 		Type:    "string",
 	},
+	"WaiveValiditySecret": {
+		AllowedChoices: []string{},
+		ConvertedName:  "WaiveValiditySecret",
+		Description: `If A3S has been started --jwt-waive-validity-secret and this propery matches it,
+no validity limit will be enforced.`,
+		Exposed: true,
+		Name:    "waiveValiditySecret",
+		Secret:  true,
+		Type:    "string",
+	},
 }
 
 // IssueLowerCaseAttributesMap represents the map of attribute for Issue.
@@ -1160,6 +1182,16 @@ credentials from internal or external source of authentication.`,
 		Name:    "validity",
 		Type:    "string",
 	},
+	"waivevaliditysecret": {
+		AllowedChoices: []string{},
+		ConvertedName:  "WaiveValiditySecret",
+		Description: `If A3S has been started --jwt-waive-validity-secret and this propery matches it,
+no validity limit will be enforced.`,
+		Exposed: true,
+		Name:    "waiveValiditySecret",
+		Secret:  true,
+		Type:    "string",
+	},
 }
 
 // SparseIssuesList represents a list of SparseIssues
@@ -1325,6 +1357,10 @@ type SparseIssue struct {
 	// [Golang duration syntax](https://golang.org/pkg/time/#example_Duration).
 	Validity *string `json:"validity,omitempty" msgpack:"validity,omitempty" bson:"-" mapstructure:"validity,omitempty"`
 
+	// If A3S has been started --jwt-waive-validity-secret and this propery matches it,
+	// no validity limit will be enforced.
+	WaiveValiditySecret *string `json:"waiveValiditySecret,omitempty" msgpack:"waiveValiditySecret,omitempty" bson:"-" mapstructure:"waiveValiditySecret,omitempty"`
+
 	ModelVersion int `json:"-" msgpack:"-" bson:"_modelversion"`
 }
 
@@ -1457,6 +1493,9 @@ func (o *SparseIssue) ToPlain() elemental.PlainIdentifiable {
 	}
 	if o.Validity != nil {
 		out.Validity = *o.Validity
+	}
+	if o.WaiveValiditySecret != nil {
+		out.WaiveValiditySecret = *o.WaiveValiditySecret
 	}
 
 	return out
