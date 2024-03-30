@@ -13,6 +13,7 @@ type config struct {
 	cloak        []string
 	validity     time.Duration
 	refresh      bool
+	waiveSecret  string
 }
 
 func newConfig() config {
@@ -69,5 +70,12 @@ func OptRestrictions(restrictions permissions.Restrictions) Option {
 func OptRefresh(refresh bool) Option {
 	return func(opts *config) {
 		opts.refresh = refresh
+	}
+}
+
+// OptValidityWaiveSecret sets the max validity waive secret,
+func OptValidityWaiveSecret(secret string) Option {
+	return func(opts *config) {
+		opts.waiveSecret = secret
 	}
 }

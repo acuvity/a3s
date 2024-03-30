@@ -292,6 +292,7 @@ func applyOptions(req *api.Issue, cfg config) {
 		req.TokenType = api.IssueTokenTypeRefresh
 	}
 
+	req.WaiveValiditySecret = cfg.waiveSecret
 	req.Cloak = cfg.cloak
 	req.Opaque = cfg.opaque
 	req.Audience = cfg.audience
