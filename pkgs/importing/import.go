@@ -91,51 +91,54 @@ func Import(
 		}
 	}
 
-	// Now, we retrieve all existing object in the namespace
-	// using the same import label.
-	currentObjects := manager.Identifiables(objects.Identity())
-	if err := m.RetrieveMany(
-		manipulate.NewContext(
-			ctx,
-			manipulate.ContextOptionNamespace(namespace),
-			manipulate.ContextOptionRecursive(true),
-			manipulate.ContextOptionFilter(
-				elemental.NewFilterComposer().
-					WithKey("importLabel").Equals(label).
-					Done(),
-			),
-		),
-		currentObjects,
-	); err != nil {
-		return fmt.Errorf("unable to retrieve list of current %s: %w", currentObjects.Identity().Category, err)
-	}
+	// Now, if the objects are retrievable and deletable, we retrieve all existing object in the namespace
+	// using the same import label. Otherwise we skip directly to the creation.
+	if r, ok := manager.Relationships()[objects.Identity()]; ok && len(r.RetrieveMany) > 0 && len(r.Delete) > 0 {
 
-	// Then, we delete all the existing objects that have a hash
-	// that is not matching any of the imported objects.
-	// We also delete from the list of objects to import all the
-	// ones that have a matching hash, since they did not change.
-	for _, o := range currentObjects.List() {
-
-		obj := o.(Importable)
-		h := obj.GetImportHash()
-
-		if _, ok := hashed[h]; ok {
-			delete(hashed, h)
-			continue
-		}
-
-		if err := m.Delete(
+		currentObjects := manager.Identifiables(objects.Identity())
+		if err := m.RetrieveMany(
 			manipulate.NewContext(
 				ctx,
-				manipulate.ContextOptionNamespace(obj.GetNamespace()),
-				manipulate.ContextOptionOverride(true),
+				manipulate.ContextOptionNamespace(namespace),
+				manipulate.ContextOptionRecursive(true),
+				manipulate.ContextOptionFilter(
+					elemental.NewFilterComposer().
+						WithKey("importLabel").Equals(label).
+						Done(),
+				),
 			),
-			o,
+			currentObjects,
 		); err != nil {
-			if elemental.IsErrorWithCode(err, http.StatusNotFound) {
+			return fmt.Errorf("unable to retrieve list of current %s: %w", currentObjects.Identity().Category, err)
+		}
+
+		// Then, we delete all the existing objects that have a hash
+		// that is not matching any of the imported objects.
+		// We also delete from the list of objects to import all the
+		// ones that have a matching hash, since they did not change.
+		for _, o := range currentObjects.List() {
+
+			obj := o.(Importable)
+			h := obj.GetImportHash()
+
+			if _, ok := hashed[h]; ok {
+				delete(hashed, h)
 				continue
 			}
-			return fmt.Errorf("unable to delete existing %s: %w", obj.Identity().Name, err)
+
+			if err := m.Delete(
+				manipulate.NewContext(
+					ctx,
+					manipulate.ContextOptionNamespace(obj.GetNamespace()),
+					manipulate.ContextOptionOverride(true),
+				),
+				o,
+			); err != nil {
+				if elemental.IsErrorWithCode(err, http.StatusNotFound) {
+					continue
+				}
+				return fmt.Errorf("unable to delete existing %s: %w", obj.Identity().Name, err)
+			}
 		}
 	}
 
