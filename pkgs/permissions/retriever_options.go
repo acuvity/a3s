@@ -2,11 +2,13 @@ package permissions
 
 type config struct {
 	accessibleNamespaces           *[]string
+	collectedGroups                *[]string
 	id                             string
 	addr                           string
 	restrictions                   Restrictions
 	offloadPermissionsRestrictions bool
 	label                          string
+	singleGroupMode                bool
 }
 
 // A RetrieverOption represents an option of the retriver.
@@ -56,5 +58,22 @@ func OptionCollectAccessibleNamespaces(namespaces *[]string) RetrieverOption {
 func OptionFilterLabel(label string) RetrieverOption {
 	return func(c *config) {
 		c.label = label
+	}
+}
+
+// OptionCollectGroups allows to pass a *[]string that will
+// be populated with the names of the groups that were used to
+// resolve the permissions, if any.
+func OptionCollectGroups(groups *[]string) RetrieverOption {
+	return func(c *config) {
+		c.collectedGroups = groups
+	}
+}
+
+// OptionSingleGroupMode allows to tell the retriever to only user the group with
+// the higher weight to perform policy resolution.
+func OptionSingleGroupMode(single bool) RetrieverOption {
+	return func(c *config) {
+		c.singleGroupMode = single
 	}
 }

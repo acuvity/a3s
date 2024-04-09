@@ -36,6 +36,8 @@ func OptionOperationTransformer(t OperationTransformer) Option {
 
 type checkConfig struct {
 	accessibleNamespaces *[]string
+	collectedGroups      *[]string
+	singleGroupMode      bool
 	sourceIP             string
 	id                   string
 	tokenID              string
@@ -87,5 +89,22 @@ func OptionCollectAccessibleNamespaces(authorizedNamespaces *[]string) OptionChe
 func OptionFilterLabel(label string) OptionCheck {
 	return func(cfg *checkConfig) {
 		cfg.label = label
+	}
+}
+
+// OptionCollectGroups can be used to pass a *[]string
+// that will return the list of groups that were used to compute the permissions.
+func OptionCollectGroups(groups *[]string) OptionCheck {
+	return func(cfg *checkConfig) {
+		cfg.collectedGroups = groups
+	}
+}
+
+// OptionSingleGroupMode instructs the permission retriever to
+// use only the matching group with the higher weight to compute the
+// permissions.
+func OptionSingleGroupMode(single bool) OptionCheck {
+	return func(cfg *checkConfig) {
+		cfg.singleGroupMode = single
 	}
 }

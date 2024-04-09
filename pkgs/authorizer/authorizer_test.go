@@ -383,7 +383,7 @@ func TestCheckPermissions(t *testing.T) {
 
 			So(expectedNamespace, ShouldEqual, "/")
 			So(expectedClaims, ShouldResemble, []string{"a=a"})
-			So(len(expectedOptions), ShouldEqual, 5)
+			So(len(expectedOptions), ShouldEqual, 7)
 		})
 	})
 }

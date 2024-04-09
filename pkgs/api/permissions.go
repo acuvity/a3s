@@ -97,9 +97,17 @@ type Permissions struct {
 	// allowed namespaces.
 	CollectAccessibleNamespaces bool `json:"collectAccessibleNamespaces" msgpack:"collectAccessibleNamespaces" bson:"-" mapstructure:"collectAccessibleNamespaces,omitempty"`
 
+	// If true, the property collectedGroups will be filled with the list
+	// of groups used to resolve the permissions.
+	CollectGroups bool `json:"collectGroups" msgpack:"collectGroups" bson:"-" mapstructure:"collectGroups,omitempty"`
+
 	// If collectAccessibleNamespaces is true, this property will contain the list of
 	// accessible namespaces.
 	CollectedAccessibleNamespaces []string `json:"collectedAccessibleNamespaces" msgpack:"collectedAccessibleNamespaces" bson:"-" mapstructure:"collectedAccessibleNamespaces,omitempty"`
+
+	// If collectGroups is true, this property will contain the list of
+	// groups used to resolve the permissions.
+	CollectedGroups []string `json:"collectedGroups" msgpack:"collectedGroups" bson:"-" mapstructure:"collectedGroups,omitempty"`
 
 	// Return an eventual error.
 	Error string `json:"error,omitempty" msgpack:"error,omitempty" bson:"-" mapstructure:"error,omitempty"`
@@ -122,6 +130,9 @@ type Permissions struct {
 	// Sets the permissions restrictions that should apply.
 	RestrictedPermissions []string `json:"restrictedPermissions" msgpack:"restrictedPermissions" bson:"-" mapstructure:"restrictedPermissions,omitempty"`
 
+	// If true, only use the group with the higher weight to resolve policy resolution.
+	SingleGroupMode bool `json:"singleGroupMode" msgpack:"singleGroupMode" bson:"-" mapstructure:"singleGroupMode,omitempty"`
+
 	ModelVersion int `json:"-" msgpack:"-" bson:"_modelversion"`
 }
 
@@ -132,6 +143,7 @@ func NewPermissions() *Permissions {
 		ModelVersion:                  1,
 		Claims:                        []string{},
 		CollectedAccessibleNamespaces: []string{},
+		CollectedGroups:               []string{},
 		Permissions:                   map[string]map[string]bool{},
 		RestrictedNetworks:            []string{},
 		RestrictedPermissions:         []string{},
@@ -224,7 +236,9 @@ func (o *Permissions) ToSparse(fields ...string) elemental.SparseIdentifiable {
 			IP:                             &o.IP,
 			Claims:                         &o.Claims,
 			CollectAccessibleNamespaces:    &o.CollectAccessibleNamespaces,
+			CollectGroups:                  &o.CollectGroups,
 			CollectedAccessibleNamespaces:  &o.CollectedAccessibleNamespaces,
+			CollectedGroups:                &o.CollectedGroups,
 			Error:                          &o.Error,
 			Namespace:                      &o.Namespace,
 			OffloadPermissionsRestrictions: &o.OffloadPermissionsRestrictions,
@@ -232,6 +246,7 @@ func (o *Permissions) ToSparse(fields ...string) elemental.SparseIdentifiable {
 			RestrictedNamespace:            &o.RestrictedNamespace,
 			RestrictedNetworks:             &o.RestrictedNetworks,
 			RestrictedPermissions:          &o.RestrictedPermissions,
+			SingleGroupMode:                &o.SingleGroupMode,
 		}
 	}
 
@@ -246,8 +261,12 @@ func (o *Permissions) ToSparse(fields ...string) elemental.SparseIdentifiable {
 			sp.Claims = &(o.Claims)
 		case "collectAccessibleNamespaces":
 			sp.CollectAccessibleNamespaces = &(o.CollectAccessibleNamespaces)
+		case "collectGroups":
+			sp.CollectGroups = &(o.CollectGroups)
 		case "collectedAccessibleNamespaces":
 			sp.CollectedAccessibleNamespaces = &(o.CollectedAccessibleNamespaces)
+		case "collectedGroups":
+			sp.CollectedGroups = &(o.CollectedGroups)
 		case "error":
 			sp.Error = &(o.Error)
 		case "namespace":
@@ -262,6 +281,8 @@ func (o *Permissions) ToSparse(fields ...string) elemental.SparseIdentifiable {
 			sp.RestrictedNetworks = &(o.RestrictedNetworks)
 		case "restrictedPermissions":
 			sp.RestrictedPermissions = &(o.RestrictedPermissions)
+		case "singleGroupMode":
+			sp.SingleGroupMode = &(o.SingleGroupMode)
 		}
 	}
 
@@ -287,8 +308,14 @@ func (o *Permissions) Patch(sparse elemental.SparseIdentifiable) {
 	if so.CollectAccessibleNamespaces != nil {
 		o.CollectAccessibleNamespaces = *so.CollectAccessibleNamespaces
 	}
+	if so.CollectGroups != nil {
+		o.CollectGroups = *so.CollectGroups
+	}
 	if so.CollectedAccessibleNamespaces != nil {
 		o.CollectedAccessibleNamespaces = *so.CollectedAccessibleNamespaces
+	}
+	if so.CollectedGroups != nil {
+		o.CollectedGroups = *so.CollectedGroups
 	}
 	if so.Error != nil {
 		o.Error = *so.Error
@@ -310,6 +337,9 @@ func (o *Permissions) Patch(sparse elemental.SparseIdentifiable) {
 	}
 	if so.RestrictedPermissions != nil {
 		o.RestrictedPermissions = *so.RestrictedPermissions
+	}
+	if so.SingleGroupMode != nil {
+		o.SingleGroupMode = *so.SingleGroupMode
 	}
 }
 
@@ -393,8 +423,12 @@ func (o *Permissions) ValueForAttribute(name string) any {
 		return o.Claims
 	case "collectAccessibleNamespaces":
 		return o.CollectAccessibleNamespaces
+	case "collectGroups":
+		return o.CollectGroups
 	case "collectedAccessibleNamespaces":
 		return o.CollectedAccessibleNamespaces
+	case "collectedGroups":
+		return o.CollectedGroups
 	case "error":
 		return o.Error
 	case "namespace":
@@ -409,6 +443,8 @@ func (o *Permissions) ValueForAttribute(name string) any {
 		return o.RestrictedNetworks
 	case "restrictedPermissions":
 		return o.RestrictedPermissions
+	case "singleGroupMode":
+		return o.SingleGroupMode
 	}
 
 	return nil
@@ -452,6 +488,15 @@ allowed namespaces.`,
 		Name:    "collectAccessibleNamespaces",
 		Type:    "boolean",
 	},
+	"CollectGroups": {
+		AllowedChoices: []string{},
+		ConvertedName:  "CollectGroups",
+		Description: `If true, the property collectedGroups will be filled with the list
+of groups used to resolve the permissions.`,
+		Exposed: true,
+		Name:    "collectGroups",
+		Type:    "boolean",
+	},
 	"CollectedAccessibleNamespaces": {
 		AllowedChoices: []string{},
 		ConvertedName:  "CollectedAccessibleNamespaces",
@@ -459,6 +504,17 @@ allowed namespaces.`,
 accessible namespaces.`,
 		Exposed:  true,
 		Name:     "collectedAccessibleNamespaces",
+		ReadOnly: true,
+		SubType:  "string",
+		Type:     "list",
+	},
+	"CollectedGroups": {
+		AllowedChoices: []string{},
+		ConvertedName:  "CollectedGroups",
+		Description: `If collectGroups is true, this property will contain the list of
+groups used to resolve the permissions.`,
+		Exposed:  true,
+		Name:     "collectedGroups",
 		ReadOnly: true,
 		SubType:  "string",
 		Type:     "list",
@@ -527,6 +583,14 @@ accessible namespaces.`,
 		SubType:        "string",
 		Type:           "list",
 	},
+	"SingleGroupMode": {
+		AllowedChoices: []string{},
+		ConvertedName:  "SingleGroupMode",
+		Description:    `If true, only use the group with the higher weight to resolve policy resolution.`,
+		Exposed:        true,
+		Name:           "singleGroupMode",
+		Type:           "boolean",
+	},
 }
 
 // PermissionsLowerCaseAttributesMap represents the map of attribute for Permissions.
@@ -567,6 +631,15 @@ allowed namespaces.`,
 		Name:    "collectAccessibleNamespaces",
 		Type:    "boolean",
 	},
+	"collectgroups": {
+		AllowedChoices: []string{},
+		ConvertedName:  "CollectGroups",
+		Description: `If true, the property collectedGroups will be filled with the list
+of groups used to resolve the permissions.`,
+		Exposed: true,
+		Name:    "collectGroups",
+		Type:    "boolean",
+	},
 	"collectedaccessiblenamespaces": {
 		AllowedChoices: []string{},
 		ConvertedName:  "CollectedAccessibleNamespaces",
@@ -574,6 +647,17 @@ allowed namespaces.`,
 accessible namespaces.`,
 		Exposed:  true,
 		Name:     "collectedAccessibleNamespaces",
+		ReadOnly: true,
+		SubType:  "string",
+		Type:     "list",
+	},
+	"collectedgroups": {
+		AllowedChoices: []string{},
+		ConvertedName:  "CollectedGroups",
+		Description: `If collectGroups is true, this property will contain the list of
+groups used to resolve the permissions.`,
+		Exposed:  true,
+		Name:     "collectedGroups",
 		ReadOnly: true,
 		SubType:  "string",
 		Type:     "list",
@@ -641,6 +725,14 @@ accessible namespaces.`,
 		Name:           "restrictedPermissions",
 		SubType:        "string",
 		Type:           "list",
+	},
+	"singlegroupmode": {
+		AllowedChoices: []string{},
+		ConvertedName:  "SingleGroupMode",
+		Description:    `If true, only use the group with the higher weight to resolve policy resolution.`,
+		Exposed:        true,
+		Name:           "singleGroupMode",
+		Type:           "boolean",
 	},
 }
 
@@ -721,9 +813,17 @@ type SparsePermissions struct {
 	// allowed namespaces.
 	CollectAccessibleNamespaces *bool `json:"collectAccessibleNamespaces,omitempty" msgpack:"collectAccessibleNamespaces,omitempty" bson:"-" mapstructure:"collectAccessibleNamespaces,omitempty"`
 
+	// If true, the property collectedGroups will be filled with the list
+	// of groups used to resolve the permissions.
+	CollectGroups *bool `json:"collectGroups,omitempty" msgpack:"collectGroups,omitempty" bson:"-" mapstructure:"collectGroups,omitempty"`
+
 	// If collectAccessibleNamespaces is true, this property will contain the list of
 	// accessible namespaces.
 	CollectedAccessibleNamespaces *[]string `json:"collectedAccessibleNamespaces,omitempty" msgpack:"collectedAccessibleNamespaces,omitempty" bson:"-" mapstructure:"collectedAccessibleNamespaces,omitempty"`
+
+	// If collectGroups is true, this property will contain the list of
+	// groups used to resolve the permissions.
+	CollectedGroups *[]string `json:"collectedGroups,omitempty" msgpack:"collectedGroups,omitempty" bson:"-" mapstructure:"collectedGroups,omitempty"`
 
 	// Return an eventual error.
 	Error *string `json:"error,omitempty" msgpack:"error,omitempty" bson:"-" mapstructure:"error,omitempty"`
@@ -745,6 +845,9 @@ type SparsePermissions struct {
 
 	// Sets the permissions restrictions that should apply.
 	RestrictedPermissions *[]string `json:"restrictedPermissions,omitempty" msgpack:"restrictedPermissions,omitempty" bson:"-" mapstructure:"restrictedPermissions,omitempty"`
+
+	// If true, only use the group with the higher weight to resolve policy resolution.
+	SingleGroupMode *bool `json:"singleGroupMode,omitempty" msgpack:"singleGroupMode,omitempty" bson:"-" mapstructure:"singleGroupMode,omitempty"`
 
 	ModelVersion int `json:"-" msgpack:"-" bson:"_modelversion"`
 }
@@ -822,8 +925,14 @@ func (o *SparsePermissions) ToPlain() elemental.PlainIdentifiable {
 	if o.CollectAccessibleNamespaces != nil {
 		out.CollectAccessibleNamespaces = *o.CollectAccessibleNamespaces
 	}
+	if o.CollectGroups != nil {
+		out.CollectGroups = *o.CollectGroups
+	}
 	if o.CollectedAccessibleNamespaces != nil {
 		out.CollectedAccessibleNamespaces = *o.CollectedAccessibleNamespaces
+	}
+	if o.CollectedGroups != nil {
+		out.CollectedGroups = *o.CollectedGroups
 	}
 	if o.Error != nil {
 		out.Error = *o.Error
@@ -845,6 +954,9 @@ func (o *SparsePermissions) ToPlain() elemental.PlainIdentifiable {
 	}
 	if o.RestrictedPermissions != nil {
 		out.RestrictedPermissions = *o.RestrictedPermissions
+	}
+	if o.SingleGroupMode != nil {
+		out.SingleGroupMode = *o.SingleGroupMode
 	}
 
 	return out

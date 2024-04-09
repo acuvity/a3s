@@ -45,4 +45,17 @@ func TestRetrieverOptions(t *testing.T) {
 		OptionFilterLabel("label")(cfg)
 		So(cfg.label, ShouldEqual, "label")
 	})
+
+	Convey("OptionCollectGroups should work", t, func() {
+		cfg := &config{}
+		out := &[]string{}
+		OptionCollectGroups(out)(cfg)
+		So(cfg.collectedGroups, ShouldEqual, out)
+	})
+
+	Convey("OptionSingleGroupMode should work", t, func() {
+		cfg := &config{}
+		OptionSingleGroupMode(true)(cfg)
+		So(cfg.singleGroupMode, ShouldBeTrue)
+	})
 }

@@ -224,6 +224,8 @@ func (a *authorizer) CheckAuthorization(ctx context.Context, claims []string, op
 		permissions.OptionRetrieverRestrictions(cfg.restrictions),
 		permissions.OptionCollectAccessibleNamespaces(cfg.accessibleNamespaces),
 		permissions.OptionFilterLabel(cfg.label),
+		permissions.OptionCollectGroups(cfg.collectedGroups),
+		permissions.OptionSingleGroupMode(cfg.singleGroupMode),
 	}
 
 	perms, err := a.retriever.Permissions(ctx, claims, ns, ropts...)

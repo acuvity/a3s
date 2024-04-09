@@ -3,6 +3,7 @@ model:
   rest_name: permissions
   resource_name: permissions
   entity_name: Permissions
+  friendly_name: Permissions
   package: a3s
   group: authz/check
   description: API to retrieve the permissions from a user identity.
@@ -11,16 +12,19 @@ model:
 attributes:
   v1:
   - name: ID
+    friendly_name: ID
     description: The optional ID of the object to check permission for.
     type: string
     exposed: true
 
   - name: IP
+    friendly_name: IP
     description: IP of the client.
     type: string
     exposed: true
 
   - name: claims
+    friendly_name: Claims
     description: The list of claims.
     type: list
     exposed: true
@@ -34,6 +38,7 @@ attributes:
     - size=big
 
   - name: collectAccessibleNamespaces
+    friendly_name: CollectAccessibleNamespaces
     description: |-
       If true, the property collectedAccssibleNamespaces will be filled with the list
       of
@@ -41,7 +46,16 @@ attributes:
     type: boolean
     exposed: true
 
+  - name: collectGroups
+    friendly_name: CollectGroups
+    description: |-
+      If true, the property collectedGroups will be filled with the list
+      of groups used to resolve the permissions.
+    type: boolean
+    exposed: true
+
   - name: collectedAccessibleNamespaces
+    friendly_name: CollectedAccessibleNamespaces
     description: |-
       If collectAccessibleNamespaces is true, this property will contain the list of
       accessible namespaces.
@@ -50,7 +64,18 @@ attributes:
     subtype: string
     read_only: true
 
+  - name: collectedGroups
+    friendly_name: CollectedGroups
+    description: |-
+      If collectGroups is true, this property will contain the list of
+      groups used to resolve the permissions.
+    type: list
+    exposed: true
+    subtype: string
+    read_only: true
+
   - name: error
+    friendly_name: Error
     description: Return an eventual error.
     type: string
     exposed: true
@@ -59,6 +84,7 @@ attributes:
     omit_empty: true
 
   - name: namespace
+    friendly_name: Namespace
     description: The namespace where to check permission from.
     type: string
     exposed: true
@@ -66,11 +92,13 @@ attributes:
     example_value: /acme
 
   - name: offloadPermissionsRestrictions
+    friendly_name: OffloadPermissionsRestrictions
     description: If true, skips computing restriction intersections.
     type: boolean
     exposed: true
 
   - name: permissions
+    friendly_name: Permissions
     description: The computed permissions.
     type: external
     exposed: true
@@ -80,12 +108,14 @@ attributes:
     omit_empty: true
 
   - name: restrictedNamespace
+    friendly_name: RestrictedNamespace
     description: Sets the namespace restrictions that should apply.
     type: string
     exposed: true
     example_value: /namespace
 
   - name: restrictedNetworks
+    friendly_name: RestrictedNetworks
     description: Sets the networks restrictions that should apply.
     type: list
     exposed: true
@@ -94,9 +124,17 @@ attributes:
     - 10.0.0.0/8
 
   - name: restrictedPermissions
+    friendly_name: RestrictedPermissions
     description: Sets the permissions restrictions that should apply.
     type: list
     exposed: true
     subtype: string
     example_value:
     - '@auth:role=enforcer'
+
+  - name: singleGroupMode
+    friendly_name: SingleGroupMode
+    description: If true, only use the group with the higher weight to resolve policy
+      resolution.
+    type: boolean
+    exposed: true

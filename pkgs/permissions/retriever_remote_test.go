@@ -53,6 +53,7 @@ func TestPermissions(t *testing.T) {
 					"dog": {"pet": true},
 				}
 				o.CollectedAccessibleNamespaces = []string{"/a/b", "/a/x"}
+				o.CollectedGroups = []string{"g1", "g2"}
 				expectedClaims = o.Claims
 				expectedNamespace = o.Namespace
 				expectedID = o.ID
@@ -68,11 +69,13 @@ func TestPermissions(t *testing.T) {
 			})
 
 			collectedNamespaces := []string{}
+			collectedGroups := []string{}
 			perms, err := r.Permissions(
 				context.Background(),
 				[]string{"a=a"},
 				"/the/ns",
 				OptionCollectAccessibleNamespaces(&collectedNamespaces),
+				OptionCollectGroups(&collectedGroups),
 				OptionRetrieverID("id"),
 				OptionRetrieverSourceIP("1.1.1.1"),
 				OptionRetrieverRestrictions(Restrictions{
@@ -98,6 +101,7 @@ func TestPermissions(t *testing.T) {
 				Permissions: []string{"cat:pet"},
 			})
 			So(collectedNamespaces, ShouldResemble, []string{"/a/b", "/a/x"})
+			So(collectedGroups, ShouldResemble, []string{"g1", "g2"})
 		})
 
 		Convey("When retrieving permissions fails", func() {

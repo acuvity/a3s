@@ -69,9 +69,35 @@ func (a *retriever) Permissions(ctx context.Context, claims []string, ns string,
 
 	var groupClaims []string
 	if len(groups) > 0 {
-		groupClaims = make([]string, len(groups))
-		for i, g := range groups {
-			groupClaims[i] = "@group:name=" + g.Name
+
+		if cfg.singleGroupMode {
+
+			var group *api.Group
+			maxWeight := -1
+			for _, g := range groups {
+				if g.Weight > maxWeight {
+					maxWeight = g.Weight
+					group = g
+				}
+			}
+			groupClaims = []string{"@group:name=" + group.Name}
+
+			if cfg.collectedGroups != nil {
+				*cfg.collectedGroups = []string{group.Name}
+			}
+
+		} else {
+
+			groupClaims = make([]string, len(groups))
+			for i, g := range groups {
+				groupClaims[i] = "@group:name=" + g.Name
+			}
+
+			if cfg.collectedGroups != nil {
+				for _, g := range groups {
+					*cfg.collectedGroups = append(*cfg.collectedGroups, g.Name)
+				}
+			}
 		}
 	}
 

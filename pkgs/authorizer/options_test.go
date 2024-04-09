@@ -68,4 +68,17 @@ func TestOptionCheck(t *testing.T) {
 		OptionFilterLabel("label")(cfg)
 		So(cfg.label, ShouldEqual, "label")
 	})
+
+	Convey("OptionCollectGroups should work", t, func() {
+		cfg := &checkConfig{}
+		groups := &[]string{}
+		OptionCollectGroups(groups)(cfg)
+		So(cfg.collectedGroups, ShouldEqual, groups)
+	})
+
+	Convey("OptionSingleGroupMode should work", t, func() {
+		cfg := &checkConfig{}
+		OptionSingleGroupMode(true)(cfg)
+		So(cfg.singleGroupMode, ShouldBeTrue)
+	})
 }

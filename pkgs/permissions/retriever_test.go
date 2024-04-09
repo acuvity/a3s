@@ -277,16 +277,88 @@ func TestIsAuthorizedWithToken(t *testing.T) {
 							Name:             "people",
 							Subject:          [][]string{{"color=blue"}},
 							FlattenedSubject: []string{"color=blue"},
+							Weight:           10,
+						},
+						&api.Group{
+							Name:             "animals",
+							Subject:          [][]string{{"color=blue"}},
+							FlattenedSubject: []string{"color=blue"},
+							Weight:           5,
+						},
+						&api.Group{
+							Name:             "aliens",
+							Subject:          [][]string{{"color=red"}},
+							FlattenedSubject: []string{"color=red"},
+							Weight:           5,
 						},
 					)
 				}
 				return nil
 			})
 
-			perms, err := r.Permissions(ctx, []string{"color=blue"}, "/a")
+			collectedGroups := []string{}
+			perms, err := r.Permissions(
+				ctx,
+				[]string{"color=blue"},
+				"/a",
+				OptionCollectGroups(&collectedGroups),
+			)
 
 			So(err, ShouldBeNil)
 			So(perms.Allows("get", "things"), ShouldEqual, true)
+			So(len(collectedGroups), ShouldEqual, 2)
+			So(collectedGroups, ShouldContain, "people")
+			So(collectedGroups, ShouldContain, "animals")
+		})
+
+		Convey("When there is a policy matching a group in single mode", func() {
+
+			m.MockRetrieveMany(t, func(mctx manipulate.Context, dest elemental.Identifiables) error {
+				if dest.Identity().IsEqual(api.AuthorizationIdentity) {
+					*dest.(*api.AuthorizationsList) = append(
+						*dest.(*api.AuthorizationsList),
+						makeAPIPolWithSubject([]string{"things:get"}, nil, [][]string{{"@group:name=animals"}}),
+					)
+				}
+				if dest.Identity().IsEqual(api.GroupIdentity) {
+					*dest.(*api.GroupsList) = append(
+						*dest.(*api.GroupsList),
+						&api.Group{
+							Name:             "people",
+							Subject:          [][]string{{"color=blue"}},
+							FlattenedSubject: []string{"color=blue"},
+							Weight:           10,
+						},
+						&api.Group{
+							Name:             "animals",
+							Subject:          [][]string{{"color=blue"}},
+							FlattenedSubject: []string{"color=blue"},
+							Weight:           15,
+						},
+						&api.Group{
+							Name:             "aliens",
+							Subject:          [][]string{{"color=red"}},
+							FlattenedSubject: []string{"color=red"},
+							Weight:           5,
+						},
+					)
+				}
+				return nil
+			})
+
+			collectedGroups := []string{}
+			perms, err := r.Permissions(
+				ctx,
+				[]string{"color=blue"},
+				"/a",
+				OptionSingleGroupMode(true),
+				OptionCollectGroups(&collectedGroups),
+			)
+
+			So(err, ShouldBeNil)
+			So(perms.Allows("get", "things"), ShouldEqual, true)
+			So(len(collectedGroups), ShouldEqual, 1)
+			So(collectedGroups, ShouldContain, "animals")
 		})
 
 		Convey("When there is a policy matching but not on the correct permission set", func() {

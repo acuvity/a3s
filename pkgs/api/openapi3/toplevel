@@ -292,6 +292,10 @@
             "format": "date-time",
             "readOnly": true,
             "type": "string"
+          },
+          "weight": {
+            "description": "If single group mode is used during permissions retrieval, use this weight to\nselect which single group should be used. The higher the weight, the more likely\nthe group will be selected.",
+            "type": "integer"
           }
         },
         "required": [
@@ -1158,8 +1162,20 @@
             "description": "If true, the property collectedAccssibleNamespaces will be filled with the list\nof\nallowed namespaces.",
             "type": "boolean"
           },
+          "collectGroups": {
+            "description": "If true, the property collectedGroups will be filled with the list\nof groups used to resolve the permissions.",
+            "type": "boolean"
+          },
           "collectedAccessibleNamespaces": {
             "description": "If collectAccessibleNamespaces is true, this property will contain the list of\naccessible namespaces.",
+            "items": {
+              "type": "string"
+            },
+            "readOnly": true,
+            "type": "array"
+          },
+          "collectedGroups": {
+            "description": "If collectGroups is true, this property will contain the list of\ngroups used to resolve the permissions.",
             "items": {
               "type": "string"
             },
@@ -1215,6 +1231,10 @@
               "type": "string"
             },
             "type": "array"
+          },
+          "singleGroupMode": {
+            "description": "If true, only use the group with the higher weight to resolve policy resolution.",
+            "type": "boolean"
           }
         },
         "required": [

@@ -29,9 +29,14 @@ func (p *PermissionsProcessor) ProcessCreate(bctx bahamut.Context) error {
 		Permissions: req.RestrictedPermissions,
 	}
 
-	var accessibleNamespaces []string
+	var collectedNamespaces []string
 	if req.CollectAccessibleNamespaces {
-		accessibleNamespaces = []string{}
+		collectedNamespaces = []string{}
+	}
+
+	var collectedGroups []string
+	if req.CollectGroups {
+		collectedGroups = []string{}
 	}
 
 	perms, err := p.retriever.Permissions(
@@ -42,7 +47,9 @@ func (p *PermissionsProcessor) ProcessCreate(bctx bahamut.Context) error {
 		permissions.OptionRetrieverSourceIP(req.IP),
 		permissions.OptionRetrieverRestrictions(restrictions),
 		permissions.OptionOffloadPermissionsRestrictions(req.OffloadPermissionsRestrictions),
-		permissions.OptionCollectAccessibleNamespaces(&accessibleNamespaces),
+		permissions.OptionSingleGroupMode(req.SingleGroupMode),
+		permissions.OptionCollectAccessibleNamespaces(&collectedNamespaces),
+		permissions.OptionCollectGroups(&collectedGroups),
 	)
 
 	switch err {
@@ -52,8 +59,12 @@ func (p *PermissionsProcessor) ProcessCreate(bctx bahamut.Context) error {
 		req.Error = err.Error()
 	}
 
-	if len(accessibleNamespaces) > 0 {
-		req.CollectedAccessibleNamespaces = accessibleNamespaces
+	if len(collectedNamespaces) > 0 {
+		req.CollectedAccessibleNamespaces = collectedNamespaces
+	}
+
+	if len(collectedGroups) > 0 {
+		req.CollectedGroups = collectedGroups
 	}
 
 	bctx.SetOutputData(req)

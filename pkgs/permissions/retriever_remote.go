@@ -50,6 +50,8 @@ func (a *remoteRetriever) Permissions(ctx context.Context, claims []string, ns s
 	preq.RestrictedPermissions = cfg.restrictions.Permissions
 	preq.OffloadPermissionsRestrictions = a.transformer != nil
 	preq.CollectAccessibleNamespaces = cfg.accessibleNamespaces != nil
+	preq.CollectGroups = cfg.collectedGroups != nil
+	preq.SingleGroupMode = cfg.singleGroupMode
 
 	if err := a.manipulator.Create(manipulate.NewContext(ctx), preq); err != nil {
 		return nil, err
@@ -77,6 +79,10 @@ func (a *remoteRetriever) Permissions(ctx context.Context, claims []string, ns s
 
 	if cfg.accessibleNamespaces != nil {
 		*cfg.accessibleNamespaces = preq.CollectedAccessibleNamespaces
+	}
+
+	if cfg.collectedGroups != nil {
+		*cfg.collectedGroups = preq.CollectedGroups
 	}
 
 	return out, nil
