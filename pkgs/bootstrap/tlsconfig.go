@@ -12,7 +12,9 @@ import (
 // TLSConfig returns a *tls.Config given an TLSAutoConf and and manual TLSConfig
 func TLSConfig(autocfg conf.TLSAutoConf, manualcfg conf.TLSConf) (*tls.Config, error) {
 
-	out := &tls.Config{}
+	out := &tls.Config{
+		MinVersion: tls.VersionTLS13,
+	}
 	var clientCACert []*x509.Certificate
 
 	if !autocfg.AutoTLSDisable {

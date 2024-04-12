@@ -244,6 +244,7 @@ func TestJWKSFromTokenIssuer(t *testing.T) {
 				context.Background(),
 				idt,
 				&tls.Config{
+					MinVersion:         tls.VersionTLS13,
 					InsecureSkipVerify: true, // nolint
 				},
 			)

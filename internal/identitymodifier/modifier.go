@@ -86,6 +86,7 @@ func (m *identityModifier) Modify(ctx context.Context, in []string) (out []strin
 	client := &http.Client{
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{
+				MinVersion:   tls.VersionTLS13,
 				RootCAs:      m.caPool,
 				Certificates: []tls.Certificate{m.clientCert},
 			},

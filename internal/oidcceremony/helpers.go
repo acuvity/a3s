@@ -49,7 +49,8 @@ func MakeOIDCProviderClient(ca string) (*http.Client, error) {
 		Timeout: 10 * time.Second,
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{
-				RootCAs: pool,
+				MinVersion: tls.VersionTLS13,
+				RootCAs:    pool,
 			},
 			Proxy: http.ProxyFromEnvironment,
 		},

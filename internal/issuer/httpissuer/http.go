@@ -71,6 +71,7 @@ func (c *httpIssuer) fromCredentials(ctx context.Context, creds Credentials) err
 	client := &http.Client{
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{
+				MinVersion:   tls.VersionTLS13,
 				RootCAs:      root,
 				Certificates: []tls.Certificate{cert},
 			},

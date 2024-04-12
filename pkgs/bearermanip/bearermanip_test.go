@@ -15,7 +15,9 @@ func TestConfigure(t *testing.T) {
 
 	Convey("Calling Configure should work", t, func() {
 		api := "https://toto.com"
-		tlsConfig := &tls.Config{}
+		tlsConfig := &tls.Config{
+			MinVersion: tls.VersionTLS13,
+		}
 
 		f := Configure(context.Background(), api, tlsConfig)
 		So(f, ShouldHaveSameTypeAs, (MakerFunc)(nil))

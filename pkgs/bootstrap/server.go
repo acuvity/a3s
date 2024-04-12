@@ -87,6 +87,7 @@ func MakeNATSServer(cfg *conf.NATSConf) (*natsserver.Server, error) {
 			Host:        "127.0.0.1",
 			AllowNonTLS: false,
 			TLSConfig: &tls.Config{
+				MinVersion:   tls.VersionTLS13,
 				Certificates: []tls.Certificate{tlsServerCert},
 				ClientCAs:    pool,
 				ClientAuth:   tls.RequireAndVerifyClientCert,
@@ -103,6 +104,7 @@ func MakeNATSServer(cfg *conf.NATSConf) (*natsserver.Server, error) {
 	cfg.NATSTLSDisable = false
 	cfg.NATSTLSSkip = false
 	cfg.NATSCustomTLSConfig = &tls.Config{
+		MinVersion:   tls.VersionTLS13,
 		RootCAs:      pool,
 		Certificates: []tls.Certificate{tlsClientCert},
 	}

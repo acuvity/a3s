@@ -163,6 +163,7 @@ func MakeA3SManipulator(ctx context.Context, a3sConfig conf.A3SClientConf) (mani
 	}
 
 	tlsConfig := &tls.Config{
+		MinVersion:   tls.VersionTLS13,
 		RootCAs:      systemCAPool,
 		Certificates: []tls.Certificate{clientCert},
 	}

@@ -89,7 +89,9 @@ func (c *TLSConf) TLSConfig() (*tls.Config, error) {
 		return c.tlsConfig, nil
 	}
 
-	tlscfg := &tls.Config{}
+	tlscfg := &tls.Config{
+		MinVersion: tls.VersionTLS13,
+	}
 
 	if c.TLSClientCA != "" {
 		caData, err := os.ReadFile(c.TLSClientCA)
@@ -180,7 +182,9 @@ func (c *TLSAutoConf) TLSConfig() (*tls.Config, error) {
 		return c.tlsConfig, nil
 	}
 
-	tlscfg := &tls.Config{}
+	tlscfg := &tls.Config{
+		MinVersion: tls.VersionTLS13,
+	}
 
 	if c.AutoTLSClientCA != "" {
 		caData, err := os.ReadFile(c.AutoTLSCA)
@@ -328,7 +332,9 @@ func (c *MongoConf) TLSConfig() (*tls.Config, error) {
 		return nil, nil
 	}
 
-	tlscfg := &tls.Config{}
+	tlscfg := &tls.Config{
+		MinVersion: tls.VersionTLS13,
+	}
 
 	if c.MongoTLSCA == "" {
 		pool, err := x509.SystemCertPool()
@@ -392,7 +398,9 @@ func (c *NATSConf) TLSConfig() (*tls.Config, error) {
 		return c.NATSCustomTLSConfig, nil
 	}
 
-	tlscfg := &tls.Config{}
+	tlscfg := &tls.Config{
+		MinVersion: tls.VersionTLS13,
+	}
 
 	if c.NATSTLSCA == "" {
 		pool, err := x509.SystemCertPool()

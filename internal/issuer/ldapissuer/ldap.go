@@ -88,6 +88,7 @@ func (c *ldapIssuer) retrieveEntry(username string, password string) (*ldap.Entr
 	}
 
 	tlsConfig := &tls.Config{
+		MinVersion: tls.VersionTLS13,
 		ServerName: strings.Split(c.source.Address, ":")[0],
 		RootCAs:    caPool,
 	}

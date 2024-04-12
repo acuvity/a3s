@@ -61,7 +61,8 @@ func (c *remoteA3SIssuer) fromToken(ctx context.Context, tokenString string) err
 	client := &http.Client{
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{
-				RootCAs: root,
+				MinVersion: tls.VersionTLS13,
+				RootCAs:    root,
 			},
 		},
 	}

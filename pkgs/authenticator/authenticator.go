@@ -186,7 +186,7 @@ func (a *Authenticator) handleFederatedToken(ctx context.Context, tokenString st
 	}
 
 	// We go fetch the JWKS.
-	if jwks, err = token.JWKSFromTokenIssuer(ctx, uidt, &tls.Config{RootCAs: pool}); err != nil {
+	if jwks, err = token.JWKSFromTokenIssuer(ctx, uidt, &tls.Config{RootCAs: pool, MinVersion: tls.VersionTLS13}); err != nil {
 		return nil, "", fmt.Errorf("Unable to retrieve remote jwks: %s", err)
 	}
 
