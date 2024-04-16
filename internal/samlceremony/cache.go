@@ -1,0 +1,61 @@
+package samlceremony
+
+import (
+	"time"
+
+	"github.com/globalsign/mgo/bson"
+	"go.acuvity.ai/manipulate"
+	"go.acuvity.ai/manipulate/manipmongo"
+)
+
+const samlCacheCollection = "samlcache"
+
+// CacheItem represents a cache OIDC request info.
+type CacheItem struct {
+	State  string    `bson:"state"`
+	ACSURL string    `bson:"acsurl"`
+	Time   time.Time `bson:"time"`
+}
+
+// Set sets the given OIDCRequestItem in redis.
+func Set(m manipulate.Manipulator, item *CacheItem) error {
+
+	item.Time = time.Now()
+
+	db, disco, err := manipmongo.GetDatabase(m)
+	if err != nil {
+		return err
+	}
+	defer disco()
+
+	return db.C(samlCacheCollection).Insert(item)
+}
+
+// Get gets the items with the given state.
+// If none is found, it will return nil.
+func Get(m manipulate.Manipulator, state string) (*CacheItem, error) {
+
+	db, disco, err := manipmongo.GetDatabase(m)
+	if err != nil {
+		return nil, err
+	}
+	defer disco()
+
+	item := &CacheItem{}
+	if err := db.C(samlCacheCollection).Find(bson.M{"state": state}).One(item); err != nil {
+		return nil, err
+	}
+	return item, nil
+}
+
+// Delete deletes the items with the given state.
+func Delete(m manipulate.Manipulator, state string) error {
+
+	db, disco, err := manipmongo.GetDatabase(m)
+	if err != nil {
+		return err
+	}
+	defer disco()
+
+	return db.C(samlCacheCollection).Remove(bson.M{"state": state})
+}

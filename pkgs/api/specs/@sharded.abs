@@ -9,6 +9,7 @@ indexes:
 attributes:
   v1:
   - name: zHash
+    friendly_name: ZHash
     description: Hash of the object used to shard the data.
     type: integer
     stored: true
@@ -18,6 +19,7 @@ attributes:
     setter: true
 
   - name: zone
+    friendly_name: Zone
     description: Sharding zone.
     type: integer
     stored: true

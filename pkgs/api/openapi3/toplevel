@@ -458,6 +458,13 @@
             },
             "type": "array"
           },
+          "SAMLSources": {
+            "description": "SAML sources to import.",
+            "items": {
+              "$ref": "#/components/schemas/samlsource"
+            },
+            "type": "array"
+          },
           "authorizations": {
             "description": "Authorizations to import.",
             "items": {
@@ -540,6 +547,9 @@
           },
           "inputRemoteA3S": {
             "$ref": "#/components/schemas/issueremotea3s"
+          },
+          "inputSAML": {
+            "$ref": "#/components/schemas/issuesaml"
           },
           "opaque": {
             "additionalProperties": {
@@ -787,6 +797,37 @@
         "required": [
           "token"
         ],
+        "type": "object"
+      },
+      "issuesaml": {
+        "description": "Additional issuing information for the SAML source.",
+        "properties": {
+          "SAMLResponse": {
+            "description": "OIDC redirect url.",
+            "type": "string"
+          },
+          "authURL": {
+            "description": "Contains the auth URL is noAuthRedirect is set to true.",
+            "readOnly": true,
+            "type": "string"
+          },
+          "noAuthRedirect": {
+            "description": "If set, instruct the server to return the OIDC auth url in authURL instead of\nperforming an HTTP redirection.",
+            "type": "boolean"
+          },
+          "redirectErrorURL": {
+            "description": "OIDC redirect url in case of error.",
+            "type": "string"
+          },
+          "redirectURL": {
+            "description": "OIDC redirect url.",
+            "type": "string"
+          },
+          "relayState": {
+            "description": "OIDC ceremony state.",
+            "type": "string"
+          }
+        },
         "type": "object"
       },
       "ldapsource": {
@@ -1282,6 +1323,87 @@
         },
         "required": [
           "tokenID"
+        ],
+        "type": "object"
+      },
+      "samlsource": {
+        "description": "Defines a remote SAML to use as an authentication source.",
+        "properties": {
+          "ID": {
+            "description": "ID is the identifier of the object.",
+            "readOnly": true,
+            "type": "string"
+          },
+          "IDPCertificate": {
+            "description": "Identity Provider Certificate in PEM format.",
+            "example": "-----BEGIN CERTIFICATE REQUEST-----\nMIICvDCCAaQCAQAwdzELMAkGA1UEBhMCVVMxDTALBgNVBAgMBFV0YWgxDzANBgNV\n...\n97Ob1alpHPoZ7mWiEuJwjBPii6a9M9G30nUo39lBi1w=\n-----END CERTIFICATE REQUEST-----",
+            "type": "string"
+          },
+          "IDPIssuer": {
+            "description": "Identity Provider Issuer (also called Entity ID).",
+            "example": "https://accounts.google.com/o/saml2/idp?idpid=AbDcef123",
+            "type": "string"
+          },
+          "IDPMetadata": {
+            "description": "Pass some XML data containing the IDP metadata that can be used for automatic\nconfiguration. If you pass this attribute, every other one will be overwritten\nwith the data contained in the metadata file.",
+            "type": "string"
+          },
+          "IDPURL": {
+            "description": "URL of the identity provider.",
+            "example": "https://accounts.google.com/o/saml2/idp?idpid=AbDcef123",
+            "type": "string"
+          },
+          "createTime": {
+            "description": "Creation date of the object.",
+            "format": "date-time",
+            "readOnly": true,
+            "type": "string"
+          },
+          "description": {
+            "description": "The description of the object.",
+            "type": "string"
+          },
+          "importHash": {
+            "description": "The hash of the structure used to compare with new import version.",
+            "type": "string"
+          },
+          "importLabel": {
+            "description": "The user-defined import label that allows the system to group resources from the\nsame import operation.",
+            "type": "string"
+          },
+          "modifier": {
+            "$ref": "#/components/schemas/identitymodifier"
+          },
+          "name": {
+            "description": "The name of the source.",
+            "example": "mypki",
+            "type": "string"
+          },
+          "namespace": {
+            "description": "The namespace of the object.",
+            "readOnly": true,
+            "type": "string"
+          },
+          "subjects": {
+            "description": "List of claims that will provide the subject.",
+            "example": [
+              "email",
+              "profile"
+            ],
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "updateTime": {
+            "description": "Last update date of the object.",
+            "format": "date-time",
+            "readOnly": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "name"
         ],
         "type": "object"
       }
@@ -2853,6 +2975,152 @@
           }
         }
       ]
+    },
+    "/samlsources": {
+      "get": {
+        "description": "Retrieves the list of samlsources.",
+        "operationId": "get-all-samlsources",
+        "parameters": [
+          {
+            "description": "This is an example.",
+            "example": "hello == world",
+            "in": "query",
+            "name": "q",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/samlsource"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "n/a"
+          }
+        },
+        "tags": [
+          "authn/source",
+          "a3s"
+        ]
+      },
+      "post": {
+        "description": "Creates a new samlsource.",
+        "operationId": "create-a-new-samlsource",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/samlsource"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/samlsource"
+                }
+              }
+            },
+            "description": "n/a"
+          }
+        },
+        "tags": [
+          "authn/source",
+          "a3s"
+        ]
+      }
+    },
+    "/samlsources/{id}": {
+      "delete": {
+        "description": "Deletes the SAML source with the given ID.",
+        "operationId": "delete-samlsource-by-ID",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/samlsource"
+                }
+              }
+            },
+            "description": "n/a"
+          }
+        },
+        "tags": [
+          "authn/source",
+          "a3s"
+        ]
+      },
+      "get": {
+        "description": "Retrieves the SAML source with the given ID.",
+        "operationId": "get-samlsource-by-ID",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/samlsource"
+                }
+              }
+            },
+            "description": "n/a"
+          }
+        },
+        "tags": [
+          "authn/source",
+          "a3s"
+        ]
+      },
+      "parameters": [
+        {
+          "in": "path",
+          "name": "id",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "put": {
+        "description": "Updates the SAML source with the given ID.",
+        "operationId": "update-samlsource-by-ID",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/samlsource"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/samlsource"
+                }
+              }
+            },
+            "description": "n/a"
+          }
+        },
+        "tags": [
+          "authn/source",
+          "a3s"
+        ]
+      }
     }
   },
   "tags": [

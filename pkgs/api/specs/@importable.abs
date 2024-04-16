@@ -7,6 +7,7 @@ indexes:
 attributes:
   v1:
   - name: importHash
+    friendly_name: ImportHash
     description: The hash of the structure used to compare with new import version.
     type: string
     exposed: true
@@ -18,6 +19,7 @@ attributes:
     omit_empty: true
 
   - name: importLabel
+    friendly_name: ImportLabel
     description: |-
       The user-defined import label that allows the system to group resources from the
       same import operation.

@@ -1086,3 +1086,109 @@ func TestValidateURL(t *testing.T) {
 		})
 	}
 }
+
+func TestValidateSAMLSource(t *testing.T) {
+	type args struct {
+		source *SAMLSource
+	}
+	tests := []struct {
+		name string
+		args func(t *testing.T) args
+
+		wantErr    bool
+		inspectErr func(err error, t *testing.T) //use for more precise error evaluation after test
+	}{
+		{
+			"nothing is set",
+			func(*testing.T) args {
+				return args{
+					&SAMLSource{},
+				}
+			},
+			true,
+			nil,
+		},
+
+		{
+			"metadata is set",
+			func(*testing.T) args {
+				return args{
+					&SAMLSource{
+						IDPMetadata: "hello",
+					},
+				}
+			},
+			false,
+			nil,
+		},
+		{
+			"metadata is not set but all other fields are",
+			func(*testing.T) args {
+				return args{
+					&SAMLSource{
+						IDPURL:         "https://url.com",
+						IDPIssuer:      "issuer",
+						IDPCertificate: "this is a cert, trust me",
+					},
+				}
+			},
+			false,
+			nil,
+		},
+		{
+			"metadata is not set and we miss IDPURL",
+			func(*testing.T) args {
+				return args{
+					&SAMLSource{
+						IDPIssuer:      "issuer",
+						IDPCertificate: "this is a cert, trust me",
+					},
+				}
+			},
+			true,
+			nil,
+		},
+		{
+			"metadata is not set and we miss IDPIssuer",
+			func(*testing.T) args {
+				return args{
+					&SAMLSource{
+						IDPURL:         "https://url.com",
+						IDPCertificate: "this is a cert, trust me",
+					},
+				}
+			},
+			true,
+			nil,
+		},
+		{
+			"metadata is not set and we miss IDPCertificate",
+			func(*testing.T) args {
+				return args{
+					&SAMLSource{
+						IDPURL:    "https://url.com",
+						IDPIssuer: "issuer",
+					},
+				}
+			},
+			true,
+			nil,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tArgs := tt.args(t)
+
+			err := ValidateSAMLSource(tArgs.source)
+
+			if (err != nil) != tt.wantErr {
+				t.Fatalf("ValidateSAMLSource error = %v, wantErr: %t", err, tt.wantErr)
+			}
+
+			if tt.inspectErr != nil {
+				tt.inspectErr(err, t)
+			}
+		})
+	}
+}

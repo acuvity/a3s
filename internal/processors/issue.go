@@ -11,6 +11,8 @@ import (
 
 	"github.com/coreos/go-oidc/v3/oidc"
 	"github.com/golang-jwt/jwt/v4"
+	saml2 "github.com/russellhaering/gosaml2"
+	dsig "github.com/russellhaering/goxmldsig"
 	"go.acuvity.ai/a3s/internal/issuer/a3sissuer"
 	"go.acuvity.ai/a3s/internal/issuer/awsissuer"
 	"go.acuvity.ai/a3s/internal/issuer/azureissuer"
@@ -20,7 +22,9 @@ import (
 	"go.acuvity.ai/a3s/internal/issuer/mtlsissuer"
 	"go.acuvity.ai/a3s/internal/issuer/oidcissuer"
 	"go.acuvity.ai/a3s/internal/issuer/remotea3sissuer"
+	"go.acuvity.ai/a3s/internal/issuer/samlissuer"
 	"go.acuvity.ai/a3s/internal/oidcceremony"
+	"go.acuvity.ai/a3s/internal/samlceremony"
 	"go.acuvity.ai/a3s/pkgs/api"
 	"go.acuvity.ai/a3s/pkgs/modifier/binary"
 	"go.acuvity.ai/a3s/pkgs/modifier/plugin"
@@ -30,6 +34,7 @@ import (
 	"go.acuvity.ai/bahamut/authorizer/mtls"
 	"go.acuvity.ai/elemental"
 	"go.acuvity.ai/manipulate"
+	"go.acuvity.ai/tg/tglib"
 	"golang.org/x/oauth2"
 )
 
@@ -146,6 +151,12 @@ func (p *IssueProcessor) ProcessCreate(bctx bahamut.Context) (err error) {
 
 	case api.IssueSourceTypeOIDC:
 		issuer, err = p.handleOIDCIssue(bctx, req)
+		if issuer == nil && err == nil {
+			return nil
+		}
+
+	case api.IssueSourceTypeSAML:
+		issuer, err = p.handleSAMLIssue(bctx, req)
 		if issuer == nil && err == nil {
 			return nil
 		}
@@ -553,6 +564,139 @@ func (p *IssueProcessor) handleOIDCIssue(bctx bahamut.Context, req *api.Issue) (
 	}
 
 	return oidcissuer.New(bctx.Context(), src, claims)
+}
+
+func (p *IssueProcessor) handleSAMLIssue(bctx bahamut.Context, req *api.Issue) (token.Issuer, error) {
+
+	input := req.InputSAML
+	out, err := retrieveSource(
+		bctx.Context(),
+		p.manipulator,
+		req.SourceNamespace,
+		req.SourceName,
+		api.SAMLSourceIdentity,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("unable to retrieve saml source '%s' in namespace '%s': %w", req.SourceName, req.SourceNamespace, err)
+	}
+	src := out.(*api.SAMLSource)
+
+	if input.SAMLResponse == "" && input.RelayState == "" {
+
+		sp := &saml2.SAMLServiceProvider{
+			IdentityProviderSSOURL:      src.IDPURL,
+			IdentityProviderIssuer:      src.IDPIssuer,
+			ServiceProviderIssuer:       p.issuer,
+			AudienceURI:                 p.issuer,
+			AssertionConsumerServiceURL: input.RedirectURL,
+			SPKeyStore:                  dsig.RandomKeyStoreForTest(),
+			AllowMissingAttributes:      true,
+			SignAuthnRequests:           true,
+		}
+
+		if len(src.IDPCertificate) > 0 {
+			certs, err := tglib.ParseCertificates([]byte(src.IDPCertificate))
+			if err != nil {
+				return nil, samlceremony.RedirectErrorEventually(
+					bctx,
+					input.RedirectErrorURL,
+					elemental.NewError("Bad Request", fmt.Sprintf("Unable to parse IDPCertificate: %s", err), "a3s", http.StatusBadRequest),
+				)
+			}
+			sp.IDPCertificateStore = &dsig.MemoryX509CertificateStore{Roots: certs}
+		}
+
+		state, err := samlceremony.GenerateNonce(12)
+		if err != nil {
+			return nil, samlceremony.RedirectErrorEventually(
+				bctx,
+				input.RedirectErrorURL,
+				fmt.Errorf("unable to generate relay state: %w", err),
+			)
+		}
+
+		authURL, err := sp.BuildAuthURL(state)
+		if err != nil {
+			return nil, samlceremony.RedirectErrorEventually(
+				bctx,
+				input.RedirectErrorURL,
+				fmt.Errorf("unable to build auth url: %w", err),
+			)
+		}
+
+		cacheItem := &samlceremony.CacheItem{
+			State:  state,
+			ACSURL: sp.AssertionConsumerServiceURL,
+		}
+
+		if err := samlceremony.Set(p.manipulator, cacheItem); err != nil {
+			return nil, samlceremony.RedirectErrorEventually(
+				bctx,
+				input.RedirectErrorURL,
+				fmt.Errorf("unable to cache ceremony: %w", err),
+			)
+		}
+
+		if req.InputSAML.NoAuthRedirect {
+			req.InputSAML.AuthURL = authURL
+			bctx.SetOutputData(req)
+		} else {
+			bctx.SetRedirect(authURL)
+		}
+
+		return nil, nil
+	}
+
+	item, err := samlceremony.Get(p.manipulator, input.RelayState)
+	if err != nil {
+		return nil, elemental.NewError("SAML Error", "Unable to find SAML session. Did you wait too long?", "a3s", http.StatusForbidden)
+	}
+
+	if err := samlceremony.Delete(p.manipulator, input.RelayState); err != nil {
+		return nil, fmt.Errorf("unable to clean saml ceremony cache: %w", err)
+	}
+
+	sp := &saml2.SAMLServiceProvider{
+		IdentityProviderSSOURL:      src.IDPURL,
+		IdentityProviderIssuer:      src.IDPIssuer,
+		ServiceProviderIssuer:       p.issuer,
+		AudienceURI:                 p.issuer,
+		AssertionConsumerServiceURL: item.ACSURL,
+		SPKeyStore:                  dsig.RandomKeyStoreForTest(),
+		AllowMissingAttributes:      true,
+		SignAuthnRequests:           true,
+	}
+
+	if len(src.IDPCertificate) > 0 {
+		certs, err := tglib.ParseCertificates([]byte(src.IDPCertificate))
+		if err != nil {
+			return nil, fmt.Errorf("unable to parse IDP certificates: %s", err)
+		}
+		sp.IDPCertificateStore = &dsig.MemoryX509CertificateStore{Roots: certs}
+	}
+
+	assertionInfo, err := sp.RetrieveAssertionInfo(input.SAMLResponse)
+	if err != nil {
+		return nil, elemental.NewError("SAML Error", fmt.Sprintf("Unable to retrieve assertions: %s", err), "a3s", http.StatusForbidden)
+	}
+
+	if assertionInfo.WarningInfo.InvalidTime {
+		return nil, elemental.NewError("Forbidden", "Invalid assertion time", "a3s", http.StatusForbidden)
+	}
+
+	if assertionInfo.WarningInfo.OneTimeUse {
+		return nil, elemental.NewError("Forbidden", "Invalid one time use", "a3s", http.StatusForbidden)
+	}
+
+	if !assertionInfo.ResponseSignatureValidated {
+		return nil, elemental.NewError("Forbidden", "Invalid response signature", "a3s", http.StatusForbidden)
+	}
+
+	if assertionInfo.WarningInfo.NotInAudience {
+		return nil, elemental.NewError("Forbidden", "Invalid audience", "a3s", http.StatusForbidden)
+	}
+
+	return samlissuer.New(bctx.Context(), src, assertionInfo)
 }
 
 func retrieveSource(

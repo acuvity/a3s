@@ -54,6 +54,9 @@ particular namespace.
     * [OIDC](#oidc)
       * [Create an OIDC source](#create-an-oidc-source)
       * [Obtain a token from OIDC source](#obtain-a-token-from-oidc-source)
+    * [SAML](#saml)
+      * [Create a SAML source](#create-a-saml-source)
+    * [Obtain a token from SAML source](#obtain-a-token-from-saml-source)
     * [A3S remote identity token](#a3s-remote-identity-token)
       * [Create an A3S source](#create-an-a3s-source)
       * [Obtain a token from A3S source](#obtain-a-token-from-a3s-source)
@@ -430,7 +433,7 @@ To obtain a token from the newly created source:
 #### OIDC
 
 A3S can retrieve an identity token from an existing OIDC provider in order to
-deliver normalized identiy tokens.
+deliver normalized identity tokens.
 
 > NOTE: This authentication source supports identity modifiers.
 
@@ -441,9 +444,9 @@ they will all work the same and will provide you with a client ID, a client
 secret and an endpoint.
 
 It is however important to allow `http://localhost:65333` as a redirect URL from
-your provider confguration if you plan to use a3sctl to authenticate.
+your provider configuration if you plan to use a3sctl to authenticate.
 
-Once the provider is configuired, create an OIDC source:
+Once the provider is configured, create an OIDC source:
 
     a3sctl api create oidcsource \
       --with.name my-oidc-source \
@@ -470,9 +473,54 @@ To obtain a token from the newly created source:
       --source-name my-oidc-source \
       --source-namespace /tutorial
 
-This will print a URL to open in your browser to authenticate against the OIDC
-provider. Once completed, the provider will reply and the token will be
-displayed.
+This will try to open your browser (or print a URL to open in your browser if it
+can't do it) to authenticate against the OIDC provider. Once completed, the
+provider will reply and the token will be displayed.
+
+#### SAML
+
+A3S can retrieve an identity token from an existing SAML Identity Provider in
+order to deliver normalized identity tokens.
+
+> NOTE: This authentication source supports identity modifiers.
+
+##### Create a SAML source
+
+Configuring a valid SAML provider is beyond the scope of this document. You can
+leverage the XML metadata file to populate the needed fields.
+
+As for OIDC, you must make sure `http://localhost:65333` is a valid redirect
+URL if you plan to authenticate with a3sctl.
+
+Create a SAML source:
+
+    a3sctl api create samlsource \
+      --with.name my-saml-source \
+      --with.idp-metadata "$(cat /path/to/provider/metadata.xml)"
+
+You can also configure the various field manually if you don't have the medata
+XML file:
+
+    a3sctl api create samlsource \
+      --with.name my-saml-source \
+      --with.idp-certificate "$(cat /a/certificate.pem)" \
+      --with.idpurl https://provider.saml.com/acs \
+      --with.idp-isser https://myissuer.com
+
+#### Obtain a token from SAML source
+
+As for OIDC, the SAML source needs to run an HTRTP server to perform the
+authentication dance.
+
+To obtain a token from the newly created source:
+
+    a3sctl auth saml \
+      --source-name my-saml-source \
+      --source-namespace /tutorial
+
+This will try to open your browser (or print a URL to open in your browser if it
+can't do it) to authenticate against the SAML provider. Once completed, the
+provider will reply and the token will be displayed.
 
 #### A3S remote identity token
 

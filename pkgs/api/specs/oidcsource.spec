@@ -3,6 +3,7 @@ model:
   rest_name: oidcsource
   resource_name: oidcsources
   entity_name: OIDCSource
+  friendly_name: OIDCSource
   package: a3s
   group: authn/source
   description: An OIDC Auth source can be used to issue tokens based on existing OIDC
@@ -28,6 +29,7 @@ indexes:
 attributes:
   v1:
   - name: CA
+    friendly_name: CA
     description: |-
       The Certificate authority to use to validate the authenticity of the OIDC
       server. If left empty, the system trust stroe will be used. In most of the
@@ -39,6 +41,7 @@ attributes:
     - $pem
 
   - name: clientID
+    friendly_name: ClientID
     description: Unique client ID.
     type: string
     exposed: true
@@ -47,6 +50,7 @@ attributes:
     example_value: 12345677890.apps.googleusercontent.com
 
   - name: clientSecret
+    friendly_name: ClientSecret
     description: Client secret associated with the client ID.
     type: string
     exposed: true
@@ -56,12 +60,14 @@ attributes:
     encrypted: true
 
   - name: description
+    friendly_name: Description
     description: The description of the object.
     type: string
     exposed: true
     stored: true
 
   - name: endpoint
+    friendly_name: Endpoint
     description: |-
       OIDC [discovery
       endpoint](https://openid.net/specs/openid-connect-discovery-1_0.html#IssuerDiscovery).
@@ -72,6 +78,7 @@ attributes:
     example_value: https://accounts.google.com
 
   - name: modifier
+    friendly_name: Modifier
     description: |-
       Contains optional information about a remote service that can be used to modify
       the claims that are about to be delivered using this authentication source.
@@ -85,6 +92,7 @@ attributes:
       refMode: pointer
 
   - name: name
+    friendly_name: Name
     description: The name of the source.
     type: string
     exposed: true
@@ -93,6 +101,7 @@ attributes:
     example_value: myoidc
 
   - name: scopes
+    friendly_name: Scopes
     description: List of scopes to allow.
     type: list
     exposed: true

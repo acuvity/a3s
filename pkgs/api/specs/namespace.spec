@@ -3,6 +3,7 @@ model:
   rest_name: namespace
   resource_name: namespaces
   entity_name: Namespace
+  friendly_name: Namespace
   package: a3s
   group: core
   description: |-
@@ -38,12 +39,14 @@ indexes:
 attributes:
   v1:
   - name: description
+    friendly_name: Description
     description: The description of the object.
     type: string
     exposed: true
     stored: true
 
   - name: label
+    friendly_name: Label
     description: Allows users to set a label to categorize the namespace.
     type: string
     exposed: true
@@ -52,6 +55,7 @@ attributes:
     omit_empty: true
 
   - name: name
+    friendly_name: Name
     description: |-
       The name of the namespace. When you create a namespace, only put its bare name,
       not its full path.
@@ -68,6 +72,7 @@ attributes:
     setter: true
 
   - name: opaque
+    friendly_name: Opaque
     description: Opaque allows to store abitrary data into the authorization.
     type: external
     exposed: true

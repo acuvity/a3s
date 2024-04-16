@@ -98,6 +98,15 @@ func main() {
 		os.Exit(1)
 	}
 
+	if err := manipmongo.EnsureIndex(m, elemental.MakeIdentity("samlcache", "samlcache"), mgo.Index{
+		Key:         []string{"time"},
+		ExpireAfter: 1 * time.Minute,
+		Name:        "index_expiration_exp",
+	}); err != nil {
+		slog.Error("Unable to create exp expiration index for samlcache", err)
+		os.Exit(1)
+	}
+
 	if err := manipmongo.EnsureIndex(m, api.NamespaceDeletionRecordIdentity, mgo.Index{
 		Key:         []string{"deletetime"},
 		ExpireAfter: 24 * time.Hour,
@@ -431,6 +440,7 @@ func main() {
 	bahamut.RegisterProcessorOrDie(server, processors.NewMTLSSourcesProcessor(m), api.MTLSSourceIdentity)
 	bahamut.RegisterProcessorOrDie(server, processors.NewLDAPSourcesProcessor(m), api.LDAPSourceIdentity)
 	bahamut.RegisterProcessorOrDie(server, processors.NewOIDCSourcesProcessor(m), api.OIDCSourceIdentity)
+	bahamut.RegisterProcessorOrDie(server, processors.NewSAMLSourcesProcessor(m), api.SAMLSourceIdentity)
 	bahamut.RegisterProcessorOrDie(server, processors.NewHTTPSourcesProcessor(m), api.HTTPSourceIdentity)
 	bahamut.RegisterProcessorOrDie(server, processors.NewA3SSourcesProcessor(m), api.A3SSourceIdentity)
 	bahamut.RegisterProcessorOrDie(server, processors.NewPermissionsProcessor(retriever), api.PermissionsIdentity)

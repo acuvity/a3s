@@ -3,6 +3,7 @@ model:
   rest_name: issueremotea3s
   resource_name: issueremotea3s
   entity_name: IssueRemoteA3S
+  friendly_name: IssueRemoteA3S
   package: a3s
   group: authn/issue
   description: Additional issuing information for a remote A3S token source.
@@ -12,6 +13,7 @@ model:
 attributes:
   v1:
   - name: token
+    friendly_name: Token
     description: The remote a3s token.
     type: string
     exposed: true

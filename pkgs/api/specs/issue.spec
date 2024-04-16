@@ -153,6 +153,17 @@ attributes:
       noInit: true
       refMode: pointer
 
+  - name: inputSAML
+    friendly_name: InputSAML
+    description: Contains additional information for an SAML source.
+    type: ref
+    exposed: true
+    subtype: issuesaml
+    omit_empty: true
+    extensions:
+      noInit: true
+      refMode: pointer
+
   - name: opaque
     friendly_name: Opaque
     description: Opaque data that will be included in the issued token.

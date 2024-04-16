@@ -41,6 +41,7 @@ func New(mmaker manipcli.ManipulatorMaker, help string, defaultAudience []string
 		makeGCPCmd(mmaker, restrictions),
 		makeAWSCmd(mmaker, restrictions),
 		makeOIDCCmd(mmaker, restrictions),
+		makeSAMLCmd(mmaker, restrictions),
 		makeRemoteA3SCmd(mmaker, restrictions),
 		makeA3SCmd(mmaker, restrictions),
 	)

@@ -3,6 +3,7 @@ model:
   rest_name: revocation
   resource_name: revocations
   entity_name: Revocation
+  friendly_name: Revocation
   package: a3s
   group: core
   description: A Revocation allows to mark a token as revoked based on its ID (jti).
@@ -25,6 +26,7 @@ indexes:
 attributes:
   v1:
   - name: expiration
+    friendly_name: Expiration
     description: The expiration date of the token.
     type: time
     exposed: true
@@ -32,6 +34,7 @@ attributes:
     example_value: "2023-11-08T18:38:04.51Z"
 
   - name: propagate
+    friendly_name: Propagate
     description: Propagates the api authorization to all of its children. This is
       always true.
     type: boolean
@@ -41,6 +44,7 @@ attributes:
     setter: true
 
   - name: tokenID
+    friendly_name: TokenID
     description: The ID of the revoked token.
     type: string
     exposed: true

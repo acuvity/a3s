@@ -3,6 +3,7 @@ model:
   rest_name: identitymodifier
   resource_name: identitymodifier
   entity_name: IdentityModifier
+  friendly_name: IdentityModifier
   package: a3s
   group: authn/source
   description: |-
@@ -13,6 +14,7 @@ model:
 attributes:
   v1:
   - name: CA
+    friendly_name: CA
     description: CA to use to validate the identity modfier service.
     type: string
     exposed: true
@@ -32,6 +34,7 @@ attributes:
     - $pem
 
   - name: URL
+    friendly_name: URL
     description: |-
       URL of the remote service. This URL will receive a call containing the
       claims that are about to be delivered. It must reply with 204 if it does not
@@ -46,6 +49,7 @@ attributes:
     - $url
 
   - name: certificate
+    friendly_name: Certificate
     description: |-
       Client certificate required to call URL. A3S will refuse to send data if the
       endpoint does not support client certificate authentication.
@@ -67,6 +71,7 @@ attributes:
     - $pem
 
   - name: key
+    friendly_name: Key
     description: Key associated to the client certificate.
     type: string
     exposed: true
@@ -86,6 +91,7 @@ attributes:
     - $pem
 
   - name: method
+    friendly_name: Method
     description: |-
       The HTTP method to use to call the endpoint. For POST/PUT/PATCH the remote
       server will receive the claims as a JSON encoded array in the body. For a GET,

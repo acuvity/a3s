@@ -3,6 +3,7 @@ model:
   rest_name: root
   resource_name: root
   entity_name: Root
+  friendly_name: Root
   package: root
   group: core
   description: root object.
@@ -108,3 +109,11 @@ relations:
     - $queryable
   create:
     description: Mark a token as revoked based on its ID.
+
+- rest_name: samlsource
+  get:
+    description: Retrieves the list of samlsources.
+    global_parameters:
+    - $queryable
+  create:
+    description: Creates a new samlsource.

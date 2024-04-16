@@ -22,6 +22,10 @@ $pem:
   elemental:
     name: ValidatePEM
 
+$samlsource:
+  elemental:
+    name: ValidateSAMLSource
+
 $tags_expression:
   elemental:
     name: ValidateTagsExpression

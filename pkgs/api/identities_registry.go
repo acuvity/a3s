@@ -24,6 +24,7 @@ var (
 		"permissions":             PermissionsIdentity,
 		"revocation":              RevocationIdentity,
 		"root":                    RootIdentity,
+		"samlsource":              SAMLSourceIdentity,
 	}
 
 	identitycategoriesMap = map[string]elemental.Identity{
@@ -44,6 +45,7 @@ var (
 		"permissions":              PermissionsIdentity,
 		"revocations":              RevocationIdentity,
 		"root":                     RootIdentity,
+		"samlsources":              SAMLSourceIdentity,
 	}
 
 	aliasesMap = map[string]elemental.Identity{}
@@ -132,6 +134,13 @@ var (
 			{"tokenid"},
 		},
 		"root": nil,
+		"samlsource": {
+			{":shard", ":unique", "zone", "zHash"},
+			{"namespace"},
+			{"namespace", "ID"},
+			{"namespace", "importLabel"},
+			{"namespace", "name"},
+		},
 	}
 )
 
@@ -204,6 +213,8 @@ func (f modelManager) Identifiable(identity elemental.Identity) elemental.Identi
 		return NewRevocation()
 	case RootIdentity:
 		return NewRoot()
+	case SAMLSourceIdentity:
+		return NewSAMLSource()
 	default:
 		return nil
 	}
@@ -243,6 +254,8 @@ func (f modelManager) SparseIdentifiable(identity elemental.Identity) elemental.
 		return NewSparsePermissions()
 	case RevocationIdentity:
 		return NewSparseRevocation()
+	case SAMLSourceIdentity:
+		return NewSparseSAMLSource()
 	default:
 		return nil
 	}
@@ -292,6 +305,8 @@ func (f modelManager) Identifiables(identity elemental.Identity) elemental.Ident
 		return &PermissionsList{}
 	case RevocationIdentity:
 		return &RevocationsList{}
+	case SAMLSourceIdentity:
+		return &SAMLSourcesList{}
 	default:
 		return nil
 	}
@@ -331,6 +346,8 @@ func (f modelManager) SparseIdentifiables(identity elemental.Identity) elemental
 		return &SparsePermissionsList{}
 	case RevocationIdentity:
 		return &SparseRevocationsList{}
+	case SAMLSourceIdentity:
+		return &SparseSAMLSourcesList{}
 	default:
 		return nil
 	}
@@ -375,6 +392,7 @@ func AllIdentities() []elemental.Identity {
 		PermissionsIdentity,
 		RevocationIdentity,
 		RootIdentity,
+		SAMLSourceIdentity,
 	}
 }
 
@@ -413,6 +431,8 @@ func AliasesForIdentity(identity elemental.Identity) []string {
 	case RevocationIdentity:
 		return []string{}
 	case RootIdentity:
+		return []string{}
+	case SAMLSourceIdentity:
 		return []string{}
 	}
 

@@ -3,6 +3,7 @@ model:
   rest_name: ldapsource
   resource_name: ldapsources
   entity_name: LDAPSource
+  friendly_name: LDAPSource
   package: a3s
   group: authn/source
   description: Defines a remote LDAP to use as an authentication source.
@@ -27,6 +28,7 @@ indexes:
 attributes:
   v1:
   - name: CA
+    friendly_name: CA
     description: |-
       Can be left empty if the LDAP server's certificate is signed by a public,
       trusted certificate authority. Otherwise, include the public key of the
@@ -47,6 +49,7 @@ attributes:
     omit_empty: true
 
   - name: address
+    friendly_name: Address
     description: IP address or FQDN of the LDAP server.
     type: string
     exposed: true
@@ -55,6 +58,7 @@ attributes:
     example_value: ldap.company.com
 
   - name: baseDN
+    friendly_name: BaseDN
     description: The base distinguished name (DN) to use for LDAP queries.
     type: string
     exposed: true
@@ -63,6 +67,7 @@ attributes:
     example_value: dc=universe,dc=io
 
   - name: bindDN
+    friendly_name: BindDN
     description: The DN to use to bind to the LDAP server.
     type: string
     exposed: true
@@ -71,6 +76,7 @@ attributes:
     example_value: cn=readonly,dc=universe,dc=io
 
   - name: bindPassword
+    friendly_name: BindPassword
     description: Password to be used with the `bindDN` to authenticate to the LDAP
       server.
     type: string
@@ -83,6 +89,7 @@ attributes:
     encrypted: true
 
   - name: bindSearchFilter
+    friendly_name: BindSearchFilter
     description: |-
       The filter to use to locate the relevant user accounts. For Windows-based
       systems, the value may be `sAMAccountName={USERNAME}`. For Linux and other
@@ -94,12 +101,14 @@ attributes:
     orderable: true
 
   - name: description
+    friendly_name: Description
     description: The description of the object.
     type: string
     exposed: true
     stored: true
 
   - name: ignoredKeys
+    friendly_name: IgnoredKeys
     description: |-
       A list of keys that must not be imported into the identity token. If
       `includedKeys` is also set, and a key is in both lists, the key will be ignored.
@@ -110,6 +119,7 @@ attributes:
     omit_empty: true
 
   - name: includedKeys
+    friendly_name: IncludedKeys
     description: |-
       A list of keys that must be imported into the identity token. If `ignoredKeys`
       is also set, and a key is in both lists, the key will be ignored.
@@ -120,6 +130,7 @@ attributes:
     omit_empty: true
 
   - name: modifier
+    friendly_name: Modifier
     description: |-
       Contains optional information about a remote service that can be used to modify
       the claims that are about to be delivered using this authentication source.
@@ -133,6 +144,7 @@ attributes:
       refMode: pointer
 
   - name: name
+    friendly_name: Name
     description: The name of the source.
     type: string
     exposed: true
@@ -141,6 +153,7 @@ attributes:
     example_value: mypki
 
   - name: securityProtocol
+    friendly_name: SecurityProtocol
     description: Specifies the connection type for the LDAP provider.
     type: enum
     exposed: true

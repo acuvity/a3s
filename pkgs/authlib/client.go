@@ -3,6 +3,7 @@ package authlib
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 
 	"go.acuvity.ai/a3s/pkgs/api"
 	"go.acuvity.ai/a3s/pkgs/authlib/internal/providers"
@@ -236,6 +237,14 @@ func (a *Client) AuthFromOIDCStep2(ctx context.Context, sourceNamespace string, 
 		opt(&cfg)
 	}
 
+	if state == "" {
+		return "", fmt.Errorf("OIDC step 2: empty state")
+	}
+
+	if code == "" {
+		return "", fmt.Errorf("OIDC step 2: empty code")
+	}
+
 	req := api.NewIssue()
 	req.SourceType = api.IssueSourceTypeOIDC
 	req.SourceNamespace = sourceNamespace
@@ -243,6 +252,58 @@ func (a *Client) AuthFromOIDCStep2(ctx context.Context, sourceNamespace string, 
 	req.InputOIDC = &api.IssueOIDC{
 		Code:  code,
 		State: state,
+	}
+
+	applyOptions(req, cfg)
+
+	return a.sendRequest(ctx, req)
+}
+
+// AuthFromSAMLStep1 initiates the first step of the SAML ceremony using the configured SAML source identified by its name and namespace.
+// This function will return the provider URL to use to authenticate.
+func (a *Client) AuthFromSAMLStep1(ctx context.Context, sourceNamespace string, sourceName string, redirectURL string) (string, error) {
+
+	req := api.NewIssue()
+	req.SourceType = api.IssueSourceTypeSAML
+	req.SourceNamespace = sourceNamespace
+	req.SourceName = sourceName
+	req.InputSAML = &api.IssueSAML{
+		RedirectURL:    redirectURL,
+		NoAuthRedirect: true,
+	}
+
+	_, err := a.sendRequest(ctx, req)
+	if err != nil {
+		return "", err
+	}
+
+	return req.InputSAML.AuthURL, nil
+}
+
+// AuthFromSAMLStep2 finishes the SAML ceremony using the response and relay state you obtained after performing
+// the authentication against the SAML provider.
+func (a *Client) AuthFromSAMLStep2(ctx context.Context, sourceNamespace string, sourceName string, response string, relayState string, options ...Option) (string, error) {
+
+	cfg := newConfig()
+	for _, opt := range options {
+		opt(&cfg)
+	}
+
+	if response == "" {
+		return "", fmt.Errorf("SAML step 2: empty response")
+	}
+
+	if relayState == "" {
+		return "", fmt.Errorf("SAML step 2: empty relay state")
+	}
+
+	req := api.NewIssue()
+	req.SourceType = api.IssueSourceTypeSAML
+	req.SourceNamespace = sourceNamespace
+	req.SourceName = sourceName
+	req.InputSAML = &api.IssueSAML{
+		SAMLResponse: response,
+		RelayState:   relayState,
 	}
 
 	applyOptions(req, cfg)

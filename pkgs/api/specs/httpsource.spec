@@ -3,6 +3,7 @@ model:
   rest_name: httpsource
   resource_name: httpsources
   entity_name: HTTPSource
+  friendly_name: HTTPSource
   package: a3s
   group: authn/source
   description: A source that can call a remote service to validate generic credentials.
@@ -27,6 +28,7 @@ indexes:
 attributes:
   v1:
   - name: CA
+    friendly_name: CA
     description: The certificate authority to use to validate the remote http server.
     type: string
     exposed: true
@@ -47,6 +49,7 @@ attributes:
     - $pem
 
   - name: URL
+    friendly_name: URL
     description: |-
       URL of the remote service. This URL will receive a POST containing the
       credentials information that must be validated. It must reply with 200 with a
@@ -61,6 +64,7 @@ attributes:
     - $url
 
   - name: certificate
+    friendly_name: Certificate
     description: |-
       Client certificate required to call URL. A3S will refuse to send data if the
       endpoint does not support client certificate authentication.
@@ -82,12 +86,14 @@ attributes:
     - $pem
 
   - name: description
+    friendly_name: Description
     description: The description of the object.
     type: string
     exposed: true
     stored: true
 
   - name: key
+    friendly_name: Key
     description: Key associated to the client certificate.
     type: string
     exposed: true
@@ -107,6 +113,7 @@ attributes:
     - $pem
 
   - name: modifier
+    friendly_name: Modifier
     description: |-
       Contains optional information about a remote service that can be used to modify
       the claims that are about to be delivered using this authentication source.
@@ -120,6 +127,7 @@ attributes:
       refMode: pointer
 
   - name: name
+    friendly_name: Name
     description: The name of the source.
     type: string
     exposed: true

@@ -17,16 +17,16 @@ import (
 	"go.acuvity.ai/manipulate/manipcli"
 )
 
-type oidcAuthData struct {
+type samlAuthData struct {
 	code  string
 	state string
 }
 
-func makeOIDCCmd(mmaker manipcli.ManipulatorMaker, restrictions *permissions.Restrictions) *cobra.Command {
+func makeSAMLCmd(mmaker manipcli.ManipulatorMaker, restrictions *permissions.Restrictions) *cobra.Command {
 
 	cmd := &cobra.Command{
-		Use:   "oidc",
-		Short: "Authenticate using OIDC source.",
+		Use:   "saml",
+		Short: "Authenticate using SAML source.",
 		RunE: func(cmd *cobra.Command, args []string) error {
 
 			fSourceName := viper.GetString("source-name")
@@ -44,9 +44,9 @@ func makeOIDCCmd(mmaker manipcli.ManipulatorMaker, restrictions *permissions.Res
 			srvCtx, srvCancel := context.WithCancel(context.Background())
 			defer srvCancel()
 
-			authDataCh := make(chan oidcAuthData)
+			authDataCh := make(chan samlAuthData)
 
-			go startOIDCCallbackServer(srvCtx, authDataCh)
+			go startSAMLCallbackServer(srvCtx, authDataCh)
 
 			ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 			defer cancel()
@@ -57,14 +57,14 @@ func makeOIDCCmd(mmaker manipcli.ManipulatorMaker, restrictions *permissions.Res
 			}
 
 			client := authlib.NewClient(m)
-			url, err := client.AuthFromOIDCStep1(
+			url, err := client.AuthFromSAMLStep1(
 				ctx,
 				fSourceNamespace,
 				fSourceName,
 				"http://localhost:65333",
 			)
 			if err != nil {
-				return err
+				return fmt.Errorf("unable to perform first step of saml authentication: %w", err)
 			}
 
 			fmt.Fprintln(os.Stderr, "Trying to open your browser...")
@@ -75,7 +75,7 @@ func makeOIDCCmd(mmaker manipcli.ManipulatorMaker, restrictions *permissions.Res
 			authD := <-authDataCh
 			srvCancel()
 
-			t, err := client.AuthFromOIDCStep2(
+			t, err := client.AuthFromSAMLStep2(
 				ctx,
 				fSourceNamespace,
 				fSourceName,
@@ -87,7 +87,7 @@ func makeOIDCCmd(mmaker manipcli.ManipulatorMaker, restrictions *permissions.Res
 				authlib.OptRefresh(fRefresh),
 			)
 			if err != nil {
-				return err
+				return fmt.Errorf("unable to perform second step of saml authentication: %w", err)
 			}
 
 			return token.Fprint(
@@ -110,14 +110,25 @@ func makeOIDCCmd(mmaker manipcli.ManipulatorMaker, restrictions *permissions.Res
 	return cmd
 }
 
-func startOIDCCallbackServer(srvCtx context.Context, out chan oidcAuthData) {
+func startSAMLCallbackServer(srvCtx context.Context, out chan samlAuthData) {
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 
-		out <- oidcAuthData{
-			code:  req.URL.Query().Get("code"),
-			state: req.URL.Query().Get("state"),
+		switch req.Method {
+		case http.MethodGet:
+			out <- samlAuthData{
+				code:  req.URL.Query().Get("SAMLResponse"),
+				state: req.URL.Query().Get("RelayState"),
+			}
+		case http.MethodPost:
+			out <- samlAuthData{
+				code:  req.PostFormValue("SAMLResponse"),
+				state: req.PostFormValue("RelayState"),
+			}
+		default:
+			slog.Error("Invalid SAML response method", "method", req.Method)
+			os.Exit(1)
 		}
 
 		w.WriteHeader(http.StatusOK)

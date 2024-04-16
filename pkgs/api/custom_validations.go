@@ -200,6 +200,28 @@ func ValidateURL(attribute string, u string) error {
 	return nil
 }
 
+// ValidateSAMLSource validates the given SAMLSource.
+func ValidateSAMLSource(source *SAMLSource) error {
+
+	if source.IDPMetadata != "" {
+		return nil
+	}
+
+	if source.IDPURL == "" {
+		return makeErr("IDPURL", "IDPURL is required if IDPMetadata is not set")
+	}
+
+	if source.IDPIssuer == "" {
+		return makeErr("IDPIssuer", "IDPIssuer is required if IDPMetadata is not set")
+	}
+
+	if source.IDPCertificate == "" {
+		return makeErr("IDPCertificate", "IDPCertificate is required if IDPMetadata is not set")
+	}
+
+	return nil
+}
+
 func makeErr(attribute string, message string) elemental.Error {
 
 	err := elemental.NewError(

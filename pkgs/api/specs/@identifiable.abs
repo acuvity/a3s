@@ -8,6 +8,7 @@ indexes:
 attributes:
   v1:
   - name: ID
+    friendly_name: ID
     description: ID is the identifier of the object.
     type: string
     exposed: true
@@ -20,6 +21,7 @@ attributes:
     orderable: true
 
   - name: namespace
+    friendly_name: Namespace
     description: The namespace of the object.
     type: string
     exposed: true

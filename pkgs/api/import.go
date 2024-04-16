@@ -98,6 +98,9 @@ type Import struct {
 	// OIDC sources to import.
 	OIDCSources OIDCSourcesList `json:"OIDCSources,omitempty" msgpack:"OIDCSources,omitempty" bson:"-" mapstructure:"OIDCSources,omitempty"`
 
+	// SAML sources to import.
+	SAMLSources SAMLSourcesList `json:"SAMLSources,omitempty" msgpack:"SAMLSources,omitempty" bson:"-" mapstructure:"SAMLSources,omitempty"`
+
 	// Authorizations to import.
 	Authorizations AuthorizationsList `json:"authorizations,omitempty" msgpack:"authorizations,omitempty" bson:"-" mapstructure:"authorizations,omitempty"`
 
@@ -118,6 +121,7 @@ func NewImport() *Import {
 		LDAPSources:    LDAPSourcesList{},
 		MTLSSources:    MTLSSourcesList{},
 		OIDCSources:    OIDCSourcesList{},
+		SAMLSources:    SAMLSourcesList{},
 		Authorizations: AuthorizationsList{},
 	}
 }
@@ -209,6 +213,7 @@ func (o *Import) ToSparse(fields ...string) elemental.SparseIdentifiable {
 			LDAPSources:    &o.LDAPSources,
 			MTLSSources:    &o.MTLSSources,
 			OIDCSources:    &o.OIDCSources,
+			SAMLSources:    &o.SAMLSources,
 			Authorizations: &o.Authorizations,
 			Label:          &o.Label,
 		}
@@ -227,6 +232,8 @@ func (o *Import) ToSparse(fields ...string) elemental.SparseIdentifiable {
 			sp.MTLSSources = &(o.MTLSSources)
 		case "OIDCSources":
 			sp.OIDCSources = &(o.OIDCSources)
+		case "SAMLSources":
+			sp.SAMLSources = &(o.SAMLSources)
 		case "authorizations":
 			sp.Authorizations = &(o.Authorizations)
 		case "label":
@@ -258,6 +265,9 @@ func (o *Import) Patch(sparse elemental.SparseIdentifiable) {
 	}
 	if so.OIDCSources != nil {
 		o.OIDCSources = *so.OIDCSources
+	}
+	if so.SAMLSources != nil {
+		o.SAMLSources = *so.SAMLSources
 	}
 	if so.Authorizations != nil {
 		o.Authorizations = *so.Authorizations
@@ -347,6 +357,16 @@ func (o *Import) Validate() error {
 		}
 	}
 
+	for _, sub := range o.SAMLSources {
+		if sub == nil {
+			continue
+		}
+		elemental.ResetDefaultForZeroValues(sub)
+		if err := sub.Validate(); err != nil {
+			errors = errors.Append(err)
+		}
+	}
+
 	for _, sub := range o.Authorizations {
 		if sub == nil {
 			continue
@@ -405,6 +425,8 @@ func (o *Import) ValueForAttribute(name string) any {
 		return o.MTLSSources
 	case "OIDCSources":
 		return o.OIDCSources
+	case "SAMLSources":
+		return o.SAMLSources
 	case "authorizations":
 		return o.Authorizations
 	case "label":
@@ -459,6 +481,15 @@ var ImportAttributesMap = map[string]elemental.AttributeSpecification{
 		Exposed:        true,
 		Name:           "OIDCSources",
 		SubType:        "oidcsource",
+		Type:           "refList",
+	},
+	"SAMLSources": {
+		AllowedChoices: []string{},
+		ConvertedName:  "SAMLSources",
+		Description:    `SAML sources to import.`,
+		Exposed:        true,
+		Name:           "SAMLSources",
+		SubType:        "samlsource",
 		Type:           "refList",
 	},
 	"Authorizations": {
@@ -527,6 +558,15 @@ var ImportLowerCaseAttributesMap = map[string]elemental.AttributeSpecification{
 		Exposed:        true,
 		Name:           "OIDCSources",
 		SubType:        "oidcsource",
+		Type:           "refList",
+	},
+	"samlsources": {
+		AllowedChoices: []string{},
+		ConvertedName:  "SAMLSources",
+		Description:    `SAML sources to import.`,
+		Exposed:        true,
+		Name:           "SAMLSources",
+		SubType:        "samlsource",
 		Type:           "refList",
 	},
 	"authorizations": {
@@ -628,6 +668,9 @@ type SparseImport struct {
 	// OIDC sources to import.
 	OIDCSources *OIDCSourcesList `json:"OIDCSources,omitempty" msgpack:"OIDCSources,omitempty" bson:"-" mapstructure:"OIDCSources,omitempty"`
 
+	// SAML sources to import.
+	SAMLSources *SAMLSourcesList `json:"SAMLSources,omitempty" msgpack:"SAMLSources,omitempty" bson:"-" mapstructure:"SAMLSources,omitempty"`
+
 	// Authorizations to import.
 	Authorizations *AuthorizationsList `json:"authorizations,omitempty" msgpack:"authorizations,omitempty" bson:"-" mapstructure:"authorizations,omitempty"`
 
@@ -713,6 +756,9 @@ func (o *SparseImport) ToPlain() elemental.PlainIdentifiable {
 	}
 	if o.OIDCSources != nil {
 		out.OIDCSources = *o.OIDCSources
+	}
+	if o.SAMLSources != nil {
+		out.SAMLSources = *o.SAMLSources
 	}
 	if o.Authorizations != nil {
 		out.Authorizations = *o.Authorizations

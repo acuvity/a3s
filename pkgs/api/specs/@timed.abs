@@ -2,6 +2,7 @@
 attributes:
   v1:
   - name: createTime
+    friendly_name: CreateTime
     description: Creation date of the object.
     type: time
     exposed: true
@@ -13,6 +14,7 @@ attributes:
     orderable: true
 
   - name: updateTime
+    friendly_name: UpdateTime
     description: Last update date of the object.
     type: time
     exposed: true

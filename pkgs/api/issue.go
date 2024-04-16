@@ -172,6 +172,9 @@ type Issue struct {
 	// Contains additional information for a remote A3S token source.
 	InputRemoteA3S *IssueRemoteA3S `json:"inputRemoteA3S,omitempty" msgpack:"inputRemoteA3S,omitempty" bson:"-" mapstructure:"inputRemoteA3S,omitempty"`
 
+	// Contains additional information for an SAML source.
+	InputSAML *IssueSAML `json:"inputSAML,omitempty" msgpack:"inputSAML,omitempty" bson:"-" mapstructure:"inputSAML,omitempty"`
+
 	// Opaque data that will be included in the issued token.
 	Opaque map[string]string `json:"opaque,omitempty" msgpack:"opaque,omitempty" bson:"-" mapstructure:"opaque,omitempty"`
 
@@ -346,6 +349,7 @@ func (o *Issue) ToSparse(fields ...string) elemental.SparseIdentifiable {
 			InputLDAP:             o.InputLDAP,
 			InputOIDC:             o.InputOIDC,
 			InputRemoteA3S:        o.InputRemoteA3S,
+			InputSAML:             o.InputSAML,
 			Opaque:                &o.Opaque,
 			RestrictedNamespace:   &o.RestrictedNamespace,
 			RestrictedNetworks:    &o.RestrictedNetworks,
@@ -389,6 +393,8 @@ func (o *Issue) ToSparse(fields ...string) elemental.SparseIdentifiable {
 			sp.InputOIDC = o.InputOIDC
 		case "inputRemoteA3S":
 			sp.InputRemoteA3S = o.InputRemoteA3S
+		case "inputSAML":
+			sp.InputSAML = o.InputSAML
 		case "opaque":
 			sp.Opaque = &(o.Opaque)
 		case "restrictedNamespace":
@@ -462,6 +468,9 @@ func (o *Issue) Patch(sparse elemental.SparseIdentifiable) {
 	}
 	if so.InputRemoteA3S != nil {
 		o.InputRemoteA3S = so.InputRemoteA3S
+	}
+	if so.InputSAML != nil {
+		o.InputSAML = so.InputSAML
 	}
 	if so.Opaque != nil {
 		o.Opaque = *so.Opaque
@@ -584,6 +593,13 @@ func (o *Issue) Validate() error {
 		}
 	}
 
+	if o.InputSAML != nil {
+		elemental.ResetDefaultForZeroValues(o.InputSAML)
+		if err := o.InputSAML.Validate(); err != nil {
+			errors = errors.Append(err)
+		}
+	}
+
 	if err := ValidateCIDRListOptional("restrictedNetworks", o.RestrictedNetworks); err != nil {
 		errors = errors.Append(err)
 	}
@@ -669,6 +685,8 @@ func (o *Issue) ValueForAttribute(name string) any {
 		return o.InputOIDC
 	case "inputRemoteA3S":
 		return o.InputRemoteA3S
+	case "inputSAML":
+		return o.InputSAML
 	case "opaque":
 		return o.Opaque
 	case "restrictedNamespace":
@@ -817,6 +835,15 @@ know all of the claims.`,
 		Exposed:        true,
 		Name:           "inputRemoteA3S",
 		SubType:        "issueremotea3s",
+		Type:           "ref",
+	},
+	"InputSAML": {
+		AllowedChoices: []string{},
+		ConvertedName:  "InputSAML",
+		Description:    `Contains additional information for an SAML source.`,
+		Exposed:        true,
+		Name:           "inputSAML",
+		SubType:        "issuesaml",
 		Type:           "ref",
 	},
 	"Opaque": {
@@ -1068,6 +1095,15 @@ know all of the claims.`,
 		SubType:        "issueremotea3s",
 		Type:           "ref",
 	},
+	"inputsaml": {
+		AllowedChoices: []string{},
+		ConvertedName:  "InputSAML",
+		Description:    `Contains additional information for an SAML source.`,
+		Exposed:        true,
+		Name:           "inputSAML",
+		SubType:        "issuesaml",
+		Type:           "ref",
+	},
 	"opaque": {
 		AllowedChoices: []string{},
 		ConvertedName:  "Opaque",
@@ -1300,6 +1336,9 @@ type SparseIssue struct {
 	// Contains additional information for a remote A3S token source.
 	InputRemoteA3S *IssueRemoteA3S `json:"inputRemoteA3S,omitempty" msgpack:"inputRemoteA3S,omitempty" bson:"-" mapstructure:"inputRemoteA3S,omitempty"`
 
+	// Contains additional information for an SAML source.
+	InputSAML *IssueSAML `json:"inputSAML,omitempty" msgpack:"inputSAML,omitempty" bson:"-" mapstructure:"inputSAML,omitempty"`
+
 	// Opaque data that will be included in the issued token.
 	Opaque *map[string]string `json:"opaque,omitempty" msgpack:"opaque,omitempty" bson:"-" mapstructure:"opaque,omitempty"`
 
@@ -1463,6 +1502,9 @@ func (o *SparseIssue) ToPlain() elemental.PlainIdentifiable {
 	}
 	if o.InputRemoteA3S != nil {
 		out.InputRemoteA3S = o.InputRemoteA3S
+	}
+	if o.InputSAML != nil {
+		out.InputSAML = o.InputSAML
 	}
 	if o.Opaque != nil {
 		out.Opaque = *o.Opaque

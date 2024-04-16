@@ -1,17 +1,24 @@
 # Model
 model:
-  rest_name: issueoidc
-  resource_name: issueoidc
-  entity_name: IssueOIDC
-  friendly_name: IssueOIDC
+  rest_name: issuesaml
+  resource_name: issuesaml
+  entity_name: IssueSAML
+  friendly_name: IssueSAML
   package: a3s
   group: authn/issue
-  description: Additional issuing information for the OIDC source.
+  description: Additional issuing information for the SAML source.
   detached: true
 
 # Attributes
 attributes:
   v1:
+  - name: SAMLResponse
+    friendly_name: RedirectURL
+    description: OIDC redirect url.
+    type: string
+    exposed: true
+    omit_empty: true
+
   - name: authURL
     friendly_name: AuthURL
     description: Contains the auth URL is noAuthRedirect is set to true.
@@ -19,12 +26,6 @@ attributes:
     exposed: true
     read_only: true
     omit_empty: true
-
-  - name: code
-    friendly_name: Code
-    description: OIDC ceremony code.
-    type: string
-    exposed: true
 
   - name: noAuthRedirect
     friendly_name: NoAuthRedirect
@@ -46,8 +47,9 @@ attributes:
     type: string
     exposed: true
 
-  - name: state
-    friendly_name: State
+  - name: relayState
+    friendly_name: Relay State
     description: OIDC ceremony state.
     type: string
     exposed: true
+    omit_empty: true
