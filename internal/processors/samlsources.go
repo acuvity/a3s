@@ -75,7 +75,13 @@ func injectIDPMetadata(source *api.SAMLSource) error {
 
 	descriptor := &types.EntityDescriptor{}
 	if err := xml.Unmarshal(data, descriptor); err != nil {
-		return err
+		return elemental.NewErrorWithData(
+			"Bad Request",
+			fmt.Sprintf("unable to read xml content %s", source.IDPMetadata),
+			"a3s",
+			http.StatusUnprocessableEntity,
+			map[string]interface{}{"attribute": "IDPMetadata"},
+		)
 	}
 
 	if descriptor.IDPSSODescriptor != nil && len(descriptor.IDPSSODescriptor.SingleSignOnServices) > 0 {
