@@ -61,7 +61,7 @@ func makeSAMLCmd(mmaker manipcli.ManipulatorMaker, restrictions *permissions.Res
 				ctx,
 				fSourceNamespace,
 				fSourceName,
-				"http://localhost:65333",
+				"http://127.0.0.1:65333",
 			)
 			if err != nil {
 				return fmt.Errorf("unable to perform first step of saml authentication: %w", err)
