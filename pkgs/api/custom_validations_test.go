@@ -918,6 +918,32 @@ func TestValidateIssue(t *testing.T) {
 			false,
 			nil,
 		},
+		{
+			"test saml missing",
+			func(*testing.T) args {
+				return args{
+					&Issue{
+						SourceType: IssueSourceTypeSAML,
+						InputHTTP:  nil,
+					},
+				}
+			},
+			true,
+			nil,
+		},
+		{
+			"test saml present",
+			func(*testing.T) args {
+				return args{
+					&Issue{
+						SourceType: IssueSourceTypeSAML,
+						InputSAML:  &IssueSAML{},
+					},
+				}
+			},
+			false,
+			nil,
+		},
 	}
 
 	for _, tt := range tests {

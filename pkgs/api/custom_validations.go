@@ -176,6 +176,10 @@ func ValidateIssue(iss *Issue) error {
 		if iss.InputHTTP == nil {
 			return makeErr("inputHTTP", "You must set inputHTTP for the requested sourceType")
 		}
+	case IssueSourceTypeSAML:
+		if iss.InputSAML == nil {
+			return makeErr("inputSAML", "You must set inputSAML for the requested sourceType")
+		}
 	}
 
 	return nil
