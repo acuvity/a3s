@@ -25,7 +25,7 @@ func FromRequest(req *elemental.Request) string {
 	return req.Password
 }
 
-// FromHTTPRequest retrieves the token from the given http.Request
+// FromHTTPRequest retrieves the token from the given elemental.Request
 // first looking at the cookie x-a3s-token, then the Authorization header.
 func FromHTTPRequest(req *http.Request) string {
 

@@ -3,7 +3,7 @@ module go.acuvity.ai/a3s
 go 1.21
 
 require (
-	go.acuvity.ai/bahamut v0.0.0-20240412203552-a131daace856
+	go.acuvity.ai/bahamut v0.0.0-20240430160523-b670d9ea8124
 	go.acuvity.ai/elemental v0.0.0-20240323183259-ac24d66019e4
 	go.acuvity.ai/manipulate v0.0.0-20240412203409-efc057cf94bb
 	go.acuvity.ai/tg v0.0.0-20231122004536-47ae4ba0efc0

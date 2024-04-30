@@ -428,8 +428,8 @@ github.com/yuin/goldmark v1.2.1/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9dec
 github.com/yuin/goldmark v1.4.13/go.mod h1:6yULJ656Px+3vBD8DxQVa3kxgyrAnzto9xy5taEt/CY=
 github.com/yusufpapurcu/wmi v1.2.2 h1:KBNDSne4vP5mbSWnJbO+51IMOXJB67QiYCSBrubbPRg=
 github.com/yusufpapurcu/wmi v1.2.2/go.mod h1:SBZ9tNy3G9/m5Oi98Zks0QjeHVDvuK0qfxQmPyzfmi0=
-go.acuvity.ai/bahamut v0.0.0-20240412203552-a131daace856 h1:qxmAiTtcQZG6m5c5R92tnIxS7JiKgRb85Wqp7IPGlj8=
-go.acuvity.ai/bahamut v0.0.0-20240412203552-a131daace856/go.mod h1:FzXdm2M28YiFs8ClUfyeGvz16L2oGZFLkKFMWvII37o=
+go.acuvity.ai/bahamut v0.0.0-20240430160523-b670d9ea8124 h1:hDtPIssw9CPDbD8S+9YJdXIE+8pT3NMZFB7+mA2UTUY=
+go.acuvity.ai/bahamut v0.0.0-20240430160523-b670d9ea8124/go.mod h1:FzXdm2M28YiFs8ClUfyeGvz16L2oGZFLkKFMWvII37o=
 go.acuvity.ai/elemental v0.0.0-20240323183259-ac24d66019e4 h1:xfUnfJAVwbBrtMJvM1KzJNbuG3taOt1/j9VHTuZB2f8=
 go.acuvity.ai/elemental v0.0.0-20240323183259-ac24d66019e4/go.mod h1:00E3f58yudfwPeJYMEYbRR6x/oXIQLoHPJ/yqXn56Rs=
 go.acuvity.ai/manipulate v0.0.0-20240412203409-efc057cf94bb h1:MCkc4nuDy3YzUc8VGQMmL3QtrRkIavs92uBbEiUZb78=
