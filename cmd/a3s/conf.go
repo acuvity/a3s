@@ -20,16 +20,17 @@ var (
 
 // Conf holds the main configuration flags.
 type Conf struct {
-	BinaryModifier     string `mapstructure:"binary-modifier" desc:"Path to modifier binary. If set, binary-modifier-sha256 must be set"`
-	BinaryModifierHash string `mapstructure:"binary-modifier-sha256" desc:"Sha256 hash of the binary-modifier"`
-	Init               bool   `mapstructure:"init" desc:"If set, initialize the root permissions using the CAs passed in --init-root-ca and --init-platform-ca"`
-	InitContinue       bool   `mapstructure:"init-continue" desc:"Continues normal boot after init."`
-	InitDB             bool   `mapstructure:"init-db" desc:"If set, initialize the database using the mongo config passed in and init-db-username"`
-	InitDBUsername     string `mapstructure:"init-db-username" desc:"If init-db is set, this will define the username to use on db initialization" default:"CN=a3s,OU=root,O=system"`
-	InitData           string `mapstructure:"init-data" desc:"Path to an import file containing initial provisionning data"`
-	InitPlatformCAPath string `mapstructure:"init-platform-ca" desc:"Path to the platform CA to use to initialize platform permissions"`
-	InitRootUserCAPath string `mapstructure:"init-root-ca" desc:"Path to the root CA to use to initialize root permissions"`
-	PluginModifier     string `mapstructure:"plugin-modifier" desc:"Path to a go plugin implemeting the plugin.Modifier interface"`
+	AuditedIdentities  []string `mapstructure:"audited-identities" desc:"Identities that will be tracked for audit purposes" default:"issue"`
+	BinaryModifier     string   `mapstructure:"binary-modifier" desc:"Path to modifier binary. If set, binary-modifier-sha256 must be set"`
+	BinaryModifierHash string   `mapstructure:"binary-modifier-sha256" desc:"Sha256 hash of the binary-modifier"`
+	Init               bool     `mapstructure:"init" desc:"If set, initialize the root permissions using the CAs passed in --init-root-ca and --init-platform-ca"`
+	InitContinue       bool     `mapstructure:"init-continue" desc:"Continues normal boot after init."`
+	InitDB             bool     `mapstructure:"init-db" desc:"If set, initialize the database using the mongo config passed in and init-db-username"`
+	InitDBUsername     string   `mapstructure:"init-db-username" desc:"If init-db is set, this will define the username to use on db initialization" default:"CN=a3s,OU=root,O=system"`
+	InitData           string   `mapstructure:"init-data" desc:"Path to an import file containing initial provisionning data"`
+	InitPlatformCAPath string   `mapstructure:"init-platform-ca" desc:"Path to the platform CA to use to initialize platform permissions"`
+	InitRootUserCAPath string   `mapstructure:"init-root-ca" desc:"Path to the root CA to use to initialize root permissions"`
+	PluginModifier     string   `mapstructure:"plugin-modifier" desc:"Path to a go plugin implemeting the plugin.Modifier interface"`
 
 	JWT JWTConf `mapstructure:",squash"`
 

@@ -20,6 +20,7 @@ import (
 	"go.acuvity.ai/a3s/internal/processors"
 	"go.acuvity.ai/a3s/internal/ui"
 	"go.acuvity.ai/a3s/pkgs/api"
+	"go.acuvity.ai/a3s/pkgs/auditor"
 	"go.acuvity.ai/a3s/pkgs/authenticator"
 	"go.acuvity.ai/a3s/pkgs/authorizer"
 	"go.acuvity.ai/a3s/pkgs/bearermanip"
@@ -339,6 +340,36 @@ func main() {
 			"topic", cfg.GWTopic,
 			"prefix", cfg.GWAnnouncePrefix,
 			"overrides", cfg.GWOverridePrivate,
+		)
+	}
+
+	if len(cfg.AuditedIdentities) != 0 {
+
+		trackedIdentities := make([]*auditor.TrackedIdentity, 0, len(cfg.AuditedIdentities))
+
+		for _, auditedIdentity := range cfg.AuditedIdentities {
+
+			identity := api.Manager().IdentityFromName(auditedIdentity)
+
+			if identity.IsEmpty() {
+				slog.Error("Unknown identity found", "identity", auditedIdentity)
+				os.Exit(1)
+			}
+
+			trackedIdentities = append(trackedIdentities, &auditor.TrackedIdentity{Identity: identity})
+		}
+
+		opts = append(
+			opts,
+			bahamut.OptAuditer(auditor.NewAuditor(
+				pubsub,
+				trackedIdentities,
+			)),
+		)
+
+		slog.Info(
+			"Auditor configured",
+			"identities", cfg.AuditedIdentities,
 		)
 	}
 
