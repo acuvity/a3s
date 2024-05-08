@@ -9,8 +9,9 @@ on:
 jobs:
   cov:
     runs-on: ubuntu-latest
+    permissions: write-all
     steps:
-      - uses: PaloAltoNetworks/cov@3.0.0
+      - uses: acuvity/cov@1.0.0
         with:
           cov_mode: send-status
           workflow_run_id: ${{github.event.workflow_run.id}}

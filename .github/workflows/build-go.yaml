@@ -19,11 +19,11 @@ jobs:
       fail-fast: false
       matrix:
         go:
-          - "1.21"
+          - "1.22"
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
-      - uses: actions/setup-go@v4
+      - uses: actions/setup-go@v5
         with:
           go-version: ${{ matrix.go }}
           check-latest: true
@@ -42,7 +42,7 @@ jobs:
           git config --global url."https://acuvity:${GOTOKEN}@github.com/acuvity".insteadOf "https://github.com/acuvity"
           make
 
-      - uses: PaloAltoNetworks/cov@3.0.0
+      - uses: acuvity/cov@1.0.0
         with:
           main_branch: master
           cov_file: unit_coverage.out
