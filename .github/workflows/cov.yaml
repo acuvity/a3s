@@ -6,11 +6,20 @@ on:
     types:
       - completed
 
+env:
+  GO111MODULE: on
+  GOPRIVATE: github.com/acuvity,go.acuvity.ai
+  GOPROXY: https://proxy.golang.org,direct
+  GOTOKEN: ${{ secrets.GO_PRIVATE_REPO_PAT }}
+
 jobs:
   cov:
     runs-on: ubuntu-latest
     permissions: write-all
     steps:
+      - name: setup
+        run: |
+          git config --global url."https://acuvity:${GOTOKEN}@github.com/acuvity".insteadOf "https://github.com/acuvity"
       - uses: acuvity/cov@1.0.0
         with:
           cov_mode: send-status
