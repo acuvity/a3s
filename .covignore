@@ -1,3 +1,6 @@
-**/pkgs/api/*
+**/cmd/*
 **/example/*
+**/pkgs/api/*
+**/pkgs/cli/*
+**/ui/*
 docs
