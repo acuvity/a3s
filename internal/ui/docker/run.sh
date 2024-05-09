@@ -3,8 +3,8 @@
 # Configuration
 cat >/usr/share/nginx/html/config.json <<EOF
 {
-  "default_service_url": "${ACUVITY_API_URL-https://localhost:3443}",
-  "default_ui_url": "${ACUVITY_UI_URL-https://localhost:3000}"
+  "default_service_url": "${INTERNAL_API_URL-https://localhost:3443}",
+  "default_ui_url": "${INTERNAL_UI_URL-https://localhost:3000}"
 }
 EOF
 

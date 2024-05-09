@@ -69,9 +69,9 @@ COPY --from=builder /usr/local/lib /usr/local/lib
 COPY build /usr/share/nginx/html
 COPY run.sh /run.sh
 
-RUN addgroup -g 1001 acuvity && adduser -u 1001 -H -D -G acuvity acuvity \
-    && chown -R acuvity:acuvity /usr/share/nginx/ \
-    && chown -R acuvity:acuvity /var/cache/nginx/ \
+RUN addgroup -g 1001 internal && adduser -u 1001 -H -D -G internal internal \
+    && chown -R internal:internal /usr/share/nginx/ \
+    && chown -R internal:internal /var/cache/nginx/ \
     && apk add --no-cache libgcc pcre pcre-dev
 
 EXPOSE 1443
