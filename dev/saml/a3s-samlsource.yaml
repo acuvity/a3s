@@ -1,21 +1,25 @@
-label: a3s:dev:saml
+label: a3s:acuvity:saml
 
 SAMLSources:
 - name: default
   description: This is a default saml source based on https://mocksaml.com/
   IDPMetadata: -|
-    <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-    <md:EntityDescriptor xmlns:md="urn:oasis:names:tc:SAML:2.0:metadata" entityID="https://saml.example.com/entityid" validUntil="2034-04-26T18:37:07.159Z">
-      <md:IDPSSODescriptor WantAuthnRequestsSigned="true" protocolSupportEnumeration="urn:oasis:names:tc:SAML:2.0:protocol">
+    <?xml version="1.0" encoding="UTF-8"?>
+    <md:EntityDescriptor entityID="http://www.okta.com/exk1ptqwwtb8H9AaJ1d8"
+      xmlns:md="urn:oasis:names:tc:SAML:2.0:metadata">
+      <md:IDPSSODescriptor WantAuthnRequestsSigned="false"
+        protocolSupportEnumeration="urn:oasis:names:tc:SAML:2.0:protocol">
         <md:KeyDescriptor use="signing">
           <ds:KeyInfo xmlns:ds="http://www.w3.org/2000/09/xmldsig#">
             <ds:X509Data>
-              <ds:X509Certificate>MIIC4jCCAcoCCQC33wnybT5QZDANBgkqhkiG9w0BAQsFADAyMQswCQYDVQQGEwJVSzEPMA0GA1UECgwGQm94eUhRMRIwEAYDVQQDDAlNb2NrIFNBTUwwIBcNMjIwMjI4MjE0NjM4WhgPMzAyMTA3MDEyMTQ2MzhaMDIxCzAJBgNVBAYTAlVLMQ8wDQYDVQQKDAZCb3h5SFExEjAQBgNVBAMMCU1vY2sgU0FNTDCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBALGfYettMsct1T6tVUwTudNJH5Pnb9GGnkXi9Zw/e6x45DD0RuRONbFlJ2T4RjAE/uG+AjXxXQ8o2SZfb9+GgmCHuTJFNgHoZ1nFVXCmb/Hg8Hpd4vOAGXndixaReOiq3EH5XvpMjMkJ3+8+9VYMzMZOjkgQtAqO36eAFFfNKX7dTj3VpwLkvz6/KFCq8OAwY+AUi4eZm5J57D31GzjHwfjH9WTeX0MyndmnNB1qV75qQR3b2/W5sGHRv+9AarggJkF+ptUkXoLtVA51wcfYm6hILptpde5FQC8RWY1YrswBWAEZNfyrR4JeSweElNHg4NVOs4TwGjOPwWGqzTfgTlECAwEAATANBgkqhkiG9w0BAQsFAAOCAQEAAYRlYflSXAWoZpFfwNiCQVE5d9zZ0DPzNdWhAybXcTyMf0z5mDf6FWBW5Gyoi9u3EMEDnzLcJNkwJAAc39Apa4I2/tml+Jy29dk8bTyX6m93ngmCgdLh5Za4khuU3AM3L63g7VexCuO7kwkjh/+LqdcIXsVGO6XDfu2QOs1Xpe9zIzLpwm/RNYeXUjbSj5ce/jekpAw7qyVVL4xOyh8AtUW1ek3wIw1MJvEgEPt0d16oshWJpoS1OT8Lr/22SvYEo3EmSGdTVGgk3x3s+A0qWAqTcyjr7Q4s/GKYRFfomGwz0TZ4Iw1ZN99Mm0eo2USlSRTVl7QHRTuiuSThHpLKQQ==</ds:X509Certificate>
+            < ds:X509Certificate>MIIDnjCCAoagAwIBAgIGAY8couuwMA0GCSqGSIb3DQEBCwUAMIGPMQswCQYDVQQGEwJVUzETMBEGA1UECAwKQ2FsaWZvcm5pYTEWMBQGA1UEBwwNU2FuIEZyYW5jaXNjbzENMAsGA1UECgwET2t0YTEUMBIGA1UECwwLU1NPUHJvdmlkZXIxEDAOBgNVBAMMB2FjdXZpdHkxHDAaBgkqhkiG9w0BCQEWDWluZm9Ab2t0YS5jb20wHhcNMjQwNDI2MjI1ODUwWhcNMzQwNDI2MjI1OTUwWjCBjzELMAkGA1UEBhMCVVMxEzARBgNVBAgMCkNhbGlmb3JuaWExFjAUBgNVBAcMDVNhbiBGcmFuY2lzY28xDTALBgNVBAoMBE9rdGExFDASBgNVBAsMC1NTT1Byb3ZpZGVyMRAwDgYDVQQDDAdhY3V2aXR5MRwwGgYJKoZIhvcNAQkBFg1pbmZvQG9rdGEuY29tMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAvezMoavtrgos1NHf6aUQ0n8neS7onPZH2NcId/zlTGMuQOsfhLb6nX4wj1XKa1Xzc979gnSt2xxVw+vb57Y76Wj+rFtv+vul3VVCfP014zOIRNBNso5RxgmJ5ePtpjqrEvt65fNLOTULyXl3sM/JolTxkPoXH8Ql5Hz3mS0u/fvkJKMAwCfcZyMLQ4Zv7C1rcdYWNRlLD4qQGYZ53hujHEVUzB4rG82sn//aTYqQaJIhkXKdRL9rZoaueonOpLqaNRSUGt8HkzEGY/LokLl5lZuNrBKOqnJgA2A5KyU6AmamYoY0jFFONOwzWJG4hVp0gzK3y6VsExXLsqjZbuq66QIDAQABMA0GCSqGSIb3DQEBCwUAA4IBAQBWcGo2uAyaEMTV3q4DHbbncWPGfXd7GHC8X2xRp/cnWFbKHuneg03sQNEq6NwA8WsEiVh7tfQWywZLg/6a82wyjYUg2wCB7RPEc4g5eQUG/SgStEc0XtH/lEqbG6C7mRpmNZrDW996b0/963qKgeurJFJATo6saXvlkyONw3lVM2Oba24y2hl3Ii8mgQk+Y1dg2iMjzbgNic3q9leC/muSlfWwiuixMTEOFalcniTPz/nAlWW6eE6SmcbFDZQlKjgRva+E045MGnN5zjQi2bShJp91FBWacyJdDor1Dq0e21FYLkHa3Nk1otmVaXx1JIUAZ7mCMi82c5Sdaf1/5jXT</ds:X509Certificate>
             </ds:X509Data>
           </ds:KeyInfo>
         </md:KeyDescriptor>
         <md:NameIDFormat>urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress</md:NameIDFormat>
-        <md:SingleSignOnService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect" Location="https://mocksaml.com/api/saml/sso"/>
-        <md:SingleSignOnService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST" Location="https://mocksaml.com/api/saml/sso"/>
+        <md:SingleSignOnService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST"
+          Location="https://acuvity.okta.com/app/acuvity_acuvitysaml_1/exk1ptqwwtb8H9AaJ1d8/sso/saml" />
+        <md:SingleSignOnService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect"
+          Location="https://acuvity.okta.com/app/acuvity_acuvitysaml_1/exk1ptqwwtb8H9AaJ1d8/sso/saml" />
       </md:IDPSSODescriptor>
     </md:EntityDescriptor>

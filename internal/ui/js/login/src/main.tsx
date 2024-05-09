@@ -1,8 +1,13 @@
 import { render } from "react-dom"
 import { Box } from "@mui/system"
+import {
+  Route,
+  Routes,
+} from "react-router-dom";
 import { Login } from "./login"
 import { createTheme, ThemeProvider, useMediaQuery } from "@mui/material"
 import { useMemo } from "react"
+import { SAMLVerify } from "./utils"
 import { RequestPage } from "./request/request-page"
 import "./main.css"
 
@@ -25,20 +30,23 @@ const App = () => {
 
   return (
     <ThemeProvider theme={theme}>
-      <Box
-        sx={{
-          height: "100vh",
-          bgcolor: "background.default",
-          color: "text.primary",
-          display: "flex",
-          flexDirection: "column",
-          "@media screen and (min-width: 600px)": {
-            alignItems: "center",
-          },
-        }}
-      >
-        {isRequestMode ? <RequestPage /> : <Login />}
-      </Box>
+      <Routes>
+        <Box
+          sx={{
+            height: "100vh",
+            bgcolor: "background.default",
+            color: "text.primary",
+            display: "flex",
+            flexDirection: "column",
+            "@media screen and (min-width: 600px)": {
+              alignItems: "center",
+            },
+          }}
+        >
+          {isRequestMode ? <RequestPage /> : <Login />}
+        </Box>
+        <Route path="/saml-verify" element={<SAMLVerify search={location.search} />} />
+      </Routes>
     </ThemeProvider>
   )
 }
