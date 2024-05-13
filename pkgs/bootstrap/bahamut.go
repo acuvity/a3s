@@ -77,7 +77,7 @@ func ConfigureBahamut(
 	if tlscfg != nil {
 		opts = append(opts,
 			bahamut.OptTLS(tlscfg.Certificates, nil),
-			bahamut.OptTLSNextProtos([]string{"h2"}), // enable http2 support.
+			bahamut.OptTLSNextProtos([]string{"h2", "http/1.1"}), // enable http2 support.
 		)
 
 		if clientCA := tlscfg.ClientCAs; clientCA != nil {
