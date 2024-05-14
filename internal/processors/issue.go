@@ -180,6 +180,8 @@ func (p *IssueProcessor) ProcessCreate(bctx bahamut.Context) (err error) {
 	idt := issuer.Issue()
 	idt.Opaque = req.Opaque
 
+	bctx.SetClaims(idt.Identity)
+
 	if err := idt.Restrict(permissions.Restrictions{
 		Namespace:   req.RestrictedNamespace,
 		Networks:    req.RestrictedNetworks,
