@@ -14,6 +14,10 @@ const (
 	NotificationAudit = "notifications.audit"
 )
 
+// MetadataKeyAudit is the bahamut.Context metadata key
+// that will contain the list of recorded keyed values.
+var MetadataKeyAudit = struct{}{}
+
 // AuditMessage outlines what an audit notification will contain.
 type AuditMessage struct {
 	Operation elemental.Operation
@@ -76,6 +80,30 @@ func (a *Auditor) Audit(bctx bahamut.Context, err error) {
 
 	if err != nil {
 		msg.Error = err.Error()
+	}
+
+	if obj := bctx.Metadata(MetadataKeyAudit); obj != nil {
+		switch metadata := obj.(type) {
+		case []string:
+			for _, m := range metadata {
+				for i := 0; i < len(m); i++ {
+					if m[i] != '=' {
+						continue
+					}
+
+					if i+1 >= len(m) {
+						slog.Error("Missing value in metadata", "metadata", m)
+						break
+					}
+
+					msg.ClaimsMap[m[:i]] = m[i+1:]
+					break
+				}
+			}
+
+		default:
+			slog.Error("Unsupported type for metadata", "metadata", metadata)
+		}
 	}
 
 	if err = notification.Publish(

@@ -115,6 +115,47 @@ func TestAudit(t *testing.T) {
 			})
 		})
 
+		Convey("When a request is audited with metadata claims", func() {
+
+			audit := NewAuditor(pubsub, nil)
+
+			notification.Subscribe(ctx, pubsub, NotificationAudit, h)
+
+			bctx := bahamut.NewContext(ctx,
+				&elemental.Request{
+					Operation: elemental.OperationCreate,
+					Identity:  elemental.MakeIdentity("testName", "testCategory"),
+					Namespace: "testNamespace",
+				},
+			)
+			bctx.SetMetadata(MetadataKeyAudit, []string{"something=else", "a=token"})
+
+			audit.Audit(bctx, nil)
+
+			var msg *notification.Message
+			select {
+			case msg = <-recvmsg:
+			case <-time.After(300 * time.Millisecond):
+				panic("test did not get response in time")
+			}
+
+			So(msg, ShouldNotBeNil)
+			So(msg.Type, ShouldEqual, string(elemental.OperationCreate))
+
+			var sentMsg *AuditMessage
+			So(mapstructure.Decode(msg.Data, &sentMsg), ShouldBeNil)
+
+			So(sentMsg, ShouldResemble, &AuditMessage{
+				Operation: elemental.OperationCreate,
+				Identity:  elemental.MakeIdentity("testName", "testCategory"),
+				Namespace: "testNamespace",
+				ClaimsMap: map[string]string{
+					"something": "else",
+					"a":         "token",
+				},
+			})
+		})
+
 		Convey("When a denied request is audited", func() {
 
 			audit := NewAuditor(pubsub, nil)
@@ -219,6 +260,84 @@ func TestAudit(t *testing.T) {
 			}
 
 			So(msg, ShouldBeNil)
+		})
+
+		Convey("When a request is audited with malformed metadata claims", func() {
+
+			audit := NewAuditor(pubsub, nil)
+
+			notification.Subscribe(ctx, pubsub, NotificationAudit, h)
+
+			bctx := bahamut.NewContext(ctx,
+				&elemental.Request{
+					Operation: elemental.OperationCreate,
+					Identity:  elemental.MakeIdentity("testName", "testCategory"),
+					Namespace: "testNamespace",
+				},
+			)
+			bctx.SetMetadata(MetadataKeyAudit, []string{"somethingelse", "somethingelse=", "a=token"})
+
+			audit.Audit(bctx, nil)
+
+			var msg *notification.Message
+			select {
+			case msg = <-recvmsg:
+			case <-time.After(300 * time.Millisecond):
+				panic("test did not get response in time")
+			}
+
+			So(msg, ShouldNotBeNil)
+			So(msg.Type, ShouldEqual, string(elemental.OperationCreate))
+
+			var sentMsg *AuditMessage
+			So(mapstructure.Decode(msg.Data, &sentMsg), ShouldBeNil)
+
+			So(sentMsg, ShouldResemble, &AuditMessage{
+				Operation: elemental.OperationCreate,
+				Identity:  elemental.MakeIdentity("testName", "testCategory"),
+				Namespace: "testNamespace",
+				ClaimsMap: map[string]string{
+					"a": "token",
+				},
+			})
+		})
+
+		Convey("When a request is audited with unsupported metadata claims", func() {
+
+			audit := NewAuditor(pubsub, nil)
+
+			notification.Subscribe(ctx, pubsub, NotificationAudit, h)
+
+			bctx := bahamut.NewContext(ctx,
+				&elemental.Request{
+					Operation: elemental.OperationCreate,
+					Identity:  elemental.MakeIdentity("testName", "testCategory"),
+					Namespace: "testNamespace",
+				},
+			)
+			bctx.SetMetadata(MetadataKeyAudit, "something=else")
+
+			audit.Audit(bctx, nil)
+
+			var msg *notification.Message
+			select {
+			case msg = <-recvmsg:
+			case <-time.After(300 * time.Millisecond):
+				panic("test did not get response in time")
+			}
+
+			So(msg, ShouldNotBeNil)
+			So(msg.Type, ShouldEqual, string(elemental.OperationCreate))
+
+			var sentMsg *AuditMessage
+			So(mapstructure.Decode(msg.Data, &sentMsg), ShouldBeNil)
+
+			So(sentMsg, ShouldResemble, &AuditMessage{
+				Operation: elemental.OperationCreate,
+				Identity:  elemental.MakeIdentity("testName", "testCategory"),
+				Namespace: "testNamespace",
+				ClaimsMap: map[string]string{},
+			})
 		})
 	})
 }

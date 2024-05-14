@@ -26,6 +26,7 @@ import (
 	"go.acuvity.ai/a3s/internal/oidcceremony"
 	"go.acuvity.ai/a3s/internal/samlceremony"
 	"go.acuvity.ai/a3s/pkgs/api"
+	"go.acuvity.ai/a3s/pkgs/auditor"
 	"go.acuvity.ai/a3s/pkgs/modifier/binary"
 	"go.acuvity.ai/a3s/pkgs/modifier/plugin"
 	"go.acuvity.ai/a3s/pkgs/permissions"
@@ -179,6 +180,10 @@ func (p *IssueProcessor) ProcessCreate(bctx bahamut.Context) (err error) {
 
 	idt := issuer.Issue()
 	idt.Opaque = req.Opaque
+
+	defer func() {
+		bctx.SetMetadata(auditor.MetadataKeyAudit, idt.Identity)
+	}()
 
 	if err := idt.Restrict(permissions.Restrictions{
 		Namespace:   req.RestrictedNamespace,
