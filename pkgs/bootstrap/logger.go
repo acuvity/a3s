@@ -47,12 +47,12 @@ func configureLogger(name string, level string, format string) {
 	var handler slog.Handler
 	switch format {
 	case "json":
-		handler = slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
+		handler = slog.NewJSONHandler(os.Stderr, &slog.HandlerOptions{
 			Level:       lvl,
 			ReplaceAttr: errReplacer,
 		})
 	case "console":
-		handler = tint.NewHandler(os.Stdout, &tint.Options{
+		handler = tint.NewHandler(os.Stderr, &tint.Options{
 			Level:       lvl,
 			ReplaceAttr: errReplacer,
 			TimeFormat:  time.Stamp,
@@ -60,7 +60,7 @@ func configureLogger(name string, level string, format string) {
 	case "silent":
 		handler = slog.NewTextHandler(io.Discard, nil)
 	default:
-		handler = slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
+		handler = slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{
 			Level:       lvl,
 			ReplaceAttr: errReplacer,
 		})
