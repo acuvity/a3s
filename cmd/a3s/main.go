@@ -362,8 +362,9 @@ func main() {
 		opts = append(
 			opts,
 			bahamut.OptAuditer(auditor.NewAuditor(
+				api.Manager(),
 				pubsub,
-				trackedIdentities,
+				auditor.OptionTrackedIdentities(trackedIdentities...),
 			)),
 		)
 
