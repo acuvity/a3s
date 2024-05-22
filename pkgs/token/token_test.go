@@ -50,6 +50,10 @@ func TestNewIdentityToken(t *testing.T) {
 		So(c.Source.Type, ShouldEqual, "mtls")
 		So(c.Source.Namespace, ShouldEqual, "/my/ns")
 		So(c.Source.Name, ShouldEqual, "mysource")
+
+		So(c.Map(), ShouldResemble, map[string][]string{})
+		c.Identity = []string{"a=b", "b=c", "b=d"}
+		So(c.Map(), ShouldResemble, map[string][]string{"a": {"b"}, "b": {"c", "d"}})
 	})
 }
 

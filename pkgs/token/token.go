@@ -56,6 +56,25 @@ func NewIdentityToken(source Source) *IdentityToken {
 	}
 }
 
+// Map returns the identity claims as map
+func (i *IdentityToken) Map() map[string][]string {
+
+	if len(i.Identity) == 0 {
+		return map[string][]string{}
+	}
+
+	claimsMap := make(map[string][]string, len(i.Identity))
+
+	for _, claim := range i.Identity {
+		parts := strings.SplitN(claim, "=", 2)
+		if len(parts) == 2 {
+			claimsMap[parts[0]] = append(claimsMap[parts[0]], parts[1])
+		}
+	}
+
+	return claimsMap
+}
+
 // Parse returns a validated IdentityToken from the given token string using the given JWKS, mandatory trusted issuer
 // and requiredAudience. The token must contain the "kid" header, and that ID must match an existing key in JWKS.
 // The function will populate the identity token's source using the @source* claims.
