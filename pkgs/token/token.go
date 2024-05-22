@@ -57,15 +57,15 @@ func NewIdentityToken(source Source) *IdentityToken {
 }
 
 // Map returns the identity claims as map
-func (i *IdentityToken) Map() map[string][]string {
+func (t *IdentityToken) Map() map[string][]string {
 
-	if len(i.Identity) == 0 {
+	if len(t.Identity) == 0 {
 		return map[string][]string{}
 	}
 
-	claimsMap := make(map[string][]string, len(i.Identity))
+	claimsMap := make(map[string][]string, len(t.Identity))
 
-	for _, claim := range i.Identity {
+	for _, claim := range t.Identity {
 		parts := strings.SplitN(claim, "=", 2)
 		if len(parts) == 2 {
 			claimsMap[parts[0]] = append(claimsMap[parts[0]], parts[1])
