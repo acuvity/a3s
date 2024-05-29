@@ -1,6 +1,7 @@
 package authcmd
 
 import (
+	"bytes"
 	"crypto/sha256"
 	"fmt"
 	"log/slog"
@@ -95,6 +96,11 @@ func makeAutoCmd(mmaker manipcli.ManipulatorMaker) *cobra.Command {
 //	autoauth.http.pass: the password.
 //	autoauth.http.source.name: the name of the HTTP source to use.
 //	autoauth.http.source.namespace: the namespace of the HTTP source to use.
+//
+// autoauth.enable: token
+//
+//	autoauth.token.path: if set, path to a file containing the token. superseeds autoauth.token.token
+//	autoauth.token.token: the actual token to use. superseeded by autoauth.token.path
 func HandleAutoAuth(
 	mmaker manipcli.ManipulatorMaker,
 	method string,
@@ -129,6 +135,25 @@ func HandleAutoAuth(
 
 	if method == "" {
 		method = viper.GetString("autoauth.enable")
+	}
+
+	// Here there is no renewal. The token can be used as is.
+	if method == "token" {
+		var data []byte
+		if path := viper.GetString("autoauth.token.path"); path != "" {
+			data, err = os.ReadFile(os.ExpandEnv(path))
+			if err != nil {
+				return fmt.Errorf("unable to read token file at '%s': %w", path, err)
+			}
+		} else {
+			data = []byte(viper.GetString("autoauth.token.token"))
+			if len(data) == 0 {
+				return fmt.Errorf("empty token provided in autoauth.token.token")
+			}
+		}
+		slog.Debug("autoauth: using token using autoauth.token")
+		viper.Set("token", string(bytes.TrimSpace(data)))
+		return nil
 	}
 
 	tokenCache := path.Join(cache, fmt.Sprintf("token-%s-%x", method, sha256.Sum256([]byte(viper.GetString("api")))))
