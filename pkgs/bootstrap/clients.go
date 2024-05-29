@@ -212,13 +212,22 @@ func MakeA3SRemoteAuth(
 	requiredAudience string,
 ) (*authenticator.Authenticator, authorizer.Authorizer, error) {
 
-	jwks, err := token.NewRemoteJWKS(
-		ctx,
-		maniphttp.ExtractClient(m),
-		fmt.Sprintf("%s/.well-known/jwks.json", maniphttp.ExtractEndpoint(m)),
-	)
+	var jwks *token.JWKS
+	var err error
+
+	for i := 0; i < 5; i++ {
+		jwks, err = token.NewRemoteJWKS(
+			ctx,
+			maniphttp.ExtractClient(m),
+			fmt.Sprintf("%s/.well-known/jwks.json", maniphttp.ExtractEndpoint(m)),
+		)
+		if err != nil {
+			time.Sleep(3 * time.Second)
+		}
+	}
+
 	if err != nil {
-		return nil, nil, fmt.Errorf("unable to retrieve a3s JWT: %w", err)
+		return nil, nil, fmt.Errorf("unable to retrieve a3s JWKS: %w", err)
 	}
 
 	return authenticator.New(
