@@ -64,7 +64,7 @@ func (a *retriever) Permissions(ctx context.Context, claims []string, ns string,
 
 	groups, err := a.resolveGroupsMatchingClaims(ctx, claims, ns, cfg.label)
 	if err != nil {
-		return nil, fmt.Errorf("unable to resolve groups: %s", err)
+		return nil, fmt.Errorf("unable to resolve groups: %w", err)
 	}
 
 	var groupClaims []string
@@ -103,7 +103,7 @@ func (a *retriever) Permissions(ctx context.Context, claims []string, ns string,
 
 	policies, err := a.resolvePoliciesMatchingClaims(ctx, append(claims, groupClaims...), ns, cfg.label)
 	if err != nil {
-		return nil, fmt.Errorf("unable to resolve authorizations: %s", err)
+		return nil, fmt.Errorf("unable to resolve authorizations: %w", err)
 	}
 
 	out := PermissionMap{}

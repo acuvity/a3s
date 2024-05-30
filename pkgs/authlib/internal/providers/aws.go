@@ -15,7 +15,7 @@ func AWSServiceRoleToken() (roleData string, err error) {
 
 	resp1, err := http.Get(fmt.Sprintf("%siam/security-credentials/", metadataPath))
 	if err != nil {
-		return "", fmt.Errorf("unable to retrieve role from magic url: %s", err)
+		return "", fmt.Errorf("unable to retrieve role from magic url: %w", err)
 	}
 	if resp1.StatusCode != http.StatusOK {
 		return "", fmt.Errorf("unable to retrieve role from magic url: %s", resp1.Status)
@@ -24,12 +24,12 @@ func AWSServiceRoleToken() (roleData string, err error) {
 	defer resp1.Body.Close() // nolint: errcheck
 	role, err := io.ReadAll(resp1.Body)
 	if err != nil {
-		return "", fmt.Errorf("unable to read role from aws magic ip: %s", err)
+		return "", fmt.Errorf("unable to read role from aws magic ip: %w", err)
 	}
 
 	resp2, err := http.Get(fmt.Sprintf("%siam/security-credentials/%s", metadataPath, role))
 	if err != nil {
-		return "", fmt.Errorf("unable to retrieve token from magic url: %s", err)
+		return "", fmt.Errorf("unable to retrieve token from magic url: %w", err)
 	}
 	if resp2.StatusCode != http.StatusOK {
 		return "", fmt.Errorf("unable to retrieve token from magic url: %s", resp2.Status)
@@ -38,7 +38,7 @@ func AWSServiceRoleToken() (roleData string, err error) {
 
 	token, err := io.ReadAll(resp2.Body)
 	if err != nil {
-		return "", fmt.Errorf("unable to read service token information: %s", err)
+		return "", fmt.Errorf("unable to read service token information: %w", err)
 	}
 
 	return string(token), nil

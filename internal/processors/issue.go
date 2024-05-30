@@ -512,7 +512,7 @@ func (p *IssueProcessor) handleOIDCIssue(bctx bahamut.Context, req *api.Issue) (
 
 	client, err := oidcceremony.MakeOIDCProviderClient(oidcReq.CA)
 	if err != nil {
-		return nil, fmt.Errorf("unable to create oidc http client: %s", err)
+		return nil, fmt.Errorf("unable to create oidc http client: %w", err)
 	}
 
 	oidcctx := oidc.ClientContext(bctx.Context(), client)
@@ -675,7 +675,7 @@ func (p *IssueProcessor) handleSAMLIssue(bctx bahamut.Context, req *api.Issue) (
 	if len(src.IDPCertificate) > 0 {
 		certs, err := tglib.ParseCertificates([]byte(src.IDPCertificate))
 		if err != nil {
-			return nil, fmt.Errorf("unable to parse IDP certificates: %s", err)
+			return nil, fmt.Errorf("unable to parse IDP certificates: %w", err)
 		}
 		sp.IDPCertificateStore = &dsig.MemoryX509CertificateStore{Roots: certs}
 	}

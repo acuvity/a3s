@@ -24,7 +24,7 @@ func AzureServiceIdentityToken() (string, error) {
 
 	err = json.Unmarshal(body, &token)
 	if err != nil {
-		return "", fmt.Errorf("invalid token returned by metadata service: %s", err)
+		return "", fmt.Errorf("invalid token returned by metadata service: %w", err)
 	}
 
 	return token.AccessToken, nil
@@ -35,7 +35,7 @@ func issueRequest(baseuri string) ([]byte, error) {
 	var endpoint *url.URL
 	endpoint, err := url.Parse(baseuri)
 	if err != nil {
-		return nil, fmt.Errorf("unable to access the service account URL: %s", err)
+		return nil, fmt.Errorf("unable to access the service account URL: %w", err)
 	}
 
 	parameters := url.Values{}
@@ -45,20 +45,20 @@ func issueRequest(baseuri string) ([]byte, error) {
 	endpoint.RawQuery = parameters.Encode()
 	req, err := http.NewRequest("GET", endpoint.String(), nil)
 	if err != nil {
-		return nil, fmt.Errorf("unable to create HTTP request: %s", err)
+		return nil, fmt.Errorf("unable to create HTTP request: %w", err)
 	}
 	req.Header.Add("Metadata", "true")
 
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		return nil, fmt.Errorf("unable to issue request: %s", err)
+		return nil, fmt.Errorf("unable to issue request: %w", err)
 	}
 
 	defer resp.Body.Close() // nolint errcheck
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return nil, fmt.Errorf("unable to read data: %s", err)
+		return nil, fmt.Errorf("unable to read data: %w", err)
 	}
 
 	return body, nil

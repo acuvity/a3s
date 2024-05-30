@@ -110,7 +110,7 @@ func (p *AuthorizationsProcessor) makePreHook(ctx bahamut.Context) crud.PreWrite
 
 		restrictions, err := permissions.GetRestrictions(token)
 		if err != nil {
-			return fmt.Errorf("unable to retrieve restrictions: %s", err)
+			return fmt.Errorf("unable to retrieve restrictions: %w", err)
 		}
 
 		perms, err := p.retriever.Permissions(

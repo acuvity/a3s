@@ -41,7 +41,7 @@ func MakeOIDCProviderClient(ca string) (*http.Client, error) {
 	} else {
 		pool, err = x509.SystemCertPool()
 		if err != nil {
-			return nil, fmt.Errorf("unable to initialize system root ca pool: %s", err)
+			return nil, fmt.Errorf("unable to initialize system root ca pool: %w", err)
 		}
 	}
 

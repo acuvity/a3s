@@ -192,7 +192,7 @@ func MakeA3SManipulator(ctx context.Context, a3sConfig conf.A3SClientConf) (mani
 	)
 	if err != nil {
 		return nil, fmt.Errorf(
-			"unable to create http manipulator: namespace=%s, source=%s :%w",
+			"unable to create http manipulator: namespace=%s, source=%s: %w",
 			a3sConfig.A3SNamespace,
 			a3sConfig.A3SourceName,
 			err,

@@ -3,11 +3,9 @@ package bootstrap
 import (
 	"context"
 	"crypto/tls"
-	"errors"
 	"fmt"
 	"log/slog"
 	"net"
-	"net/http"
 	"os"
 
 	"github.com/fatih/structs"
@@ -45,7 +43,6 @@ func ConfigureBahamut(
 		bahamut.OptOpentracingTracer(opentracing.GlobalTracer()),
 		bahamut.OptDisableCompression(),
 		bahamut.OptHTTPLogger(l),
-		bahamut.OptErrorTransformer(ErrorTransformer),
 	}
 
 	cs := structs.New(cfg)
@@ -242,37 +239,6 @@ func GetPublicEndpoint(listenAddress string) (string, error) {
 	}
 
 	return fmt.Sprintf("%s:%s", endpoint, port), nil
-}
-
-// ErrorTransformer transforms a disconnected error into an not acceptable.
-// This avoid 500 errors due to clients being disconnected.
-func ErrorTransformer(err error) error {
-
-	switch {
-
-	case errors.As(err, &manipulate.ErrDisconnected{}),
-		errors.As(err, &manipulate.ErrDisconnected{}),
-		errors.Is(err, context.Canceled):
-
-		return elemental.NewError(
-			"Client Disconnected",
-			err.Error(),
-			"a3s",
-			http.StatusNotAcceptable,
-		)
-
-	case manipulate.IsObjectNotFoundError(err):
-
-		return elemental.NewError(
-			"Not Found",
-			err.Error(),
-			"a3s",
-			http.StatusNotFound,
-		)
-
-	default:
-		return nil
-	}
 }
 
 // MakeIdentifiableRetriever returns a bahamut.IdentifiableRetriever to handle patches as classic update.

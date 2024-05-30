@@ -76,7 +76,7 @@ func (g *dispatcher) SummarizeEvent(event *elemental.Event) (any, error) {
 
 	entity := pushedEntity{}
 	if err := event.Decode(&entity); err != nil {
-		return nil, fmt.Errorf("unable to summarize event entity: %s", err)
+		return nil, fmt.Errorf("unable to summarize event entity: %w", err)
 	}
 
 	return entity, nil

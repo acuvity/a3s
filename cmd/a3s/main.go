@@ -530,16 +530,32 @@ func createMongoDBAccount(cfg conf.MongoConf, username string) error {
 
 func errorTransformer(err error) error {
 
-	if errors.As(err, &manipulate.ErrObjectNotFound{}) {
+	switch {
+	case errors.As(err, &manipulate.ErrObjectNotFound{}):
 		return elemental.NewError("Not Found", err.Error(), "a3s", http.StatusNotFound)
-	}
 
-	if errors.As(err, &manipulate.ErrConstraintViolation{}) {
+	case errors.As(err, &manipulate.ErrConstraintViolation{}):
 		return elemental.NewError("Constraint Violation", err.Error(), "a3s", http.StatusUnprocessableEntity)
+
+	case errors.As(err, &manipulate.ErrCannotCommunicate{}):
+		return elemental.NewError("Communication Error", err.Error(), "a3s", http.StatusServiceUnavailable)
+
+	case errors.As(err, &manipulate.ErrDisconnected{}), errors.Is(err, context.Canceled):
+		return elemental.NewError("Client Disconnected", err.Error(), "a3s", http.StatusNotAcceptable)
 	}
 
-	if errors.As(err, &manipulate.ErrCannotCommunicate{}) {
-		return elemental.NewError("Communication Error", err.Error(), "a3s", http.StatusServiceUnavailable)
+	for ierr := errors.Unwrap(err); ierr != nil; ierr = errors.Unwrap(ierr) {
+		if e, ok := ierr.(elemental.Error); ok {
+			e.Description = strings.SplitN(err.Error(), e.Error(), 2)[0] + e.Description
+			err = e
+			break
+		}
+
+		if e, ok := ierr.(elemental.Errors); ok {
+			e[0].Description = strings.SplitN(err.Error(), e[0].Error(), 2)[0] + e[0].Description
+			err = e
+			break
+		}
 	}
 
 	return err
@@ -741,7 +757,7 @@ func initData(ctx context.Context, m manipulate.Manipulator, dataPath string) (b
 		for i, o := range lst.List() {
 			if o.(elemental.Namespaceable).GetNamespace() == "" {
 				return false, fmt.Errorf(
-					"missing namespace property for object '%s' at index %d ",
+					"missing namespace property for object '%s' at index %d",
 					lst.Identity().Name,
 					i,
 				)

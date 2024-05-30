@@ -65,7 +65,7 @@ func (c *httpIssuer) fromCredentials(ctx context.Context, creds Credentials) err
 	}
 	cert, err := tglib.ToTLSCertificate(clientCert, clientKey)
 	if err != nil {
-		return ErrHTTP{Err: fmt.Errorf("unable to convert to tls certificate: %s", err)}
+		return ErrHTTP{Err: fmt.Errorf("unable to convert to tls certificate: %w", err)}
 	}
 
 	client := &http.Client{
