@@ -115,7 +115,7 @@ func main() {
 	)
 
 	if err := rootCmd.Execute(); err != nil {
-		fmt.Fprintf(os.Stderr, "error: %s\n", err)
+		fmt.Fprintf(os.Stderr, "error: %s\n", err) // nolint: errcheck
 		os.Exit(1)
 	}
 }

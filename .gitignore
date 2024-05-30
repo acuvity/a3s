@@ -5,6 +5,7 @@ unit_coverage.out
 cov.report
 remod.dev
 .remod
+.vscode
 go.work
 go.work.sum
 .data

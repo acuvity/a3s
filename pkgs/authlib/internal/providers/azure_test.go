@@ -27,7 +27,7 @@ func Test_AzureServiceIdentityToken(t *testing.T) {
 	Convey("When I call AzureServiceIdentityToken with no errors", t, func() {
 		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			if r.URL.Path == "/" {
-				fmt.Fprintln(w, newValidAzureToken())
+				fmt.Fprintln(w, newValidAzureToken()) // nolint: errcheck
 			}
 		}))
 		defer ts.Close()
@@ -48,7 +48,7 @@ func Test_AzureServiceIdentityToken(t *testing.T) {
 	Convey("When I call AzureServiceIdentityToken and the token cannot be decoded", t, func() {
 		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			if r.URL.Path == "/" {
-				fmt.Fprintln(w, `bad data`)
+				fmt.Fprintln(w, `bad data`) // nolint: errcheck
 			}
 		}))
 		defer ts.Close()
@@ -66,7 +66,7 @@ func Test_AzureServiceIdentityToken(t *testing.T) {
 
 		ts2 := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			if r.URL.Path == "/latest/meta-data/iam/security-credentials/" {
-				fmt.Fprintln(w, `the-role`)
+				fmt.Fprintln(w, `the-role`) // nolint: errcheck
 			}
 		}))
 		defer ts2.Close()

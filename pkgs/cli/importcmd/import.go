@@ -93,7 +93,7 @@ func MakeImportCmd(mmaker manipcli.ManipulatorMaker, importMaker func() elementa
 				return err
 			}
 
-			fmt.Fprintf(os.Stderr, "Successfully %s data in namespace %s\n", actionString, fNamespace)
+			fmt.Fprintf(os.Stderr, "Successfully %s data in namespace %s\n", actionString, fNamespace) // nolint: errcheck
 
 			return nil
 		},

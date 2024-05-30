@@ -67,9 +67,9 @@ func makeSAMLCmd(mmaker manipcli.ManipulatorMaker, restrictions *permissions.Res
 				return fmt.Errorf("unable to perform first step of saml authentication: %w", err)
 			}
 
-			fmt.Fprintln(os.Stderr, "Trying to open your browser...")
+			fmt.Fprintln(os.Stderr, "Trying to open your browser...") // nolint: errcheck
 			if err := browser.OpenURL(url); err != nil {
-				fmt.Fprintln(os.Stderr, "Open this URL in your browser:", url)
+				fmt.Fprintln(os.Stderr, "Open this URL in your browser:", url) // nolint: errcheck
 			}
 
 			authD := <-authDataCh
