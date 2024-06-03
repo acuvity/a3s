@@ -134,11 +134,14 @@ func Update(bctx bahamut.Context, m manipulate.Manipulator, obj elemental.Identi
 		return err
 	}
 
-	eobj := newIdentifiable(obj)
-	eobj.SetIdentifier(obj.Identifier())
+	eobj := bctx.OriginalData()
+	if eobj == nil {
+		eobj = newIdentifiable(obj)
+		eobj.SetIdentifier(obj.Identifier())
 
-	if err := m.Retrieve(mctx, eobj); err != nil {
-		return err
+		if err := m.Retrieve(mctx, eobj); err != nil {
+			return err
+		}
 	}
 
 	if a, ok := obj.(elemental.AttributeSpecifiable); ok {
