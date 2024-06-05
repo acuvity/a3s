@@ -219,6 +219,32 @@ func TestUpdate(t *testing.T) {
 			So(obj.GetUpdateTime().Round(time.Second), ShouldResemble, time.Now().Round(time.Second))
 		})
 
+		Convey("When everything is ok with original data", func() {
+
+			obj := api.NewNamespace()
+			bctx.MockRequest = &elemental.Request{
+				Namespace: "/hello",
+				ObjectID:  "xyz",
+			}
+			bctx.SetOriginalData(obj)
+
+			var expectedNamespace string
+			var expectedID string
+			m.MockUpdate(t, func(mctx manipulate.Context, object elemental.Identifiable) error {
+				expectedNamespace = mctx.Namespace()
+				expectedID = object.Identifier()
+				return nil
+			})
+
+			err := Update(bctx, m, obj)
+
+			So(err, ShouldBeNil)
+			So(expectedNamespace, ShouldEqual, "/hello")
+			So(expectedID, ShouldEqual, "xyz")
+			So(obj.GetUpdateTime(), ShouldNotBeZeroValue)
+			So(obj.GetUpdateTime().Round(time.Second), ShouldResemble, time.Now().Round(time.Second))
+		})
+
 		Convey("When read only object is set", func() {
 
 			obj := api.NewNamespace()
