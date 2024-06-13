@@ -1,4 +1,5 @@
 {
+  "openapi": "3.0.3",
   "components": {
     "schemas": {
       "a3ssource": {
@@ -1353,6 +1354,11 @@
             "example": "https://accounts.google.com/o/saml2/idp?idpid=AbDcef123",
             "type": "string"
           },
+          "audienceURI": {
+            "description": "The AudienceURI expected for the response. If not provided, Acuvity will send the issuer URL.",
+            "example": "spn:abc-3423-fdsfs-fdsfs",
+            "type": "string"
+          },
           "createTime": {
             "description": "Creation date of the object.",
             "format": "date-time",
@@ -1384,6 +1390,15 @@
             "readOnly": true,
             "type": "string"
           },
+          "serviceProviderIssuer": {
+            "description": "The Service Provider Issuer which is represented by the client ID. If not provided, Acuvity will send the issuer URL.",
+            "example": "abc-3423-fdsfs-fdsfs",
+            "type": "string"
+          },
+          "skipResponseSignatureCheck": {
+            "description": "If true, the issue request won't check the ResponseSignatureValidated.",
+            "type": "boolean"
+          },
           "subjects": {
             "description": "List of claims that will provide the subject.",
             "example": [
@@ -1413,19 +1428,14 @@
     "contact": {
       "name": "Antoine Mercadal"
     },
-    "license": {
-      "name": "TODO"
-    },
-    "termsOfService": "https://localhost/TODO",
     "title": "toplevel",
     "version": "1.0"
   },
-  "openapi": "3.0.3",
   "paths": {
     "/a3ssources": {
       "get": {
         "description": "Retrieves the list of a3ssources.",
-        "operationId": "get-all-a3ssources",
+        "operationId": "get-all-A3SSources",
         "parameters": [
           {
             "description": "This is an example.",
@@ -1459,7 +1469,7 @@
       },
       "post": {
         "description": "Creates a new a3ssource.",
-        "operationId": "create-a-new-a3ssource",
+        "operationId": "create-A3SSource",
         "requestBody": {
           "content": {
             "application/json": {
@@ -1490,7 +1500,7 @@
     "/a3ssources/{id}": {
       "delete": {
         "description": "Delete a particular a3ssource object.",
-        "operationId": "delete-a3ssource-by-ID",
+        "operationId": "delete-A3SSource",
         "responses": {
           "200": {
             "content": {
@@ -1510,7 +1520,7 @@
       },
       "get": {
         "description": "Get a particular a3ssource object.",
-        "operationId": "get-a3ssource-by-ID",
+        "operationId": "get-A3SSource",
         "responses": {
           "200": {
             "content": {
@@ -1540,7 +1550,7 @@
       ],
       "put": {
         "description": "Update a particular a3ssource object.",
-        "operationId": "update-a3ssource-by-ID",
+        "operationId": "update-A3SSource",
         "requestBody": {
           "content": {
             "application/json": {
@@ -1571,7 +1581,7 @@
     "/authorizations": {
       "get": {
         "description": "Retrieves the list of authorization.",
-        "operationId": "get-all-authorizations",
+        "operationId": "get-all-Authorizations",
         "parameters": [
           {
             "description": "This is an example.",
@@ -1605,7 +1615,7 @@
       },
       "post": {
         "description": "Creates a new authorization.",
-        "operationId": "create-a-new-authorization",
+        "operationId": "create-Authorization",
         "requestBody": {
           "content": {
             "application/json": {
@@ -1636,7 +1646,7 @@
     "/authorizations/{id}": {
       "delete": {
         "description": "Deletes the authorization with the given ID.",
-        "operationId": "delete-authorization-by-ID",
+        "operationId": "delete-Authorization",
         "parameters": [
           {
             "description": "This is an example.",
@@ -1667,7 +1677,7 @@
       },
       "get": {
         "description": "Retrieves the authorization with the given ID.",
-        "operationId": "get-authorization-by-ID",
+        "operationId": "get-Authorization",
         "parameters": [
           {
             "description": "This is an example.",
@@ -1708,7 +1718,7 @@
       ],
       "put": {
         "description": "Updates the authorization with the given ID.",
-        "operationId": "update-authorization-by-ID",
+        "operationId": "update-Authorization",
         "parameters": [
           {
             "description": "This is an example.",
@@ -1750,7 +1760,7 @@
     "/authz": {
       "post": {
         "description": "Sends a authz request.",
-        "operationId": "create-a-new-authz",
+        "operationId": "create-Authz",
         "requestBody": {
           "content": {
             "application/json": {
@@ -1781,7 +1791,7 @@
     "/groups": {
       "get": {
         "description": "Retrieves the list of groups.",
-        "operationId": "get-all-groups",
+        "operationId": "get-all-Groups",
         "parameters": [
           {
             "description": "This is an example.",
@@ -1815,7 +1825,7 @@
       },
       "post": {
         "description": "Creates a new groups.",
-        "operationId": "create-a-new-group",
+        "operationId": "create-Group",
         "requestBody": {
           "content": {
             "application/json": {
@@ -1846,7 +1856,7 @@
     "/groups/{id}": {
       "delete": {
         "description": "Deletes the group with the given ID.",
-        "operationId": "delete-group-by-ID",
+        "operationId": "delete-Group",
         "parameters": [
           {
             "description": "This is an example.",
@@ -1877,7 +1887,7 @@
       },
       "get": {
         "description": "Retrieves the group with the given ID.",
-        "operationId": "get-group-by-ID",
+        "operationId": "get-Group",
         "parameters": [
           {
             "description": "This is an example.",
@@ -1918,7 +1928,7 @@
       ],
       "put": {
         "description": "Updates the group with the given ID.",
-        "operationId": "update-group-by-ID",
+        "operationId": "update-Group",
         "parameters": [
           {
             "description": "This is an example.",
@@ -1960,7 +1970,7 @@
     "/httpsources": {
       "get": {
         "description": "Retrieves the list of httpsources.",
-        "operationId": "get-all-httpsources",
+        "operationId": "get-all-HTTPSources",
         "parameters": [
           {
             "description": "This is an example.",
@@ -1994,7 +2004,7 @@
       },
       "post": {
         "description": "Creates a new httpsource.",
-        "operationId": "create-a-new-httpsource",
+        "operationId": "create-HTTPSource",
         "requestBody": {
           "content": {
             "application/json": {
@@ -2025,7 +2035,7 @@
     "/httpsources/{id}": {
       "delete": {
         "description": "Delete a particular httpsource object.",
-        "operationId": "delete-httpsource-by-ID",
+        "operationId": "delete-HTTPSource",
         "responses": {
           "200": {
             "content": {
@@ -2045,7 +2055,7 @@
       },
       "get": {
         "description": "Get a particular httpsource object.",
-        "operationId": "get-httpsource-by-ID",
+        "operationId": "get-HTTPSource",
         "responses": {
           "200": {
             "content": {
@@ -2075,7 +2085,7 @@
       ],
       "put": {
         "description": "Update a particular httpsource object.",
-        "operationId": "update-httpsource-by-ID",
+        "operationId": "update-HTTPSource",
         "requestBody": {
           "content": {
             "application/json": {
@@ -2106,7 +2116,7 @@
     "/import": {
       "post": {
         "description": "Sends an import request.",
-        "operationId": "create-a-new-import",
+        "operationId": "create-Import",
         "parameters": [
           {
             "description": "If set, delete the current imported data.",
@@ -2147,7 +2157,7 @@
     "/issue": {
       "post": {
         "description": "Ask to issue a new authentication token.",
-        "operationId": "create-a-new-issue",
+        "operationId": "create-Issue",
         "requestBody": {
           "content": {
             "application/json": {
@@ -2178,7 +2188,7 @@
     "/ldapsources": {
       "get": {
         "description": "Retrieves the list of ldapsources.",
-        "operationId": "get-all-ldapsources",
+        "operationId": "get-all-LDAPSources",
         "parameters": [
           {
             "description": "This is an example.",
@@ -2212,7 +2222,7 @@
       },
       "post": {
         "description": "Creates a new ldapsource.",
-        "operationId": "create-a-new-ldapsource",
+        "operationId": "create-LDAPSource",
         "requestBody": {
           "content": {
             "application/json": {
@@ -2243,7 +2253,7 @@
     "/ldapsources/{id}": {
       "delete": {
         "description": "Deletes the ldap source with the given ID.",
-        "operationId": "delete-ldapsource-by-ID",
+        "operationId": "delete-LDAPSource",
         "responses": {
           "200": {
             "content": {
@@ -2263,7 +2273,7 @@
       },
       "get": {
         "description": "Retrieves the ldap source with the given ID.",
-        "operationId": "get-ldapsource-by-ID",
+        "operationId": "get-LDAPSource",
         "responses": {
           "200": {
             "content": {
@@ -2293,7 +2303,7 @@
       ],
       "put": {
         "description": "Updates the ldap source with the given ID.",
-        "operationId": "update-ldapsource-by-ID",
+        "operationId": "update-LDAPSource",
         "requestBody": {
           "content": {
             "application/json": {
@@ -2324,7 +2334,7 @@
     "/mtlssources": {
       "get": {
         "description": "Retrieves the list of mtlssources.",
-        "operationId": "get-all-mtlssources",
+        "operationId": "get-all-MTLSSources",
         "parameters": [
           {
             "description": "This is an example.",
@@ -2358,7 +2368,7 @@
       },
       "post": {
         "description": "Creates a new mtlssource.",
-        "operationId": "create-a-new-mtlssource",
+        "operationId": "create-MTLSSource",
         "requestBody": {
           "content": {
             "application/json": {
@@ -2389,7 +2399,7 @@
     "/mtlssources/{id}": {
       "delete": {
         "description": "Delete a particular mtlssource object.",
-        "operationId": "delete-mtlssource-by-ID",
+        "operationId": "delete-MTLSSource",
         "responses": {
           "200": {
             "content": {
@@ -2409,7 +2419,7 @@
       },
       "get": {
         "description": "Get a particular mtlssource object.",
-        "operationId": "get-mtlssource-by-ID",
+        "operationId": "get-MTLSSource",
         "responses": {
           "200": {
             "content": {
@@ -2439,7 +2449,7 @@
       ],
       "put": {
         "description": "Update a particular mtlssource object.",
-        "operationId": "update-mtlssource-by-ID",
+        "operationId": "update-MTLSSource",
         "requestBody": {
           "content": {
             "application/json": {
@@ -2470,7 +2480,7 @@
     "/namespacedeletionrecords": {
       "get": {
         "description": "Retrieves the list of namespace deletion records.",
-        "operationId": "get-all-namespacedeletionrecords",
+        "operationId": "get-all-NamespaceDeletionRecords",
         "parameters": [
           {
             "description": "This is an example.",
@@ -2506,7 +2516,7 @@
     "/namespaces": {
       "get": {
         "description": "Retrieves the list of namespaces.",
-        "operationId": "get-all-namespaces",
+        "operationId": "get-all-Namespaces",
         "parameters": [
           {
             "description": "This is an example.",
@@ -2540,7 +2550,7 @@
       },
       "post": {
         "description": "Creates a new namespace.",
-        "operationId": "create-a-new-namespace",
+        "operationId": "create-Namespace",
         "requestBody": {
           "content": {
             "application/json": {
@@ -2571,7 +2581,7 @@
     "/namespaces/{id}": {
       "delete": {
         "description": "Delete a particular namespace object.",
-        "operationId": "delete-namespace-by-ID",
+        "operationId": "delete-Namespace",
         "parameters": [
           {
             "description": "This is an example.",
@@ -2602,7 +2612,7 @@
       },
       "get": {
         "description": "Get a particular namespace object.",
-        "operationId": "get-namespace-by-ID",
+        "operationId": "get-Namespace",
         "parameters": [
           {
             "description": "This is an example.",
@@ -2643,7 +2653,7 @@
       ],
       "put": {
         "description": "Update a particular namespace object.",
-        "operationId": "update-namespace-by-ID",
+        "operationId": "update-Namespace",
         "parameters": [
           {
             "description": "This is an example.",
@@ -2685,7 +2695,7 @@
     "/oidcsources": {
       "get": {
         "description": "Retrieves the list of oidcsources.",
-        "operationId": "get-all-oidcsources",
+        "operationId": "get-all-OIDCSources",
         "parameters": [
           {
             "description": "This is an example.",
@@ -2719,7 +2729,7 @@
       },
       "post": {
         "description": "Creates a new oidcsource.",
-        "operationId": "create-a-new-oidcsource",
+        "operationId": "create-OIDCSource",
         "requestBody": {
           "content": {
             "application/json": {
@@ -2750,7 +2760,7 @@
     "/oidcsources/{id}": {
       "delete": {
         "description": "Delete a particular oidcsource object.",
-        "operationId": "delete-oidcsource-by-ID",
+        "operationId": "delete-OIDCSource",
         "responses": {
           "200": {
             "content": {
@@ -2770,7 +2780,7 @@
       },
       "get": {
         "description": "Get a particular oidcsource object.",
-        "operationId": "get-oidcsource-by-ID",
+        "operationId": "get-OIDCSource",
         "responses": {
           "200": {
             "content": {
@@ -2800,7 +2810,7 @@
       ],
       "put": {
         "description": "Update a particular oidcsource object.",
-        "operationId": "update-oidcsource-by-ID",
+        "operationId": "update-OIDCSource",
         "requestBody": {
           "content": {
             "application/json": {
@@ -2831,7 +2841,7 @@
     "/permissions": {
       "post": {
         "description": "Sends a permissions request.",
-        "operationId": "create-a-new-permissions",
+        "operationId": "create-Permissions",
         "requestBody": {
           "content": {
             "application/json": {
@@ -2862,7 +2872,7 @@
     "/revocations": {
       "get": {
         "description": "Retrieves the list of revoked tokens.",
-        "operationId": "get-all-revocations",
+        "operationId": "get-all-Revocations",
         "parameters": [
           {
             "description": "This is an example.",
@@ -2896,7 +2906,7 @@
       },
       "post": {
         "description": "Mark a token as revoked based on its ID.",
-        "operationId": "create-a-new-revocation",
+        "operationId": "create-Revocation",
         "requestBody": {
           "content": {
             "application/json": {
@@ -2927,7 +2937,7 @@
     "/revocations/{id}": {
       "delete": {
         "description": "Deletes a particular revocation.",
-        "operationId": "delete-revocation-by-ID",
+        "operationId": "delete-Revocation",
         "responses": {
           "200": {
             "content": {
@@ -2947,7 +2957,7 @@
       },
       "get": {
         "description": "Get a particular revocation object.",
-        "operationId": "get-revocation-by-ID",
+        "operationId": "get-Revocation",
         "responses": {
           "200": {
             "content": {
@@ -2979,7 +2989,7 @@
     "/samlsources": {
       "get": {
         "description": "Retrieves the list of samlsources.",
-        "operationId": "get-all-samlsources",
+        "operationId": "get-all-SAMLSources",
         "parameters": [
           {
             "description": "This is an example.",
@@ -3013,7 +3023,7 @@
       },
       "post": {
         "description": "Creates a new samlsource.",
-        "operationId": "create-a-new-samlsource",
+        "operationId": "create-SAMLSource",
         "requestBody": {
           "content": {
             "application/json": {
@@ -3044,7 +3054,7 @@
     "/samlsources/{id}": {
       "delete": {
         "description": "Deletes the SAML source with the given ID.",
-        "operationId": "delete-samlsource-by-ID",
+        "operationId": "delete-SAMLSource",
         "responses": {
           "200": {
             "content": {
@@ -3064,7 +3074,7 @@
       },
       "get": {
         "description": "Retrieves the SAML source with the given ID.",
-        "operationId": "get-samlsource-by-ID",
+        "operationId": "get-SAMLSource",
         "responses": {
           "200": {
             "content": {
@@ -3094,7 +3104,7 @@
       ],
       "put": {
         "description": "Updates the SAML source with the given ID.",
-        "operationId": "update-samlsource-by-ID",
+        "operationId": "update-SAMLSource",
         "requestBody": {
           "content": {
             "application/json": {
@@ -3123,6 +3133,11 @@
       }
     }
   },
+  "servers": [
+    {
+      "url": "https://api.acuvity.ai"
+    }
+  ],
   "tags": [
     {
       "description": "This tag is for package 'a3s'",

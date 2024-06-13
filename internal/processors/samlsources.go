@@ -6,6 +6,7 @@ import (
 	"encoding/xml"
 	"fmt"
 	"net/http"
+	"strings"
 
 	types "github.com/russellhaering/gosaml2/types"
 	"go.acuvity.ai/a3s/pkgs/api"
@@ -89,7 +90,9 @@ func injectIDPMetadata(source *api.SAMLSource) error {
 		source.IDPURL = descriptor.IDPSSODescriptor.SingleSignOnServices[0].Location
 		source.IDPIssuer = descriptor.EntityID
 
+		certs := []string{}
 		for _, kd := range descriptor.IDPSSODescriptor.KeyDescriptors {
+
 			for idx, xcert := range kd.KeyInfo.X509Data.X509Certificates {
 				if xcert.Data == "" {
 					return elemental.NewErrorWithData(
@@ -101,7 +104,7 @@ func injectIDPMetadata(source *api.SAMLSource) error {
 					)
 				}
 
-				certData, err := base64.StdEncoding.DecodeString(xcert.Data)
+				certData, err := base64.StdEncoding.DecodeString(strings.TrimSpace(xcert.Data))
 				if err != nil {
 					return elemental.NewErrorWithData(
 						"Bad Request",
@@ -112,12 +115,15 @@ func injectIDPMetadata(source *api.SAMLSource) error {
 					)
 				}
 
-				source.IDPCertificate = string(pem.EncodeToMemory(&pem.Block{
+				certs = append(certs, string(pem.EncodeToMemory(&pem.Block{
 					Type:  "CERTIFICATE",
 					Bytes: certData,
-				}))
+				})))
+
 			}
 		}
+
+		source.IDPCertificate = strings.Join(certs, "\n")
 	} else if descriptor.SPSSODescriptor != nil && len(descriptor.SPSSODescriptor.AssertionConsumerServices) > 0 {
 		source.IDPURL = descriptor.SPSSODescriptor.AssertionConsumerServices[0].Location
 		source.IDPIssuer = descriptor.EntityID

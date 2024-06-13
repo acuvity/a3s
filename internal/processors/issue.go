@@ -586,12 +586,17 @@ func (p *IssueProcessor) handleSAMLIssue(bctx bahamut.Context, req *api.Issue) (
 	}
 	src := out.(*api.SAMLSource)
 
+	serviceProviderIssuer := src.ServiceProviderIssuer
+	if serviceProviderIssuer == "" {
+		serviceProviderIssuer = p.issuer
+	}
+
 	if input.SAMLResponse == "" && input.RelayState == "" {
 
 		sp := &saml2.SAMLServiceProvider{
 			IdentityProviderSSOURL:      src.IDPURL,
 			IdentityProviderIssuer:      src.IDPIssuer,
-			ServiceProviderIssuer:       p.issuer,
+			ServiceProviderIssuer:       serviceProviderIssuer,
 			AudienceURI:                 p.issuer,
 			AssertionConsumerServiceURL: input.RedirectURL,
 			SPKeyStore:                  dsig.RandomKeyStoreForTest(),
@@ -661,11 +666,16 @@ func (p *IssueProcessor) handleSAMLIssue(bctx bahamut.Context, req *api.Issue) (
 		return nil, fmt.Errorf("unable to clean saml ceremony cache: %w", err)
 	}
 
+	audienceURI := src.AudienceURI
+	if audienceURI == "" {
+		audienceURI = p.issuer
+	}
+
 	sp := &saml2.SAMLServiceProvider{
 		IdentityProviderSSOURL:      src.IDPURL,
 		IdentityProviderIssuer:      src.IDPIssuer,
 		ServiceProviderIssuer:       p.issuer,
-		AudienceURI:                 p.issuer,
+		AudienceURI:                 audienceURI,
 		AssertionConsumerServiceURL: item.ACSURL,
 		SPKeyStore:                  dsig.RandomKeyStoreForTest(),
 		AllowMissingAttributes:      true,
@@ -693,7 +703,7 @@ func (p *IssueProcessor) handleSAMLIssue(bctx bahamut.Context, req *api.Issue) (
 		return nil, elemental.NewError("Forbidden", "Invalid one time use", "a3s", http.StatusForbidden)
 	}
 
-	if !assertionInfo.ResponseSignatureValidated {
+	if !src.SkipResponseSignatureCheck && !assertionInfo.ResponseSignatureValidated {
 		return nil, elemental.NewError("Forbidden", "Invalid response signature", "a3s", http.StatusForbidden)
 	}
 
