@@ -97,6 +97,29 @@ attributes:
     stored: true
     required: true
     example_value: mypki
+  
+  - name: serviceProviderIssuer
+    friendly_name: Service Provider Issuer
+    description: The Service Provider Issuer which is represented by the client ID. If not provided, Acuvity will send the issuer URL.
+    type: string
+    exposed: true
+    stored: true
+    example_value: abc-3423-fdsfs-fdsfs
+
+  - name: audienceURI
+    friendly_name: Service Provider Issuer
+    description: The AudienceURI expected for the response. If not provided, Acuvity will send the issuer URL.
+    type: string
+    exposed: true
+    stored: true
+    example_value: spn:abc-3423-fdsfs-fdsfs
+
+  - name: skipResponseSignatureCheck
+    friendly_name: Skip response validation check
+    description: If true, the issue request won't check the ResponseSignatureValidated.
+    type: boolean
+    exposed: true
+    stored: true
 
   - name: subjects
     friendly_name: Subjects
@@ -108,3 +131,4 @@ attributes:
     example_value:
     - email
     - profile
+

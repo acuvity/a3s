@@ -101,6 +101,9 @@ type SAMLSource struct {
 	// URL of the identity provider.
 	IDPURL string `json:"IDPURL" msgpack:"IDPURL" bson:"idpurl" mapstructure:"IDPURL,omitempty"`
 
+	// The AudienceURI expected for the response. If not provided, Acuvity will send the issuer URL.
+	AudienceURI string `json:"audienceURI" msgpack:"audienceURI" bson:"audienceuri" mapstructure:"audienceURI,omitempty"`
+
 	// Creation date of the object.
 	CreateTime time.Time `json:"createTime" msgpack:"createTime" bson:"createtime" mapstructure:"createTime,omitempty"`
 
@@ -123,6 +126,12 @@ type SAMLSource struct {
 
 	// The namespace of the object.
 	Namespace string `json:"namespace" msgpack:"namespace" bson:"namespace" mapstructure:"namespace,omitempty"`
+
+	// The Service Provider Issuer which is represented by the client ID. If not provided, Acuvity will send the issuer URL.
+	ServiceProviderIssuer string `json:"serviceProviderIssuer" msgpack:"serviceProviderIssuer" bson:"serviceproviderissuer" mapstructure:"serviceProviderIssuer,omitempty"`
+
+	// If true, the issue request won't check the ResponseSignatureValidated.
+	SkipResponseSignatureCheck bool `json:"skipResponseSignatureCheck" msgpack:"skipResponseSignatureCheck" bson:"skipresponsesignaturecheck" mapstructure:"skipResponseSignatureCheck,omitempty"`
 
 	// List of claims that will provide the subject.
 	Subjects []string `json:"subjects" msgpack:"subjects" bson:"subjects" mapstructure:"subjects,omitempty"`
@@ -182,6 +191,7 @@ func (o *SAMLSource) GetBSON() (any, error) {
 	s.IDPCertificate = o.IDPCertificate
 	s.IDPIssuer = o.IDPIssuer
 	s.IDPURL = o.IDPURL
+	s.AudienceURI = o.AudienceURI
 	s.CreateTime = o.CreateTime
 	s.Description = o.Description
 	s.ImportHash = o.ImportHash
@@ -189,6 +199,8 @@ func (o *SAMLSource) GetBSON() (any, error) {
 	s.Modifier = o.Modifier
 	s.Name = o.Name
 	s.Namespace = o.Namespace
+	s.ServiceProviderIssuer = o.ServiceProviderIssuer
+	s.SkipResponseSignatureCheck = o.SkipResponseSignatureCheck
 	s.Subjects = o.Subjects
 	s.UpdateTime = o.UpdateTime
 	s.ZHash = o.ZHash
@@ -214,6 +226,7 @@ func (o *SAMLSource) SetBSON(raw bson.Raw) error {
 	o.IDPCertificate = s.IDPCertificate
 	o.IDPIssuer = s.IDPIssuer
 	o.IDPURL = s.IDPURL
+	o.AudienceURI = s.AudienceURI
 	o.CreateTime = s.CreateTime
 	o.Description = s.Description
 	o.ImportHash = s.ImportHash
@@ -221,6 +234,8 @@ func (o *SAMLSource) SetBSON(raw bson.Raw) error {
 	o.Modifier = s.Modifier
 	o.Name = s.Name
 	o.Namespace = s.Namespace
+	o.ServiceProviderIssuer = s.ServiceProviderIssuer
+	o.SkipResponseSignatureCheck = s.SkipResponseSignatureCheck
 	o.Subjects = s.Subjects
 	o.UpdateTime = s.UpdateTime
 	o.ZHash = s.ZHash
@@ -361,22 +376,25 @@ func (o *SAMLSource) ToSparse(fields ...string) elemental.SparseIdentifiable {
 	if len(fields) == 0 {
 		// nolint: goimports
 		return &SparseSAMLSource{
-			ID:             &o.ID,
-			IDPCertificate: &o.IDPCertificate,
-			IDPIssuer:      &o.IDPIssuer,
-			IDPMetadata:    &o.IDPMetadata,
-			IDPURL:         &o.IDPURL,
-			CreateTime:     &o.CreateTime,
-			Description:    &o.Description,
-			ImportHash:     &o.ImportHash,
-			ImportLabel:    &o.ImportLabel,
-			Modifier:       o.Modifier,
-			Name:           &o.Name,
-			Namespace:      &o.Namespace,
-			Subjects:       &o.Subjects,
-			UpdateTime:     &o.UpdateTime,
-			ZHash:          &o.ZHash,
-			Zone:           &o.Zone,
+			ID:                         &o.ID,
+			IDPCertificate:             &o.IDPCertificate,
+			IDPIssuer:                  &o.IDPIssuer,
+			IDPMetadata:                &o.IDPMetadata,
+			IDPURL:                     &o.IDPURL,
+			AudienceURI:                &o.AudienceURI,
+			CreateTime:                 &o.CreateTime,
+			Description:                &o.Description,
+			ImportHash:                 &o.ImportHash,
+			ImportLabel:                &o.ImportLabel,
+			Modifier:                   o.Modifier,
+			Name:                       &o.Name,
+			Namespace:                  &o.Namespace,
+			ServiceProviderIssuer:      &o.ServiceProviderIssuer,
+			SkipResponseSignatureCheck: &o.SkipResponseSignatureCheck,
+			Subjects:                   &o.Subjects,
+			UpdateTime:                 &o.UpdateTime,
+			ZHash:                      &o.ZHash,
+			Zone:                       &o.Zone,
 		}
 	}
 
@@ -393,6 +411,8 @@ func (o *SAMLSource) ToSparse(fields ...string) elemental.SparseIdentifiable {
 			sp.IDPMetadata = &(o.IDPMetadata)
 		case "IDPURL":
 			sp.IDPURL = &(o.IDPURL)
+		case "audienceURI":
+			sp.AudienceURI = &(o.AudienceURI)
 		case "createTime":
 			sp.CreateTime = &(o.CreateTime)
 		case "description":
@@ -407,6 +427,10 @@ func (o *SAMLSource) ToSparse(fields ...string) elemental.SparseIdentifiable {
 			sp.Name = &(o.Name)
 		case "namespace":
 			sp.Namespace = &(o.Namespace)
+		case "serviceProviderIssuer":
+			sp.ServiceProviderIssuer = &(o.ServiceProviderIssuer)
+		case "skipResponseSignatureCheck":
+			sp.SkipResponseSignatureCheck = &(o.SkipResponseSignatureCheck)
 		case "subjects":
 			sp.Subjects = &(o.Subjects)
 		case "updateTime":
@@ -443,6 +467,9 @@ func (o *SAMLSource) Patch(sparse elemental.SparseIdentifiable) {
 	if so.IDPURL != nil {
 		o.IDPURL = *so.IDPURL
 	}
+	if so.AudienceURI != nil {
+		o.AudienceURI = *so.AudienceURI
+	}
 	if so.CreateTime != nil {
 		o.CreateTime = *so.CreateTime
 	}
@@ -463,6 +490,12 @@ func (o *SAMLSource) Patch(sparse elemental.SparseIdentifiable) {
 	}
 	if so.Namespace != nil {
 		o.Namespace = *so.Namespace
+	}
+	if so.ServiceProviderIssuer != nil {
+		o.ServiceProviderIssuer = *so.ServiceProviderIssuer
+	}
+	if so.SkipResponseSignatureCheck != nil {
+		o.SkipResponseSignatureCheck = *so.SkipResponseSignatureCheck
 	}
 	if so.Subjects != nil {
 		o.Subjects = *so.Subjects
@@ -568,6 +601,8 @@ func (o *SAMLSource) ValueForAttribute(name string) any {
 		return o.IDPMetadata
 	case "IDPURL":
 		return o.IDPURL
+	case "audienceURI":
+		return o.AudienceURI
 	case "createTime":
 		return o.CreateTime
 	case "description":
@@ -582,6 +617,10 @@ func (o *SAMLSource) ValueForAttribute(name string) any {
 		return o.Name
 	case "namespace":
 		return o.Namespace
+	case "serviceProviderIssuer":
+		return o.ServiceProviderIssuer
+	case "skipResponseSignatureCheck":
+		return o.SkipResponseSignatureCheck
 	case "subjects":
 		return o.Subjects
 	case "updateTime":
@@ -650,6 +689,16 @@ with the data contained in the metadata file.`,
 		Description:    `URL of the identity provider.`,
 		Exposed:        true,
 		Name:           "IDPURL",
+		Stored:         true,
+		Type:           "string",
+	},
+	"AudienceURI": {
+		AllowedChoices: []string{},
+		BSONFieldName:  "audienceuri",
+		ConvertedName:  "AudienceURI",
+		Description:    `The AudienceURI expected for the response. If not provided, Acuvity will send the issuer URL.`,
+		Exposed:        true,
+		Name:           "audienceURI",
 		Stored:         true,
 		Type:           "string",
 	},
@@ -743,6 +792,26 @@ the claims that are about to be delivered using this authentication source.`,
 		Setter:         true,
 		Stored:         true,
 		Type:           "string",
+	},
+	"ServiceProviderIssuer": {
+		AllowedChoices: []string{},
+		BSONFieldName:  "serviceproviderissuer",
+		ConvertedName:  "ServiceProviderIssuer",
+		Description:    `The Service Provider Issuer which is represented by the client ID. If not provided, Acuvity will send the issuer URL.`,
+		Exposed:        true,
+		Name:           "serviceProviderIssuer",
+		Stored:         true,
+		Type:           "string",
+	},
+	"SkipResponseSignatureCheck": {
+		AllowedChoices: []string{},
+		BSONFieldName:  "skipresponsesignaturecheck",
+		ConvertedName:  "SkipResponseSignatureCheck",
+		Description:    `If true, the issue request won't check the ResponseSignatureValidated.`,
+		Exposed:        true,
+		Name:           "skipResponseSignatureCheck",
+		Stored:         true,
+		Type:           "boolean",
 	},
 	"Subjects": {
 		AllowedChoices: []string{},
@@ -857,6 +926,16 @@ with the data contained in the metadata file.`,
 		Stored:         true,
 		Type:           "string",
 	},
+	"audienceuri": {
+		AllowedChoices: []string{},
+		BSONFieldName:  "audienceuri",
+		ConvertedName:  "AudienceURI",
+		Description:    `The AudienceURI expected for the response. If not provided, Acuvity will send the issuer URL.`,
+		Exposed:        true,
+		Name:           "audienceURI",
+		Stored:         true,
+		Type:           "string",
+	},
 	"createtime": {
 		AllowedChoices: []string{},
 		Autogenerated:  true,
@@ -947,6 +1026,26 @@ the claims that are about to be delivered using this authentication source.`,
 		Setter:         true,
 		Stored:         true,
 		Type:           "string",
+	},
+	"serviceproviderissuer": {
+		AllowedChoices: []string{},
+		BSONFieldName:  "serviceproviderissuer",
+		ConvertedName:  "ServiceProviderIssuer",
+		Description:    `The Service Provider Issuer which is represented by the client ID. If not provided, Acuvity will send the issuer URL.`,
+		Exposed:        true,
+		Name:           "serviceProviderIssuer",
+		Stored:         true,
+		Type:           "string",
+	},
+	"skipresponsesignaturecheck": {
+		AllowedChoices: []string{},
+		BSONFieldName:  "skipresponsesignaturecheck",
+		ConvertedName:  "SkipResponseSignatureCheck",
+		Description:    `If true, the issue request won't check the ResponseSignatureValidated.`,
+		Exposed:        true,
+		Name:           "skipResponseSignatureCheck",
+		Stored:         true,
+		Type:           "boolean",
 	},
 	"subjects": {
 		AllowedChoices: []string{},
@@ -1083,6 +1182,9 @@ type SparseSAMLSource struct {
 	// URL of the identity provider.
 	IDPURL *string `json:"IDPURL,omitempty" msgpack:"IDPURL,omitempty" bson:"idpurl,omitempty" mapstructure:"IDPURL,omitempty"`
 
+	// The AudienceURI expected for the response. If not provided, Acuvity will send the issuer URL.
+	AudienceURI *string `json:"audienceURI,omitempty" msgpack:"audienceURI,omitempty" bson:"audienceuri,omitempty" mapstructure:"audienceURI,omitempty"`
+
 	// Creation date of the object.
 	CreateTime *time.Time `json:"createTime,omitempty" msgpack:"createTime,omitempty" bson:"createtime,omitempty" mapstructure:"createTime,omitempty"`
 
@@ -1105,6 +1207,12 @@ type SparseSAMLSource struct {
 
 	// The namespace of the object.
 	Namespace *string `json:"namespace,omitempty" msgpack:"namespace,omitempty" bson:"namespace,omitempty" mapstructure:"namespace,omitempty"`
+
+	// The Service Provider Issuer which is represented by the client ID. If not provided, Acuvity will send the issuer URL.
+	ServiceProviderIssuer *string `json:"serviceProviderIssuer,omitempty" msgpack:"serviceProviderIssuer,omitempty" bson:"serviceproviderissuer,omitempty" mapstructure:"serviceProviderIssuer,omitempty"`
+
+	// If true, the issue request won't check the ResponseSignatureValidated.
+	SkipResponseSignatureCheck *bool `json:"skipResponseSignatureCheck,omitempty" msgpack:"skipResponseSignatureCheck,omitempty" bson:"skipresponsesignaturecheck,omitempty" mapstructure:"skipResponseSignatureCheck,omitempty"`
 
 	// List of claims that will provide the subject.
 	Subjects *[]string `json:"subjects,omitempty" msgpack:"subjects,omitempty" bson:"subjects,omitempty" mapstructure:"subjects,omitempty"`
@@ -1173,6 +1281,9 @@ func (o *SparseSAMLSource) GetBSON() (any, error) {
 	if o.IDPURL != nil {
 		s.IDPURL = o.IDPURL
 	}
+	if o.AudienceURI != nil {
+		s.AudienceURI = o.AudienceURI
+	}
 	if o.CreateTime != nil {
 		s.CreateTime = o.CreateTime
 	}
@@ -1193,6 +1304,12 @@ func (o *SparseSAMLSource) GetBSON() (any, error) {
 	}
 	if o.Namespace != nil {
 		s.Namespace = o.Namespace
+	}
+	if o.ServiceProviderIssuer != nil {
+		s.ServiceProviderIssuer = o.ServiceProviderIssuer
+	}
+	if o.SkipResponseSignatureCheck != nil {
+		s.SkipResponseSignatureCheck = o.SkipResponseSignatureCheck
 	}
 	if o.Subjects != nil {
 		s.Subjects = o.Subjects
@@ -1234,6 +1351,9 @@ func (o *SparseSAMLSource) SetBSON(raw bson.Raw) error {
 	if s.IDPURL != nil {
 		o.IDPURL = s.IDPURL
 	}
+	if s.AudienceURI != nil {
+		o.AudienceURI = s.AudienceURI
+	}
 	if s.CreateTime != nil {
 		o.CreateTime = s.CreateTime
 	}
@@ -1254,6 +1374,12 @@ func (o *SparseSAMLSource) SetBSON(raw bson.Raw) error {
 	}
 	if s.Namespace != nil {
 		o.Namespace = s.Namespace
+	}
+	if s.ServiceProviderIssuer != nil {
+		o.ServiceProviderIssuer = s.ServiceProviderIssuer
+	}
+	if s.SkipResponseSignatureCheck != nil {
+		o.SkipResponseSignatureCheck = s.SkipResponseSignatureCheck
 	}
 	if s.Subjects != nil {
 		o.Subjects = s.Subjects
@@ -1296,6 +1422,9 @@ func (o *SparseSAMLSource) ToPlain() elemental.PlainIdentifiable {
 	if o.IDPURL != nil {
 		out.IDPURL = *o.IDPURL
 	}
+	if o.AudienceURI != nil {
+		out.AudienceURI = *o.AudienceURI
+	}
 	if o.CreateTime != nil {
 		out.CreateTime = *o.CreateTime
 	}
@@ -1316,6 +1445,12 @@ func (o *SparseSAMLSource) ToPlain() elemental.PlainIdentifiable {
 	}
 	if o.Namespace != nil {
 		out.Namespace = *o.Namespace
+	}
+	if o.ServiceProviderIssuer != nil {
+		out.ServiceProviderIssuer = *o.ServiceProviderIssuer
+	}
+	if o.SkipResponseSignatureCheck != nil {
+		out.SkipResponseSignatureCheck = *o.SkipResponseSignatureCheck
 	}
 	if o.Subjects != nil {
 		out.Subjects = *o.Subjects
@@ -1486,36 +1621,42 @@ func (o *SparseSAMLSource) DeepCopyInto(out *SparseSAMLSource) {
 }
 
 type mongoAttributesSAMLSource struct {
-	ID             bson.ObjectId     `bson:"_id,omitempty"`
-	IDPCertificate string            `bson:"idpcertificate"`
-	IDPIssuer      string            `bson:"idpissuer"`
-	IDPURL         string            `bson:"idpurl"`
-	CreateTime     time.Time         `bson:"createtime"`
-	Description    string            `bson:"description"`
-	ImportHash     string            `bson:"importhash,omitempty"`
-	ImportLabel    string            `bson:"importlabel,omitempty"`
-	Modifier       *IdentityModifier `bson:"modifier,omitempty"`
-	Name           string            `bson:"name"`
-	Namespace      string            `bson:"namespace"`
-	Subjects       []string          `bson:"subjects"`
-	UpdateTime     time.Time         `bson:"updatetime"`
-	ZHash          int               `bson:"zhash"`
-	Zone           int               `bson:"zone"`
+	ID                         bson.ObjectId     `bson:"_id,omitempty"`
+	IDPCertificate             string            `bson:"idpcertificate"`
+	IDPIssuer                  string            `bson:"idpissuer"`
+	IDPURL                     string            `bson:"idpurl"`
+	AudienceURI                string            `bson:"audienceuri"`
+	CreateTime                 time.Time         `bson:"createtime"`
+	Description                string            `bson:"description"`
+	ImportHash                 string            `bson:"importhash,omitempty"`
+	ImportLabel                string            `bson:"importlabel,omitempty"`
+	Modifier                   *IdentityModifier `bson:"modifier,omitempty"`
+	Name                       string            `bson:"name"`
+	Namespace                  string            `bson:"namespace"`
+	ServiceProviderIssuer      string            `bson:"serviceproviderissuer"`
+	SkipResponseSignatureCheck bool              `bson:"skipresponsesignaturecheck"`
+	Subjects                   []string          `bson:"subjects"`
+	UpdateTime                 time.Time         `bson:"updatetime"`
+	ZHash                      int               `bson:"zhash"`
+	Zone                       int               `bson:"zone"`
 }
 type mongoAttributesSparseSAMLSource struct {
-	ID             bson.ObjectId     `bson:"_id,omitempty"`
-	IDPCertificate *string           `bson:"idpcertificate,omitempty"`
-	IDPIssuer      *string           `bson:"idpissuer,omitempty"`
-	IDPURL         *string           `bson:"idpurl,omitempty"`
-	CreateTime     *time.Time        `bson:"createtime,omitempty"`
-	Description    *string           `bson:"description,omitempty"`
-	ImportHash     *string           `bson:"importhash,omitempty"`
-	ImportLabel    *string           `bson:"importlabel,omitempty"`
-	Modifier       *IdentityModifier `bson:"modifier,omitempty"`
-	Name           *string           `bson:"name,omitempty"`
-	Namespace      *string           `bson:"namespace,omitempty"`
-	Subjects       *[]string         `bson:"subjects,omitempty"`
-	UpdateTime     *time.Time        `bson:"updatetime,omitempty"`
-	ZHash          *int              `bson:"zhash,omitempty"`
-	Zone           *int              `bson:"zone,omitempty"`
+	ID                         bson.ObjectId     `bson:"_id,omitempty"`
+	IDPCertificate             *string           `bson:"idpcertificate,omitempty"`
+	IDPIssuer                  *string           `bson:"idpissuer,omitempty"`
+	IDPURL                     *string           `bson:"idpurl,omitempty"`
+	AudienceURI                *string           `bson:"audienceuri,omitempty"`
+	CreateTime                 *time.Time        `bson:"createtime,omitempty"`
+	Description                *string           `bson:"description,omitempty"`
+	ImportHash                 *string           `bson:"importhash,omitempty"`
+	ImportLabel                *string           `bson:"importlabel,omitempty"`
+	Modifier                   *IdentityModifier `bson:"modifier,omitempty"`
+	Name                       *string           `bson:"name,omitempty"`
+	Namespace                  *string           `bson:"namespace,omitempty"`
+	ServiceProviderIssuer      *string           `bson:"serviceproviderissuer,omitempty"`
+	SkipResponseSignatureCheck *bool             `bson:"skipresponsesignaturecheck,omitempty"`
+	Subjects                   *[]string         `bson:"subjects,omitempty"`
+	UpdateTime                 *time.Time        `bson:"updatetime,omitempty"`
+	ZHash                      *int              `bson:"zhash,omitempty"`
+	Zone                       *int              `bson:"zone,omitempty"`
 }
