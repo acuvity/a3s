@@ -1,0 +1,191 @@
+{
+  "$extends": [
+    "@sharded",
+    "@identifiable",
+    "@importable",
+    "@timed"
+  ],
+  "$friendlyName": "LDAPSource",
+  "$friendlyNamePlural": "LDAPSources",
+  "$modelName": "LDAPSource",
+  "$modelPackage": "a3s",
+  "$modelResourceName": "ldapsources",
+  "$modelRestName": "ldapsource",
+  "additionalProperties": true,
+  "description": "Defines a remote LDAP to use as an authentication source.",
+  "properties": {
+    "CA": {
+      "$friendlyName": "CA",
+      "description": "Can be left empty if the LDAP server's certificate is signed by a public, trusted certificate authority. Otherwise, include the public key of the certificate authority that signed the LDAP server's certificate.",
+      "title": "CA",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "ID": {
+      "$friendlyName": "ID",
+      "$readOnly": true,
+      "description": "ID is the identifier of the object.",
+      "title": "ID",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "address": {
+      "$friendlyName": "Address",
+      "$required": true,
+      "description": "IP address or FQDN of the LDAP server.",
+      "title": "address",
+      "type": "string"
+    },
+    "baseDN": {
+      "$friendlyName": "BaseDN",
+      "$required": true,
+      "description": "The base distinguished name (DN) to use for LDAP queries.",
+      "title": "baseDN",
+      "type": "string"
+    },
+    "bindDN": {
+      "$friendlyName": "BindDN",
+      "$required": true,
+      "description": "The DN to use to bind to the LDAP server.",
+      "title": "bindDN",
+      "type": "string"
+    },
+    "bindPassword": {
+      "$friendlyName": "BindPassword",
+      "$required": true,
+      "description": "Password to be used with the `bindDN` to authenticate to the LDAP server.",
+      "title": "bindPassword",
+      "type": "string"
+    },
+    "bindSearchFilter": {
+      "$defaultValue": "uid={USERNAME}",
+      "$friendlyName": "BindSearchFilter",
+      "description": "The filter to use to locate the relevant user accounts. For Windows-based systems, the value may be `sAMAccountName={USERNAME}`. For Linux and other systems, the value may be `uid={USERNAME}`.",
+      "title": "bindSearchFilter",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "createTime": {
+      "$friendlyName": "CreateTime",
+      "$readOnly": true,
+      "description": "Creation date of the object.",
+      "title": "createTime",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "description": {
+      "$friendlyName": "Description",
+      "description": "The description of the object.",
+      "title": "description",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "ignoredKeys": {
+      "$friendlyName": "IgnoredKeys",
+      "description": "A list of keys that must not be imported into the identity token. If `includedKeys` is also set, and a key is in both lists, the key will be ignored.",
+      "items": {
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "title": "ignoredKeys",
+      "type": "array"
+    },
+    "importHash": {
+      "$creationOnly": true,
+      "$friendlyName": "ImportHash",
+      "description": "The hash of the structure used to compare with new import version.",
+      "title": "importHash",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "importLabel": {
+      "$creationOnly": true,
+      "$friendlyName": "ImportLabel",
+      "description": "The user-defined import label that allows the system to group resources from the same import operation.",
+      "title": "importLabel",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "includedKeys": {
+      "$friendlyName": "IncludedKeys",
+      "description": "A list of keys that must be imported into the identity token. If `ignoredKeys` is also set, and a key is in both lists, the key will be ignored.",
+      "items": {
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "title": "includedKeys",
+      "type": "array"
+    },
+    "modifier": {
+      "$friendlyName": "Modifier",
+      "$ref": "identitymodifier.json",
+      "description": "Contains optional information about a remote service that can be used to modify the claims that are about to be delivered using this authentication source.",
+      "title": "modifier"
+    },
+    "name": {
+      "$friendlyName": "Name",
+      "$required": true,
+      "description": "The name of the source.",
+      "title": "name",
+      "type": "string"
+    },
+    "namespace": {
+      "$friendlyName": "Namespace",
+      "$readOnly": true,
+      "description": "The namespace of the object.",
+      "title": "namespace",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "securityProtocol": {
+      "$defaultValue": "TLS",
+      "$friendlyName": "SecurityProtocol",
+      "description": "Specifies the connection type for the LDAP provider.",
+      "enum": [
+        "TLS",
+        "InbandTLS",
+        "None"
+      ],
+      "title": "securityProtocol"
+    },
+    "updateTime": {
+      "$friendlyName": "UpdateTime",
+      "$readOnly": true,
+      "description": "Last update date of the object.",
+      "title": "updateTime",
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  },
+  "required": [
+    "address",
+    "baseDN",
+    "bindDN",
+    "bindPassword",
+    "name"
+  ],
+  "title": "LDAPSource",
+  "type": "object"
+}

@@ -1,0 +1,117 @@
+{
+  "$extends": [
+    "@importable",
+    "@sharded",
+    "@identifiable",
+    "@timed"
+  ],
+  "$friendlyName": "Namespace",
+  "$friendlyNamePlural": "Namespaces",
+  "$modelName": "Namespace",
+  "$modelPackage": "a3s",
+  "$modelResourceName": "namespaces",
+  "$modelRestName": "namespace",
+  "additionalProperties": true,
+  "description": "A namespace is grouping object. Every object is part of a namespace, and every request is made against a namespace. Namespaces form a tree hierarchy.",
+  "properties": {
+    "ID": {
+      "$friendlyName": "ID",
+      "$readOnly": true,
+      "description": "ID is the identifier of the object.",
+      "title": "ID",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "createTime": {
+      "$friendlyName": "CreateTime",
+      "$readOnly": true,
+      "description": "Creation date of the object.",
+      "title": "createTime",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "description": {
+      "$friendlyName": "Description",
+      "description": "The description of the object.",
+      "title": "description",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "importHash": {
+      "$creationOnly": true,
+      "$friendlyName": "ImportHash",
+      "description": "The hash of the structure used to compare with new import version.",
+      "title": "importHash",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "importLabel": {
+      "$creationOnly": true,
+      "$friendlyName": "ImportLabel",
+      "description": "The user-defined import label that allows the system to group resources from the same import operation.",
+      "title": "importLabel",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "label": {
+      "$friendlyName": "Label",
+      "description": "Allows users to set a label to categorize the namespace.",
+      "title": "label",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "name": {
+      "$creationOnly": true,
+      "$friendlyName": "Name",
+      "$required": true,
+      "description": "The name of the namespace. When you create a namespace, only put its bare name, not its full path.",
+      "pattern": "^[a-zA-Z0-9-_/@.]+$",
+      "title": "name",
+      "type": "string"
+    },
+    "namespace": {
+      "$friendlyName": "Namespace",
+      "$readOnly": true,
+      "description": "The namespace of the object.",
+      "title": "namespace",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "opaque": {
+      "$friendlyName": "Opaque",
+      "additionalProperties": true,
+      "description": "Opaque allows to store abitrary data into the authorization.",
+      "title": "opaque",
+      "type": "object"
+    },
+    "updateTime": {
+      "$friendlyName": "UpdateTime",
+      "$readOnly": true,
+      "description": "Last update date of the object.",
+      "title": "updateTime",
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  },
+  "required": [
+    "name"
+  ],
+  "title": "Namespace",
+  "type": "object"
+}

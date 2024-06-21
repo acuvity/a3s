@@ -1,0 +1,145 @@
+{
+  "$extends": [
+    "@sharded",
+    "@identifiable",
+    "@importable",
+    "@timed"
+  ],
+  "$friendlyName": "Group",
+  "$friendlyNamePlural": "Groups",
+  "$modelName": "Group",
+  "$modelPackage": "a3s",
+  "$modelResourceName": "groups",
+  "$modelRestName": "group",
+  "additionalProperties": true,
+  "description": "TODO.",
+  "properties": {
+    "ID": {
+      "$friendlyName": "ID",
+      "$readOnly": true,
+      "description": "ID is the identifier of the object.",
+      "title": "ID",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "createTime": {
+      "$friendlyName": "CreateTime",
+      "$readOnly": true,
+      "description": "Creation date of the object.",
+      "title": "createTime",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "description": {
+      "$friendlyName": "Description",
+      "description": "Description of the group.",
+      "title": "description",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "disabled": {
+      "$friendlyName": "Disabled",
+      "description": "Set the group to be disabled.",
+      "title": "disabled",
+      "type": [
+        "boolean",
+        "null"
+      ]
+    },
+    "importHash": {
+      "$creationOnly": true,
+      "$friendlyName": "ImportHash",
+      "description": "The hash of the structure used to compare with new import version.",
+      "title": "importHash",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "importLabel": {
+      "$creationOnly": true,
+      "$friendlyName": "ImportLabel",
+      "description": "The user-defined import label that allows the system to group resources from the same import operation.",
+      "title": "importLabel",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "label": {
+      "$friendlyName": "Label",
+      "description": "Allows users to set a label to categorize group policies.",
+      "title": "label",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "name": {
+      "$friendlyName": "Name",
+      "$required": true,
+      "description": "The name of the group.",
+      "title": "name",
+      "type": "string"
+    },
+    "namespace": {
+      "$friendlyName": "Namespace",
+      "$readOnly": true,
+      "description": "The namespace of the object.",
+      "title": "namespace",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "opaque": {
+      "$friendlyName": "Opaque",
+      "additionalProperties": true,
+      "description": "Opaque allows to store abitrary data into the group.",
+      "title": "opaque",
+      "type": "object"
+    },
+    "subject": {
+      "$friendlyName": "Subject",
+      "description": "A tag expression that identifies the authorized user(s).",
+      "items": {
+        "items": {
+          "type": "string"
+        },
+        "type": "array"
+      },
+      "title": "subject",
+      "type": "array"
+    },
+    "updateTime": {
+      "$friendlyName": "UpdateTime",
+      "$readOnly": true,
+      "description": "Last update date of the object.",
+      "title": "updateTime",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "weight": {
+      "$friendlyName": "Weight",
+      "description": "If single group mode is used during permissions retrieval, use this weight to select which single group should be used. The higher the weight, the more likely the group will be selected.",
+      "title": "weight",
+      "type": [
+        "integer",
+        "null"
+      ]
+    }
+  },
+  "required": [
+    "name"
+  ],
+  "title": "Group",
+  "type": "object"
+}

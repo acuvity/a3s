@@ -1,0 +1,25 @@
+{
+  "$extends": [],
+  "$friendlyName": "IssueAzure",
+  "$friendlyNamePlural": "IssueAzures",
+  "$modelName": "IssueAzure",
+  "$modelPackage": "a3s",
+  "$modelResourceName": "issueazure",
+  "$modelRestName": "issueazure",
+  "additionalProperties": true,
+  "description": "Additional issuing information for Azure identity token source.",
+  "properties": {
+    "token": {
+      "$friendlyName": "Token",
+      "$required": true,
+      "description": "The original token.",
+      "title": "token",
+      "type": "string"
+    }
+  },
+  "required": [
+    "token"
+  ],
+  "title": "IssueAzure",
+  "type": "object"
+}

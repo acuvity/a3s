@@ -20,6 +20,7 @@ codegen:
 	mv codegen/openapi3 openapi3
 	rm -rf codegen
 	data=$$(rego doc -d specs || exit 1) && echo -e "$${data}" > doc/documentation.md
+	rego jsonschema -d specs -o jsonschema || exit 1
 
 format: format-specs format-type format-validation format-parameter
 format-specs:

@@ -3,7 +3,7 @@ model:
   rest_name: samlsource
   resource_name: samlsources
   entity_name: SAMLSource
-  friendly_name: SAMLSource
+  friendly_name: SAML Source
   package: a3s
   group: authn/source
   description: Defines a remote SAML to use as an authentication source.
@@ -43,7 +43,7 @@ attributes:
       -----END CERTIFICATE REQUEST-----
 
   - name: IDPIssuer
-    friendly_name: IDPIssuer
+    friendly_name: IDP Issuer
     description: Identity Provider Issuer (also called Entity ID).
     type: string
     exposed: true
@@ -51,7 +51,7 @@ attributes:
     example_value: https://accounts.google.com/o/saml2/idp?idpid=AbDcef123
 
   - name: IDPMetadata
-    friendly_name: IDPMetadata
+    friendly_name: IDP Metadata
     description: |-
       Pass some XML data containing the IDP metadata that can be used for automatic
       configuration. If you pass this attribute, every other one will be overwritten
@@ -61,7 +61,7 @@ attributes:
     omit_empty: true
 
   - name: IDPURL
-    friendly_name: IDPURL
+    friendly_name: IDP URL
     description: URL of the identity provider.
     type: string
     exposed: true

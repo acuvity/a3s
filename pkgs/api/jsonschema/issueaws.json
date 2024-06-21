@@ -1,0 +1,41 @@
+{
+  "$extends": [],
+  "$friendlyName": "IssueAWS",
+  "$friendlyNamePlural": "IssueAWSs",
+  "$modelName": "IssueAWS",
+  "$modelPackage": "a3s",
+  "$modelResourceName": "issueaws",
+  "$modelRestName": "issueaws",
+  "additionalProperties": true,
+  "description": "Additional issuing information for AWS STS token source.",
+  "properties": {
+    "ID": {
+      "$friendlyName": "ID",
+      "$required": true,
+      "description": "The ID of the AWS STS token.",
+      "title": "ID",
+      "type": "string"
+    },
+    "secret": {
+      "$friendlyName": "Secret",
+      "$required": true,
+      "description": "The secret associated to the AWS STS token.",
+      "title": "secret",
+      "type": "string"
+    },
+    "token": {
+      "$friendlyName": "Token",
+      "$required": true,
+      "description": "The original token.",
+      "title": "token",
+      "type": "string"
+    }
+  },
+  "required": [
+    "ID",
+    "secret",
+    "token"
+  ],
+  "title": "IssueAWS",
+  "type": "object"
+}

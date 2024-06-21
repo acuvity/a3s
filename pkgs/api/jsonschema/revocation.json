@@ -1,0 +1,78 @@
+{
+  "$extends": [
+    "@sharded",
+    "@identifiable",
+    "@timed"
+  ],
+  "$friendlyName": "Revocation",
+  "$friendlyNamePlural": "Revocations",
+  "$modelName": "Revocation",
+  "$modelPackage": "a3s",
+  "$modelResourceName": "revocations",
+  "$modelRestName": "revocation",
+  "additionalProperties": true,
+  "description": "A Revocation allows to mark a token as revoked based on its ID (jti).",
+  "properties": {
+    "ID": {
+      "$friendlyName": "ID",
+      "$readOnly": true,
+      "description": "ID is the identifier of the object.",
+      "title": "ID",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "createTime": {
+      "$friendlyName": "CreateTime",
+      "$readOnly": true,
+      "description": "Creation date of the object.",
+      "title": "createTime",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "expiration": {
+      "$friendlyName": "Expiration",
+      "description": "The expiration date of the token.",
+      "title": "expiration",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "namespace": {
+      "$friendlyName": "Namespace",
+      "$readOnly": true,
+      "description": "The namespace of the object.",
+      "title": "namespace",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "tokenID": {
+      "$friendlyName": "TokenID",
+      "$required": true,
+      "description": "The ID of the revoked token.",
+      "title": "tokenID",
+      "type": "string"
+    },
+    "updateTime": {
+      "$friendlyName": "UpdateTime",
+      "$readOnly": true,
+      "description": "Last update date of the object.",
+      "title": "updateTime",
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  },
+  "required": [
+    "tokenID"
+  ],
+  "title": "Revocation",
+  "type": "object"
+}

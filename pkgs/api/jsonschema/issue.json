@@ -1,0 +1,243 @@
+{
+  "$extends": [],
+  "$friendlyName": "Issue",
+  "$friendlyNamePlural": "Issues",
+  "$modelName": "Issue",
+  "$modelPackage": "authn",
+  "$modelResourceName": "issue",
+  "$modelRestName": "issue",
+  "additionalProperties": true,
+  "description": "Issues a new a normalized token using various authentication sources.",
+  "properties": {
+    "audience": {
+      "$friendlyName": "Audience",
+      "description": "Requested audience for the delivered token.",
+      "items": {
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "title": "audience",
+      "type": "array"
+    },
+    "claims": {
+      "$friendlyName": "Claims",
+      "$readOnly": true,
+      "description": "The list of claims delivered in the token. This can be useful when the caller needs to have information about the user when token is delivered as a secure httpOnly cookie.",
+      "items": {
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "title": "claims",
+      "type": "array"
+    },
+    "cloak": {
+      "$friendlyName": "Cloak",
+      "description": "Sets a list of identity claim prefix to allow in the final token. This can be used to hide some information when asking for a token as not all systems need to know all of the claims.",
+      "items": {
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "title": "cloak",
+      "type": "array"
+    },
+    "cookie": {
+      "$friendlyName": "Cookie",
+      "description": "If set, return the token as a secure cookie.",
+      "title": "cookie",
+      "type": [
+        "boolean",
+        "null"
+      ]
+    },
+    "cookieDomain": {
+      "$friendlyName": "CookieDomain",
+      "description": "If set, use the provided domain for the delivered cookie.",
+      "title": "cookieDomain",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "inputA3S": {
+      "$friendlyName": "InputA3S",
+      "$ref": "issuea3s.json",
+      "description": "Contains additional information for an A3S token source.",
+      "title": "inputA3S"
+    },
+    "inputAWS": {
+      "$friendlyName": "InputAWS",
+      "$ref": "issueaws.json",
+      "description": "Contains additional information for an AWS STS token source.",
+      "title": "inputAWS"
+    },
+    "inputAzure": {
+      "$friendlyName": "InputAzure",
+      "$ref": "issueazure.json",
+      "description": "Contains additional information for an Azure token source.",
+      "title": "inputAzure"
+    },
+    "inputGCP": {
+      "$friendlyName": "InputGCP",
+      "$ref": "issuegcp.json",
+      "description": "Contains additional information for an GCP token source.",
+      "title": "inputGCP"
+    },
+    "inputHTTP": {
+      "$friendlyName": "InputHTTP",
+      "$ref": "issuehttp.json",
+      "description": "Contains additional information for an HTTP source.",
+      "title": "inputHTTP"
+    },
+    "inputLDAP": {
+      "$friendlyName": "InputLDAP",
+      "$ref": "issueldap.json",
+      "description": "Contains additional information for an LDAP source.",
+      "title": "inputLDAP"
+    },
+    "inputOIDC": {
+      "$friendlyName": "InputOIDC",
+      "$ref": "issueoidc.json",
+      "description": "Contains additional information for an OIDC source.",
+      "title": "inputOIDC"
+    },
+    "inputRemoteA3S": {
+      "$friendlyName": "InputRemoteA3S",
+      "$ref": "issueremotea3s.json",
+      "description": "Contains additional information for a remote A3S token source.",
+      "title": "inputRemoteA3S"
+    },
+    "inputSAML": {
+      "$friendlyName": "InputSAML",
+      "$ref": "issuesaml.json",
+      "description": "Contains additional information for an SAML source.",
+      "title": "inputSAML"
+    },
+    "opaque": {
+      "$friendlyName": "Opaque",
+      "additionalProperties": {
+        "type": "string"
+      },
+      "description": "Opaque data that will be included in the issued token.",
+      "title": "opaque",
+      "type": "object"
+    },
+    "restrictedNamespace": {
+      "$friendlyName": "RestrictedNamespace",
+      "description": "Restricts the namespace where the token can be used.  For instance, if you have have access to `/namespace` and below, you can tell the policy engine that it should restrict further more to `/namespace/child`.  Restricting to a namespace you don't have initially access according to the policy engine has no effect and may end up making the token unusable.",
+      "title": "restrictedNamespace",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "restrictedNetworks": {
+      "$friendlyName": "RestrictedNetworks",
+      "description": "Restricts the networks from where the token can be used. This will reduce the existing set of authorized networks that normally apply to the token according to the policy engine.  For instance, If you have authorized access from `0.0.0.0/0` (by default) or from `10.0.0.0/8`, you can ask for a token that will only be valid if used from `10.1.0.0/16`.  Restricting to a network that is not initially authorized by the policy engine has no effect and may end up making the token unusable.",
+      "items": {
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "title": "restrictedNetworks",
+      "type": "array"
+    },
+    "restrictedPermissions": {
+      "$friendlyName": "RestrictedPermissions",
+      "description": "Restricts the permissions of token. This will reduce the existing permissions that normally apply to the token according to the policy engine.  For instance, if you have administrative role, you can ask for a token that will tell the policy engine to reduce the permission it would have granted to what is given defined in the token.  Restricting to some permissions you don't initially have according to the policy engine has no effect and may end up making the token unusable.",
+      "items": {
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "title": "restrictedPermissions",
+      "type": "array"
+    },
+    "sourceName": {
+      "$friendlyName": "SourceName",
+      "description": "The name of the source to use.",
+      "title": "sourceName",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "sourceNamespace": {
+      "$friendlyName": "SourceNamespace",
+      "description": "The namespace of the source to use.",
+      "title": "sourceNamespace",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "sourceType": {
+      "$friendlyName": "SourceType",
+      "$required": true,
+      "description": "The authentication source. This will define how to verify credentials from internal or external source of authentication.",
+      "enum": [
+        "A3S",
+        "AWS",
+        "Azure",
+        "GCP",
+        "HTTP",
+        "LDAP",
+        "MTLS",
+        "OIDC",
+        "RemoteA3S",
+        "SAML"
+      ],
+      "title": "sourceType"
+    },
+    "token": {
+      "$friendlyName": "Token",
+      "$readOnly": true,
+      "description": "Issued token.",
+      "title": "token",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "tokenType": {
+      "$defaultValue": "Identity",
+      "$friendlyName": "TokenType",
+      "description": "The type of token to issue.",
+      "enum": [
+        "Identity",
+        "Refresh"
+      ],
+      "title": "tokenType"
+    },
+    "validity": {
+      "$friendlyName": "Validity",
+      "description": "Configures the maximum length of validity for a token, using [Golang duration syntax](https://golang.org/pkg/time/#example_Duration).",
+      "title": "validity",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "waiveValiditySecret": {
+      "$friendlyName": "Waive Validity Secret",
+      "description": "If A3S has been started --jwt-waive-validity-secret and this propery matches it, no validity limit will be enforced.",
+      "title": "waiveValiditySecret",
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  },
+  "required": [
+    "sourceType"
+  ],
+  "title": "Issue",
+  "type": "object"
+}

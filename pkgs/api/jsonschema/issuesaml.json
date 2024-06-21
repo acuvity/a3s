@@ -1,0 +1,71 @@
+{
+  "$extends": [],
+  "$friendlyName": "IssueSAML",
+  "$friendlyNamePlural": "IssueSAMLs",
+  "$modelName": "IssueSAML",
+  "$modelPackage": "a3s",
+  "$modelResourceName": "issuesaml",
+  "$modelRestName": "issuesaml",
+  "additionalProperties": true,
+  "description": "Additional issuing information for the SAML source.",
+  "properties": {
+    "SAMLResponse": {
+      "$friendlyName": "RedirectURL",
+      "description": "OIDC redirect url.",
+      "title": "SAMLResponse",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "authURL": {
+      "$friendlyName": "AuthURL",
+      "$readOnly": true,
+      "description": "Contains the auth URL is noAuthRedirect is set to true.",
+      "title": "authURL",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "noAuthRedirect": {
+      "$friendlyName": "NoAuthRedirect",
+      "description": "If set, instruct the server to return the OIDC auth url in authURL instead of performing an HTTP redirection.",
+      "title": "noAuthRedirect",
+      "type": [
+        "boolean",
+        "null"
+      ]
+    },
+    "redirectErrorURL": {
+      "$friendlyName": "RedirectErrorURL",
+      "description": "OIDC redirect url in case of error.",
+      "title": "redirectErrorURL",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "redirectURL": {
+      "$friendlyName": "RedirectURL",
+      "description": "OIDC redirect url.",
+      "title": "redirectURL",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "relayState": {
+      "$friendlyName": "Relay State",
+      "description": "OIDC ceremony state.",
+      "title": "relayState",
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  },
+  "required": [],
+  "title": "IssueSAML",
+  "type": "object"
+}

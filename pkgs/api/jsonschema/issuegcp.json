@@ -1,0 +1,34 @@
+{
+  "$extends": [],
+  "$friendlyName": "IssueGCP",
+  "$friendlyNamePlural": "IssueGCPs",
+  "$modelName": "IssueGCP",
+  "$modelPackage": "a3s",
+  "$modelResourceName": "issuegcp",
+  "$modelRestName": "issuegcp",
+  "additionalProperties": true,
+  "description": "Additional issuing information for GCP identity token source.",
+  "properties": {
+    "audience": {
+      "$friendlyName": "Audience",
+      "description": "The required audience.",
+      "title": "audience",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "token": {
+      "$friendlyName": "Token",
+      "$required": true,
+      "description": "The original token.",
+      "title": "token",
+      "type": "string"
+    }
+  },
+  "required": [
+    "token"
+  ],
+  "title": "IssueGCP",
+  "type": "object"
+}

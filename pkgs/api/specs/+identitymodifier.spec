@@ -3,7 +3,7 @@ model:
   rest_name: identitymodifier
   resource_name: identitymodifier
   entity_name: IdentityModifier
-  friendly_name: IdentityModifier
+  friendly_name: Identity Modifier
   package: a3s
   group: authn/source
   description: |-

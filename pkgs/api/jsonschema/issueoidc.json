@@ -1,0 +1,71 @@
+{
+  "$extends": [],
+  "$friendlyName": "IssueOIDC",
+  "$friendlyNamePlural": "IssueOIDCs",
+  "$modelName": "IssueOIDC",
+  "$modelPackage": "a3s",
+  "$modelResourceName": "issueoidc",
+  "$modelRestName": "issueoidc",
+  "additionalProperties": true,
+  "description": "Additional issuing information for the OIDC source.",
+  "properties": {
+    "authURL": {
+      "$friendlyName": "AuthURL",
+      "$readOnly": true,
+      "description": "Contains the auth URL is noAuthRedirect is set to true.",
+      "title": "authURL",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "code": {
+      "$friendlyName": "Code",
+      "description": "OIDC ceremony code.",
+      "title": "code",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "noAuthRedirect": {
+      "$friendlyName": "NoAuthRedirect",
+      "description": "If set, instruct the server to return the OIDC auth url in authURL instead of performing an HTTP redirection.",
+      "title": "noAuthRedirect",
+      "type": [
+        "boolean",
+        "null"
+      ]
+    },
+    "redirectErrorURL": {
+      "$friendlyName": "RedirectErrorURL",
+      "description": "OIDC redirect url in case of error.",
+      "title": "redirectErrorURL",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "redirectURL": {
+      "$friendlyName": "RedirectURL",
+      "description": "OIDC redirect url.",
+      "title": "redirectURL",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "state": {
+      "$friendlyName": "State",
+      "description": "OIDC ceremony state.",
+      "title": "state",
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  },
+  "required": [],
+  "title": "IssueOIDC",
+  "type": "object"
+}

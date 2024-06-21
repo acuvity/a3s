@@ -1,0 +1,180 @@
+{
+  "$extends": [
+    "@sharded",
+    "@identifiable",
+    "@importable",
+    "@timed"
+  ],
+  "$friendlyName": "SAML Source",
+  "$friendlyNamePlural": "SAML Sources",
+  "$modelName": "SAMLSource",
+  "$modelPackage": "a3s",
+  "$modelResourceName": "samlsources",
+  "$modelRestName": "samlsource",
+  "additionalProperties": true,
+  "description": "Defines a remote SAML to use as an authentication source.",
+  "properties": {
+    "ID": {
+      "$friendlyName": "ID",
+      "$readOnly": true,
+      "description": "ID is the identifier of the object.",
+      "title": "ID",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "IDPCertificate": {
+      "$friendlyName": "IDP Certificate",
+      "description": "Identity Provider Certificate in PEM format.",
+      "title": "IDPCertificate",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "IDPIssuer": {
+      "$friendlyName": "IDP Issuer",
+      "description": "Identity Provider Issuer (also called Entity ID).",
+      "title": "IDPIssuer",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "IDPMetadata": {
+      "$friendlyName": "IDP Metadata",
+      "description": "Pass some XML data containing the IDP metadata that can be used for automatic configuration. If you pass this attribute, every other one will be overwritten with the data contained in the metadata file.",
+      "title": "IDPMetadata",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "IDPURL": {
+      "$friendlyName": "IDP URL",
+      "description": "URL of the identity provider.",
+      "title": "IDPURL",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "audienceURI": {
+      "$friendlyName": "Service Provider Issuer",
+      "description": "The AudienceURI expected for the response. If not provided, Acuvity will send the issuer URL.",
+      "title": "audienceURI",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "createTime": {
+      "$friendlyName": "CreateTime",
+      "$readOnly": true,
+      "description": "Creation date of the object.",
+      "title": "createTime",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "description": {
+      "$friendlyName": "Description",
+      "description": "The description of the object.",
+      "title": "description",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "importHash": {
+      "$creationOnly": true,
+      "$friendlyName": "ImportHash",
+      "description": "The hash of the structure used to compare with new import version.",
+      "title": "importHash",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "importLabel": {
+      "$creationOnly": true,
+      "$friendlyName": "ImportLabel",
+      "description": "The user-defined import label that allows the system to group resources from the same import operation.",
+      "title": "importLabel",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "modifier": {
+      "$friendlyName": "Modifier",
+      "$ref": "identitymodifier.json",
+      "description": "Contains optional information about a remote service that can be used to modify the claims that are about to be delivered using this authentication source.",
+      "title": "modifier"
+    },
+    "name": {
+      "$friendlyName": "Name",
+      "$required": true,
+      "description": "The name of the source.",
+      "title": "name",
+      "type": "string"
+    },
+    "namespace": {
+      "$friendlyName": "Namespace",
+      "$readOnly": true,
+      "description": "The namespace of the object.",
+      "title": "namespace",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "serviceProviderIssuer": {
+      "$friendlyName": "Service Provider Issuer",
+      "description": "The Service Provider Issuer which is represented by the client ID. If not provided, Acuvity will send the issuer URL.",
+      "title": "serviceProviderIssuer",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "skipResponseSignatureCheck": {
+      "$friendlyName": "Skip response validation check",
+      "description": "If true, the issue request won't check the ResponseSignatureValidated.",
+      "title": "skipResponseSignatureCheck",
+      "type": [
+        "boolean",
+        "null"
+      ]
+    },
+    "subjects": {
+      "$friendlyName": "Subjects",
+      "description": "List of claims that will provide the subject.",
+      "items": {
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "title": "subjects",
+      "type": "array"
+    },
+    "updateTime": {
+      "$friendlyName": "UpdateTime",
+      "$readOnly": true,
+      "description": "Last update date of the object.",
+      "title": "updateTime",
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  },
+  "required": [
+    "name"
+  ],
+  "title": "SAMLSource",
+  "type": "object"
+}

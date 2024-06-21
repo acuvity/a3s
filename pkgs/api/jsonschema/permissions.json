@@ -1,0 +1,172 @@
+{
+  "$extends": [],
+  "$friendlyName": "Permissions",
+  "$friendlyNamePlural": "Permissions",
+  "$modelName": "Permissions",
+  "$modelPackage": "a3s",
+  "$modelResourceName": "permissions",
+  "$modelRestName": "permissions",
+  "additionalProperties": true,
+  "description": "API to retrieve the permissions from a user identity.",
+  "properties": {
+    "ID": {
+      "$friendlyName": "ID",
+      "description": "The optional ID of the object to check permission for.",
+      "title": "ID",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "IP": {
+      "$friendlyName": "IP",
+      "description": "IP of the client.",
+      "title": "IP",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "claims": {
+      "$friendlyName": "Claims",
+      "$required": true,
+      "description": "The list of claims.",
+      "items": {
+        "type": "string"
+      },
+      "title": "claims",
+      "type": "array"
+    },
+    "collectAccessibleNamespaces": {
+      "$friendlyName": "CollectAccessibleNamespaces",
+      "description": "If true, the property collectedAccssibleNamespaces will be filled with the list of allowed namespaces.",
+      "title": "collectAccessibleNamespaces",
+      "type": [
+        "boolean",
+        "null"
+      ]
+    },
+    "collectGroups": {
+      "$friendlyName": "CollectGroups",
+      "description": "If true, the property collectedGroups will be filled with the list of groups used to resolve the permissions.",
+      "title": "collectGroups",
+      "type": [
+        "boolean",
+        "null"
+      ]
+    },
+    "collectedAccessibleNamespaces": {
+      "$friendlyName": "CollectedAccessibleNamespaces",
+      "$readOnly": true,
+      "description": "If collectAccessibleNamespaces is true, this property will contain the list of accessible namespaces.",
+      "items": {
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "title": "collectedAccessibleNamespaces",
+      "type": "array"
+    },
+    "collectedGroups": {
+      "$friendlyName": "CollectedGroups",
+      "$readOnly": true,
+      "description": "If collectGroups is true, this property will contain the list of groups used to resolve the permissions.",
+      "items": {
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "title": "collectedGroups",
+      "type": "array"
+    },
+    "error": {
+      "$friendlyName": "Error",
+      "$readOnly": true,
+      "description": "Return an eventual error.",
+      "title": "error",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "namespace": {
+      "$friendlyName": "Namespace",
+      "$required": true,
+      "description": "The namespace where to check permission from.",
+      "title": "namespace",
+      "type": "string"
+    },
+    "offloadPermissionsRestrictions": {
+      "$friendlyName": "OffloadPermissionsRestrictions",
+      "description": "If true, skips computing restriction intersections.",
+      "title": "offloadPermissionsRestrictions",
+      "type": [
+        "boolean",
+        "null"
+      ]
+    },
+    "permissions": {
+      "$friendlyName": "Permissions",
+      "$readOnly": true,
+      "additionalProperties": {
+        "additionalProperties": {
+          "type": "boolean"
+        },
+        "type": "object"
+      },
+      "description": "The computed permissions.",
+      "title": "permissions",
+      "type": "object"
+    },
+    "restrictedNamespace": {
+      "$friendlyName": "RestrictedNamespace",
+      "description": "Sets the namespace restrictions that should apply.",
+      "title": "restrictedNamespace",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "restrictedNetworks": {
+      "$friendlyName": "RestrictedNetworks",
+      "description": "Sets the networks restrictions that should apply.",
+      "items": {
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "title": "restrictedNetworks",
+      "type": "array"
+    },
+    "restrictedPermissions": {
+      "$friendlyName": "RestrictedPermissions",
+      "description": "Sets the permissions restrictions that should apply.",
+      "items": {
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "title": "restrictedPermissions",
+      "type": "array"
+    },
+    "singleGroupMode": {
+      "$friendlyName": "SingleGroupMode",
+      "description": "If true, only use the group with the higher weight to resolve policy resolution.",
+      "title": "singleGroupMode",
+      "type": [
+        "boolean",
+        "null"
+      ]
+    }
+  },
+  "required": [
+    "claims",
+    "namespace"
+  ],
+  "title": "Permissions",
+  "type": "object"
+}

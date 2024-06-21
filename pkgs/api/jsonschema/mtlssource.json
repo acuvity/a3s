@@ -1,0 +1,139 @@
+{
+  "$extends": [
+    "@sharded",
+    "@identifiable",
+    "@importable",
+    "@timed"
+  ],
+  "$friendlyName": "MTLSSource",
+  "$friendlyNamePlural": "MTLSSources",
+  "$modelName": "MTLSSource",
+  "$modelPackage": "a3s",
+  "$modelResourceName": "mtlssources",
+  "$modelRestName": "mtlssource",
+  "additionalProperties": true,
+  "description": "An MTLS Auth source can be used to issue tokens based on user certificates.",
+  "properties": {
+    "CA": {
+      "$friendlyName": "CA",
+      "$required": true,
+      "description": "The Certificate authority to use to validate user certificates in PEM format.",
+      "title": "CA",
+      "type": "string"
+    },
+    "ID": {
+      "$friendlyName": "ID",
+      "$readOnly": true,
+      "description": "ID is the identifier of the object.",
+      "title": "ID",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "createTime": {
+      "$friendlyName": "CreateTime",
+      "$readOnly": true,
+      "description": "Creation date of the object.",
+      "title": "createTime",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "description": {
+      "$friendlyName": "Description",
+      "description": "The description of the object.",
+      "title": "description",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "fingerprints": {
+      "$friendlyName": "Fingerprints",
+      "$readOnly": true,
+      "description": "The fingerprint of the CAs in the chain.",
+      "items": {
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "title": "fingerprints",
+      "type": "array"
+    },
+    "importHash": {
+      "$creationOnly": true,
+      "$friendlyName": "ImportHash",
+      "description": "The hash of the structure used to compare with new import version.",
+      "title": "importHash",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "importLabel": {
+      "$creationOnly": true,
+      "$friendlyName": "ImportLabel",
+      "description": "The user-defined import label that allows the system to group resources from the same import operation.",
+      "title": "importLabel",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "modifier": {
+      "$friendlyName": "Modifier",
+      "$ref": "identitymodifier.json",
+      "description": "Contains optional information about a remote service that can be used to modify the claims that are about to be delivered using this authentication source.",
+      "title": "modifier"
+    },
+    "name": {
+      "$friendlyName": "Name",
+      "$required": true,
+      "description": "The name of the source.",
+      "title": "name",
+      "type": "string"
+    },
+    "namespace": {
+      "$friendlyName": "Namespace",
+      "$readOnly": true,
+      "description": "The namespace of the object.",
+      "title": "namespace",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "subjectKeyIDs": {
+      "$friendlyName": "SubjectKeyIDs",
+      "$readOnly": true,
+      "description": "Value of the CAs X.509 SubjectKeyIDs in the chain.",
+      "items": {
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "title": "subjectKeyIDs",
+      "type": "array"
+    },
+    "updateTime": {
+      "$friendlyName": "UpdateTime",
+      "$readOnly": true,
+      "description": "Last update date of the object.",
+      "title": "updateTime",
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  },
+  "required": [
+    "CA",
+    "name"
+  ],
+  "title": "MTLSSource",
+  "type": "object"
+}
