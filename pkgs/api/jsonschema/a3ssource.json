@@ -1,0 +1,140 @@
+{
+  "$extends": [
+    "@sharded",
+    "@identifiable",
+    "@importable",
+    "@timed"
+  ],
+  "$friendlyName": "A3SSource",
+  "$friendlyNamePlural": "A3SSources",
+  "$modelName": "A3SSource",
+  "$modelPackage": "a3s",
+  "$modelResourceName": "a3ssources",
+  "$modelRestName": "a3ssource",
+  "additionalProperties": true,
+  "description": "A source allowing to trust a remote instance of A3S.",
+  "properties": {
+    "CA": {
+      "$friendlyName": "CA",
+      "description": "The Certificate authority to use to validate the authenticity of the A3S server. If left empty, the system trust stroe will be used.",
+      "title": "CA",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "ID": {
+      "$friendlyName": "ID",
+      "$readOnly": true,
+      "description": "ID is the identifier of the object.",
+      "title": "ID",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "audience": {
+      "$friendlyName": "Audience",
+      "description": "The audience that must be present in the remote a3s token.",
+      "title": "audience",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "createTime": {
+      "$friendlyName": "CreateTime",
+      "$readOnly": true,
+      "description": "Creation date of the object.",
+      "title": "createTime",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "description": {
+      "$friendlyName": "Description",
+      "description": "The description of the object.",
+      "title": "description",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "endpoint": {
+      "$friendlyName": "Endpoint",
+      "description": "Endpoint of the remote a3s server, in case it is different from the issuer. If left empty, the issuer value will be used.",
+      "title": "endpoint",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "importHash": {
+      "$creationOnly": true,
+      "$friendlyName": "ImportHash",
+      "description": "The hash of the structure used to compare with new import version.",
+      "title": "importHash",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "importLabel": {
+      "$creationOnly": true,
+      "$friendlyName": "ImportLabel",
+      "description": "The user-defined import label that allows the system to group resources from the same import operation.",
+      "title": "importLabel",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "issuer": {
+      "$friendlyName": "Issuer",
+      "$required": true,
+      "description": "The issuer that represents the remote a3s server.",
+      "title": "issuer",
+      "type": "string"
+    },
+    "modifier": {
+      "$friendlyName": "Modifier",
+      "$ref": "identitymodifier.json",
+      "description": "Contains optional information about a remote service that can be used to modify the claims that are about to be delivered using this authentication source.",
+      "title": "modifier"
+    },
+    "name": {
+      "$friendlyName": "Name",
+      "$required": true,
+      "description": "The name of the source.",
+      "title": "name",
+      "type": "string"
+    },
+    "namespace": {
+      "$friendlyName": "Namespace",
+      "$readOnly": true,
+      "description": "The namespace of the object.",
+      "title": "namespace",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "updateTime": {
+      "$friendlyName": "UpdateTime",
+      "$readOnly": true,
+      "description": "Last update date of the object.",
+      "title": "updateTime",
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  },
+  "required": [
+    "issuer",
+    "name"
+  ],
+  "title": "A3SSource",
+  "type": "object"
+}

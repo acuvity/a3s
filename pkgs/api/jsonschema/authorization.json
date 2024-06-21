@@ -1,0 +1,192 @@
+{
+  "$extends": [
+    "@sharded",
+    "@identifiable",
+    "@importable",
+    "@timed"
+  ],
+  "$friendlyName": "Authorization",
+  "$friendlyNamePlural": "Authorizations",
+  "$modelName": "Authorization",
+  "$modelPackage": "a3s",
+  "$modelResourceName": "authorizations",
+  "$modelRestName": "authorization",
+  "additionalProperties": true,
+  "description": "TODO.",
+  "properties": {
+    "ID": {
+      "$friendlyName": "ID",
+      "$readOnly": true,
+      "description": "ID is the identifier of the object.",
+      "title": "ID",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "createTime": {
+      "$friendlyName": "CreateTime",
+      "$readOnly": true,
+      "description": "Creation date of the object.",
+      "title": "createTime",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "description": {
+      "$friendlyName": "Description",
+      "description": "Description of the Authorization.",
+      "title": "description",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "disabled": {
+      "$friendlyName": "Disabled",
+      "description": "Set the authorization to be disabled.",
+      "title": "disabled",
+      "type": [
+        "boolean",
+        "null"
+      ]
+    },
+    "hidden": {
+      "$friendlyName": "Hidden",
+      "description": "Hides the policies in children namespaces.",
+      "title": "hidden",
+      "type": [
+        "boolean",
+        "null"
+      ]
+    },
+    "importHash": {
+      "$creationOnly": true,
+      "$friendlyName": "ImportHash",
+      "description": "The hash of the structure used to compare with new import version.",
+      "title": "importHash",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "importLabel": {
+      "$creationOnly": true,
+      "$friendlyName": "ImportLabel",
+      "description": "The user-defined import label that allows the system to group resources from the same import operation.",
+      "title": "importLabel",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "label": {
+      "$friendlyName": "Label",
+      "description": "Allows users to set a label to categorize authorization policies.",
+      "title": "label",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "name": {
+      "$friendlyName": "Name",
+      "$required": true,
+      "description": "The name of the Authorization.",
+      "title": "name",
+      "type": "string"
+    },
+    "namespace": {
+      "$friendlyName": "Namespace",
+      "$readOnly": true,
+      "description": "The namespace of the object.",
+      "title": "namespace",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "opaque": {
+      "$friendlyName": "Opaque",
+      "additionalProperties": true,
+      "description": "Opaque allows to store abitrary data into the authorization.",
+      "title": "opaque",
+      "type": "object"
+    },
+    "permissions": {
+      "$friendlyName": "Permissions",
+      "$required": true,
+      "description": "A list of permissions.",
+      "items": {
+        "type": "string"
+      },
+      "title": "permissions",
+      "type": "array"
+    },
+    "subject": {
+      "$friendlyName": "Subject",
+      "description": "A tag expression that identifies the authorized user(s).",
+      "items": {
+        "items": {
+          "type": "string"
+        },
+        "type": "array"
+      },
+      "title": "subject",
+      "type": "array"
+    },
+    "subnets": {
+      "$friendlyName": "Subnets",
+      "description": "If set, the API authorization will only be valid if the request comes from one the declared subnets.",
+      "items": {
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "title": "subnets",
+      "type": "array"
+    },
+    "targetNamespaces": {
+      "$friendlyName": "TargetNamespaces",
+      "description": "Defines the namespace or namespaces in which the permission for subject should apply. If empty, the object's namespace will be used.",
+      "items": {
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "title": "targetNamespaces",
+      "type": "array"
+    },
+    "trustedIssuers": {
+      "$friendlyName": "TrustedIssuers",
+      "description": "List of issuers to consider before using the policy for a given set of claims.",
+      "items": {
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "title": "trustedIssuers",
+      "type": "array"
+    },
+    "updateTime": {
+      "$friendlyName": "UpdateTime",
+      "$readOnly": true,
+      "description": "Last update date of the object.",
+      "title": "updateTime",
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  },
+  "required": [
+    "name",
+    "permissions"
+  ],
+  "title": "Authorization",
+  "type": "object"
+}

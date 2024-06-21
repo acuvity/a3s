@@ -1,0 +1,162 @@
+{
+  "properties": {
+    "a3ssources": {
+      "items": {
+        "$ref": "a3ssource.json"
+      },
+      "type": "array"
+    },
+    "authorizations": {
+      "items": {
+        "$ref": "authorization.json"
+      },
+      "type": "array"
+    },
+    "authz": {
+      "items": {
+        "$ref": "authz.json"
+      },
+      "type": "array"
+    },
+    "groups": {
+      "items": {
+        "$ref": "group.json"
+      },
+      "type": "array"
+    },
+    "httpsources": {
+      "items": {
+        "$ref": "httpsource.json"
+      },
+      "type": "array"
+    },
+    "identitymodifier": {
+      "items": {
+        "$ref": "identitymodifier.json"
+      },
+      "type": "array"
+    },
+    "import": {
+      "items": {
+        "$ref": "import.json"
+      },
+      "type": "array"
+    },
+    "issue": {
+      "items": {
+        "$ref": "issue.json"
+      },
+      "type": "array"
+    },
+    "issuea3s": {
+      "items": {
+        "$ref": "issuea3s.json"
+      },
+      "type": "array"
+    },
+    "issueaws": {
+      "items": {
+        "$ref": "issueaws.json"
+      },
+      "type": "array"
+    },
+    "issueazure": {
+      "items": {
+        "$ref": "issueazure.json"
+      },
+      "type": "array"
+    },
+    "issuegcp": {
+      "items": {
+        "$ref": "issuegcp.json"
+      },
+      "type": "array"
+    },
+    "issuehttp": {
+      "items": {
+        "$ref": "issuehttp.json"
+      },
+      "type": "array"
+    },
+    "issueldap": {
+      "items": {
+        "$ref": "issueldap.json"
+      },
+      "type": "array"
+    },
+    "issueoidc": {
+      "items": {
+        "$ref": "issueoidc.json"
+      },
+      "type": "array"
+    },
+    "issueremotea3s": {
+      "items": {
+        "$ref": "issueremotea3s.json"
+      },
+      "type": "array"
+    },
+    "issuesaml": {
+      "items": {
+        "$ref": "issuesaml.json"
+      },
+      "type": "array"
+    },
+    "ldapsources": {
+      "items": {
+        "$ref": "ldapsource.json"
+      },
+      "type": "array"
+    },
+    "mtlssources": {
+      "items": {
+        "$ref": "mtlssource.json"
+      },
+      "type": "array"
+    },
+    "namespacedeletionrecords": {
+      "items": {
+        "$ref": "namespacedeletionrecord.json"
+      },
+      "type": "array"
+    },
+    "namespaces": {
+      "items": {
+        "$ref": "namespace.json"
+      },
+      "type": "array"
+    },
+    "oidcsources": {
+      "items": {
+        "$ref": "oidcsource.json"
+      },
+      "type": "array"
+    },
+    "permissions": {
+      "items": {
+        "$ref": "permissions.json"
+      },
+      "type": "array"
+    },
+    "revocations": {
+      "items": {
+        "$ref": "revocation.json"
+      },
+      "type": "array"
+    },
+    "root": {
+      "items": {
+        "$ref": "root.json"
+      },
+      "type": "array"
+    },
+    "samlsources": {
+      "items": {
+        "$ref": "samlsource.json"
+      },
+      "type": "array"
+    }
+  },
+  "title": "api resource lists",
+  "type": "object"
+}

@@ -1,0 +1,47 @@
+{
+  "$extends": [
+    "@sharded",
+    "@identifiable"
+  ],
+  "$friendlyName": "NamespaceDeletionRecord",
+  "$friendlyNamePlural": "NamespaceDeletionRecords",
+  "$modelName": "NamespaceDeletionRecord",
+  "$modelPackage": "a3s",
+  "$modelResourceName": "namespacedeletionrecords",
+  "$modelRestName": "namespacedeletionrecord",
+  "additionalProperties": true,
+  "description": "A namespace deletion record holds the namespace that was deleted and the date it was deleted.",
+  "properties": {
+    "ID": {
+      "$friendlyName": "ID",
+      "$readOnly": true,
+      "description": "ID is the identifier of the object.",
+      "title": "ID",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "deleteTime": {
+      "$friendlyName": "DeleteTime",
+      "description": "Deletion date of the object.",
+      "title": "deleteTime",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "namespace": {
+      "$friendlyName": "Namespace",
+      "description": "Namespace that got deleted.",
+      "title": "namespace",
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  },
+  "required": [],
+  "title": "NamespaceDeletionRecord",
+  "type": "object"
+}

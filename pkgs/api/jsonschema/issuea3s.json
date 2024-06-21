@@ -1,0 +1,25 @@
+{
+  "$extends": [],
+  "$friendlyName": "IssueA3S",
+  "$friendlyNamePlural": "IssueA3Ss",
+  "$modelName": "IssueA3S",
+  "$modelPackage": "a3s",
+  "$modelResourceName": "issuea3s",
+  "$modelRestName": "issuea3s",
+  "additionalProperties": true,
+  "description": "Additional issuing information for A3S token source.",
+  "properties": {
+    "token": {
+      "$friendlyName": "Token",
+      "$required": true,
+      "description": "The original token.",
+      "title": "token",
+      "type": "string"
+    }
+  },
+  "required": [
+    "token"
+  ],
+  "title": "IssueA3S",
+  "type": "object"
+}

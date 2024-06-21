@@ -1,0 +1,76 @@
+{
+  "$extends": [],
+  "$friendlyName": "Authz",
+  "$friendlyNamePlural": "Authzs",
+  "$modelName": "Authz",
+  "$modelPackage": "a3s",
+  "$modelResourceName": "authz",
+  "$modelRestName": "authz",
+  "additionalProperties": true,
+  "description": "API to verify permissions.",
+  "properties": {
+    "ID": {
+      "$friendlyName": "ID",
+      "description": "The optional ID of the object to check permission for.",
+      "title": "ID",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "IP": {
+      "$friendlyName": "IP",
+      "description": "IP of the client.",
+      "title": "IP",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "action": {
+      "$friendlyName": "Action",
+      "$required": true,
+      "description": "The action to check permission for.",
+      "title": "action",
+      "type": "string"
+    },
+    "audience": {
+      "$friendlyName": "Audience",
+      "description": "Audience that should be checked for.",
+      "title": "audience",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "namespace": {
+      "$friendlyName": "Namespace",
+      "$required": true,
+      "description": "The namespace where to check permission from.",
+      "title": "namespace",
+      "type": "string"
+    },
+    "resource": {
+      "$friendlyName": "Resource",
+      "$required": true,
+      "description": "The resource to check permission for.",
+      "title": "resource",
+      "type": "string"
+    },
+    "token": {
+      "$friendlyName": "Token",
+      "$required": true,
+      "description": "The token to check.",
+      "title": "token",
+      "type": "string"
+    }
+  },
+  "required": [
+    "action",
+    "namespace",
+    "resource",
+    "token"
+  ],
+  "title": "Authz",
+  "type": "object"
+}

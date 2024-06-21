@@ -1,0 +1,25 @@
+{
+  "$extends": [],
+  "$friendlyName": "IssueRemoteA3S",
+  "$friendlyNamePlural": "IssueRemoteA3Ss",
+  "$modelName": "IssueRemoteA3S",
+  "$modelPackage": "a3s",
+  "$modelResourceName": "issueremotea3s",
+  "$modelRestName": "issueremotea3s",
+  "additionalProperties": true,
+  "description": "Additional issuing information for a remote A3S token source.",
+  "properties": {
+    "token": {
+      "$friendlyName": "Token",
+      "$required": true,
+      "description": "The remote a3s token.",
+      "title": "token",
+      "type": "string"
+    }
+  },
+  "required": [
+    "token"
+  ],
+  "title": "IssueRemoteA3S",
+  "type": "object"
+}

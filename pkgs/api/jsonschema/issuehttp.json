@@ -1,0 +1,42 @@
+{
+  "$extends": [],
+  "$friendlyName": "IssueHTTP",
+  "$friendlyNamePlural": "IssueHTTPs",
+  "$modelName": "IssueHTTP",
+  "$modelPackage": "a3s",
+  "$modelResourceName": "issuehttp",
+  "$modelRestName": "issuehttp",
+  "additionalProperties": true,
+  "description": "Additional issuing information for the HTTP source.",
+  "properties": {
+    "TOTP": {
+      "$friendlyName": "TOTP",
+      "description": "Time based one time password, if needed.",
+      "title": "TOTP",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "password": {
+      "$friendlyName": "Password",
+      "$required": true,
+      "description": "The password for the user.",
+      "title": "password",
+      "type": "string"
+    },
+    "username": {
+      "$friendlyName": "Username",
+      "$required": true,
+      "description": "The username.",
+      "title": "username",
+      "type": "string"
+    }
+  },
+  "required": [
+    "password",
+    "username"
+  ],
+  "title": "IssueHTTP",
+  "type": "object"
+}

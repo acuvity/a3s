@@ -1,0 +1,88 @@
+{
+  "$extends": [],
+  "$friendlyName": "Import",
+  "$friendlyNamePlural": "Imports",
+  "$modelName": "Import",
+  "$modelPackage": "a3s",
+  "$modelResourceName": "import",
+  "$modelRestName": "import",
+  "additionalProperties": true,
+  "description": "Import multiple resource at once.",
+  "properties": {
+    "A3SSources": {
+      "$friendlyName": "A3SSources",
+      "description": "A3S sources to import.",
+      "items": {
+        "$ref": "a3ssource.json"
+      },
+      "title": "A3SSources",
+      "type": "array"
+    },
+    "HTTPSources": {
+      "$friendlyName": "HTTPSources",
+      "description": "HTTP sources to import.",
+      "items": {
+        "$ref": "httpsource.json"
+      },
+      "title": "HTTPSources",
+      "type": "array"
+    },
+    "LDAPSources": {
+      "$friendlyName": "LDAPSources",
+      "description": "LDAP sources to import.",
+      "items": {
+        "$ref": "ldapsource.json"
+      },
+      "title": "LDAPSources",
+      "type": "array"
+    },
+    "MTLSSources": {
+      "$friendlyName": "MTLSSources",
+      "description": "MTLS sources to import.",
+      "items": {
+        "$ref": "mtlssource.json"
+      },
+      "title": "MTLSSources",
+      "type": "array"
+    },
+    "OIDCSources": {
+      "$friendlyName": "OIDCSources",
+      "description": "OIDC sources to import.",
+      "items": {
+        "$ref": "oidcsource.json"
+      },
+      "title": "OIDCSources",
+      "type": "array"
+    },
+    "SAMLSources": {
+      "$friendlyName": "SAMLSources",
+      "description": "SAML sources to import.",
+      "items": {
+        "$ref": "samlsource.json"
+      },
+      "title": "SAMLSources",
+      "type": "array"
+    },
+    "authorizations": {
+      "$friendlyName": "Authorizations",
+      "description": "Authorizations to import.",
+      "items": {
+        "$ref": "authorization.json"
+      },
+      "title": "authorizations",
+      "type": "array"
+    },
+    "label": {
+      "$friendlyName": "Label",
+      "$required": true,
+      "description": "Import label that will be used to identify all the resources imported by this resource.",
+      "title": "label",
+      "type": "string"
+    }
+  },
+  "required": [
+    "label"
+  ],
+  "title": "Import",
+  "type": "object"
+}

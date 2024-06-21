@@ -1,0 +1,33 @@
+{
+  "$extends": [],
+  "$friendlyName": "IssueLDAP",
+  "$friendlyNamePlural": "IssueLDAPs",
+  "$modelName": "IssueLDAP",
+  "$modelPackage": "a3s",
+  "$modelResourceName": "issueldap",
+  "$modelRestName": "issueldap",
+  "additionalProperties": true,
+  "description": "Additional issuing information for the LDAP source.",
+  "properties": {
+    "password": {
+      "$friendlyName": "Password",
+      "$required": true,
+      "description": "The password for the user.",
+      "title": "password",
+      "type": "string"
+    },
+    "username": {
+      "$friendlyName": "Username",
+      "$required": true,
+      "description": "The LDAP username.",
+      "title": "username",
+      "type": "string"
+    }
+  },
+  "required": [
+    "password",
+    "username"
+  ],
+  "title": "IssueLDAP",
+  "type": "object"
+}

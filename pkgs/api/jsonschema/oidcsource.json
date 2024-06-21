@@ -1,0 +1,150 @@
+{
+  "$extends": [
+    "@sharded",
+    "@identifiable",
+    "@importable",
+    "@timed"
+  ],
+  "$friendlyName": "OIDC Source",
+  "$friendlyNamePlural": "OIDC Sources",
+  "$modelName": "OIDCSource",
+  "$modelPackage": "a3s",
+  "$modelResourceName": "oidcsources",
+  "$modelRestName": "oidcsource",
+  "additionalProperties": true,
+  "description": "An OIDC Auth source can be used to issue tokens based on existing OIDC accounts.",
+  "properties": {
+    "CA": {
+      "$friendlyName": "CA",
+      "description": "The Certificate authority to use to validate the authenticity of the OIDC server. If left empty, the system trust stroe will be used. In most of the cases, you don't need to set this.",
+      "title": "CA",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "ID": {
+      "$friendlyName": "ID",
+      "$readOnly": true,
+      "description": "ID is the identifier of the object.",
+      "title": "ID",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "clientID": {
+      "$friendlyName": "Client ID",
+      "$required": true,
+      "description": "Unique client ID.",
+      "title": "clientID",
+      "type": "string"
+    },
+    "clientSecret": {
+      "$friendlyName": "Client Secret",
+      "$required": true,
+      "description": "Client secret associated with the client ID.",
+      "title": "clientSecret",
+      "type": "string"
+    },
+    "createTime": {
+      "$friendlyName": "CreateTime",
+      "$readOnly": true,
+      "description": "Creation date of the object.",
+      "title": "createTime",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "description": {
+      "$friendlyName": "Description",
+      "description": "The description of the object.",
+      "title": "description",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "endpoint": {
+      "$friendlyName": "Endpoint",
+      "$required": true,
+      "description": "OIDC [discovery endpoint](https://openid.net/specs/openid-connect-discovery-1_0.html#IssuerDiscovery).",
+      "title": "endpoint",
+      "type": "string"
+    },
+    "importHash": {
+      "$creationOnly": true,
+      "$friendlyName": "ImportHash",
+      "description": "The hash of the structure used to compare with new import version.",
+      "title": "importHash",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "importLabel": {
+      "$creationOnly": true,
+      "$friendlyName": "ImportLabel",
+      "description": "The user-defined import label that allows the system to group resources from the same import operation.",
+      "title": "importLabel",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "modifier": {
+      "$friendlyName": "Modifier",
+      "$ref": "identitymodifier.json",
+      "description": "Contains optional information about a remote service that can be used to modify the claims that are about to be delivered using this authentication source.",
+      "title": "modifier"
+    },
+    "name": {
+      "$friendlyName": "Name",
+      "$required": true,
+      "description": "The name of the source.",
+      "title": "name",
+      "type": "string"
+    },
+    "namespace": {
+      "$friendlyName": "Namespace",
+      "$readOnly": true,
+      "description": "The namespace of the object.",
+      "title": "namespace",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "scopes": {
+      "$friendlyName": "Scopes",
+      "description": "List of scopes to allow.",
+      "items": {
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "title": "scopes",
+      "type": "array"
+    },
+    "updateTime": {
+      "$friendlyName": "UpdateTime",
+      "$readOnly": true,
+      "description": "Last update date of the object.",
+      "title": "updateTime",
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  },
+  "required": [
+    "clientID",
+    "clientSecret",
+    "endpoint",
+    "name"
+  ],
+  "title": "OIDCSource",
+  "type": "object"
+}

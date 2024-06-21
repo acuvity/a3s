@@ -1,0 +1,84 @@
+{
+  "properties": {
+    "a3ssource": {
+      "$ref": "a3ssource.json"
+    },
+    "authorization": {
+      "$ref": "authorization.json"
+    },
+    "authz": {
+      "$ref": "authz.json"
+    },
+    "group": {
+      "$ref": "group.json"
+    },
+    "httpsource": {
+      "$ref": "httpsource.json"
+    },
+    "identitymodifier": {
+      "$ref": "identitymodifier.json"
+    },
+    "import": {
+      "$ref": "import.json"
+    },
+    "issue": {
+      "$ref": "issue.json"
+    },
+    "issuea3s": {
+      "$ref": "issuea3s.json"
+    },
+    "issueaws": {
+      "$ref": "issueaws.json"
+    },
+    "issueazure": {
+      "$ref": "issueazure.json"
+    },
+    "issuegcp": {
+      "$ref": "issuegcp.json"
+    },
+    "issuehttp": {
+      "$ref": "issuehttp.json"
+    },
+    "issueldap": {
+      "$ref": "issueldap.json"
+    },
+    "issueoidc": {
+      "$ref": "issueoidc.json"
+    },
+    "issueremotea3s": {
+      "$ref": "issueremotea3s.json"
+    },
+    "issuesaml": {
+      "$ref": "issuesaml.json"
+    },
+    "ldapsource": {
+      "$ref": "ldapsource.json"
+    },
+    "mtlssource": {
+      "$ref": "mtlssource.json"
+    },
+    "namespace": {
+      "$ref": "namespace.json"
+    },
+    "namespacedeletionrecord": {
+      "$ref": "namespacedeletionrecord.json"
+    },
+    "oidcsource": {
+      "$ref": "oidcsource.json"
+    },
+    "permissions": {
+      "$ref": "permissions.json"
+    },
+    "revocation": {
+      "$ref": "revocation.json"
+    },
+    "root": {
+      "$ref": "root.json"
+    },
+    "samlsource": {
+      "$ref": "samlsource.json"
+    }
+  },
+  "title": "api resources",
+  "type": "object"
+}

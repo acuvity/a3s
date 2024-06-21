@@ -3,7 +3,7 @@ model:
   rest_name: oidcsource
   resource_name: oidcsources
   entity_name: OIDCSource
-  friendly_name: OIDCSource
+  friendly_name: OIDC Source
   package: a3s
   group: authn/source
   description: An OIDC Auth source can be used to issue tokens based on existing OIDC
@@ -41,7 +41,7 @@ attributes:
     - $pem
 
   - name: clientID
-    friendly_name: ClientID
+    friendly_name: Client ID
     description: Unique client ID.
     type: string
     exposed: true
@@ -50,7 +50,7 @@ attributes:
     example_value: 12345677890.apps.googleusercontent.com
 
   - name: clientSecret
-    friendly_name: ClientSecret
+    friendly_name: Client Secret
     description: Client secret associated with the client ID.
     type: string
     exposed: true

@@ -1,0 +1,15 @@
+{
+  "$extends": [],
+  "$friendlyName": "Root",
+  "$friendlyNamePlural": "Roots",
+  "$modelName": "Root",
+  "$modelPackage": "root",
+  "$modelResourceName": "root",
+  "$modelRestName": "root",
+  "additionalProperties": true,
+  "description": "root object.",
+  "properties": {},
+  "required": [],
+  "title": "Root",
+  "type": "object"
+}
