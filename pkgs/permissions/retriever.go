@@ -230,7 +230,7 @@ func (a *retriever) resolvePoliciesMatchingClaims(ctx context.Context, claims []
 	// Ignore policies that are not matching all claims
 	matchingPolicies := []*api.Authorization{}
 	for _, p := range policies {
-		if match(p.Subject, claims) {
+		if Match(p.Subject, claims) {
 			matchingPolicies = append(matchingPolicies, p)
 		}
 	}
@@ -258,7 +258,7 @@ func (a *retriever) resolveGroupsMatchingClaims(ctx context.Context, claims []st
 	// Ignore groups that are not matching all claims
 	matchingGroups := []*api.Group{}
 	for _, p := range groups {
-		if match(p.Subject, claims) {
+		if Match(p.Subject, claims) {
 			matchingGroups = append(matchingGroups, p)
 		}
 	}
@@ -386,26 +386,4 @@ func (a *retriever) countNamespace(ctx context.Context, ns string) (int, error) 
 	}
 
 	return count, err
-}
-
-func match(expression [][]string, tags []string) bool {
-
-	tm := mapset.NewSetFromSlice(stringListToInterfaceList(tags))
-
-	for _, ands := range expression {
-		if mapset.NewSetFromSlice(stringListToInterfaceList(ands)).IsSubset(tm) {
-			return true
-		}
-	}
-
-	return false
-}
-
-func stringListToInterfaceList(in []string) (out []any) {
-	out = make([]any, len(in))
-	for i, s := range in {
-		out[i] = s
-	}
-
-	return out
 }
