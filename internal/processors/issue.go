@@ -202,6 +202,7 @@ func (p *IssueProcessor) ProcessCreate(bctx bahamut.Context) (err error) {
 		idt.Refresh = true
 	}
 
+	originalSource := idt.Source
 	if p.pluginModifier != nil {
 		if idt, err = p.pluginModifier.Token(bctx.Context(), p.manipulator, idt, p.issuer); err != nil {
 			return fmt.Errorf("modifier: plugin: unable to run Token: %w", err)
@@ -213,6 +214,7 @@ func (p *IssueProcessor) ProcessCreate(bctx bahamut.Context) (err error) {
 			return fmt.Errorf("modifier: binary: unable to run Write: %w", err)
 		}
 	}
+	idt.Source = originalSource
 
 	k := p.jwks.GetLast()
 	tkn, err := idt.JWT(k.PrivateKey(), k.KID, p.issuer, audience, exp, req.Cloak)
