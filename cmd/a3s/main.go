@@ -450,6 +450,10 @@ func main() {
 		slog.Info("Plugin modifier loaded", "path", cfg.PluginModifier)
 	}
 
+	if len(cfg.JWT.JWTForbiddenOpaqueKeys) > 0 {
+		slog.Info("Forbidden opaque keys", "keys", cfg.JWT.JWTForbiddenOpaqueKeys)
+	}
+
 	bahamut.RegisterProcessorOrDie(server,
 		processors.NewIssueProcessor(
 			m,
@@ -458,6 +462,7 @@ func main() {
 			cfg.JWT.JWTMaxValidity,
 			cfg.JWT.JWTIssuer,
 			cfg.JWT.JWTAudience,
+			cfg.JWT.JWTForbiddenOpaqueKeys,
 			cfg.JWT.JWTWaiveValiditySecret,
 			cookiePolicy,
 			cookieDomain,
