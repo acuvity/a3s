@@ -102,7 +102,7 @@ func New(path string, hash string, c conf.MongoConf) (*Modifier, error) {
 		stdin:    make(chan []byte, 64),
 		stdout:   make(chan []byte, 64),
 		stderr:   make(chan []byte, 64),
-		encoding: elemental.EncodingTypeMSGPACK,
+		encoding: elemental.EncodingTypeJSON,
 		hash:     hash,
 	}, nil
 }
