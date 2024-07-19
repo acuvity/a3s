@@ -331,6 +331,7 @@ func main() {
 				gwAnnouncedAddress,
 				gwpush.OptionNotifierPrefix(cfg.GWAnnouncePrefix),
 				gwpush.OptionNotifierPrivateAPIOverrides(cfg.GWPrivateOverrides()),
+				gwpush.OptionNotifierHiddenAPIs(cfg.GWHiddenAPIs()),
 			)...,
 		)
 
@@ -340,6 +341,7 @@ func main() {
 			"topic", cfg.GWTopic,
 			"prefix", cfg.GWAnnouncePrefix,
 			"overrides", cfg.GWOverridePrivate,
+			"hidden", cfg.GWAPIsHidden,
 		)
 	}
 
@@ -374,9 +376,14 @@ func main() {
 		)
 	}
 
+	privateAPIURL := cfg.APIServerConf.PrivateAPIURL
+	if privateAPIURL == "" {
+		privateAPIURL = publicAPIURL
+	}
+
 	bmanipMaker := bearermanip.Configure(
 		ctx,
-		publicAPIURL,
+		privateAPIURL,
 		&tls.Config{
 			InsecureSkipVerify: true,
 		},
