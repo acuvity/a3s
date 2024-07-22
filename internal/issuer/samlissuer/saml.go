@@ -72,7 +72,8 @@ func computeSAMLAssertion(assertion *saml2.AssertionInfo) []string {
 		k = strings.TrimLeft(k, "@")
 
 		for _, vv := range v.Values {
-			out = append(out, fmt.Sprintf("%s=%s", k, vv.Value))
+
+			out = append(out, fmt.Sprintf("%s=%s", k, strings.ToLower(vv.Value)))
 		}
 	}
 

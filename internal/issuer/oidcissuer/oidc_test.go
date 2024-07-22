@@ -76,7 +76,7 @@ func TestNew(t *testing.T) {
 		So(iss.Issue().Identity, ShouldResemble, []string{"aa=aa", "bb=bb"})
 	})
 
-	Convey("Calling New with a source and a modifier with mussing tls info", t, func() {
+	Convey("Calling New with a source and a modifier with missing tls info", t, func() {
 
 		src := api.NewOIDCSource()
 		ts := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
@@ -163,6 +163,23 @@ func Test_computeOIDClaims(t *testing.T) {
 				"string=value",
 				"strings=v1",
 				"strings=v2",
+			},
+		},
+		{
+			"lowercase email claims only",
+			func(*testing.T) args {
+				return args{
+					map[string]any{
+						"arid":     1234,
+						"fullname": "Jean Michel",
+						"email":    "Jean-Michel@mycompany.com",
+					},
+				}
+			},
+			[]string{
+				"arid=1234",
+				"email=jean-michel@mycompany.com",
+				"fullname=jean michel",
 			},
 		},
 	}
