@@ -68,8 +68,14 @@ func computeOIDClaims(claims map[string]any) []string {
 
 	for k, v := range claims {
 		k = strings.TrimLeft(k, "@")
+
 		switch claim := v.(type) {
 		case string:
+
+			if strings.Contains(claim, "@") {
+				claim = strings.ToLower(claim)
+			}
+
 			out = append(out, fmt.Sprintf("%s=%s", k, claim))
 		case []string:
 			for _, item := range claim {

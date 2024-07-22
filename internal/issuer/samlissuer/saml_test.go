@@ -168,6 +168,39 @@ func Test_computeSAMLAssertion(t *testing.T) {
 				"nameid=coucou",
 			},
 		},
+		{
+			"lowercase email claims only",
+			func(*testing.T) args {
+				return args{
+					&saml2.AssertionInfo{
+						NameID: "coucou",
+						Values: saml2.Values{
+							"fullname": types.Attribute{
+								Name: "fullname",
+								Values: []types.AttributeValue{
+									{
+										Value: "Jean Michel",
+									},
+								},
+							},
+							"email": types.Attribute{
+								Name: "email",
+								Values: []types.AttributeValue{
+									{
+										Value: "Jean.Michel@domain.com",
+									},
+								},
+							},
+						},
+					},
+				}
+			},
+			[]string{
+				"email=jean.michel@domain.com",
+				"fullname=Jean Michel",
+				"nameid=coucou",
+			},
+		},
 	}
 
 	for _, tt := range tests {
