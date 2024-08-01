@@ -54,6 +54,7 @@ type IssueProcessor struct {
 	defaultValidity      time.Duration
 	cookieSameSitePolicy http.SameSite
 	mtlsHeaderEnabled    bool
+	forbiddenOpaqueKeys  map[string]struct{}
 	waiveSecret          string
 }
 
@@ -65,6 +66,7 @@ func NewIssueProcessor(
 	maxValidity time.Duration,
 	issuer string,
 	audience string,
+	forbiddenOpaqueKeys []string,
 	waiveSecret string,
 	cookieSameSitePolicy http.SameSite,
 	cookieDomain string,
@@ -74,6 +76,12 @@ func NewIssueProcessor(
 	pluginModifier plugin.Modifier,
 	binaryModifier *binary.Modifier,
 ) *IssueProcessor {
+
+	// Make a map for fast lookups.
+	fKeys := make(map[string]struct{}, len(forbiddenOpaqueKeys))
+	for _, k := range forbiddenOpaqueKeys {
+		fKeys[k] = struct{}{}
+	}
 
 	return &IssueProcessor{
 		manipulator:          manipulator,
@@ -90,6 +98,7 @@ func NewIssueProcessor(
 		pluginModifier:       pluginModifier,
 		binaryModifier:       binaryModifier,
 		waiveSecret:          waiveSecret,
+		forbiddenOpaqueKeys:  fKeys,
 	}
 }
 
@@ -100,7 +109,9 @@ func (p *IssueProcessor) ProcessCreate(bctx bahamut.Context) (err error) {
 
 	validity, _ := time.ParseDuration(req.Validity) // elemental already validated this
 
-	if validity > p.maxValidity && (req.WaiveValiditySecret != p.waiveSecret) {
+	validitySecretWaved := p.waiveSecret != "" && req.WaiveValiditySecret == p.waiveSecret
+
+	if validity > p.maxValidity && !validitySecretWaved {
 		return elemental.NewError(
 			"Invalid validity",
 			fmt.Sprintf("The requested validity '%s' is greater than the maximum allowed ('%s')", req.Validity, p.maxValidity),
@@ -111,6 +122,19 @@ func (p *IssueProcessor) ProcessCreate(bctx bahamut.Context) (err error) {
 
 	if validity == 0 {
 		validity = p.defaultValidity
+	}
+
+	if len(p.forbiddenOpaqueKeys) > 0 && len(req.Opaque) > 0 && !validitySecretWaved {
+		for k := range req.Opaque {
+			if _, ok := p.forbiddenOpaqueKeys[k]; ok {
+				return elemental.NewError(
+					"Invalid opaque key",
+					fmt.Sprintf("The A3S administrator forbids the use of the opaque key '%s'", k),
+					"a3s:authn",
+					http.StatusBadRequest,
+				)
+			}
+		}
 	}
 
 	exp := time.Now().Add(validity)
@@ -202,6 +226,7 @@ func (p *IssueProcessor) ProcessCreate(bctx bahamut.Context) (err error) {
 		idt.Refresh = true
 	}
 
+	originalSource := idt.Source
 	if p.pluginModifier != nil {
 		if idt, err = p.pluginModifier.Token(bctx.Context(), p.manipulator, idt, p.issuer); err != nil {
 			return fmt.Errorf("modifier: plugin: unable to run Token: %w", err)
@@ -213,6 +238,7 @@ func (p *IssueProcessor) ProcessCreate(bctx bahamut.Context) (err error) {
 			return fmt.Errorf("modifier: binary: unable to run Write: %w", err)
 		}
 	}
+	idt.Source = originalSource
 
 	k := p.jwks.GetLast()
 	tkn, err := idt.JWT(k.PrivateKey(), k.KID, p.issuer, audience, exp, req.Cloak)

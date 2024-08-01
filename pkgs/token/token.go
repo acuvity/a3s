@@ -43,7 +43,7 @@ type IdentityToken struct {
 
 	// Information relative to the autentication source used to
 	// validate bearer's Identity.
-	Source Source `json:"-"`
+	Source Source `json:"source"`
 
 	jwt.RegisteredClaims
 }

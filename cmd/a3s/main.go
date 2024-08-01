@@ -331,6 +331,7 @@ func main() {
 				gwAnnouncedAddress,
 				gwpush.OptionNotifierPrefix(cfg.GWAnnouncePrefix),
 				gwpush.OptionNotifierPrivateAPIOverrides(cfg.GWPrivateOverrides()),
+				gwpush.OptionNotifierHiddenAPIs(cfg.GWHiddenAPIs()),
 			)...,
 		)
 
@@ -340,6 +341,7 @@ func main() {
 			"topic", cfg.GWTopic,
 			"prefix", cfg.GWAnnouncePrefix,
 			"overrides", cfg.GWOverridePrivate,
+			"hidden", cfg.GWAPIsHidden,
 		)
 	}
 
@@ -374,9 +376,14 @@ func main() {
 		)
 	}
 
+	privateAPIURL := cfg.APIServerConf.PrivateAPIURL
+	if privateAPIURL == "" {
+		privateAPIURL = publicAPIURL
+	}
+
 	bmanipMaker := bearermanip.Configure(
 		ctx,
-		publicAPIURL,
+		privateAPIURL,
 		&tls.Config{
 			InsecureSkipVerify: true,
 		},
@@ -450,6 +457,10 @@ func main() {
 		slog.Info("Plugin modifier loaded", "path", cfg.PluginModifier)
 	}
 
+	if len(cfg.JWT.JWTForbiddenOpaqueKeys) > 0 {
+		slog.Info("Forbidden opaque keys", "keys", cfg.JWT.JWTForbiddenOpaqueKeys)
+	}
+
 	bahamut.RegisterProcessorOrDie(server,
 		processors.NewIssueProcessor(
 			m,
@@ -458,6 +469,7 @@ func main() {
 			cfg.JWT.JWTMaxValidity,
 			cfg.JWT.JWTIssuer,
 			cfg.JWT.JWTAudience,
+			cfg.JWT.JWTForbiddenOpaqueKeys,
 			cfg.JWT.JWTWaiveValiditySecret,
 			cookiePolicy,
 			cookieDomain,

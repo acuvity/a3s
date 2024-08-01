@@ -2,6 +2,7 @@ package binary
 
 import (
 	"bufio"
+	"bytes"
 	"context"
 	"crypto/sha256"
 	"fmt"
@@ -101,7 +102,7 @@ func New(path string, hash string, c conf.MongoConf) (*Modifier, error) {
 		stdin:    make(chan []byte, 64),
 		stdout:   make(chan []byte, 64),
 		stderr:   make(chan []byte, 64),
-		encoding: elemental.EncodingTypeMSGPACK,
+		encoding: elemental.EncodingTypeJSON,
 		hash:     hash,
 	}, nil
 }
@@ -148,7 +149,7 @@ func (b *Modifier) Run(ctx context.Context) error {
 		for scanner.Scan() {
 
 			data := scanner.Bytes()
-			slog.Debug("Binary modifier: message from plugin", "data", string(data))
+			slog.Warn("Binary modifier: message from plugin", "data", string(data))
 
 			select {
 			case b.stderr <- data:
@@ -164,6 +165,7 @@ func (b *Modifier) Run(ctx context.Context) error {
 			select {
 			case in := <-b.stdin:
 
+				in = bytes.ReplaceAll(in, []byte("\n"), []byte(`\n`))
 				slog.Debug("Binary modifier: sending in stdin", "data", string(in))
 
 				if _, err := stdin.Write(append(in, '\n')); err != nil {
@@ -211,6 +213,7 @@ func (b *Modifier) Write(ctx context.Context, idt *token.IdentityToken, issuer s
 		if response.Error != "" {
 			return nil, fmt.Errorf("binary modifier: error from binary: %s", response.Error)
 		}
+
 		return response.Token, nil
 
 	case <-subctx.Done():

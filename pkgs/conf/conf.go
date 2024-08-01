@@ -305,6 +305,7 @@ type APIServerConf struct {
 	MaxConnections        int      `mapstructure:"max-conns" desc:"Max number concurrent TCP connection"`
 	MaxProcs              int      `mapstructure:"max-procs" desc:"Set the max number thread Go will start"`
 	PublicAPIURL          string   `mapstructure:"public-api-url" desc:"Publicly announced API URL"`
+	PrivateAPIURL         string   `mapstructure:"private-api-url" description:"The private api url to use instead of the public api url" default:""`
 }
 
 // MongoConf holds the configuration for mongo db authentication.
@@ -501,6 +502,7 @@ type GatewayConf struct {
 	GWAnnouncePrefix   string   `mapstructure:"gw-announce-prefix" desc:"Sets the prefix to use for the bahaamut gateway announcement"`
 	GWAnnouncedAddress string   `mapstructure:"gw-announce-address" desc:"If set, announce as the service address to the gateway"`
 	GWOverridePrivate  []string `mapstructure:"gw-override-private" desc:"Overrides the api public/private. In form <name>:<override>. namespace:private makes namespaces api private on the gateway"`
+	GWAPIsHidden       []string `mapstructure:"gw-hidden-api" desc:"Set the list of api that will be completely hidden to the gateway."`
 	GWTopic            string   `mapstructure:"gw-topic" desc:"Topic to use for gateway services discovery"`
 }
 
@@ -519,6 +521,19 @@ func (c *GatewayConf) GWPrivateOverrides() map[elemental.Identity]bool {
 			continue
 		}
 		out[identity] = parts[1] == "private"
+	}
+
+	return out
+}
+
+// GWHiddenAPIs returns the list of hidden API in the needed format.
+func (c *GatewayConf) GWHiddenAPIs() map[elemental.Identity]bool {
+
+	out := map[elemental.Identity]bool{}
+
+	for _, ident := range c.GWAPIsHidden {
+		identity := api.Manager().IdentityFromAny(ident)
+		out[identity] = true
 	}
 
 	return out
