@@ -210,6 +210,7 @@ func MakeA3SRemoteAuth(
 	m manipulate.Manipulator,
 	requiredIssuer string,
 	requiredAudience string,
+	publicResources ...string,
 ) (*authenticator.Authenticator, authorizer.Authorizer, error) {
 
 	var jwks *token.JWKS
@@ -234,11 +235,13 @@ func MakeA3SRemoteAuth(
 			jwks,
 			requiredIssuer,
 			requiredAudience,
+			authenticator.OptionIgnoredResources(publicResources...),
 		),
 		authorizer.NewRemote(
 			ctx,
 			m,
 			permissions.NewRemoteRetriever(m),
+			authorizer.OptionIgnoredResources(publicResources...),
 		),
 		nil
 }
