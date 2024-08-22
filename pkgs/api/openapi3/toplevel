@@ -1355,7 +1355,7 @@
             "type": "string"
           },
           "audienceURI": {
-            "description": "The AudienceURI expected for the response. If not provided, Acuvity will send the issuer URL.",
+            "description": "The AudienceURI expected for the response. If not provided, Acuvity will send\nthe issuer URL.",
             "example": "spn:abc-3423-fdsfs-fdsfs",
             "type": "string"
           },
@@ -1369,6 +1369,13 @@
             "description": "The description of the object.",
             "type": "string"
           },
+          "ignoredKeys": {
+            "description": "A list of keys that must not be imported into the identity token. If\n`includedKeys` is also set, and a key is in both lists, the key will be ignored.",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
           "importHash": {
             "description": "The hash of the structure used to compare with new import version.",
             "type": "string"
@@ -1376,6 +1383,13 @@
           "importLabel": {
             "description": "The user-defined import label that allows the system to group resources from the\nsame import operation.",
             "type": "string"
+          },
+          "includedKeys": {
+            "description": "A list of keys that must be imported into the identity token. If `ignoredKeys`\nis also set, and a key is in both lists, the key will be ignored.",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
           },
           "modifier": {
             "$ref": "#/components/schemas/identitymodifier"
@@ -1391,7 +1405,7 @@
             "type": "string"
           },
           "serviceProviderIssuer": {
-            "description": "The Service Provider Issuer which is represented by the client ID. If not provided, Acuvity will send the issuer URL.",
+            "description": "The Service Provider Issuer which is represented by the client ID. If not\nprovided, Acuvity will send the issuer URL.",
             "example": "abc-3423-fdsfs-fdsfs",
             "type": "string"
           },

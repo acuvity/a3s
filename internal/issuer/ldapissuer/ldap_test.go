@@ -271,7 +271,7 @@ func Test_computeLDAPInclusion(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			tArgs := tt.args(t)
 
-			got1, got2 := computeLDPInclusion(tArgs.src)
+			got1, got2 := computeLDAPInclusion(tArgs.src)
 
 			if !reflect.DeepEqual(got1, tt.want1) {
 				t.Errorf("computeInclusion got1 = %v, want1: %v", got1, tt.want1)

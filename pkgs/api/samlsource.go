@@ -101,7 +101,8 @@ type SAMLSource struct {
 	// URL of the identity provider.
 	IDPURL string `json:"IDPURL" msgpack:"IDPURL" bson:"idpurl" mapstructure:"IDPURL,omitempty"`
 
-	// The AudienceURI expected for the response. If not provided, Acuvity will send the issuer URL.
+	// The AudienceURI expected for the response. If not provided, Acuvity will send
+	// the issuer URL.
 	AudienceURI string `json:"audienceURI" msgpack:"audienceURI" bson:"audienceuri" mapstructure:"audienceURI,omitempty"`
 
 	// Creation date of the object.
@@ -110,12 +111,20 @@ type SAMLSource struct {
 	// The description of the object.
 	Description string `json:"description" msgpack:"description" bson:"description" mapstructure:"description,omitempty"`
 
+	// A list of keys that must not be imported into the identity token. If
+	// `includedKeys` is also set, and a key is in both lists, the key will be ignored.
+	IgnoredKeys []string `json:"ignoredKeys,omitempty" msgpack:"ignoredKeys,omitempty" bson:"ignoredkeys,omitempty" mapstructure:"ignoredKeys,omitempty"`
+
 	// The hash of the structure used to compare with new import version.
 	ImportHash string `json:"importHash,omitempty" msgpack:"importHash,omitempty" bson:"importhash,omitempty" mapstructure:"importHash,omitempty"`
 
 	// The user-defined import label that allows the system to group resources from the
 	// same import operation.
 	ImportLabel string `json:"importLabel,omitempty" msgpack:"importLabel,omitempty" bson:"importlabel,omitempty" mapstructure:"importLabel,omitempty"`
+
+	// A list of keys that must be imported into the identity token. If `ignoredKeys`
+	// is also set, and a key is in both lists, the key will be ignored.
+	IncludedKeys []string `json:"includedKeys,omitempty" msgpack:"includedKeys,omitempty" bson:"includedkeys,omitempty" mapstructure:"includedKeys,omitempty"`
 
 	// Contains optional information about a remote service that can be used to modify
 	// the claims that are about to be delivered using this authentication source.
@@ -127,7 +136,8 @@ type SAMLSource struct {
 	// The namespace of the object.
 	Namespace string `json:"namespace" msgpack:"namespace" bson:"namespace" mapstructure:"namespace,omitempty"`
 
-	// The Service Provider Issuer which is represented by the client ID. If not provided, Acuvity will send the issuer URL.
+	// The Service Provider Issuer which is represented by the client ID. If not
+	// provided, Acuvity will send the issuer URL.
 	ServiceProviderIssuer string `json:"serviceProviderIssuer" msgpack:"serviceProviderIssuer" bson:"serviceproviderissuer" mapstructure:"serviceProviderIssuer,omitempty"`
 
 	// If true, the issue request won't check the ResponseSignatureValidated.
@@ -153,6 +163,8 @@ func NewSAMLSource() *SAMLSource {
 
 	return &SAMLSource{
 		ModelVersion: 1,
+		IgnoredKeys:  []string{},
+		IncludedKeys: []string{},
 		Subjects:     []string{},
 	}
 }
@@ -194,8 +206,10 @@ func (o *SAMLSource) GetBSON() (any, error) {
 	s.AudienceURI = o.AudienceURI
 	s.CreateTime = o.CreateTime
 	s.Description = o.Description
+	s.IgnoredKeys = o.IgnoredKeys
 	s.ImportHash = o.ImportHash
 	s.ImportLabel = o.ImportLabel
+	s.IncludedKeys = o.IncludedKeys
 	s.Modifier = o.Modifier
 	s.Name = o.Name
 	s.Namespace = o.Namespace
@@ -229,8 +243,10 @@ func (o *SAMLSource) SetBSON(raw bson.Raw) error {
 	o.AudienceURI = s.AudienceURI
 	o.CreateTime = s.CreateTime
 	o.Description = s.Description
+	o.IgnoredKeys = s.IgnoredKeys
 	o.ImportHash = s.ImportHash
 	o.ImportLabel = s.ImportLabel
+	o.IncludedKeys = s.IncludedKeys
 	o.Modifier = s.Modifier
 	o.Name = s.Name
 	o.Namespace = s.Namespace
@@ -384,8 +400,10 @@ func (o *SAMLSource) ToSparse(fields ...string) elemental.SparseIdentifiable {
 			AudienceURI:                &o.AudienceURI,
 			CreateTime:                 &o.CreateTime,
 			Description:                &o.Description,
+			IgnoredKeys:                &o.IgnoredKeys,
 			ImportHash:                 &o.ImportHash,
 			ImportLabel:                &o.ImportLabel,
+			IncludedKeys:               &o.IncludedKeys,
 			Modifier:                   o.Modifier,
 			Name:                       &o.Name,
 			Namespace:                  &o.Namespace,
@@ -417,10 +435,14 @@ func (o *SAMLSource) ToSparse(fields ...string) elemental.SparseIdentifiable {
 			sp.CreateTime = &(o.CreateTime)
 		case "description":
 			sp.Description = &(o.Description)
+		case "ignoredKeys":
+			sp.IgnoredKeys = &(o.IgnoredKeys)
 		case "importHash":
 			sp.ImportHash = &(o.ImportHash)
 		case "importLabel":
 			sp.ImportLabel = &(o.ImportLabel)
+		case "includedKeys":
+			sp.IncludedKeys = &(o.IncludedKeys)
 		case "modifier":
 			sp.Modifier = o.Modifier
 		case "name":
@@ -476,11 +498,17 @@ func (o *SAMLSource) Patch(sparse elemental.SparseIdentifiable) {
 	if so.Description != nil {
 		o.Description = *so.Description
 	}
+	if so.IgnoredKeys != nil {
+		o.IgnoredKeys = *so.IgnoredKeys
+	}
 	if so.ImportHash != nil {
 		o.ImportHash = *so.ImportHash
 	}
 	if so.ImportLabel != nil {
 		o.ImportLabel = *so.ImportLabel
+	}
+	if so.IncludedKeys != nil {
+		o.IncludedKeys = *so.IncludedKeys
 	}
 	if so.Modifier != nil {
 		o.Modifier = so.Modifier
@@ -607,10 +635,14 @@ func (o *SAMLSource) ValueForAttribute(name string) any {
 		return o.CreateTime
 	case "description":
 		return o.Description
+	case "ignoredKeys":
+		return o.IgnoredKeys
 	case "importHash":
 		return o.ImportHash
 	case "importLabel":
 		return o.ImportLabel
+	case "includedKeys":
+		return o.IncludedKeys
 	case "modifier":
 		return o.Modifier
 	case "name":
@@ -696,11 +728,12 @@ with the data contained in the metadata file.`,
 		AllowedChoices: []string{},
 		BSONFieldName:  "audienceuri",
 		ConvertedName:  "AudienceURI",
-		Description:    `The AudienceURI expected for the response. If not provided, Acuvity will send the issuer URL.`,
-		Exposed:        true,
-		Name:           "audienceURI",
-		Stored:         true,
-		Type:           "string",
+		Description: `The AudienceURI expected for the response. If not provided, Acuvity will send
+the issuer URL.`,
+		Exposed: true,
+		Name:    "audienceURI",
+		Stored:  true,
+		Type:    "string",
 	},
 	"CreateTime": {
 		AllowedChoices: []string{},
@@ -726,6 +759,18 @@ with the data contained in the metadata file.`,
 		Name:           "description",
 		Stored:         true,
 		Type:           "string",
+	},
+	"IgnoredKeys": {
+		AllowedChoices: []string{},
+		BSONFieldName:  "ignoredkeys",
+		ConvertedName:  "IgnoredKeys",
+		Description: `A list of keys that must not be imported into the identity token. If
+` + "`" + `includedKeys` + "`" + ` is also set, and a key is in both lists, the key will be ignored.`,
+		Exposed: true,
+		Name:    "ignoredKeys",
+		Stored:  true,
+		SubType: "string",
+		Type:    "list",
 	},
 	"ImportHash": {
 		AllowedChoices: []string{},
@@ -754,6 +799,18 @@ same import operation.`,
 		Setter:  true,
 		Stored:  true,
 		Type:    "string",
+	},
+	"IncludedKeys": {
+		AllowedChoices: []string{},
+		BSONFieldName:  "includedkeys",
+		ConvertedName:  "IncludedKeys",
+		Description: `A list of keys that must be imported into the identity token. If ` + "`" + `ignoredKeys` + "`" + `
+is also set, and a key is in both lists, the key will be ignored.`,
+		Exposed: true,
+		Name:    "includedKeys",
+		Stored:  true,
+		SubType: "string",
+		Type:    "list",
 	},
 	"Modifier": {
 		AllowedChoices: []string{},
@@ -797,11 +854,12 @@ the claims that are about to be delivered using this authentication source.`,
 		AllowedChoices: []string{},
 		BSONFieldName:  "serviceproviderissuer",
 		ConvertedName:  "ServiceProviderIssuer",
-		Description:    `The Service Provider Issuer which is represented by the client ID. If not provided, Acuvity will send the issuer URL.`,
-		Exposed:        true,
-		Name:           "serviceProviderIssuer",
-		Stored:         true,
-		Type:           "string",
+		Description: `The Service Provider Issuer which is represented by the client ID. If not
+provided, Acuvity will send the issuer URL.`,
+		Exposed: true,
+		Name:    "serviceProviderIssuer",
+		Stored:  true,
+		Type:    "string",
 	},
 	"SkipResponseSignatureCheck": {
 		AllowedChoices: []string{},
@@ -930,11 +988,12 @@ with the data contained in the metadata file.`,
 		AllowedChoices: []string{},
 		BSONFieldName:  "audienceuri",
 		ConvertedName:  "AudienceURI",
-		Description:    `The AudienceURI expected for the response. If not provided, Acuvity will send the issuer URL.`,
-		Exposed:        true,
-		Name:           "audienceURI",
-		Stored:         true,
-		Type:           "string",
+		Description: `The AudienceURI expected for the response. If not provided, Acuvity will send
+the issuer URL.`,
+		Exposed: true,
+		Name:    "audienceURI",
+		Stored:  true,
+		Type:    "string",
 	},
 	"createtime": {
 		AllowedChoices: []string{},
@@ -960,6 +1019,18 @@ with the data contained in the metadata file.`,
 		Name:           "description",
 		Stored:         true,
 		Type:           "string",
+	},
+	"ignoredkeys": {
+		AllowedChoices: []string{},
+		BSONFieldName:  "ignoredkeys",
+		ConvertedName:  "IgnoredKeys",
+		Description: `A list of keys that must not be imported into the identity token. If
+` + "`" + `includedKeys` + "`" + ` is also set, and a key is in both lists, the key will be ignored.`,
+		Exposed: true,
+		Name:    "ignoredKeys",
+		Stored:  true,
+		SubType: "string",
+		Type:    "list",
 	},
 	"importhash": {
 		AllowedChoices: []string{},
@@ -988,6 +1059,18 @@ same import operation.`,
 		Setter:  true,
 		Stored:  true,
 		Type:    "string",
+	},
+	"includedkeys": {
+		AllowedChoices: []string{},
+		BSONFieldName:  "includedkeys",
+		ConvertedName:  "IncludedKeys",
+		Description: `A list of keys that must be imported into the identity token. If ` + "`" + `ignoredKeys` + "`" + `
+is also set, and a key is in both lists, the key will be ignored.`,
+		Exposed: true,
+		Name:    "includedKeys",
+		Stored:  true,
+		SubType: "string",
+		Type:    "list",
 	},
 	"modifier": {
 		AllowedChoices: []string{},
@@ -1031,11 +1114,12 @@ the claims that are about to be delivered using this authentication source.`,
 		AllowedChoices: []string{},
 		BSONFieldName:  "serviceproviderissuer",
 		ConvertedName:  "ServiceProviderIssuer",
-		Description:    `The Service Provider Issuer which is represented by the client ID. If not provided, Acuvity will send the issuer URL.`,
-		Exposed:        true,
-		Name:           "serviceProviderIssuer",
-		Stored:         true,
-		Type:           "string",
+		Description: `The Service Provider Issuer which is represented by the client ID. If not
+provided, Acuvity will send the issuer URL.`,
+		Exposed: true,
+		Name:    "serviceProviderIssuer",
+		Stored:  true,
+		Type:    "string",
 	},
 	"skipresponsesignaturecheck": {
 		AllowedChoices: []string{},
@@ -1182,7 +1266,8 @@ type SparseSAMLSource struct {
 	// URL of the identity provider.
 	IDPURL *string `json:"IDPURL,omitempty" msgpack:"IDPURL,omitempty" bson:"idpurl,omitempty" mapstructure:"IDPURL,omitempty"`
 
-	// The AudienceURI expected for the response. If not provided, Acuvity will send the issuer URL.
+	// The AudienceURI expected for the response. If not provided, Acuvity will send
+	// the issuer URL.
 	AudienceURI *string `json:"audienceURI,omitempty" msgpack:"audienceURI,omitempty" bson:"audienceuri,omitempty" mapstructure:"audienceURI,omitempty"`
 
 	// Creation date of the object.
@@ -1191,12 +1276,20 @@ type SparseSAMLSource struct {
 	// The description of the object.
 	Description *string `json:"description,omitempty" msgpack:"description,omitempty" bson:"description,omitempty" mapstructure:"description,omitempty"`
 
+	// A list of keys that must not be imported into the identity token. If
+	// `includedKeys` is also set, and a key is in both lists, the key will be ignored.
+	IgnoredKeys *[]string `json:"ignoredKeys,omitempty" msgpack:"ignoredKeys,omitempty" bson:"ignoredkeys,omitempty" mapstructure:"ignoredKeys,omitempty"`
+
 	// The hash of the structure used to compare with new import version.
 	ImportHash *string `json:"importHash,omitempty" msgpack:"importHash,omitempty" bson:"importhash,omitempty" mapstructure:"importHash,omitempty"`
 
 	// The user-defined import label that allows the system to group resources from the
 	// same import operation.
 	ImportLabel *string `json:"importLabel,omitempty" msgpack:"importLabel,omitempty" bson:"importlabel,omitempty" mapstructure:"importLabel,omitempty"`
+
+	// A list of keys that must be imported into the identity token. If `ignoredKeys`
+	// is also set, and a key is in both lists, the key will be ignored.
+	IncludedKeys *[]string `json:"includedKeys,omitempty" msgpack:"includedKeys,omitempty" bson:"includedkeys,omitempty" mapstructure:"includedKeys,omitempty"`
 
 	// Contains optional information about a remote service that can be used to modify
 	// the claims that are about to be delivered using this authentication source.
@@ -1208,7 +1301,8 @@ type SparseSAMLSource struct {
 	// The namespace of the object.
 	Namespace *string `json:"namespace,omitempty" msgpack:"namespace,omitempty" bson:"namespace,omitempty" mapstructure:"namespace,omitempty"`
 
-	// The Service Provider Issuer which is represented by the client ID. If not provided, Acuvity will send the issuer URL.
+	// The Service Provider Issuer which is represented by the client ID. If not
+	// provided, Acuvity will send the issuer URL.
 	ServiceProviderIssuer *string `json:"serviceProviderIssuer,omitempty" msgpack:"serviceProviderIssuer,omitempty" bson:"serviceproviderissuer,omitempty" mapstructure:"serviceProviderIssuer,omitempty"`
 
 	// If true, the issue request won't check the ResponseSignatureValidated.
@@ -1290,11 +1384,17 @@ func (o *SparseSAMLSource) GetBSON() (any, error) {
 	if o.Description != nil {
 		s.Description = o.Description
 	}
+	if o.IgnoredKeys != nil {
+		s.IgnoredKeys = o.IgnoredKeys
+	}
 	if o.ImportHash != nil {
 		s.ImportHash = o.ImportHash
 	}
 	if o.ImportLabel != nil {
 		s.ImportLabel = o.ImportLabel
+	}
+	if o.IncludedKeys != nil {
+		s.IncludedKeys = o.IncludedKeys
 	}
 	if o.Modifier != nil {
 		s.Modifier = o.Modifier
@@ -1360,11 +1460,17 @@ func (o *SparseSAMLSource) SetBSON(raw bson.Raw) error {
 	if s.Description != nil {
 		o.Description = s.Description
 	}
+	if s.IgnoredKeys != nil {
+		o.IgnoredKeys = s.IgnoredKeys
+	}
 	if s.ImportHash != nil {
 		o.ImportHash = s.ImportHash
 	}
 	if s.ImportLabel != nil {
 		o.ImportLabel = s.ImportLabel
+	}
+	if s.IncludedKeys != nil {
+		o.IncludedKeys = s.IncludedKeys
 	}
 	if s.Modifier != nil {
 		o.Modifier = s.Modifier
@@ -1431,11 +1537,17 @@ func (o *SparseSAMLSource) ToPlain() elemental.PlainIdentifiable {
 	if o.Description != nil {
 		out.Description = *o.Description
 	}
+	if o.IgnoredKeys != nil {
+		out.IgnoredKeys = *o.IgnoredKeys
+	}
 	if o.ImportHash != nil {
 		out.ImportHash = *o.ImportHash
 	}
 	if o.ImportLabel != nil {
 		out.ImportLabel = *o.ImportLabel
+	}
+	if o.IncludedKeys != nil {
+		out.IncludedKeys = *o.IncludedKeys
 	}
 	if o.Modifier != nil {
 		out.Modifier = o.Modifier
@@ -1628,8 +1740,10 @@ type mongoAttributesSAMLSource struct {
 	AudienceURI                string            `bson:"audienceuri"`
 	CreateTime                 time.Time         `bson:"createtime"`
 	Description                string            `bson:"description"`
+	IgnoredKeys                []string          `bson:"ignoredkeys,omitempty"`
 	ImportHash                 string            `bson:"importhash,omitempty"`
 	ImportLabel                string            `bson:"importlabel,omitempty"`
+	IncludedKeys               []string          `bson:"includedkeys,omitempty"`
 	Modifier                   *IdentityModifier `bson:"modifier,omitempty"`
 	Name                       string            `bson:"name"`
 	Namespace                  string            `bson:"namespace"`
@@ -1648,8 +1762,10 @@ type mongoAttributesSparseSAMLSource struct {
 	AudienceURI                *string           `bson:"audienceuri,omitempty"`
 	CreateTime                 *time.Time        `bson:"createtime,omitempty"`
 	Description                *string           `bson:"description,omitempty"`
+	IgnoredKeys                *[]string         `bson:"ignoredkeys,omitempty"`
 	ImportHash                 *string           `bson:"importhash,omitempty"`
 	ImportLabel                *string           `bson:"importlabel,omitempty"`
+	IncludedKeys               *[]string         `bson:"includedkeys,omitempty"`
 	Modifier                   *IdentityModifier `bson:"modifier,omitempty"`
 	Name                       *string           `bson:"name,omitempty"`
 	Namespace                  *string           `bson:"namespace,omitempty"`

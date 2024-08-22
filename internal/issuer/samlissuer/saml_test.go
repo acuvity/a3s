@@ -71,6 +71,7 @@ func TestNew(t *testing.T) {
 		src.Modifier.URL = ts.URL
 		src.Modifier.Certificate = string(pem.EncodeToMemory(certb))
 		src.Modifier.Key = string(pem.EncodeToMemory(keyb))
+		src.IncludedKeys = []string{"aa", "bb"}
 
 		iss, _ := New(context.Background(), src, &saml2.AssertionInfo{})
 		So(iss.(*samlIssuer).source, ShouldEqual, src)
@@ -124,6 +125,8 @@ func TestNew(t *testing.T) {
 func Test_computeSAMLAssertion(t *testing.T) {
 	type args struct {
 		claims *saml2.AssertionInfo
+		inc    map[string]struct{}
+		exc    map[string]struct{}
 	}
 	tests := []struct {
 		name string
@@ -132,7 +135,7 @@ func Test_computeSAMLAssertion(t *testing.T) {
 		want1 []string
 	}{
 		{
-			"standard",
+			"standard with no exclusions",
 			func(*testing.T) args {
 				return args{
 					&saml2.AssertionInfo{
@@ -159,6 +162,8 @@ func Test_computeSAMLAssertion(t *testing.T) {
 							},
 						},
 					},
+					map[string]struct{}{},
+					map[string]struct{}{},
 				}
 			},
 			[]string{
@@ -168,16 +173,148 @@ func Test_computeSAMLAssertion(t *testing.T) {
 				"nameid=coucou",
 			},
 		},
+		{
+			"standard with exclusions",
+			func(*testing.T) args {
+				return args{
+					&saml2.AssertionInfo{
+						NameID: "coucou",
+						Values: saml2.Values{
+							"name": types.Attribute{
+								Name: "name",
+								Values: []types.AttributeValue{
+									{
+										Value: "jean",
+									},
+									{
+										Value: "michel",
+									},
+								},
+							},
+							"email": types.Attribute{
+								Name: "email",
+								Values: []types.AttributeValue{
+									{
+										Value: "jean.michel@domain.com",
+									},
+								},
+							},
+						},
+					},
+					map[string]struct{}{},
+					map[string]struct{}{
+						"name": struct{}{},
+					},
+				}
+			},
+			[]string{
+				"email=jean.michel@domain.com",
+				"nameid=coucou",
+			},
+		},
+		{
+			"standard with inclusions",
+			func(*testing.T) args {
+				return args{
+					&saml2.AssertionInfo{
+						NameID: "coucou",
+						Values: saml2.Values{
+							"name": types.Attribute{
+								Name: "name",
+								Values: []types.AttributeValue{
+									{
+										Value: "jean",
+									},
+									{
+										Value: "michel",
+									},
+								},
+							},
+							"email": types.Attribute{
+								Name: "email",
+								Values: []types.AttributeValue{
+									{
+										Value: "jean.michel@domain.com",
+									},
+								},
+							},
+						},
+					},
+					map[string]struct{}{
+						"name": struct{}{},
+					},
+					map[string]struct{}{},
+				}
+			},
+			[]string{
+				"name=jean",
+				"name=michel",
+				"nameid=coucou", // this one is always added
+			},
+		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			tArgs := tt.args(t)
 
-			got1 := computeSAMLAssertion(tArgs.claims)
+			got1 := computeSAMLAssertion(tArgs.claims, tArgs.inc, tArgs.exc)
 
 			if !reflect.DeepEqual(got1, tt.want1) {
 				t.Errorf("computeOIDClaims got1 = %v, want1: %v", got1, tt.want1)
+			}
+		})
+	}
+}
+
+func Test_computeSAMLInclusion(t *testing.T) {
+	type args struct {
+		src *api.SAMLSource
+	}
+	tests := []struct {
+		name string
+		args func(t *testing.T) args
+
+		want1 map[string]struct{}
+		want2 map[string]struct{}
+	}{
+		{
+			"no inc/exc",
+			func(*testing.T) args {
+				return args{
+					&api.SAMLSource{},
+				}
+			},
+			map[string]struct{}{},
+			map[string]struct{}{},
+		},
+		{
+			"with inc/exc",
+			func(*testing.T) args {
+				return args{
+					&api.SAMLSource{
+						IncludedKeys: []string{"a"},
+						IgnoredKeys:  []string{"b"},
+					},
+				}
+			},
+			map[string]struct{}{"a": struct{}{}},
+			map[string]struct{}{"b": struct{}{}},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tArgs := tt.args(t)
+
+			got1, got2 := computeSAMLInclusion(tArgs.src)
+
+			if !reflect.DeepEqual(got1, tt.want1) {
+				t.Errorf("computeSAMLInclusion got1 = %v, want1: %v", got1, tt.want1)
+			}
+
+			if !reflect.DeepEqual(got2, tt.want2) {
+				t.Errorf("computeSAMLInclusion got2 = %v, want2: %v", got2, tt.want2)
 			}
 		})
 	}

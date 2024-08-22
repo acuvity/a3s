@@ -88,6 +88,18 @@
         "null"
       ]
     },
+    "ignoredKeys": {
+      "$friendlyName": "IgnoredKeys",
+      "description": "A list of keys that must not be imported into the identity token. If `includedKeys` is also set, and a key is in both lists, the key will be ignored.",
+      "items": {
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "title": "ignoredKeys",
+      "type": "array"
+    },
     "importHash": {
       "$creationOnly": true,
       "$friendlyName": "ImportHash",
@@ -107,6 +119,18 @@
         "string",
         "null"
       ]
+    },
+    "includedKeys": {
+      "$friendlyName": "IncludedKeys",
+      "description": "A list of keys that must be imported into the identity token. If `ignoredKeys` is also set, and a key is in both lists, the key will be ignored.",
+      "items": {
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "title": "includedKeys",
+      "type": "array"
     },
     "modifier": {
       "$friendlyName": "Modifier",
