@@ -416,6 +416,26 @@ func (o *HTTPSource) ToSparse(fields ...string) elemental.SparseIdentifiable {
 	return sp
 }
 
+// EncryptAttributes encrypts the attributes marked as `encrypted` using the given encrypter.
+func (o *HTTPSource) EncryptAttributes(encrypter elemental.AttributeEncrypter) (err error) {
+
+	if o.Key, err = encrypter.EncryptString(o.Key); err != nil {
+		return fmt.Errorf("unable to encrypt attribute 'Key' for 'HTTPSource' (%s): %s", o.Identifier(), err)
+	}
+
+	return nil
+}
+
+// DecryptAttributes decrypts the attributes marked as `encrypted` using the given decrypter.
+func (o *HTTPSource) DecryptAttributes(encrypter elemental.AttributeEncrypter) (err error) {
+
+	if o.Key, err = encrypter.DecryptString(o.Key); err != nil {
+		return fmt.Errorf("unable to decrypt attribute 'Key' for 'HTTPSource' (%s): %s", o.Identifier(), err)
+	}
+
+	return nil
+}
+
 // Patch apply the non nil value of a *SparseHTTPSource to the object.
 func (o *HTTPSource) Patch(sparse elemental.SparseIdentifiable) {
 	if !sparse.Identity().IsEqual(o.Identity()) {
@@ -725,9 +745,11 @@ same import operation.`,
 		BSONFieldName:  "key",
 		ConvertedName:  "Key",
 		Description:    `Key associated to the client certificate.`,
+		Encrypted:      true,
 		Exposed:        true,
 		Name:           "key",
 		Required:       true,
+		Secret:         true,
 		Stored:         true,
 		Type:           "string",
 	},
@@ -926,9 +948,11 @@ same import operation.`,
 		BSONFieldName:  "key",
 		ConvertedName:  "Key",
 		Description:    `Key associated to the client certificate.`,
+		Encrypted:      true,
 		Exposed:        true,
 		Name:           "key",
 		Required:       true,
+		Secret:         true,
 		Stored:         true,
 		Type:           "string",
 	},
@@ -1338,6 +1362,26 @@ func (o *SparseHTTPSource) ToPlain() elemental.PlainIdentifiable {
 	}
 
 	return out
+}
+
+// EncryptAttributes encrypts the attributes marked as `encrypted` using the given encrypter.
+func (o *SparseHTTPSource) EncryptAttributes(encrypter elemental.AttributeEncrypter) (err error) {
+
+	if *o.Key, err = encrypter.EncryptString(*o.Key); err != nil {
+		return fmt.Errorf("unable to encrypt attribute 'Key' for 'SparseHTTPSource' (%s): %s", o.Identifier(), err)
+	}
+
+	return nil
+}
+
+// DecryptAttributes decrypts the attributes marked as `encrypted` using the given decrypter.
+func (o *SparseHTTPSource) DecryptAttributes(encrypter elemental.AttributeEncrypter) (err error) {
+
+	if *o.Key, err = encrypter.DecryptString(*o.Key); err != nil {
+		return fmt.Errorf("unable to decrypt attribute 'Key' for 'SparseHTTPSource' (%s): %s", o.Identifier(), err)
+	}
+
+	return nil
 }
 
 // GetID returns the ID of the receiver.

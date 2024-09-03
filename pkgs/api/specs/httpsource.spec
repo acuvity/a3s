@@ -109,6 +109,8 @@ attributes:
       CCqGSM49BAMCA0gAMEUCIQD+nL9RF9EvQXHyYuJ31Lz9yWd9hsK91stnpAs890gS
       /AIgQIKjBBpiyQNZZWso5H04qke9QYMVPegiQQufFFBj32c=
       -----END PRIVATE KEY-----
+    secret: true
+    encrypted: true
     validations:
     - $pem
 
