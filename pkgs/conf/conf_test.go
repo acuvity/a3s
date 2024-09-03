@@ -28,7 +28,7 @@ func TestTLSConf(t *testing.T) {
 
 	Convey("tls config with client CA", t, func() {
 		cfg := TLSConf{
-			TLSClientCA: "fixtures/ca-cert.pem",
+			TLSClientCAs: []string{"fixtures/ca-cert.pem"},
 		}
 		tlscfg, err := cfg.TLSConfig()
 		So(err, ShouldBeNil)
@@ -60,12 +60,12 @@ func TestTLSConf(t *testing.T) {
 
 	Convey("tls config with bad ca", t, func() {
 		cfg := TLSConf{
-			TLSClientCA: "nope",
+			TLSClientCAs: []string{"nope"},
 		}
 		tlscfg, err := cfg.TLSConfig()
 		So(tlscfg, ShouldBeNil)
 		So(err, ShouldNotBeNil)
-		So(err.Error(), ShouldStartWith, "unable to load ca file:")
+		So(err.Error(), ShouldStartWith, "unable to load ca file 0:")
 	})
 }
 
@@ -82,11 +82,11 @@ func TestAutoTLSConf(t *testing.T) {
 
 	Convey("tls config with CA without auto discovery ", t, func() {
 		cfg := TLSAutoConf{
-			AutoTLSCA:       "fixtures/ca-cert.pem",
-			AutoTLSCAKey:    "fixtures/ca-key.pem",
-			AutoTLSIPs:      []string{"1.1.1.1", "2.2.2.2"},
-			AutoTLSDNSs:     []string{"toto.com"},
-			AutoTLSClientCA: "fixtures/cert-cert.pem",
+			AutoTLSCA:        "fixtures/ca-cert.pem",
+			AutoTLSCAKey:     "fixtures/ca-key.pem",
+			AutoTLSIPs:       []string{"1.1.1.1", "2.2.2.2"},
+			AutoTLSDNSs:      []string{"toto.com"},
+			AutoTLSClientCAs: []string{"fixtures/cert-cert.pem"},
 		}
 		tlscfg, err := cfg.TLSConfig()
 		So(err, ShouldBeNil)
@@ -126,12 +126,12 @@ func TestAutoTLSConf(t *testing.T) {
 
 	Convey("tls config with bad ca", t, func() {
 		cfg := TLSAutoConf{
-			AutoTLSClientCA: "nope",
+			AutoTLSClientCAs: []string{"nope"},
 		}
 		tlscfg, err := cfg.TLSConfig()
 		So(tlscfg, ShouldBeNil)
 		So(err, ShouldNotBeNil)
-		So(err.Error(), ShouldStartWith, "unable to load ca file:")
+		So(err.Error(), ShouldStartWith, "unable to load ca file 0:")
 	})
 }
 

@@ -51,11 +51,11 @@ type HealthConfiguration struct {
 
 // TLSConf can be used as a conf for a server that needs a tls.Config.
 type TLSConf struct {
-	TLSCertificate string `mapstructure:"tls-cert" desc:"Path to the certificate for https"`
-	TLSClientCA    string `mapstructure:"tls-client-ca" desc:"Path to the CA to use to verify client certificates"`
-	TLSDisable     bool   `mapstructure:"tls-disable" desc:"Completely disable TLS support"`
-	TLSKey         string `mapstructure:"tls-key" desc:"Path to the key for https"`
-	TLSKeyPass     string `mapstructure:"tls-key-pass" desc:"Password for the key" secret:"true" file:"true"`
+	TLSCertificate string   `mapstructure:"tls-cert" desc:"Path to the certificate for https"`
+	TLSClientCAs   []string `mapstructure:"tls-client-ca" desc:"Path to the CA to use to verify client certificates"`
+	TLSDisable     bool     `mapstructure:"tls-disable" desc:"Completely disable TLS support"`
+	TLSKey         string   `mapstructure:"tls-key" desc:"Path to the key for https"`
+	TLSKeyPass     string   `mapstructure:"tls-key-pass" desc:"Password for the key" secret:"true" file:"true"`
 
 	certs     []*x509.Certificate
 	clientCAs []*x509.Certificate
@@ -93,17 +93,22 @@ func (c *TLSConf) TLSConfig() (*tls.Config, error) {
 		MinVersion: tls.VersionTLS13,
 	}
 
-	if c.TLSClientCA != "" {
-		caData, err := os.ReadFile(c.TLSClientCA)
-		if err != nil {
-			return nil, fmt.Errorf("unable to load ca file: %w", err)
-		}
-		c.clientCAs, err = tglib.ParseCertificates(caData)
-		if err != nil {
-			return nil, fmt.Errorf("unable to parse to ca certificate: %w", err)
-		}
+	if len(c.TLSClientCAs) > 0 {
+
 		pool := x509.NewCertPool()
-		pool.AppendCertsFromPEM(caData)
+
+		for i, ca := range c.TLSClientCAs {
+			caData, err := os.ReadFile(ca)
+			if err != nil {
+				return nil, fmt.Errorf("unable to load ca file %d: %w", i, err)
+			}
+			c.clientCAs, err = tglib.ParseCertificates(caData)
+			if err != nil {
+				return nil, fmt.Errorf("unable to parse to ca certificate: %w", err)
+			}
+			pool.AppendCertsFromPEM(caData)
+		}
+
 		tlscfg.ClientCAs = pool
 	}
 
@@ -132,7 +137,7 @@ type TLSAutoConf struct {
 	AutoTLSCA         string   `mapstructure:"auto-tls-ca" desc:"path to a CA used to automatically issue certificates"`
 	AutoTLSCAKey      string   `mapstructure:"auto-tls-ca-key" desc:"path to the key of CA passed by auto-tls-ca"`
 	AutoTLSCAKeyPass  string   `mapstructure:"auto-tls-ca-key-pass" desc:"passphrase for the key passed by auto-tls-ca-key" secret:"true" file:"true"`
-	AutoTLSClientCA   string   `mapstructure:"auto-tls-client-ca" desc:"Path to the CA to use to verify client certificates"`
+	AutoTLSClientCAs  []string `mapstructure:"auto-tls-client-ca" desc:"Path to the CA to use to verify client certificates"`
 	AutoTLSCommonName string   `mapstructure:"auto-tls-common-name" desc:"Set the pkix CommonName for the issued certificate"`
 	AutoTLSDNSs       []string `mapstructure:"auto-tls-dns" desc:"Set the DNS SANs to use in the issued certificate. If set to 'auto' the hostname will be auto discovred" default:"auto"`
 	AutoTLSDisable    bool     `mapstructure:"auto-tls-disable" desc:"Completely disable TLS support"`
@@ -186,17 +191,22 @@ func (c *TLSAutoConf) TLSConfig() (*tls.Config, error) {
 		MinVersion: tls.VersionTLS13,
 	}
 
-	if c.AutoTLSClientCA != "" {
-		caData, err := os.ReadFile(c.AutoTLSClientCA)
-		if err != nil {
-			return nil, fmt.Errorf("unable to load ca file: %w", err)
-		}
-		c.clientCAs, err = tglib.ParseCertificates(caData)
-		if err != nil {
-			return nil, fmt.Errorf("unable to parse to ca certificate: %w", err)
-		}
+	if len(c.AutoTLSClientCAs) > 0 {
+
 		pool := x509.NewCertPool()
-		pool.AppendCertsFromPEM(caData)
+
+		for i, ca := range c.AutoTLSClientCAs {
+			caData, err := os.ReadFile(ca)
+			if err != nil {
+				return nil, fmt.Errorf("unable to load ca file %d: %w", i, err)
+			}
+			c.clientCAs, err = tglib.ParseCertificates(caData)
+			if err != nil {
+				return nil, fmt.Errorf("unable to parse to ca certificate: %w", err)
+			}
+			pool.AppendCertsFromPEM(caData)
+		}
+
 		tlscfg.ClientCAs = pool
 	}
 

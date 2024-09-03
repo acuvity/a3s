@@ -32,7 +32,7 @@ func TLSConfig(autocfg conf.TLSAutoConf, manualcfg conf.TLSConf) (*tls.Config, e
 			out.Certificates = append(out.Certificates, cfg.Certificates...)
 		}
 
-		if autocfg.AutoTLSClientCA != "" {
+		if len(autocfg.AutoTLSClientCAs) > 0 {
 			clientCACert = append(clientCACert, autocfg.ClientCertificateAuthority()...)
 		}
 	}
@@ -49,7 +49,7 @@ func TLSConfig(autocfg conf.TLSAutoConf, manualcfg conf.TLSConf) (*tls.Config, e
 			slog.Info("Manual TLS configured")
 		}
 
-		if manualcfg.TLSClientCA != "" {
+		if len(manualcfg.TLSClientCAs) > 0 {
 			clientCACert = append(clientCACert, manualcfg.ClientCertificateAuthority()...)
 		}
 	}
