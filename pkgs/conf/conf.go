@@ -187,7 +187,7 @@ func (c *TLSAutoConf) TLSConfig() (*tls.Config, error) {
 	}
 
 	if c.AutoTLSClientCA != "" {
-		caData, err := os.ReadFile(c.AutoTLSCA)
+		caData, err := os.ReadFile(c.AutoTLSClientCA)
 		if err != nil {
 			return nil, fmt.Errorf("unable to load ca file: %w", err)
 		}
