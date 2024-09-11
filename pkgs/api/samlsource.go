@@ -113,7 +113,7 @@ type SAMLSource struct {
 
 	// A list of keys that must not be imported into the identity token. If
 	// `includedKeys` is also set, and a key is in both lists, the key will be ignored.
-	IgnoredKeys []string `json:"ignoredKeys,omitempty" msgpack:"ignoredKeys,omitempty" bson:"ignoredkeys,omitempty" mapstructure:"ignoredKeys,omitempty"`
+	IgnoredKeys []string `json:"ignoredKeys" msgpack:"ignoredKeys" bson:"ignoredkeys" mapstructure:"ignoredKeys,omitempty"`
 
 	// The hash of the structure used to compare with new import version.
 	ImportHash string `json:"importHash,omitempty" msgpack:"importHash,omitempty" bson:"importhash,omitempty" mapstructure:"importHash,omitempty"`
@@ -124,7 +124,7 @@ type SAMLSource struct {
 
 	// A list of keys that must be imported into the identity token. If `ignoredKeys`
 	// is also set, and a key is in both lists, the key will be ignored.
-	IncludedKeys []string `json:"includedKeys,omitempty" msgpack:"includedKeys,omitempty" bson:"includedkeys,omitempty" mapstructure:"includedKeys,omitempty"`
+	IncludedKeys []string `json:"includedKeys" msgpack:"includedKeys" bson:"includedkeys" mapstructure:"includedKeys,omitempty"`
 
 	// Contains optional information about a remote service that can be used to modify
 	// the claims that are about to be delivered using this authentication source.
@@ -1740,10 +1740,10 @@ type mongoAttributesSAMLSource struct {
 	AudienceURI                string            `bson:"audienceuri"`
 	CreateTime                 time.Time         `bson:"createtime"`
 	Description                string            `bson:"description"`
-	IgnoredKeys                []string          `bson:"ignoredkeys,omitempty"`
+	IgnoredKeys                []string          `bson:"ignoredkeys"`
 	ImportHash                 string            `bson:"importhash,omitempty"`
 	ImportLabel                string            `bson:"importlabel,omitempty"`
-	IncludedKeys               []string          `bson:"includedkeys,omitempty"`
+	IncludedKeys               []string          `bson:"includedkeys"`
 	Modifier                   *IdentityModifier `bson:"modifier,omitempty"`
 	Name                       string            `bson:"name"`
 	Namespace                  string            `bson:"namespace"`

@@ -94,7 +94,6 @@ attributes:
     exposed: true
     subtype: string
     stored: true
-    omit_empty: true
 
   - name: includedKeys
     friendly_name: IncludedKeys
@@ -105,7 +104,6 @@ attributes:
     exposed: true
     subtype: string
     stored: true
-    omit_empty: true
 
   - name: modifier
     friendly_name: Modifier
