@@ -1,5 +1,15 @@
 import { useCallback } from "react"
 
+type SAMLStep1 = {
+  redirectURL: string;
+  noAuthRedirect: boolean;
+}
+
+type SAMLStep2 = {
+  SAMLResponse: string;
+  relayState: string
+}
+
 interface IssueParams {
   sourceNamespace: string
   sourceName: string
@@ -149,10 +159,57 @@ export function useIssue({ apiUrl, audience }: UseIssueOptions) {
     [audience, issueUrl]
   )
 
+  const issueWithSaml = useCallback(
+    async ({ sourceNamespace, sourceName }: { sourceNamespace: string; sourceName: string }) => {
+      const fetchIssue = async (step: SAMLStep1 | SAMLStep2) => (
+        await fetch(issueUrl, {
+          method: "POST",
+          body: JSON.stringify({
+            sourceType: "SAML",
+            sourceName,
+            sourceNamespace,
+            inputSAML: 'SAMLResponse' in step ?
+              { SAMLResponse: step.SAMLResponse, relayState: step.relayState } : 
+              { redirectURL: step.redirectURL, noAuthRedirect: step.noAuthRedirect },
+            cookie: true,
+          }),
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+        })
+      );
+      const response = await fetchIssue({ redirectURL: `${location.origin}/saml/callback`, noAuthRedirect: true });
+      const responseBody = await response.json();
+      const samlWindow = window.open(responseBody.inputSAML.authURL, 'saml', 'width=640,height=640,left=300,top=200');
+
+      return new Promise((resolve, reject) => {
+        window.onmessage = async ({ data }) => {
+          if (!data.SAMLResponse || !data.relayState) {
+            return;
+          }
+
+          try {
+            const issueResponse = await fetchIssue({
+              SAMLResponse: data.SAMLResponse,
+              relayState: data.relayState
+            });
+            samlWindow?.close();
+            resolve(issueResponse);
+          } catch (error) {
+            reject(error);
+          }
+        };  
+      });
+    },
+    [issueUrl]
+  );
+
   return {
     issueWithLdap,
     issueWithOidc,
     issueWithMtls,
     issueWithA3s,
+    issueWithSaml,
   }
 }

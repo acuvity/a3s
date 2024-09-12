@@ -1,11 +1,11 @@
 label: a3s:dev:saml
 
 SAMLSources:
-- name: default
+- name: mock
   description: This is a default saml source based on https://mocksaml.com/
   IDPMetadata: -|
     <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-    <md:EntityDescriptor xmlns:md="urn:oasis:names:tc:SAML:2.0:metadata" entityID="https://saml.example.com/entityid" validUntil="2034-04-26T18:37:07.159Z">
+    <md:EntityDescriptor xmlns:md="urn:oasis:names:tc:SAML:2.0:metadata" entityID="https://saml.example.com/entityid" validUntil="2034-05-01T22:09:48.527Z">
       <md:IDPSSODescriptor WantAuthnRequestsSigned="true" protocolSupportEnumeration="urn:oasis:names:tc:SAML:2.0:protocol">
         <md:KeyDescriptor use="signing">
           <ds:KeyInfo xmlns:ds="http://www.w3.org/2000/09/xmldsig#">
