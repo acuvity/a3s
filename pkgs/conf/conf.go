@@ -102,11 +102,15 @@ func (c *TLSConf) TLSConfig() (*tls.Config, error) {
 			if err != nil {
 				return nil, fmt.Errorf("unable to load ca file %d: %w", i, err)
 			}
-			c.clientCAs, err = tglib.ParseCertificates(caData)
+			certs, err := tglib.ParseCertificates(caData)
 			if err != nil {
 				return nil, fmt.Errorf("unable to parse to ca certificate: %w", err)
 			}
-			pool.AppendCertsFromPEM(caData)
+			c.clientCAs = append(c.clientCAs, certs...)
+		}
+
+		for _, cert := range c.clientCAs {
+			pool.AddCert(cert)
 		}
 
 		tlscfg.ClientCAs = pool
@@ -200,11 +204,15 @@ func (c *TLSAutoConf) TLSConfig() (*tls.Config, error) {
 			if err != nil {
 				return nil, fmt.Errorf("unable to load ca file %d: %w", i, err)
 			}
-			c.clientCAs, err = tglib.ParseCertificates(caData)
+			certs, err := tglib.ParseCertificates(caData)
 			if err != nil {
 				return nil, fmt.Errorf("unable to parse to ca certificate: %w", err)
 			}
-			pool.AppendCertsFromPEM(caData)
+			c.clientCAs = append(c.clientCAs, certs...)
+		}
+
+		for _, cert := range c.clientCAs {
+			pool.AddCert(cert)
 		}
 
 		tlscfg.ClientCAs = pool
