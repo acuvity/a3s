@@ -158,7 +158,7 @@ func Import(
 			),
 			o,
 		); err != nil {
-			return fmt.Errorf("unable to create imported object: %w", err)
+			return fmt.Errorf("unable to create object '%s': %w", o.Identity().Name, err)
 		}
 	}
 

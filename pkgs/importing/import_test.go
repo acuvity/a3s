@@ -204,7 +204,7 @@ func TestImport(t *testing.T) {
 
 			err := Import(context.Background(), api.Manager(), m, "/ns", "label", objs, false)
 			So(err, ShouldNotBeNil)
-			So(err.Error(), ShouldEqual, "unable to create imported object: bim")
+			So(err.Error(), ShouldEqual, "unable to create object 'authorization': bim")
 		})
 
 		Convey("When I import a list of objects and there are some existing", func() {

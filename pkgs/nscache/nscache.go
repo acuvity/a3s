@@ -2,6 +2,7 @@ package nscache
 
 import (
 	"context"
+	"log/slog"
 	"time"
 
 	"github.com/karlseguin/ccache/v2"
@@ -66,7 +67,11 @@ func (c *NamespacedCache) Start(ctx context.Context) {
 		c.pubsub,
 		c.notificationName,
 		func(msg *notification.Message) {
-			c.cleanupCacheForNamespace(msg.Data.(string))
+			if msg.Data != nil {
+				c.cleanupCacheForNamespace(msg.Data.(string))
+			} else {
+				slog.Error("Received namespae change notification without data", "msg", msg.Type, "data", msg.Data)
+			}
 		},
 	)
 }
