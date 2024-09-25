@@ -43,7 +43,17 @@ func (p *NamespacesProcessor) ProcessCreate(bctx bahamut.Context) error {
 
 	ns.Name = name
 
-	return crud.Create(bctx, p.manipulator, ns, crud.OptionPostWriteHook(p.makeNotify(bctx.Request().Operation)))
+	return crud.Create(
+		bctx,
+		p.manipulator,
+		ns,
+		crud.OptionPostWriteHook(p.makeNotify(bctx.Request().Operation)),
+		crud.OptionManipulateContextOptions(
+			manipulate.ContextOptionWriteConsistency(
+				manipulate.WriteConsistencyStrongest,
+			),
+		),
+	)
 }
 
 // ProcessRetrieveMany handles the retrieve many requests for Namespaces.
@@ -58,8 +68,16 @@ func (p *NamespacesProcessor) ProcessRetrieve(bctx bahamut.Context) error {
 
 // ProcessUpdate handles the update requests for Namespaces.
 func (p *NamespacesProcessor) ProcessUpdate(bctx bahamut.Context) error {
-	return crud.Update(bctx, p.manipulator, bctx.InputData().(*api.Namespace),
+	return crud.Update(
+		bctx,
+		p.manipulator,
+		bctx.InputData().(*api.Namespace),
 		crud.OptionPostWriteHook(p.makeNotify(bctx.Request().Operation)),
+		crud.OptionManipulateContextOptions(
+			manipulate.ContextOptionWriteConsistency(
+				manipulate.WriteConsistencyStrongest,
+			),
+		),
 	)
 }
 
@@ -81,6 +99,11 @@ func (p *NamespacesProcessor) ProcessDelete(bctx bahamut.Context) error {
 
 			p.makeNotify(bctx.Request().Operation)(obj)
 		}),
+		crud.OptionManipulateContextOptions(
+			manipulate.ContextOptionWriteConsistency(
+				manipulate.WriteConsistencyStrongest,
+			),
+		),
 	)
 }
 
