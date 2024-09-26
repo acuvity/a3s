@@ -61,7 +61,7 @@
       ]
     },
     "audienceURI": {
-      "$friendlyName": "Service Provider Issuer",
+      "$friendlyName": "Audience URI",
       "description": "The AudienceURI expected for the response. If not provided, Acuvity will send the issuer URL.",
       "title": "audienceURI",
       "type": [
