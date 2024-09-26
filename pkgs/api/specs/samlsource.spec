@@ -69,7 +69,7 @@ attributes:
     example_value: https://accounts.google.com/o/saml2/idp?idpid=AbDcef123
 
   - name: audienceURI
-    friendly_name: Service Provider Issuer
+    friendly_name: Audience URI
     description: |-
       The AudienceURI expected for the response. If not provided, Acuvity will send
       the issuer URL.
