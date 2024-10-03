@@ -193,7 +193,11 @@ func (a *authorizer) CheckAuthorization(ctx context.Context, claims []string, op
 	}
 
 	exp := time.Hour + time.Duration(rand.Int63n(60*30))*time.Second
-	key := hash(claims, cfg.sourceIP, cfg.id, cfg.restrictions)
+
+	key := cfg.tokenID
+	if key == "" {
+		key = hash(claims, cfg.sourceIP, cfg.id, cfg.restrictions)
+	}
 
 	// Handle token revocation
 	if r := a.revocationCache.Get(ns, key); r == nil || r.Expired() {
