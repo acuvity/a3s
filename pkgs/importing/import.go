@@ -73,10 +73,14 @@ func Import(
 				return fmt.Errorf("object '%s[%d]' is not importable", obj.Identity().Name, i)
 			}
 
-			if ns := imp.GetNamespace(); ns != "" {
-				if !strings.HasPrefix(ns, "./") {
-					return fmt.Errorf("object '%s[%d] has a non relative namespace set: %s", obj.Identity(), i, ns)
+			localns := imp.GetNamespace()
+			if localns == "" {
+				imp.SetNamespace(namespace)
+			} else {
+				if !strings.HasPrefix(localns, "./") {
+					return fmt.Errorf("object '%s[%d] has a non relative namespace set: %s", obj.Identity(), i, localns)
 				}
+				imp.SetNamespace(namespace + "/" + strings.Replace(localns, "./", "", 1))
 			}
 
 			h, err := Hash(imp, manager)
@@ -84,6 +88,7 @@ func Import(
 				return fmt.Errorf("unable to hash '%s[%d]': %w", obj.Identity().Name, i, err)
 			}
 
+			imp.SetNamespace(localns)
 			imp.SetImportHash(h)
 			imp.SetImportLabel(label)
 

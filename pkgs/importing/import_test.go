@@ -215,13 +215,13 @@ func TestImport(t *testing.T) {
 					&api.Authorization{
 						ID:          "1",
 						Name:        "1",
-						ImportHash:  "3132303033343839333331383835343436343834e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+						ImportHash:  "3132383335303230383330363332323439343833e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
 						ImportLabel: "label",
 					},
 					&api.Authorization{
 						ID:          "2",
 						Name:        "2",
-						ImportHash:  "3132363235373937303539373039393132333639e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+						ImportHash:  "3133353237363932393233333130393837353032e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
 						ImportLabel: "label",
 					},
 					&api.Authorization{
@@ -233,6 +233,14 @@ func TestImport(t *testing.T) {
 				)
 				return nil
 			})
+
+			// fmt.Println(Hash(&api.Authorization{
+			// 	ID:          "2",
+			// 	Name:        "2",
+			// 	Namespace:   "/ns",
+			// 	ImportHash:  "3132303033343839333331383835343436343834e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+			// 	ImportLabel: "label",
+			// }, api.Manager()))
 
 			toDelete := elemental.IdentifiablesList{}
 			m.MockDelete(t, func(mctx manipulate.Context, object elemental.Identifiable) error {
@@ -287,13 +295,13 @@ func TestImport(t *testing.T) {
 					&api.Authorization{
 						ID:          "1",
 						Name:        "1",
-						ImportHash:  "3132303033343839333331383835343436343834e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+						ImportHash:  "3132383335303230383330363332323439343833e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
 						ImportLabel: "label",
 					},
 					&api.Authorization{
 						ID:          "2",
 						Name:        "2",
-						ImportHash:  "3132363235373937303539373039393132333639e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+						ImportHash:  "3133353237363932393233333130393837353032e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
 						ImportLabel: "label",
 					},
 					&api.Authorization{

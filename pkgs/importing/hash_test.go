@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"reflect"
 	"testing"
+	"time"
 
 	"go.acuvity.ai/a3s/pkgs/api"
 	"go.acuvity.ai/elemental"
@@ -81,13 +82,29 @@ func TestHash(t *testing.T) {
 				o.Name = "name"
 				o.ImportHash = "h"
 				o.ImportLabel = "l"
-				o.Namespace = "ns"
 				return args{
 					o,
 					api.Manager(),
 				}
 			},
 			"39373933393238343838353037323338393835e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+			false,
+			nil,
+		},
+		{
+			"with no nested object and ns",
+			func(*testing.T) args {
+				o := api.NewHTTPSource()
+				o.Name = "name"
+				o.ImportHash = "h"
+				o.ImportLabel = "l"
+				o.Namespace = "ns"
+				return args{
+					o,
+					api.Manager(),
+				}
+			},
+			"39353238373638333838383732323933323535e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
 			false,
 			nil,
 		},
@@ -135,15 +152,17 @@ func Test_sanitize(t *testing.T) {
 				obj.CA = "ca"
 				obj.ImportHash = "should be removed"
 				obj.ImportLabel = "should be removed"
-				obj.Namespace = "should be removed because it's autogen"
+				obj.CreateTime = time.Now()
+				obj.Namespace = "should not be removed because its used to computed hash"
 				return args{
 					obj,
 					api.Manager(),
 				}
 			},
 			map[string]any{
-				"name": "name",
-				"CA":   "ca",
+				"name":      "name",
+				"CA":        "ca",
+				"namespace": "should not be removed because its used to computed hash",
 			},
 			false,
 			nil,
@@ -156,7 +175,8 @@ func Test_sanitize(t *testing.T) {
 				obj.CA = "ca"
 				obj.ImportHash = "should be removed"
 				obj.ImportLabel = "should be removed"
-				obj.Namespace = "should be removed because it's autogen"
+				obj.CreateTime = time.Now()
+				obj.Namespace = "should not be removed because its used to computed hash"
 				obj.Modifier = api.NewIdentityModifier()
 				return args{
 					obj,
@@ -164,8 +184,9 @@ func Test_sanitize(t *testing.T) {
 				}
 			},
 			map[string]any{
-				"name": "name",
-				"CA":   "ca",
+				"name":      "name",
+				"CA":        "ca",
+				"namespace": "should not be removed because its used to computed hash",
 			},
 			false,
 			nil,
@@ -178,7 +199,8 @@ func Test_sanitize(t *testing.T) {
 				obj.CA = "ca"
 				obj.ImportHash = "should be removed"
 				obj.ImportLabel = "should be removed"
-				obj.Namespace = "should be removed because it's autogen"
+				obj.CreateTime = time.Now()
+				obj.Namespace = "should not be removed because its used to computed hash"
 				obj.Modifier = api.NewIdentityModifier()
 				obj.Modifier.Certificate = "cert"
 				return args{
@@ -187,8 +209,9 @@ func Test_sanitize(t *testing.T) {
 				}
 			},
 			map[string]any{
-				"name": "name",
-				"CA":   "ca",
+				"name":      "name",
+				"CA":        "ca",
+				"namespace": "should not be removed because its used to computed hash",
 				"modifier": map[string]any{
 					"certificate": "cert",
 				},
@@ -202,9 +225,10 @@ func Test_sanitize(t *testing.T) {
 				obj := api.NewLDAPSource()
 				obj.Name = "name"
 				obj.CA = "ca"
+				obj.CreateTime = time.Now()
 				obj.ImportHash = "should be removed"
 				obj.ImportLabel = "should be removed"
-				obj.Namespace = "should be removed because it's autogen"
+				obj.Namespace = "should not be removed because its used to computed hash"
 				obj.SecurityProtocol = api.LDAPSourceSecurityProtocolTLS
 				return args{
 					obj,
@@ -212,8 +236,9 @@ func Test_sanitize(t *testing.T) {
 				}
 			},
 			map[string]any{
-				"name": "name",
-				"CA":   "ca",
+				"name":      "name",
+				"CA":        "ca",
+				"namespace": "should not be removed because its used to computed hash",
 			},
 			false,
 			nil,
@@ -226,7 +251,8 @@ func Test_sanitize(t *testing.T) {
 				obj.CA = "ca"
 				obj.ImportHash = "should be removed"
 				obj.ImportLabel = "should be removed"
-				obj.Namespace = "should be removed because it's autogen"
+				obj.CreateTime = time.Now()
+				obj.Namespace = "should not be removed because its used to computed hash"
 				obj.SecurityProtocol = api.LDAPSourceSecurityProtocolInbandTLS
 				return args{
 					obj,
@@ -237,6 +263,7 @@ func Test_sanitize(t *testing.T) {
 				"name":             "name",
 				"CA":               "ca",
 				"securityProtocol": api.LDAPSourceSecurityProtocolInbandTLS,
+				"namespace":        "should not be removed because its used to computed hash",
 			},
 			false,
 			nil,
