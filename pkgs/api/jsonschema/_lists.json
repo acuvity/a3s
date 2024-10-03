@@ -108,6 +108,12 @@
       },
       "type": "array"
     },
+    "logout": {
+      "items": {
+        "$ref": "logout.json"
+      },
+      "type": "array"
+    },
     "mtlssources": {
       "items": {
         "$ref": "mtlssource.json"

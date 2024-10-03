@@ -517,6 +517,17 @@ Type: `string`
 
 OIDC ceremony state.
 
+### Logout
+
+Removes the secure cookie. This API is only useful to browsers. They can call it
+to have a3s remove the secure cookie.
+
+#### Relations
+
+##### `POST /logout`
+
+Makes browser delete the secure cookie.
+
 ## authn/source
 
 ### A3SSource

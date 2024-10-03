@@ -54,6 +54,9 @@
     "ldapsource": {
       "$ref": "ldapsource.json"
     },
+    "logout": {
+      "$ref": "logout.json"
+    },
     "mtlssource": {
       "$ref": "mtlssource.json"
     },

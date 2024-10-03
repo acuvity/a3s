@@ -1,0 +1,15 @@
+{
+  "$extends": [],
+  "$friendlyName": "Logout",
+  "$friendlyNamePlural": "Logouts",
+  "$modelName": "Logout",
+  "$modelPackage": "a3s",
+  "$modelResourceName": "logout",
+  "$modelRestName": "logout",
+  "additionalProperties": true,
+  "description": "Removes the secure cookie. This API is only useful to browsers. They can call it to have a3s remove the secure cookie.",
+  "properties": {},
+  "required": [],
+  "title": "Logout",
+  "type": "object"
+}

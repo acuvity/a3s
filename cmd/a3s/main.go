@@ -50,6 +50,7 @@ var (
 		api.IssueIdentity.Category,
 		api.PermissionsIdentity.Category,
 		api.AuthzIdentity.Category,
+		api.LogoutIdentity.Category,
 	}
 	pushExcludedResources = []elemental.Identity{
 		api.PermissionsIdentity,
@@ -57,6 +58,7 @@ var (
 		// safety: these ones are not an identifiable, so it would not be pushed anyway.
 		api.IssueIdentity,
 		api.AuthzIdentity,
+		api.LogoutIdentity,
 	}
 )
 
@@ -495,6 +497,7 @@ func main() {
 	bahamut.RegisterProcessorOrDie(server, processors.NewImportProcessor(bmanipMaker, pauthz), api.ImportIdentity)
 	bahamut.RegisterProcessorOrDie(server, processors.NewRevocationsProcessor(m, pubsub), api.RevocationIdentity)
 	bahamut.RegisterProcessorOrDie(server, processors.NewGroupProcessor(m, pubsub), api.GroupIdentity)
+	bahamut.RegisterProcessorOrDie(server, processors.NewLogoutProcessor(m, pubsub, cookiePolicy, cookieDomain), api.LogoutIdentity)
 
 	// Object clean up
 	notification.Subscribe(

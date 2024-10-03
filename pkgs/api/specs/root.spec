@@ -68,6 +68,10 @@ relations:
   create:
     description: Creates a new ldapsource.
 
+- rest_name: logout
+  create:
+    description: Makes browser delete the secure cookie.
+
 - rest_name: mtlssource
   get:
     description: Retrieves the list of mtlssources.

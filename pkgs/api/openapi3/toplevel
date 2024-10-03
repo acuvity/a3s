@@ -939,6 +939,10 @@
         ],
         "type": "object"
       },
+      "logout": {
+        "description": "Removes the secure cookie. This API is only useful to browsers. They can call it\nto have a3s remove the secure cookie.",
+        "type": "object"
+      },
       "mtlssource": {
         "description": "An MTLS Auth source can be used to issue tokens based on user certificates.",
         "properties": {
@@ -2341,6 +2345,37 @@
         },
         "tags": [
           "authn/source",
+          "a3s"
+        ]
+      }
+    },
+    "/logout": {
+      "post": {
+        "description": "Makes browser delete the secure cookie.",
+        "operationId": "create-Logout",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/logout"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/logout"
+                }
+              }
+            },
+            "description": "n/a"
+          }
+        },
+        "tags": [
+          "authn/issue",
           "a3s"
         ]
       }

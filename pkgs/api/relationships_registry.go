@@ -284,6 +284,12 @@ func init() {
 		},
 	}
 
+	relationshipsRegistry[LogoutIdentity] = &elemental.Relationship{
+		Create: map[string]*elemental.RelationshipInfo{
+			"root": {},
+		},
+	}
+
 	relationshipsRegistry[MTLSSourceIdentity] = &elemental.Relationship{
 		Create: map[string]*elemental.RelationshipInfo{
 			"root": {},
