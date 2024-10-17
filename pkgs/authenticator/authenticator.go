@@ -59,12 +59,12 @@ func New(jwks *token.JWKS, issuer string, audience string, options ...Option) *A
 // AuthenticateSession authenticates the given session.
 func (a *Authenticator) AuthenticateSession(session bahamut.Session) (bahamut.AuthAction, error) {
 
-	action, claims, err := a.CheckAuthentication(session.Context(), token.FromSession(session))
+	action, idt, err := a.CheckAuthentication(session.Context(), token.FromSession(session))
 	if err != nil {
 		return bahamut.AuthActionKO, err
 	}
 
-	session.SetClaims(claims)
+	session.SetClaims(idt.Identity)
 
 	return action, nil
 }
@@ -78,18 +78,18 @@ func (a *Authenticator) AuthenticateRequest(bctx bahamut.Context) (bahamut.AuthA
 
 	token := token.FromRequest(bctx.Request())
 
-	action, claims, err := a.CheckAuthentication(bctx.Context(), token)
+	action, idt, err := a.CheckAuthentication(bctx.Context(), token)
 	if err != nil {
 		return bahamut.AuthActionKO, err
 	}
 
-	bctx.SetClaims(claims)
+	bctx.SetClaims(idt.Identity)
 
 	return action, nil
 }
 
 // CheckAuthentication authenticates the given JWT string.
-func (a *Authenticator) CheckAuthentication(ctx context.Context, tokenString string) (bahamut.AuthAction, []string, error) {
+func (a *Authenticator) CheckAuthentication(ctx context.Context, tokenString string) (bahamut.AuthAction, *token.IdentityToken, error) {
 
 	if tokenString == "" {
 		return bahamut.AuthActionKO, nil, elemental.NewError(
@@ -136,7 +136,7 @@ func (a *Authenticator) CheckAuthentication(ctx context.Context, tokenString str
 		)
 	}
 
-	return bahamut.AuthActionContinue, idt.Identity, nil
+	return bahamut.AuthActionContinue, idt, nil
 }
 
 func (a *Authenticator) handleFederatedToken(ctx context.Context, tokenString string) (jwks *token.JWKS, issuer string, err error) {

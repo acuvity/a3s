@@ -98,11 +98,11 @@ func TestCommonAuth(t *testing.T) {
 				kid1,
 			)
 
-			action, claims, err := a.CheckAuthentication(context.Background(), token)
+			action, idt, err := a.CheckAuthentication(context.Background(), token)
 
 			So(err, ShouldBeNil)
 			So(action, ShouldEqual, bahamut.AuthActionContinue)
-			So(claims, ShouldResemble, []string{"color=blue", "@source:type=test"})
+			So(idt.Identity, ShouldResemble, []string{"color=blue", "@source:type=test"})
 		})
 
 		Convey("Calling commonAuth on a refresh token should fail", func() {
@@ -114,12 +114,12 @@ func TestCommonAuth(t *testing.T) {
 				kid1,
 			)
 
-			action, claims, err := a.CheckAuthentication(context.Background(), token)
+			action, idt, err := a.CheckAuthentication(context.Background(), token)
 
 			So(err, ShouldNotBeNil)
 			So(err.Error(), ShouldEqual, "error 401 (a3s:authn): Unauthorized: Authentication impossible from a refresh token")
 			So(action, ShouldEqual, bahamut.AuthActionKO)
-			So(claims, ShouldBeNil)
+			So(idt, ShouldBeNil)
 		})
 
 		Convey("Calling commonAuth on a token signed by the wrong signer should fail", func() {
@@ -131,36 +131,36 @@ func TestCommonAuth(t *testing.T) {
 				kid1,
 			)
 
-			action, claims, err := a.CheckAuthentication(context.Background(), token)
+			action, idt, err := a.CheckAuthentication(context.Background(), token)
 
 			So(err, ShouldNotBeNil)
 			So(err.Error(), ShouldEqual, `error 401 (a3s:authn): Unauthorized: Authentication rejected with error: unable to parse jwt: crypto/ecdsa: verification error`)
 			So(action, ShouldEqual, bahamut.AuthActionKO)
-			So(claims, ShouldBeNil)
+			So(idt, ShouldBeNil)
 		})
 
 		Convey("Calling commonAuth on a bad token should fail", func() {
 
 			token := "that's not good"
 
-			action, claims, err := a.CheckAuthentication(context.Background(), token)
+			action, idt, err := a.CheckAuthentication(context.Background(), token)
 
 			So(err, ShouldNotBeNil)
 			So(err.Error(), ShouldEqual, `error 401 (a3s:authn): Unauthorized: Authentication rejected with error: unable to parse jwt: token contains an invalid number of segments`)
 			So(action, ShouldEqual, bahamut.AuthActionKO)
-			So(claims, ShouldBeNil)
+			So(idt, ShouldBeNil)
 		})
 
 		Convey("Calling commonAuth on an empty token should fail", func() {
 
 			token := ""
 
-			action, claims, err := a.CheckAuthentication(context.Background(), token)
+			action, idt, err := a.CheckAuthentication(context.Background(), token)
 
 			So(err, ShouldNotBeNil)
 			So(err.Error(), ShouldEqual, `error 401 (a3s:authn): Unauthorized: Missing token in Authorization header`)
 			So(action, ShouldEqual, bahamut.AuthActionKO)
-			So(claims, ShouldBeNil)
+			So(idt, ShouldBeNil)
 		})
 	})
 }
