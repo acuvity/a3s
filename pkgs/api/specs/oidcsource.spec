@@ -57,6 +57,7 @@ attributes:
     stored: true
     required: true
     example_value: Ytgbfjtj4652jHDFGls99jF
+    secret: true
     encrypted: true
 
   - name: description
