@@ -45,6 +45,15 @@
       "title": "MTLSSources",
       "type": "array"
     },
+    "OAuth2Sources": {
+      "$friendlyName": "OAuth2Sources",
+      "description": "OAuth2 sources to import.",
+      "items": {
+        "$ref": "oauth2source.json"
+      },
+      "title": "OAuth2Sources",
+      "type": "array"
+    },
     "OIDCSources": {
       "$friendlyName": "OIDCSources",
       "description": "OIDC sources to import.",

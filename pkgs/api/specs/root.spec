@@ -94,6 +94,14 @@ relations:
     global_parameters:
     - $queryable
 
+- rest_name: oauth2source
+  get:
+    description: Retrieves the list of oauth2sources.
+    global_parameters:
+    - $queryable
+  create:
+    description: Creates a new oauthpsource.
+
 - rest_name: oidcsource
   get:
     description: Retrieves the list of oidcsources.

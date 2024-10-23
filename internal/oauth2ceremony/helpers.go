@@ -1,4 +1,4 @@
-package oidcceremony
+package oauth2ceremony
 
 import (
 	"crypto/rand"
@@ -27,8 +27,8 @@ func GenerateNonce(nonceSourceSize int) (string, error) {
 	return base64.RawStdEncoding.EncodeToString(sha[:]), nil
 }
 
-// MakeOIDCProviderClient returns a OIDC client using the given CA.
-func MakeOIDCProviderClient(ca string) (*http.Client, error) {
+// MakeClient returns a OIDC client using the given CA.
+func MakeClient(ca string) (*http.Client, error) {
 
 	var pool *x509.CertPool
 	var err error
@@ -57,20 +57,25 @@ func MakeOIDCProviderClient(ca string) (*http.Client, error) {
 	}, nil
 }
 
-// RedirectErrorEventually will configure the redirect url if given for the
-// given bahamut.Context
-func RedirectErrorEventually(ctx bahamut.Context, url string, err error) error {
+// MakeRedirectError will configure will return a decorator function that can be
+// used to handler errors. If the url is not empty, the request will be redirected
+// to that URL with error set in the 'error=' query parameter. Otherwise it will just
+// return the err as usual.
+func MakeRedirectError(ctx bahamut.Context, url string) func(err error) error {
 
-	if url == "" {
-		return err
+	return func(err error) error {
+
+		if url == "" {
+			return err
+		}
+
+		d, e := json.Marshal(err)
+		if e != nil {
+			return err
+		}
+
+		ctx.SetRedirect(fmt.Sprintf("%s?error=%s", url, string(d)))
+
+		return nil
 	}
-
-	d, e := json.Marshal(err)
-	if e != nil {
-		return err
-	}
-
-	ctx.SetRedirect(fmt.Sprintf("%s?error=%s", url, string(d)))
-
-	return nil
 }

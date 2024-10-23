@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/tls"
 	"crypto/x509"
+	"encoding/json"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -20,10 +21,11 @@ import (
 	"go.acuvity.ai/a3s/internal/issuer/httpissuer"
 	"go.acuvity.ai/a3s/internal/issuer/ldapissuer"
 	"go.acuvity.ai/a3s/internal/issuer/mtlsissuer"
+	"go.acuvity.ai/a3s/internal/issuer/oauth2issuer"
 	"go.acuvity.ai/a3s/internal/issuer/oidcissuer"
 	"go.acuvity.ai/a3s/internal/issuer/remotea3sissuer"
 	"go.acuvity.ai/a3s/internal/issuer/samlissuer"
-	"go.acuvity.ai/a3s/internal/oidcceremony"
+	"go.acuvity.ai/a3s/internal/oauth2ceremony"
 	"go.acuvity.ai/a3s/internal/samlceremony"
 	"go.acuvity.ai/a3s/pkgs/api"
 	"go.acuvity.ai/a3s/pkgs/auditor"
@@ -180,6 +182,12 @@ func (p *IssueProcessor) ProcessCreate(bctx bahamut.Context) (err error) {
 			return nil
 		}
 
+	case api.IssueSourceTypeOAuth2:
+		issuer, err = p.handleOAuth2Issue(bctx, req)
+		if issuer == nil && err == nil {
+			return nil
+		}
+
 	case api.IssueSourceTypeSAML:
 		issuer, err = p.handleSAMLIssue(bctx, req)
 		if issuer == nil && err == nil {
@@ -255,6 +263,7 @@ func (p *IssueProcessor) ProcessCreate(bctx bahamut.Context) (err error) {
 	req.InputOIDC = nil
 	req.InputA3S = nil
 	req.InputRemoteA3S = nil
+	req.InputOAuth2 = nil
 
 	if req.Cookie {
 		domain := req.CookieDomain
@@ -436,89 +445,58 @@ func (p *IssueProcessor) handleRemoteA3SIssue(ctx context.Context, req *api.Issu
 
 func (p *IssueProcessor) handleOIDCIssue(bctx bahamut.Context, req *api.Issue) (token.Issuer, error) {
 
-	state := req.InputOIDC.State
-	code := req.InputOIDC.Code
+	input := req.InputOIDC
+	state := input.State
+	code := input.Code
 
-	out, err := retrieveSource(
-		bctx.Context(),
-		p.manipulator,
-		req.SourceNamespace,
-		req.SourceName,
-		api.OIDCSourceIdentity,
-	)
+	out, err := retrieveSource(bctx.Context(), p.manipulator, req.SourceNamespace, req.SourceName, api.OIDCSourceIdentity)
 	if err != nil {
 		return nil, err
 	}
+
 	src := out.(*api.OIDCSource)
+
+	rerr := oauth2ceremony.MakeRedirectError(bctx, input.RedirectErrorURL)
 
 	if code == "" && state == "" {
 
-		client, err := oidcceremony.MakeOIDCProviderClient(src.CA)
+		state, err = oauth2ceremony.GenerateNonce(12)
 		if err != nil {
-			return nil, oidcceremony.RedirectErrorEventually(
-				bctx,
-				req.InputOIDC.RedirectErrorURL,
-				elemental.NewError(
-					"Bad Request",
-					err.Error(),
-					"a3s:authn",
-					http.StatusBadRequest,
-				),
-			)
+			return nil, rerr(fmt.Errorf("unable to generate nonce for oidc state: %w", err))
 		}
 
-		oidcCtx := oidc.ClientContext(bctx.Context(), client)
-		provider, err := oidc.NewProvider(oidcCtx, src.Endpoint)
+		client, err := oauth2ceremony.MakeClient(src.CA)
 		if err != nil {
-			return nil, oidcceremony.RedirectErrorEventually(
-				bctx,
-				req.InputOIDC.RedirectErrorURL,
-				elemental.NewError(
-					"Bad Request",
-					err.Error(),
-					"a3s:authn",
-					http.StatusBadRequest,
-				),
-			)
+			return nil, rerr(elemental.NewError("Bad Request", err.Error(), "a3s:authn", http.StatusBadRequest))
+		}
+
+		ctx := oidc.ClientContext(bctx.Context(), client)
+		provider, err := oidc.NewProvider(ctx, src.Endpoint)
+		if err != nil {
+			return nil, rerr(elemental.NewError("Bad Request", err.Error(), "a3s:authn", http.StatusBadRequest))
 		}
 
 		oauth2Config := oauth2.Config{
 			ClientID:     src.ClientID,
 			ClientSecret: src.ClientSecret,
-			RedirectURL:  req.InputOIDC.RedirectURL,
+			RedirectURL:  input.RedirectURL,
 			Endpoint:     provider.Endpoint(),
 			Scopes:       append([]string{oidc.ScopeOpenID}, src.Scopes...),
 		}
 
-		state, err = oidcceremony.GenerateNonce(12)
-		if err != nil {
-			return nil, oidcceremony.RedirectErrorEventually(
-				bctx,
-				req.InputOIDC.RedirectErrorURL,
-				err,
-			)
+		cacheItem := &oauth2ceremony.CacheItem{
+			State:        state,
+			OAuth2Config: oauth2Config,
 		}
 
-		cacheItem := &oidcceremony.CacheItem{
-			State:            state,
-			ProviderEndpoint: src.Endpoint,
-			CA:               src.CA,
-			ClientID:         src.ClientID,
-			OAuth2Config:     oauth2Config,
-		}
-
-		if err := oidcceremony.Set(p.manipulator, cacheItem); err != nil {
-			return nil, oidcceremony.RedirectErrorEventually(
-				bctx,
-				req.InputOIDC.RedirectErrorURL,
-				err,
-			)
+		if err := oauth2ceremony.Set(p.manipulator, cacheItem); err != nil {
+			return nil, rerr(fmt.Errorf("unabelt to set oidc cache: %w", err))
 		}
 
 		authURL := oauth2Config.AuthCodeURL(state)
 
-		if req.InputOIDC.NoAuthRedirect {
-			req.InputOIDC.AuthURL = authURL
+		if input.NoAuthRedirect {
+			input.AuthURL = authURL
 			bctx.SetOutputData(req)
 		} else {
 			bctx.SetRedirect(authURL)
@@ -527,74 +505,191 @@ func (p *IssueProcessor) handleOIDCIssue(bctx bahamut.Context, req *api.Issue) (
 		return nil, nil
 	}
 
-	oidcReq, err := oidcceremony.Get(p.manipulator, state)
+	cached, err := oauth2ceremony.Get(p.manipulator, state)
 	if err != nil {
-		return nil, err
+		return nil, rerr(fmt.Errorf("unable to retrieve cached oidc state: %w", err))
 	}
 
-	if err := oidcceremony.Delete(p.manipulator, state); err != nil {
-		return nil, err
+	if err := oauth2ceremony.Delete(p.manipulator, state); err != nil {
+		return nil, rerr(fmt.Errorf("unable to delete cached oidc state: %w", err))
 	}
 
-	client, err := oidcceremony.MakeOIDCProviderClient(oidcReq.CA)
+	client, err := oauth2ceremony.MakeClient(src.CA)
 	if err != nil {
-		return nil, fmt.Errorf("unable to create oidc http client: %w", err)
+		return nil, rerr(fmt.Errorf("unable to create oidc http client: %w", err))
 	}
 
-	oidcctx := oidc.ClientContext(bctx.Context(), client)
+	ctx := oidc.ClientContext(bctx.Context(), client)
 
-	oauth2Token, err := oidcReq.OAuth2Config.Exchange(oidcctx, code)
+	tok, err := cached.OAuth2Config.Exchange(ctx, code)
 	if err != nil {
-		return nil, elemental.NewError(
-			"OAuth2 Error",
-			err.Error(),
-			"a3s:authn",
-			http.StatusNotAcceptable,
-		)
+		return nil, rerr(elemental.NewError("OAuth2 Error", err.Error(), "a3s:authn", http.StatusNotAcceptable))
 	}
 
-	rawIDToken, ok := oauth2Token.Extra("id_token").(string)
+	rawIDToken, ok := tok.Extra("id_token").(string)
 	if !ok {
 		return nil, fmt.Errorf("missing ID token")
 	}
 
-	provider, err := oidc.NewProvider(oidcctx, oidcReq.ProviderEndpoint)
+	provider, err := oidc.NewProvider(ctx, src.Endpoint)
 	if err != nil {
-		return nil, elemental.NewError(
-			"OIDC Error",
-			err.Error(),
-			"a3s:authn",
-			http.StatusUnauthorized,
-		)
+		return nil, rerr(elemental.NewError("OIDC Error", err.Error(), "a3s:authn", http.StatusUnauthorized))
 	}
 
-	verifier := provider.Verifier(
-		&oidc.Config{
-			ClientID: oidcReq.ClientID,
-		},
-	)
+	verifier := provider.Verifier(&oidc.Config{ClientID: src.ClientID})
 
-	idToken, err := verifier.Verify(oidcctx, rawIDToken)
+	idToken, err := verifier.Verify(ctx, rawIDToken)
 	if err != nil {
-		return nil, elemental.NewError(
-			"OAuth2 Verification Error",
-			err.Error(),
-			"a3s:authn",
-			http.StatusNotAcceptable,
-		)
+		return nil, rerr(elemental.NewError("OAuth2 Verification Error", err.Error(), "a3s:authn", http.StatusNotAcceptable))
 	}
 
 	claims := map[string]any{}
 	if err := idToken.Claims(&claims); err != nil {
-		return nil, elemental.NewError(
-			"Claims Decoding Error",
-			err.Error(),
-			"a3s:authn",
-			http.StatusNotAcceptable,
-		)
+		return nil, rerr(elemental.NewError("Claims Decoding Error", err.Error(), "a3s:authn", http.StatusNotAcceptable))
 	}
 
 	return oidcissuer.New(bctx.Context(), src, claims)
+}
+
+func (p *IssueProcessor) handleOAuth2Issue(bctx bahamut.Context, req *api.Issue) (token.Issuer, error) {
+
+	input := req.InputOAuth2
+	state := input.State
+	code := input.Code
+
+	out, err := retrieveSource(bctx.Context(), p.manipulator, req.SourceNamespace, req.SourceName, api.OAuth2SourceIdentity)
+	if err != nil {
+		return nil, err
+	}
+
+	src := out.(*api.OAuth2Source)
+
+	rerr := oauth2ceremony.MakeRedirectError(bctx, input.RedirectErrorURL)
+
+	if code == "" && state == "" {
+
+		state, err = oauth2ceremony.GenerateNonce(12)
+		if err != nil {
+			return nil, rerr(fmt.Errorf("unable to generate oauth2 state: %w", err))
+		}
+
+		conf := oauth2.Config{
+			ClientID:     src.ClientID,
+			ClientSecret: src.ClientSecret,
+			Scopes:       src.Scopes,
+			RedirectURL:  input.RedirectURL,
+			Endpoint:     oauth2.Endpoint{},
+		}
+
+		cacheItem := &oauth2ceremony.CacheItem{
+			State:        state,
+			OAuth2Config: conf,
+		}
+
+		if err := oauth2ceremony.Set(p.manipulator, cacheItem); err != nil {
+			return nil, rerr(fmt.Errorf("unable to cache oauth2 state: %w", err))
+		}
+
+		var authURL string
+
+		switch src.Provider {
+
+		case api.OAuth2SourceProviderGithub:
+			conf.Endpoint.AuthURL = "https://github.com/login/oauth/authorize"
+
+		case api.OAuth2SourceProviderGitlab:
+			// TODO: conf.Endpoint.AuthURL = "https://github.com/login/oauth/authorize"
+		}
+
+		authURL = conf.AuthCodeURL(state)
+
+		if input.NoAuthRedirect {
+			input.AuthURL = authURL
+			bctx.SetOutputData(req)
+		} else {
+			bctx.SetRedirect(authURL)
+		}
+
+		return nil, nil
+	}
+
+	cached, err := oauth2ceremony.Get(p.manipulator, input.State)
+	if err != nil {
+		return nil, rerr(fmt.Errorf("unable to retrieve cached oauth2 state: %w", err))
+	}
+
+	if err := oauth2ceremony.Delete(p.manipulator, state); err != nil {
+		return nil, rerr(fmt.Errorf("unable to delete cached oauth2 state: %w", err))
+	}
+
+	conf := cached.OAuth2Config
+
+	client, err := oauth2ceremony.MakeClient(src.CA)
+	if err != nil {
+		return nil, rerr(elemental.NewError("Internal Server Error", fmt.Sprintf("oauth2: unable to make provider client: %s", err), "a3s:authn", http.StatusInternalServerError))
+	}
+
+	switch src.Provider {
+
+	case api.OAuth2SourceProviderGithub:
+		conf.Endpoint.TokenURL = "https://github.com/login/oauth/access_token"
+
+	case api.OAuth2SourceProviderGitlab:
+		// TODO: conf.Endpoint.TokenURL = "https://github.com/login/oauth/access_token"
+	}
+
+	ctx := context.WithValue(bctx.Context(), oauth2.HTTPClient, client)
+	tok, err := conf.Exchange(ctx, code)
+	if err != nil {
+		return nil, rerr(elemental.NewError("Unauthorized", fmt.Sprintf("oauth2: unable to exchange code for access token: %s", err), "a3s:authn", http.StatusUnauthorized))
+	}
+
+	aclient := conf.Client(ctx, tok)
+	var r *http.Request
+
+	switch src.Provider {
+
+	case api.OAuth2SourceProviderGithub:
+		r, err = http.NewRequest(http.MethodGet, "https://api.github.com/user", nil)
+
+	case api.OAuth2SourceProviderGitlab:
+		// TODO: r, err = http.NewRequest(http.MethodGet, "https://api.github.com/user", nil)
+	}
+
+	if err != nil {
+		return nil, rerr(elemental.NewError("Forbidden", fmt.Sprintf("oauth2: unable to retrieve user data: %s", err), "a3s:authn", http.StatusForbidden))
+	}
+
+	resp, err := aclient.Do(r)
+	if err != nil {
+		return nil, rerr(fmt.Errorf("oauth2: unable to send request to retrieve user data: %w", err))
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, rerr(fmt.Errorf("oauth2: unable to send request to retrieve user data: %w", resp.Status))
+	}
+
+	dec := json.NewDecoder(resp.Body)
+
+	claims := map[string]any{}
+	if err := dec.Decode(&claims); err != nil {
+		return nil, rerr(fmt.Errorf("oauth2: unable to decode oauth user data: %w", err))
+	}
+
+	var relevantClaims = map[string]any{}
+
+	switch src.Provider {
+
+	case api.OAuth2SourceProviderGithub:
+		relevantClaims["provider"] = "github"
+		relevantClaims["login"] = claims["login"]
+
+	case api.OAuth2SourceProviderGitlab:
+		relevantClaims["provider"] = "gitlab"
+		relevantClaims["login"] = claims["login"]
+	}
+
+	return oauth2issuer.New(bctx.Context(), src, relevantClaims)
 }
 
 func (p *IssueProcessor) handleSAMLIssue(bctx bahamut.Context, req *api.Issue) (token.Issuer, error) {
@@ -611,6 +706,7 @@ func (p *IssueProcessor) handleSAMLIssue(bctx bahamut.Context, req *api.Issue) (
 		return nil, fmt.Errorf("unable to retrieve saml source '%s' in namespace '%s': %w", req.SourceName, req.SourceNamespace, err)
 	}
 	src := out.(*api.SAMLSource)
+	rerr := samlceremony.MakeRedirectError(bctx, input.RedirectErrorURL)
 
 	serviceProviderIssuer := src.ServiceProviderIssuer
 	if serviceProviderIssuer == "" {
@@ -633,31 +729,19 @@ func (p *IssueProcessor) handleSAMLIssue(bctx bahamut.Context, req *api.Issue) (
 		if len(src.IDPCertificate) > 0 {
 			certs, err := tglib.ParseCertificates([]byte(src.IDPCertificate))
 			if err != nil {
-				return nil, samlceremony.RedirectErrorEventually(
-					bctx,
-					input.RedirectErrorURL,
-					elemental.NewError("Bad Request", fmt.Sprintf("Unable to parse IDPCertificate: %s", err), "a3s", http.StatusBadRequest),
-				)
+				return nil, rerr(elemental.NewError("Bad Request", fmt.Sprintf("Unable to parse IDPCertificate: %s", err), "a3s", http.StatusBadRequest))
 			}
 			sp.IDPCertificateStore = &dsig.MemoryX509CertificateStore{Roots: certs}
 		}
 
 		state, err := samlceremony.GenerateNonce(12)
 		if err != nil {
-			return nil, samlceremony.RedirectErrorEventually(
-				bctx,
-				input.RedirectErrorURL,
-				fmt.Errorf("unable to generate relay state: %w", err),
-			)
+			return nil, rerr(fmt.Errorf("unable to generate relay state: %w", err))
 		}
 
 		authURL, err := sp.BuildAuthURL(state)
 		if err != nil {
-			return nil, samlceremony.RedirectErrorEventually(
-				bctx,
-				input.RedirectErrorURL,
-				fmt.Errorf("unable to build auth url: %w", err),
-			)
+			return nil, rerr(fmt.Errorf("unable to build auth url: %w", err))
 		}
 
 		cacheItem := &samlceremony.CacheItem{
@@ -666,11 +750,7 @@ func (p *IssueProcessor) handleSAMLIssue(bctx bahamut.Context, req *api.Issue) (
 		}
 
 		if err := samlceremony.Set(p.manipulator, cacheItem); err != nil {
-			return nil, samlceremony.RedirectErrorEventually(
-				bctx,
-				input.RedirectErrorURL,
-				fmt.Errorf("unable to cache ceremony: %w", err),
-			)
+			return nil, rerr(fmt.Errorf("unable to cache ceremony: %w", err))
 		}
 
 		if req.InputSAML.NoAuthRedirect {
@@ -685,11 +765,11 @@ func (p *IssueProcessor) handleSAMLIssue(bctx bahamut.Context, req *api.Issue) (
 
 	item, err := samlceremony.Get(p.manipulator, input.RelayState)
 	if err != nil {
-		return nil, elemental.NewError("SAML Error", "Unable to find SAML session. Did you wait too long?", "a3s", http.StatusForbidden)
+		return nil, rerr(elemental.NewError("SAML Error", "Unable to find SAML session. Did you wait too long?", "a3s", http.StatusForbidden))
 	}
 
 	if err := samlceremony.Delete(p.manipulator, input.RelayState); err != nil {
-		return nil, fmt.Errorf("unable to clean saml ceremony cache: %w", err)
+		return nil, rerr(fmt.Errorf("unable to clean saml ceremony cache: %w", err))
 	}
 
 	audienceURI := src.AudienceURI
@@ -718,23 +798,23 @@ func (p *IssueProcessor) handleSAMLIssue(bctx bahamut.Context, req *api.Issue) (
 
 	assertionInfo, err := sp.RetrieveAssertionInfo(input.SAMLResponse)
 	if err != nil {
-		return nil, elemental.NewError("SAML Error", fmt.Sprintf("Unable to retrieve assertions: %s", err), "a3s", http.StatusForbidden)
+		return nil, rerr(elemental.NewError("SAML Error", fmt.Sprintf("Unable to retrieve assertions: %s", err), "a3s", http.StatusForbidden))
 	}
 
 	if assertionInfo.WarningInfo.InvalidTime {
-		return nil, elemental.NewError("Forbidden", "Invalid assertion time", "a3s", http.StatusForbidden)
+		return nil, rerr(elemental.NewError("Forbidden", "Invalid assertion time", "a3s", http.StatusForbidden))
 	}
 
 	if assertionInfo.WarningInfo.OneTimeUse {
-		return nil, elemental.NewError("Forbidden", "Invalid one time use", "a3s", http.StatusForbidden)
+		return nil, rerr(elemental.NewError("Forbidden", "Invalid one time use", "a3s", http.StatusForbidden))
 	}
 
 	if !src.SkipResponseSignatureCheck && !assertionInfo.ResponseSignatureValidated {
-		return nil, elemental.NewError("Forbidden", "Invalid response signature", "a3s", http.StatusForbidden)
+		return nil, rerr(elemental.NewError("Forbidden", "Invalid response signature", "a3s", http.StatusForbidden))
 	}
 
 	if assertionInfo.WarningInfo.NotInAudience {
-		return nil, elemental.NewError("Forbidden", "Invalid audience", "a3s", http.StatusForbidden)
+		return nil, rerr(elemental.NewError("Forbidden", "Invalid audience", "a3s", http.StatusForbidden))
 	}
 
 	return samlissuer.New(bctx.Context(), src, assertionInfo)

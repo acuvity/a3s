@@ -44,6 +44,7 @@ func New(mmaker manipcli.ManipulatorMaker, help string, defaultAudience []string
 		makeSAMLCmd(mmaker, restrictions),
 		makeRemoteA3SCmd(mmaker, restrictions),
 		makeA3SCmd(mmaker, restrictions),
+		makeOAuth2Cmd(mmaker, restrictions),
 	)
 
 	return cmd

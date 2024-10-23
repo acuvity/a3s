@@ -336,6 +336,74 @@ func TestAuthFromOIDCStep2(t *testing.T) {
 	})
 }
 
+func TestAuthFromOAuth2Step1(t *testing.T) {
+
+	Convey("The function should work", t, func() {
+
+		expectedRequest := api.NewIssue()
+
+		m := maniptest.NewTestManipulator()
+		m.MockCreate(t, func(mctx manipulate.Context, object elemental.Identifiable) error {
+			expectedRequest = object.(*api.Issue)
+			expectedRequest.InputOAuth2.AuthURL = "authurl"
+			return nil
+		})
+
+		cl := NewClient(m)
+
+		url, err := cl.AuthFromOAuth2Step1(
+			context.Background(),
+			"/ns",
+			"name",
+			"url",
+		)
+
+		So(err, ShouldBeNil)
+		So(expectedRequest.SourceType, ShouldEqual, api.IssueSourceTypeOAuth2)
+		So(expectedRequest.SourceNamespace, ShouldEqual, "/ns")
+		So(expectedRequest.SourceName, ShouldEqual, "name")
+		So(expectedRequest.InputOAuth2.RedirectURL, ShouldEqual, "url")
+		So(expectedRequest.InputOAuth2.NoAuthRedirect, ShouldEqual, true)
+		So(url, ShouldEqual, "authurl")
+	})
+}
+
+func TestAuthFromOAuth2(t *testing.T) {
+
+	Convey("The function should work", t, func() {
+
+		expectedRequest := api.NewIssue()
+
+		m := maniptest.NewTestManipulator()
+		m.MockCreate(t, func(mctx manipulate.Context, object elemental.Identifiable) error {
+			expectedRequest = object.(*api.Issue)
+			expectedRequest.Token = "yeay!"
+			return nil
+		})
+
+		cl := NewClient(m)
+
+		token, err := cl.AuthFromOAuth2Step2(
+			context.Background(),
+			"/ns",
+			"name",
+			"code",
+			"state",
+			OptAudience("aud"),
+		)
+
+		So(err, ShouldBeNil)
+		So(expectedRequest.SourceType, ShouldEqual, api.IssueSourceTypeOAuth2)
+		So(expectedRequest.SourceNamespace, ShouldEqual, "/ns")
+		So(expectedRequest.SourceName, ShouldEqual, "name")
+		So(expectedRequest.Audience, ShouldResemble, []string{"aud"})
+		So(expectedRequest.Validity, ShouldEqual, time.Hour.String())
+		So(expectedRequest.InputOAuth2.Code, ShouldEqual, "code")
+		So(expectedRequest.InputOAuth2.State, ShouldEqual, "state")
+		So(token, ShouldEqual, "yeay!")
+	})
+}
+
 func TestAuthFromHTTP(t *testing.T) {
 
 	Convey("The function should work", t, func() {

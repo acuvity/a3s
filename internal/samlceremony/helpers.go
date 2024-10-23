@@ -23,20 +23,24 @@ func GenerateNonce(nonceSourceSize int) (string, error) {
 	return base64.RawStdEncoding.EncodeToString(sha[:]), nil
 }
 
-// RedirectErrorEventually will configure the redirect url if given for the
-// given bahamut.Context
-func RedirectErrorEventually(ctx bahamut.Context, url string, err error) error {
+// MakeRedirectError will configure will return a decorator function that can be
+// used to handler errors. If the url is not empty, the request will be redirected
+// to that URL with error set in the 'error=' query parameter. Otherwise it will just
+// return the err as usual.
+func MakeRedirectError(ctx bahamut.Context, url string) func(err error) error {
 
-	if url == "" {
-		return fmt.Errorf("unable to redirect saml error. empty url")
+	return func(err error) error {
+		if url == "" {
+			return fmt.Errorf("unable to redirect saml error. empty url")
+		}
+
+		d, e := json.Marshal(err)
+		if e != nil {
+			return fmt.Errorf("unable to decode saml error for redirection: %w", err)
+		}
+
+		ctx.SetRedirect(fmt.Sprintf("%s?error=%s", url, string(d)))
+
+		return nil
 	}
-
-	d, e := json.Marshal(err)
-	if e != nil {
-		return fmt.Errorf("unable to decode saml error for redirection: %w", err)
-	}
-
-	ctx.SetRedirect(fmt.Sprintf("%s?error=%s", url, string(d)))
-
-	return nil
 }

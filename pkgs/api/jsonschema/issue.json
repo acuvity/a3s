@@ -100,6 +100,12 @@
       "description": "Contains additional information for an LDAP source.",
       "title": "inputLDAP"
     },
+    "inputOAuth2": {
+      "$friendlyName": "InputOAuth2",
+      "$ref": "issueoauth2.json",
+      "description": "Contains additional information for an OAuth2 source.",
+      "title": "inputOAuth2"
+    },
     "inputOIDC": {
       "$friendlyName": "InputOIDC",
       "$ref": "issueoidc.json",
@@ -192,7 +198,8 @@
         "MTLS",
         "OIDC",
         "RemoteA3S",
-        "SAML"
+        "SAML",
+        "OAuth2"
       ],
       "title": "sourceType"
     },

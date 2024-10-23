@@ -8,7 +8,7 @@ import (
 	"go.acuvity.ai/manipulate/manipmongo"
 )
 
-const samlCacheCollection = "samlcache"
+const collection = "samlcache"
 
 // CacheItem represents a cache OIDC request info.
 type CacheItem struct {
@@ -28,7 +28,7 @@ func Set(m manipulate.Manipulator, item *CacheItem) error {
 	}
 	defer disco()
 
-	return db.C(samlCacheCollection).Insert(item)
+	return db.C(collection).Insert(item)
 }
 
 // Get gets the items with the given state.
@@ -42,7 +42,7 @@ func Get(m manipulate.Manipulator, state string) (*CacheItem, error) {
 	defer disco()
 
 	item := &CacheItem{}
-	if err := db.C(samlCacheCollection).Find(bson.M{"state": state}).One(item); err != nil {
+	if err := db.C(collection).Find(bson.M{"state": state}).One(item); err != nil {
 		return nil, err
 	}
 	return item, nil
@@ -57,5 +57,5 @@ func Delete(m manipulate.Manipulator, state string) error {
 	}
 	defer disco()
 
-	return db.C(samlCacheCollection).Remove(bson.M{"state": state})
+	return db.C(collection).Remove(bson.M{"state": state})
 }

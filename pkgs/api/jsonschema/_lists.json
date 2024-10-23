@@ -84,6 +84,12 @@
       },
       "type": "array"
     },
+    "issueoauth2": {
+      "items": {
+        "$ref": "issueoauth2.json"
+      },
+      "type": "array"
+    },
     "issueoidc": {
       "items": {
         "$ref": "issueoidc.json"
@@ -129,6 +135,12 @@
     "namespaces": {
       "items": {
         "$ref": "namespace.json"
+      },
+      "type": "array"
+    },
+    "oauth2sources": {
+      "items": {
+        "$ref": "oauth2source.json"
       },
       "type": "array"
     },

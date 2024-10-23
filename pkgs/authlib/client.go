@@ -259,6 +259,59 @@ func (a *Client) AuthFromOIDCStep2(ctx context.Context, sourceNamespace string, 
 	return a.sendRequest(ctx, req)
 }
 
+// AuthFromOAuth2Step1 performs the first step of the OIDC ceremony using the configured OIDC auth source identified by
+// its name and namespace. The functiion will return the provider URL to use to autenticate.
+func (a *Client) AuthFromOAuth2Step1(ctx context.Context, sourceNamespace string, sourceName string, redirectURL string) (string, error) {
+
+	req := api.NewIssue()
+	req.SourceType = api.IssueSourceTypeOAuth2
+	req.SourceNamespace = sourceNamespace
+	req.SourceName = sourceName
+	req.InputOAuth2 = &api.IssueOAuth2{
+		RedirectURL:    redirectURL,
+		NoAuthRedirect: true,
+	}
+
+	_, err := a.sendRequest(ctx, req)
+	if err != nil {
+		return "", err
+	}
+
+	return req.InputOAuth2.AuthURL, nil
+}
+
+// AuthFromOAuth2Step2 finishes the ceremony of oauth2 using the code and state. It will instruct the backend to finish the dance
+// and use the exchanged access token to retrieve identity data.
+func (a *Client) AuthFromOAuth2Step2(ctx context.Context, sourceNamespace string, sourceName string, code string, state string, options ...Option) (string, error) {
+
+	cfg := newConfig()
+	for _, opt := range options {
+		opt(&cfg)
+	}
+
+	if state == "" {
+		return "", fmt.Errorf("OAuth2: empty state")
+	}
+
+	if code == "" {
+		return "", fmt.Errorf("OAuth2: empty code")
+	}
+
+	req := api.NewIssue()
+	req.SourceType = api.IssueSourceTypeOAuth2
+	req.SourceNamespace = sourceNamespace
+	req.SourceName = sourceName
+	req.InputOAuth2 = &api.IssueOAuth2{
+		Code:  code,
+		State: state,
+	}
+
+	applyOptions(req, cfg)
+
+	return a.sendRequest(ctx, req)
+
+}
+
 // AuthFromSAMLStep1 initiates the first step of the SAML ceremony using the configured SAML source identified by its name and namespace.
 // This function will return the provider URL to use to authenticate.
 func (a *Client) AuthFromSAMLStep1(ctx context.Context, sourceNamespace string, sourceName string, redirectURL string) (string, error) {

@@ -131,6 +131,17 @@ attributes:
       noInit: true
       refMode: pointer
 
+  - name: inputOAuth2
+    friendly_name: InputOAuth2
+    description: Contains additional information for an OAuth2 source.
+    type: ref
+    exposed: true
+    subtype: issueoauth2
+    omit_empty: true
+    extensions:
+      noInit: true
+      refMode: pointer
+
   - name: inputOIDC
     friendly_name: InputOIDC
     description: Contains additional information for an OIDC source.
@@ -266,6 +277,7 @@ attributes:
     - OIDC
     - RemoteA3S
     - SAML
+    - OAuth2
     example_value: OIDC
 
   - name: token

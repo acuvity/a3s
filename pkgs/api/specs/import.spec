@@ -43,6 +43,14 @@ attributes:
     subtype: mtlssource
     omit_empty: true
 
+  - name: OAuth2Sources
+    friendly_name: OAuth2Sources
+    description: OAuth2 sources to import.
+    type: refList
+    exposed: true
+    subtype: oauth2source
+    omit_empty: true
+
   - name: OIDCSources
     friendly_name: OIDCSources
     description: OIDC sources to import.

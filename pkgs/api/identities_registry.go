@@ -21,6 +21,7 @@ var (
 		"mtlssource":              MTLSSourceIdentity,
 		"namespace":               NamespaceIdentity,
 		"namespacedeletionrecord": NamespaceDeletionRecordIdentity,
+		"oauth2source":            OAuth2SourceIdentity,
 		"oidcsource":              OIDCSourceIdentity,
 		"permissions":             PermissionsIdentity,
 		"revocation":              RevocationIdentity,
@@ -43,6 +44,7 @@ var (
 		"mtlssources":              MTLSSourceIdentity,
 		"namespaces":               NamespaceIdentity,
 		"namespacedeletionrecords": NamespaceDeletionRecordIdentity,
+		"oauth2sources":            OAuth2SourceIdentity,
 		"oidcsources":              OIDCSourceIdentity,
 		"permissions":              PermissionsIdentity,
 		"revocations":              RevocationIdentity,
@@ -120,6 +122,13 @@ var (
 			{":shard", ":unique", "zone", "zHash"},
 			{"namespace"},
 			{"namespace", "ID"},
+		},
+		"oauth2source": {
+			{":shard", ":unique", "zone", "zHash"},
+			{"namespace"},
+			{"namespace", "ID"},
+			{"namespace", "importLabel"},
+			{"namespace", "name"},
 		},
 		"oidcsource": {
 			{":shard", ":unique", "zone", "zHash"},
@@ -210,6 +219,8 @@ func (f modelManager) Identifiable(identity elemental.Identity) elemental.Identi
 		return NewNamespace()
 	case NamespaceDeletionRecordIdentity:
 		return NewNamespaceDeletionRecord()
+	case OAuth2SourceIdentity:
+		return NewOAuth2Source()
 	case OIDCSourceIdentity:
 		return NewOIDCSource()
 	case PermissionsIdentity:
@@ -255,6 +266,8 @@ func (f modelManager) SparseIdentifiable(identity elemental.Identity) elemental.
 		return NewSparseNamespace()
 	case NamespaceDeletionRecordIdentity:
 		return NewSparseNamespaceDeletionRecord()
+	case OAuth2SourceIdentity:
+		return NewSparseOAuth2Source()
 	case OIDCSourceIdentity:
 		return NewSparseOIDCSource()
 	case PermissionsIdentity:
@@ -308,6 +321,8 @@ func (f modelManager) Identifiables(identity elemental.Identity) elemental.Ident
 		return &NamespacesList{}
 	case NamespaceDeletionRecordIdentity:
 		return &NamespaceDeletionRecordsList{}
+	case OAuth2SourceIdentity:
+		return &OAuth2SourcesList{}
 	case OIDCSourceIdentity:
 		return &OIDCSourcesList{}
 	case PermissionsIdentity:
@@ -351,6 +366,8 @@ func (f modelManager) SparseIdentifiables(identity elemental.Identity) elemental
 		return &SparseNamespacesList{}
 	case NamespaceDeletionRecordIdentity:
 		return &SparseNamespaceDeletionRecordsList{}
+	case OAuth2SourceIdentity:
+		return &SparseOAuth2SourcesList{}
 	case OIDCSourceIdentity:
 		return &SparseOIDCSourcesList{}
 	case PermissionsIdentity:
@@ -400,6 +417,7 @@ func AllIdentities() []elemental.Identity {
 		MTLSSourceIdentity,
 		NamespaceIdentity,
 		NamespaceDeletionRecordIdentity,
+		OAuth2SourceIdentity,
 		OIDCSourceIdentity,
 		PermissionsIdentity,
 		RevocationIdentity,
@@ -437,6 +455,8 @@ func AliasesForIdentity(identity elemental.Identity) []string {
 	case NamespaceIdentity:
 		return []string{}
 	case NamespaceDeletionRecordIdentity:
+		return []string{}
+	case OAuth2SourceIdentity:
 		return []string{}
 	case OIDCSourceIdentity:
 		return []string{}

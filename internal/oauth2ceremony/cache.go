@@ -1,4 +1,4 @@
-package oidcceremony
+package oauth2ceremony
 
 import (
 	"time"
@@ -9,16 +9,13 @@ import (
 	"golang.org/x/oauth2"
 )
 
-const oidcCacheCollection = "oidccache"
+const collection = "oauth2cache"
 
 // CacheItem represents a cache OIDC request info.
 type CacheItem struct {
-	State            string        `bson:"state"`
-	ClientID         string        `bson:"clientid"`
-	CA               string        `bson:"ca"`
-	OAuth2Config     oauth2.Config `bson:"oauth2config"`
-	ProviderEndpoint string        `bson:"providerEndpoint"`
-	Time             time.Time     `bson:"time"`
+	State        string        `bson:"state"`
+	OAuth2Config oauth2.Config `bson:"oauth2config"`
+	Time         time.Time     `bson:"time"`
 }
 
 // Set sets the given OIDCRequestItem in redis.
@@ -32,7 +29,7 @@ func Set(m manipulate.Manipulator, item *CacheItem) error {
 	}
 	defer disco()
 
-	return db.C(oidcCacheCollection).Insert(item)
+	return db.C(collection).Insert(item)
 }
 
 // Get gets the items with the given state.
@@ -46,7 +43,7 @@ func Get(m manipulate.Manipulator, state string) (*CacheItem, error) {
 	defer disco()
 
 	item := &CacheItem{}
-	if err := db.C(oidcCacheCollection).Find(bson.M{"state": state}).One(item); err != nil {
+	if err := db.C(collection).Find(bson.M{"state": state}).One(item); err != nil {
 		return nil, err
 	}
 	return item, nil
@@ -61,5 +58,5 @@ func Delete(m manipulate.Manipulator, state string) error {
 	}
 	defer disco()
 
-	return db.C(oidcCacheCollection).Remove(bson.M{"state": state})
+	return db.C(collection).Remove(bson.M{"state": state})
 }

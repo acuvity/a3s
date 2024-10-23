@@ -36,6 +36,9 @@ const (
 	// IssueSourceTypeMTLS represents the value MTLS.
 	IssueSourceTypeMTLS IssueSourceTypeValue = "MTLS"
 
+	// IssueSourceTypeOAuth2 represents the value OAuth2.
+	IssueSourceTypeOAuth2 IssueSourceTypeValue = "OAuth2"
+
 	// IssueSourceTypeOIDC represents the value OIDC.
 	IssueSourceTypeOIDC IssueSourceTypeValue = "OIDC"
 
@@ -165,6 +168,9 @@ type Issue struct {
 
 	// Contains additional information for an LDAP source.
 	InputLDAP *IssueLDAP `json:"inputLDAP,omitempty" msgpack:"inputLDAP,omitempty" bson:"-" mapstructure:"inputLDAP,omitempty"`
+
+	// Contains additional information for an OAuth2 source.
+	InputOAuth2 *IssueOAuth2 `json:"inputOAuth2,omitempty" msgpack:"inputOAuth2,omitempty" bson:"-" mapstructure:"inputOAuth2,omitempty"`
 
 	// Contains additional information for an OIDC source.
 	InputOIDC *IssueOIDC `json:"inputOIDC,omitempty" msgpack:"inputOIDC,omitempty" bson:"-" mapstructure:"inputOIDC,omitempty"`
@@ -347,6 +353,7 @@ func (o *Issue) ToSparse(fields ...string) elemental.SparseIdentifiable {
 			InputGCP:              o.InputGCP,
 			InputHTTP:             o.InputHTTP,
 			InputLDAP:             o.InputLDAP,
+			InputOAuth2:           o.InputOAuth2,
 			InputOIDC:             o.InputOIDC,
 			InputRemoteA3S:        o.InputRemoteA3S,
 			InputSAML:             o.InputSAML,
@@ -389,6 +396,8 @@ func (o *Issue) ToSparse(fields ...string) elemental.SparseIdentifiable {
 			sp.InputHTTP = o.InputHTTP
 		case "inputLDAP":
 			sp.InputLDAP = o.InputLDAP
+		case "inputOAuth2":
+			sp.InputOAuth2 = o.InputOAuth2
 		case "inputOIDC":
 			sp.InputOIDC = o.InputOIDC
 		case "inputRemoteA3S":
@@ -462,6 +471,9 @@ func (o *Issue) Patch(sparse elemental.SparseIdentifiable) {
 	}
 	if so.InputLDAP != nil {
 		o.InputLDAP = so.InputLDAP
+	}
+	if so.InputOAuth2 != nil {
+		o.InputOAuth2 = so.InputOAuth2
 	}
 	if so.InputOIDC != nil {
 		o.InputOIDC = so.InputOIDC
@@ -579,6 +591,13 @@ func (o *Issue) Validate() error {
 		}
 	}
 
+	if o.InputOAuth2 != nil {
+		elemental.ResetDefaultForZeroValues(o.InputOAuth2)
+		if err := o.InputOAuth2.Validate(); err != nil {
+			errors = errors.Append(err)
+		}
+	}
+
 	if o.InputOIDC != nil {
 		elemental.ResetDefaultForZeroValues(o.InputOIDC)
 		if err := o.InputOIDC.Validate(); err != nil {
@@ -608,7 +627,7 @@ func (o *Issue) Validate() error {
 		requiredErrors = requiredErrors.Append(err)
 	}
 
-	if err := elemental.ValidateStringInList("sourceType", string(o.SourceType), []string{"A3S", "AWS", "Azure", "GCP", "HTTP", "LDAP", "MTLS", "OIDC", "RemoteA3S", "SAML"}, false); err != nil {
+	if err := elemental.ValidateStringInList("sourceType", string(o.SourceType), []string{"A3S", "AWS", "Azure", "GCP", "HTTP", "LDAP", "MTLS", "OIDC", "RemoteA3S", "SAML", "OAuth2"}, false); err != nil {
 		errors = errors.Append(err)
 	}
 
@@ -681,6 +700,8 @@ func (o *Issue) ValueForAttribute(name string) any {
 		return o.InputHTTP
 	case "inputLDAP":
 		return o.InputLDAP
+	case "inputOAuth2":
+		return o.InputOAuth2
 	case "inputOIDC":
 		return o.InputOIDC
 	case "inputRemoteA3S":
@@ -819,6 +840,15 @@ know all of the claims.`,
 		SubType:        "issueldap",
 		Type:           "ref",
 	},
+	"InputOAuth2": {
+		AllowedChoices: []string{},
+		ConvertedName:  "InputOAuth2",
+		Description:    `Contains additional information for an OAuth2 source.`,
+		Exposed:        true,
+		Name:           "inputOAuth2",
+		SubType:        "issueoauth2",
+		Type:           "ref",
+	},
 	"InputOIDC": {
 		AllowedChoices: []string{},
 		ConvertedName:  "InputOIDC",
@@ -923,7 +953,7 @@ engine has no effect and may end up making the token unusable.`,
 		Type:           "string",
 	},
 	"SourceType": {
-		AllowedChoices: []string{"A3S", "AWS", "Azure", "GCP", "HTTP", "LDAP", "MTLS", "OIDC", "RemoteA3S", "SAML"},
+		AllowedChoices: []string{"A3S", "AWS", "Azure", "GCP", "HTTP", "LDAP", "MTLS", "OIDC", "RemoteA3S", "SAML", "OAuth2"},
 		ConvertedName:  "SourceType",
 		Description: `The authentication source. This will define how to verify
 credentials from internal or external source of authentication.`,
@@ -1077,6 +1107,15 @@ know all of the claims.`,
 		SubType:        "issueldap",
 		Type:           "ref",
 	},
+	"inputoauth2": {
+		AllowedChoices: []string{},
+		ConvertedName:  "InputOAuth2",
+		Description:    `Contains additional information for an OAuth2 source.`,
+		Exposed:        true,
+		Name:           "inputOAuth2",
+		SubType:        "issueoauth2",
+		Type:           "ref",
+	},
 	"inputoidc": {
 		AllowedChoices: []string{},
 		ConvertedName:  "InputOIDC",
@@ -1181,7 +1220,7 @@ engine has no effect and may end up making the token unusable.`,
 		Type:           "string",
 	},
 	"sourcetype": {
-		AllowedChoices: []string{"A3S", "AWS", "Azure", "GCP", "HTTP", "LDAP", "MTLS", "OIDC", "RemoteA3S", "SAML"},
+		AllowedChoices: []string{"A3S", "AWS", "Azure", "GCP", "HTTP", "LDAP", "MTLS", "OIDC", "RemoteA3S", "SAML", "OAuth2"},
 		ConvertedName:  "SourceType",
 		Description: `The authentication source. This will define how to verify
 credentials from internal or external source of authentication.`,
@@ -1329,6 +1368,9 @@ type SparseIssue struct {
 
 	// Contains additional information for an LDAP source.
 	InputLDAP *IssueLDAP `json:"inputLDAP,omitempty" msgpack:"inputLDAP,omitempty" bson:"-" mapstructure:"inputLDAP,omitempty"`
+
+	// Contains additional information for an OAuth2 source.
+	InputOAuth2 *IssueOAuth2 `json:"inputOAuth2,omitempty" msgpack:"inputOAuth2,omitempty" bson:"-" mapstructure:"inputOAuth2,omitempty"`
 
 	// Contains additional information for an OIDC source.
 	InputOIDC *IssueOIDC `json:"inputOIDC,omitempty" msgpack:"inputOIDC,omitempty" bson:"-" mapstructure:"inputOIDC,omitempty"`
@@ -1496,6 +1538,9 @@ func (o *SparseIssue) ToPlain() elemental.PlainIdentifiable {
 	}
 	if o.InputLDAP != nil {
 		out.InputLDAP = o.InputLDAP
+	}
+	if o.InputOAuth2 != nil {
+		out.InputOAuth2 = o.InputOAuth2
 	}
 	if o.InputOIDC != nil {
 		out.InputOIDC = o.InputOIDC

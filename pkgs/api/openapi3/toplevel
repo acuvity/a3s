@@ -452,6 +452,13 @@
             },
             "type": "array"
           },
+          "OAuth2Sources": {
+            "description": "OAuth2 sources to import.",
+            "items": {
+              "$ref": "#/components/schemas/oauth2source"
+            },
+            "type": "array"
+          },
           "OIDCSources": {
             "description": "OIDC sources to import.",
             "items": {
@@ -543,6 +550,9 @@
           "inputLDAP": {
             "$ref": "#/components/schemas/issueldap"
           },
+          "inputOAuth2": {
+            "$ref": "#/components/schemas/issueoauth2"
+          },
           "inputOIDC": {
             "$ref": "#/components/schemas/issueoidc"
           },
@@ -607,7 +617,8 @@
               "MTLS",
               "OIDC",
               "RemoteA3S",
-              "SAML"
+              "SAML",
+              "OAuth2"
             ],
             "example": "OIDC"
           },
@@ -753,6 +764,37 @@
           "password",
           "username"
         ],
+        "type": "object"
+      },
+      "issueoauth2": {
+        "description": "Additional issuing information for the OAuth2 source.",
+        "properties": {
+          "authURL": {
+            "description": "Contains the auth URL is noAuthRedirect is set to true.",
+            "readOnly": true,
+            "type": "string"
+          },
+          "code": {
+            "description": "OAuth code.",
+            "type": "string"
+          },
+          "noAuthRedirect": {
+            "description": "If set, instruct the server to return the OAuth2 auth url in authURL instead of\nperforming an HTTP redirection.",
+            "type": "boolean"
+          },
+          "redirectErrorURL": {
+            "description": "OAuth2 redirect url in case of error.",
+            "type": "string"
+          },
+          "redirectURL": {
+            "description": "OAuth2 redirect url.",
+            "type": "string"
+          },
+          "state": {
+            "description": "OAuth state.",
+            "type": "string"
+          }
+        },
         "type": "object"
       },
       "issueoidc": {
@@ -1093,6 +1135,93 @@
             "type": "string"
           }
         },
+        "type": "object"
+      },
+      "oauth2source": {
+        "description": "An Oauth Auth source can be used to issue tokens based on supported OAuth2\nproviders. accounts.",
+        "properties": {
+          "CA": {
+            "description": "The Certificate authority to use to validate the authenticity of the OAuth\nserver. If left empty, the system trust store will be used. In most of the\ncases, you don't need to set this.",
+            "type": "string"
+          },
+          "ID": {
+            "description": "ID is the identifier of the object.",
+            "readOnly": true,
+            "type": "string"
+          },
+          "clientID": {
+            "description": "Unique client ID.",
+            "example": "x009296",
+            "type": "string"
+          },
+          "clientSecret": {
+            "description": "Client secret associated with the client ID.",
+            "example": "Ytgbfjtj4652jHDFGls99jF",
+            "type": "string"
+          },
+          "createTime": {
+            "description": "Creation date of the object.",
+            "format": "date-time",
+            "readOnly": true,
+            "type": "string"
+          },
+          "description": {
+            "description": "The description of the object.",
+            "type": "string"
+          },
+          "importHash": {
+            "description": "The hash of the structure used to compare with new import version.",
+            "type": "string"
+          },
+          "importLabel": {
+            "description": "The user-defined import label that allows the system to group resources from the\nsame import operation.",
+            "type": "string"
+          },
+          "modifier": {
+            "$ref": "#/components/schemas/identitymodifier"
+          },
+          "name": {
+            "description": "The name of the source.",
+            "example": "myoidc",
+            "type": "string"
+          },
+          "namespace": {
+            "description": "The namespace of the object.",
+            "readOnly": true,
+            "type": "string"
+          },
+          "provider": {
+            "description": "Select a supported OAuth2 provider.",
+            "enum": [
+              "Github",
+              "Gitlab"
+            ],
+            "example": "Github"
+          },
+          "scopes": {
+            "description": "List of scopes to request.",
+            "example": [
+              "email",
+              "profile"
+            ],
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "updateTime": {
+            "description": "Last update date of the object.",
+            "format": "date-time",
+            "readOnly": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "clientID",
+          "clientSecret",
+          "name",
+          "provider"
+        ],
         "type": "object"
       },
       "oidcsource": {
@@ -2737,6 +2866,152 @@
         },
         "tags": [
           "core",
+          "a3s"
+        ]
+      }
+    },
+    "/oauth2sources": {
+      "get": {
+        "description": "Retrieves the list of oauth2sources.",
+        "operationId": "get-all-OAuth2Sources",
+        "parameters": [
+          {
+            "description": "This is an example.",
+            "example": "hello == world",
+            "in": "query",
+            "name": "q",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/oauth2source"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "n/a"
+          }
+        },
+        "tags": [
+          "authn/source",
+          "a3s"
+        ]
+      },
+      "post": {
+        "description": "Creates a new oauthpsource.",
+        "operationId": "create-OAuth2Source",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/oauth2source"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/oauth2source"
+                }
+              }
+            },
+            "description": "n/a"
+          }
+        },
+        "tags": [
+          "authn/source",
+          "a3s"
+        ]
+      }
+    },
+    "/oauth2sources/{id}": {
+      "delete": {
+        "description": "Delete a particular oidcsource object.",
+        "operationId": "delete-OAuth2Source",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/oauth2source"
+                }
+              }
+            },
+            "description": "n/a"
+          }
+        },
+        "tags": [
+          "authn/source",
+          "a3s"
+        ]
+      },
+      "get": {
+        "description": "Get a particular oidcsource object.",
+        "operationId": "get-OAuth2Source",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/oauth2source"
+                }
+              }
+            },
+            "description": "n/a"
+          }
+        },
+        "tags": [
+          "authn/source",
+          "a3s"
+        ]
+      },
+      "parameters": [
+        {
+          "in": "path",
+          "name": "id",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "put": {
+        "description": "Update a particular oidcsource object.",
+        "operationId": "update-OAuth2Source",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/oauth2source"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/oauth2source"
+                }
+              }
+            },
+            "description": "n/a"
+          }
+        },
+        "tags": [
+          "authn/source",
           "a3s"
         ]
       }

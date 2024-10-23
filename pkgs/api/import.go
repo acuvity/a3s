@@ -95,6 +95,9 @@ type Import struct {
 	// MTLS sources to import.
 	MTLSSources MTLSSourcesList `json:"MTLSSources,omitempty" msgpack:"MTLSSources,omitempty" bson:"-" mapstructure:"MTLSSources,omitempty"`
 
+	// OAuth2 sources to import.
+	OAuth2Sources OAuth2SourcesList `json:"OAuth2Sources,omitempty" msgpack:"OAuth2Sources,omitempty" bson:"-" mapstructure:"OAuth2Sources,omitempty"`
+
 	// OIDC sources to import.
 	OIDCSources OIDCSourcesList `json:"OIDCSources,omitempty" msgpack:"OIDCSources,omitempty" bson:"-" mapstructure:"OIDCSources,omitempty"`
 
@@ -120,6 +123,7 @@ func NewImport() *Import {
 		HTTPSources:    HTTPSourcesList{},
 		LDAPSources:    LDAPSourcesList{},
 		MTLSSources:    MTLSSourcesList{},
+		OAuth2Sources:  OAuth2SourcesList{},
 		OIDCSources:    OIDCSourcesList{},
 		SAMLSources:    SAMLSourcesList{},
 		Authorizations: AuthorizationsList{},
@@ -212,6 +216,7 @@ func (o *Import) ToSparse(fields ...string) elemental.SparseIdentifiable {
 			HTTPSources:    &o.HTTPSources,
 			LDAPSources:    &o.LDAPSources,
 			MTLSSources:    &o.MTLSSources,
+			OAuth2Sources:  &o.OAuth2Sources,
 			OIDCSources:    &o.OIDCSources,
 			SAMLSources:    &o.SAMLSources,
 			Authorizations: &o.Authorizations,
@@ -230,6 +235,8 @@ func (o *Import) ToSparse(fields ...string) elemental.SparseIdentifiable {
 			sp.LDAPSources = &(o.LDAPSources)
 		case "MTLSSources":
 			sp.MTLSSources = &(o.MTLSSources)
+		case "OAuth2Sources":
+			sp.OAuth2Sources = &(o.OAuth2Sources)
 		case "OIDCSources":
 			sp.OIDCSources = &(o.OIDCSources)
 		case "SAMLSources":
@@ -262,6 +269,9 @@ func (o *Import) Patch(sparse elemental.SparseIdentifiable) {
 	}
 	if so.MTLSSources != nil {
 		o.MTLSSources = *so.MTLSSources
+	}
+	if so.OAuth2Sources != nil {
+		o.OAuth2Sources = *so.OAuth2Sources
 	}
 	if so.OIDCSources != nil {
 		o.OIDCSources = *so.OIDCSources
@@ -347,6 +357,16 @@ func (o *Import) Validate() error {
 		}
 	}
 
+	for _, sub := range o.OAuth2Sources {
+		if sub == nil {
+			continue
+		}
+		elemental.ResetDefaultForZeroValues(sub)
+		if err := sub.Validate(); err != nil {
+			errors = errors.Append(err)
+		}
+	}
+
 	for _, sub := range o.OIDCSources {
 		if sub == nil {
 			continue
@@ -423,6 +443,8 @@ func (o *Import) ValueForAttribute(name string) any {
 		return o.LDAPSources
 	case "MTLSSources":
 		return o.MTLSSources
+	case "OAuth2Sources":
+		return o.OAuth2Sources
 	case "OIDCSources":
 		return o.OIDCSources
 	case "SAMLSources":
@@ -472,6 +494,15 @@ var ImportAttributesMap = map[string]elemental.AttributeSpecification{
 		Exposed:        true,
 		Name:           "MTLSSources",
 		SubType:        "mtlssource",
+		Type:           "refList",
+	},
+	"OAuth2Sources": {
+		AllowedChoices: []string{},
+		ConvertedName:  "OAuth2Sources",
+		Description:    `OAuth2 sources to import.`,
+		Exposed:        true,
+		Name:           "OAuth2Sources",
+		SubType:        "oauth2source",
 		Type:           "refList",
 	},
 	"OIDCSources": {
@@ -549,6 +580,15 @@ var ImportLowerCaseAttributesMap = map[string]elemental.AttributeSpecification{
 		Exposed:        true,
 		Name:           "MTLSSources",
 		SubType:        "mtlssource",
+		Type:           "refList",
+	},
+	"oauth2sources": {
+		AllowedChoices: []string{},
+		ConvertedName:  "OAuth2Sources",
+		Description:    `OAuth2 sources to import.`,
+		Exposed:        true,
+		Name:           "OAuth2Sources",
+		SubType:        "oauth2source",
 		Type:           "refList",
 	},
 	"oidcsources": {
@@ -665,6 +705,9 @@ type SparseImport struct {
 	// MTLS sources to import.
 	MTLSSources *MTLSSourcesList `json:"MTLSSources,omitempty" msgpack:"MTLSSources,omitempty" bson:"-" mapstructure:"MTLSSources,omitempty"`
 
+	// OAuth2 sources to import.
+	OAuth2Sources *OAuth2SourcesList `json:"OAuth2Sources,omitempty" msgpack:"OAuth2Sources,omitempty" bson:"-" mapstructure:"OAuth2Sources,omitempty"`
+
 	// OIDC sources to import.
 	OIDCSources *OIDCSourcesList `json:"OIDCSources,omitempty" msgpack:"OIDCSources,omitempty" bson:"-" mapstructure:"OIDCSources,omitempty"`
 
@@ -753,6 +796,9 @@ func (o *SparseImport) ToPlain() elemental.PlainIdentifiable {
 	}
 	if o.MTLSSources != nil {
 		out.MTLSSources = *o.MTLSSources
+	}
+	if o.OAuth2Sources != nil {
+		out.OAuth2Sources = *o.OAuth2Sources
 	}
 	if o.OIDCSources != nil {
 		out.OIDCSources = *o.OIDCSources

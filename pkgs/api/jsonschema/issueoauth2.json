@@ -1,0 +1,71 @@
+{
+  "$extends": [],
+  "$friendlyName": "IssueOAuth2",
+  "$friendlyNamePlural": "IssueOAuth2s",
+  "$modelName": "IssueOAuth2",
+  "$modelPackage": "a3s",
+  "$modelResourceName": "issueoauth2",
+  "$modelRestName": "issueoauth2",
+  "additionalProperties": true,
+  "description": "Additional issuing information for the OAuth2 source.",
+  "properties": {
+    "authURL": {
+      "$friendlyName": "AuthURL",
+      "$readOnly": true,
+      "description": "Contains the auth URL is noAuthRedirect is set to true.",
+      "title": "authURL",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "code": {
+      "$friendlyName": "Code",
+      "description": "OAuth code.",
+      "title": "code",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "noAuthRedirect": {
+      "$friendlyName": "NoAuthRedirect",
+      "description": "If set, instruct the server to return the OAuth2 auth url in authURL instead of performing an HTTP redirection.",
+      "title": "noAuthRedirect",
+      "type": [
+        "boolean",
+        "null"
+      ]
+    },
+    "redirectErrorURL": {
+      "$friendlyName": "RedirectErrorURL",
+      "description": "OAuth2 redirect url in case of error.",
+      "title": "redirectErrorURL",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "redirectURL": {
+      "$friendlyName": "RedirectURL",
+      "description": "OAuth2 redirect url.",
+      "title": "redirectURL",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "state": {
+      "$friendlyName": "State",
+      "description": "OAuth state.",
+      "title": "state",
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  },
+  "required": [],
+  "title": "IssueOAuth2",
+  "type": "object"
+}
