@@ -46,7 +46,7 @@ func TestFromRequest(t *testing.T) {
 		httpreq.AddCookie(&http.Cookie{Name: "x-a3s-token", Value: "token2"})
 		req, _ := elemental.NewRequestFromHTTPRequest(httpreq, api.Manager())
 		t := FromRequest(req)
-		So(t, ShouldEqual, "token2")
+		So(t, ShouldEqual, "token1")
 	})
 }
 
@@ -72,7 +72,7 @@ func TestHTTPFromRequest(t *testing.T) {
 		req.Header.Set("Authorization", "Bearer token1")
 		req.AddCookie(&http.Cookie{Name: "x-a3s-token", Value: "token2"})
 		t := FromHTTPRequest(req)
-		So(t, ShouldEqual, "token2")
+		So(t, ShouldEqual, "token1")
 	})
 }
 
@@ -97,7 +97,7 @@ func TestFromSession(t *testing.T) {
 		s.MockCookies = map[string]*http.Cookie{"x-a3s-token": {Name: "x-a3s-token", Value: "token2"}}
 		s.MockToken = "token"
 		t := FromSession(s)
-		So(t, ShouldEqual, "token2")
+		So(t, ShouldEqual, "token")
 	})
 }
 

@@ -15,40 +15,57 @@ import (
 )
 
 // FromRequest retrieves the token from the given elemental.Request
-// first looking at the cookie x-a3s-token, then the request.Password.
+// first looking at the request.Password then the cookie x-a3s-token.
 func FromRequest(req *elemental.Request) string {
+
+	if req.Password != "" {
+		return req.Password
+	}
+
 	if hreq := req.HTTPRequest(); hreq != nil {
 		if cookie, err := hreq.Cookie("x-a3s-token"); err == nil {
 			return cookie.Value
 		}
 	}
-	return req.Password
+
+	return ""
 }
 
 // FromHTTPRequest retrieves the token from the given elemental.Request
-// first looking at the cookie x-a3s-token, then the Authorization header.
+// first looking at the Authorization header then the cookie x-a3s-token.
 func FromHTTPRequest(req *http.Request) string {
+
+	if authstring := req.Header.Get("Authorization"); authstring != "" {
+		parts := strings.SplitN(authstring, "Bearer ", 2)
+		if len(parts) < 2 {
+			return ""
+		}
+
+		if parts[1] != "" {
+			return parts[1]
+		}
+	}
 
 	if cookie, err := req.Cookie("x-a3s-token"); err == nil {
 		return cookie.Value
 	}
 
-	authstring := req.Header.Get("Authorization")
-	parts := strings.SplitN(authstring, "Bearer ", 2)
-	if len(parts) < 2 {
-		return ""
-	}
-
-	return parts[1]
+	return ""
 }
 
 // FromSession retrieves the token from the given bahamut.Session
-// first looking at the cookie x-a3s-token, then the session.Token(.
+// first looking at the session.Token(), then the cookie x-a3s-token.
 func FromSession(session bahamut.Session) string {
+
+	if t := session.Token(); t != "" {
+		return t
+	}
+
 	if cookie, err := session.Cookie("x-a3s-token"); err == nil {
 		return cookie.Value
 	}
-	return session.Token()
+
+	return ""
 }
 
 // Fingerprint returns the fingerprint of the given certificate.
