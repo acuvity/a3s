@@ -666,7 +666,7 @@ func (p *IssueProcessor) handleOAuth2Issue(bctx bahamut.Context, req *api.Issue)
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, rerr(fmt.Errorf("oauth2: unable to send request to retrieve user data: %w", resp.Status))
+		return nil, rerr(fmt.Errorf("oauth2: unable to send request to retrieve user data: %s", resp.Status))
 	}
 
 	dec := json.NewDecoder(resp.Body)
