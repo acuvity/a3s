@@ -245,7 +245,7 @@ func (c *TLSAutoConf) TLSConfig() (*tls.Config, error) {
 		}
 
 		if autoDNSs {
-			dnss = []string{host}
+			dnss = []string{host, "localhost"}
 		}
 
 		if autoIPs {
@@ -258,7 +258,7 @@ func (c *TLSAutoConf) TLSConfig() (*tls.Config, error) {
 				return nil, fmt.Errorf("unable to find any IP in resolved hostname")
 			}
 
-			ips = addrs
+			ips = append(addrs, "127.0.0.1")
 		}
 	}
 
