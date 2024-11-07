@@ -95,8 +95,13 @@ type SAMLSource struct {
 
 	// Pass some XML data containing the IDP metadata that can be used for automatic
 	// configuration. If you pass this attribute, every other one will be overwritten
-	// with the data contained in the metadata file.
+	// with the data contained in the metadata file, but it does not take precendence
+	// over IDPMetadataURL.
 	IDPMetadata string `json:"IDPMetadata,omitempty" msgpack:"IDPMetadata,omitempty" bson:"-" mapstructure:"IDPMetadata,omitempty"`
+
+	// The URL where to fetch the IDPMetadata. If this is set, all other IDP fields are
+	// ignored and the metadata will be retrieved when needed for logging in.
+	IDPMetadataURL string `json:"IDPMetadataURL,omitempty" msgpack:"IDPMetadataURL,omitempty" bson:"idpmetadataurl,omitempty" mapstructure:"IDPMetadataURL,omitempty"`
 
 	// URL of the identity provider.
 	IDPURL string `json:"IDPURL" msgpack:"IDPURL" bson:"idpurl" mapstructure:"IDPURL,omitempty"`
@@ -202,6 +207,7 @@ func (o *SAMLSource) GetBSON() (any, error) {
 	}
 	s.IDPCertificate = o.IDPCertificate
 	s.IDPIssuer = o.IDPIssuer
+	s.IDPMetadataURL = o.IDPMetadataURL
 	s.IDPURL = o.IDPURL
 	s.AudienceURI = o.AudienceURI
 	s.CreateTime = o.CreateTime
@@ -239,6 +245,7 @@ func (o *SAMLSource) SetBSON(raw bson.Raw) error {
 	o.ID = s.ID.Hex()
 	o.IDPCertificate = s.IDPCertificate
 	o.IDPIssuer = s.IDPIssuer
+	o.IDPMetadataURL = s.IDPMetadataURL
 	o.IDPURL = s.IDPURL
 	o.AudienceURI = s.AudienceURI
 	o.CreateTime = s.CreateTime
@@ -396,6 +403,7 @@ func (o *SAMLSource) ToSparse(fields ...string) elemental.SparseIdentifiable {
 			IDPCertificate:             &o.IDPCertificate,
 			IDPIssuer:                  &o.IDPIssuer,
 			IDPMetadata:                &o.IDPMetadata,
+			IDPMetadataURL:             &o.IDPMetadataURL,
 			IDPURL:                     &o.IDPURL,
 			AudienceURI:                &o.AudienceURI,
 			CreateTime:                 &o.CreateTime,
@@ -427,6 +435,8 @@ func (o *SAMLSource) ToSparse(fields ...string) elemental.SparseIdentifiable {
 			sp.IDPIssuer = &(o.IDPIssuer)
 		case "IDPMetadata":
 			sp.IDPMetadata = &(o.IDPMetadata)
+		case "IDPMetadataURL":
+			sp.IDPMetadataURL = &(o.IDPMetadataURL)
 		case "IDPURL":
 			sp.IDPURL = &(o.IDPURL)
 		case "audienceURI":
@@ -485,6 +495,9 @@ func (o *SAMLSource) Patch(sparse elemental.SparseIdentifiable) {
 	}
 	if so.IDPMetadata != nil {
 		o.IDPMetadata = *so.IDPMetadata
+	}
+	if so.IDPMetadataURL != nil {
+		o.IDPMetadataURL = *so.IDPMetadataURL
 	}
 	if so.IDPURL != nil {
 		o.IDPURL = *so.IDPURL
@@ -627,6 +640,8 @@ func (o *SAMLSource) ValueForAttribute(name string) any {
 		return o.IDPIssuer
 	case "IDPMetadata":
 		return o.IDPMetadata
+	case "IDPMetadataURL":
+		return o.IDPMetadataURL
 	case "IDPURL":
 		return o.IDPURL
 	case "audienceURI":
@@ -709,9 +724,21 @@ var SAMLSourceAttributesMap = map[string]elemental.AttributeSpecification{
 		ConvertedName:  "IDPMetadata",
 		Description: `Pass some XML data containing the IDP metadata that can be used for automatic
 configuration. If you pass this attribute, every other one will be overwritten
-with the data contained in the metadata file.`,
+with the data contained in the metadata file, but it does not take precendence
+over IDPMetadataURL.`,
 		Exposed: true,
 		Name:    "IDPMetadata",
+		Type:    "string",
+	},
+	"IDPMetadataURL": {
+		AllowedChoices: []string{},
+		BSONFieldName:  "idpmetadataurl",
+		ConvertedName:  "IDPMetadataURL",
+		Description: `The URL where to fetch the IDPMetadata. If this is set, all other IDP fields are
+ignored and the metadata will be retrieved when needed for logging in.`,
+		Exposed: true,
+		Name:    "IDPMetadataURL",
+		Stored:  true,
 		Type:    "string",
 	},
 	"IDPURL": {
@@ -969,9 +996,21 @@ var SAMLSourceLowerCaseAttributesMap = map[string]elemental.AttributeSpecificati
 		ConvertedName:  "IDPMetadata",
 		Description: `Pass some XML data containing the IDP metadata that can be used for automatic
 configuration. If you pass this attribute, every other one will be overwritten
-with the data contained in the metadata file.`,
+with the data contained in the metadata file, but it does not take precendence
+over IDPMetadataURL.`,
 		Exposed: true,
 		Name:    "IDPMetadata",
+		Type:    "string",
+	},
+	"idpmetadataurl": {
+		AllowedChoices: []string{},
+		BSONFieldName:  "idpmetadataurl",
+		ConvertedName:  "IDPMetadataURL",
+		Description: `The URL where to fetch the IDPMetadata. If this is set, all other IDP fields are
+ignored and the metadata will be retrieved when needed for logging in.`,
+		Exposed: true,
+		Name:    "IDPMetadataURL",
+		Stored:  true,
 		Type:    "string",
 	},
 	"idpurl": {
@@ -1260,8 +1299,13 @@ type SparseSAMLSource struct {
 
 	// Pass some XML data containing the IDP metadata that can be used for automatic
 	// configuration. If you pass this attribute, every other one will be overwritten
-	// with the data contained in the metadata file.
+	// with the data contained in the metadata file, but it does not take precendence
+	// over IDPMetadataURL.
 	IDPMetadata *string `json:"IDPMetadata,omitempty" msgpack:"IDPMetadata,omitempty" bson:"-" mapstructure:"IDPMetadata,omitempty"`
+
+	// The URL where to fetch the IDPMetadata. If this is set, all other IDP fields are
+	// ignored and the metadata will be retrieved when needed for logging in.
+	IDPMetadataURL *string `json:"IDPMetadataURL,omitempty" msgpack:"IDPMetadataURL,omitempty" bson:"idpmetadataurl,omitempty" mapstructure:"IDPMetadataURL,omitempty"`
 
 	// URL of the identity provider.
 	IDPURL *string `json:"IDPURL,omitempty" msgpack:"IDPURL,omitempty" bson:"idpurl,omitempty" mapstructure:"IDPURL,omitempty"`
@@ -1372,6 +1416,9 @@ func (o *SparseSAMLSource) GetBSON() (any, error) {
 	if o.IDPIssuer != nil {
 		s.IDPIssuer = o.IDPIssuer
 	}
+	if o.IDPMetadataURL != nil {
+		s.IDPMetadataURL = o.IDPMetadataURL
+	}
 	if o.IDPURL != nil {
 		s.IDPURL = o.IDPURL
 	}
@@ -1447,6 +1494,9 @@ func (o *SparseSAMLSource) SetBSON(raw bson.Raw) error {
 	}
 	if s.IDPIssuer != nil {
 		o.IDPIssuer = s.IDPIssuer
+	}
+	if s.IDPMetadataURL != nil {
+		o.IDPMetadataURL = s.IDPMetadataURL
 	}
 	if s.IDPURL != nil {
 		o.IDPURL = s.IDPURL
@@ -1524,6 +1574,9 @@ func (o *SparseSAMLSource) ToPlain() elemental.PlainIdentifiable {
 	}
 	if o.IDPMetadata != nil {
 		out.IDPMetadata = *o.IDPMetadata
+	}
+	if o.IDPMetadataURL != nil {
+		out.IDPMetadataURL = *o.IDPMetadataURL
 	}
 	if o.IDPURL != nil {
 		out.IDPURL = *o.IDPURL
@@ -1736,6 +1789,7 @@ type mongoAttributesSAMLSource struct {
 	ID                         bson.ObjectId     `bson:"_id,omitempty"`
 	IDPCertificate             string            `bson:"idpcertificate"`
 	IDPIssuer                  string            `bson:"idpissuer"`
+	IDPMetadataURL             string            `bson:"idpmetadataurl,omitempty"`
 	IDPURL                     string            `bson:"idpurl"`
 	AudienceURI                string            `bson:"audienceuri"`
 	CreateTime                 time.Time         `bson:"createtime"`
@@ -1758,6 +1812,7 @@ type mongoAttributesSparseSAMLSource struct {
 	ID                         bson.ObjectId     `bson:"_id,omitempty"`
 	IDPCertificate             *string           `bson:"idpcertificate,omitempty"`
 	IDPIssuer                  *string           `bson:"idpissuer,omitempty"`
+	IDPMetadataURL             *string           `bson:"idpmetadataurl,omitempty"`
 	IDPURL                     *string           `bson:"idpurl,omitempty"`
 	AudienceURI                *string           `bson:"audienceuri,omitempty"`
 	CreateTime                 *time.Time        `bson:"createtime,omitempty"`

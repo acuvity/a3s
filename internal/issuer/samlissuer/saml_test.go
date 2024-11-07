@@ -203,7 +203,7 @@ func Test_computeSAMLAssertion(t *testing.T) {
 					},
 					map[string]struct{}{},
 					map[string]struct{}{
-						"name": struct{}{},
+						"name": {},
 					},
 				}
 			},
@@ -241,7 +241,7 @@ func Test_computeSAMLAssertion(t *testing.T) {
 						},
 					},
 					map[string]struct{}{
-						"name": struct{}{},
+						"name": {},
 					},
 					map[string]struct{}{},
 				}
@@ -298,8 +298,8 @@ func Test_computeSAMLInclusion(t *testing.T) {
 					},
 				}
 			},
-			map[string]struct{}{"a": struct{}{}},
-			map[string]struct{}{"b": struct{}{}},
+			map[string]struct{}{"a": {}},
+			map[string]struct{}{"b": {}},
 		},
 	}
 

@@ -207,7 +207,23 @@ func ValidateURL(attribute string, u string) error {
 // ValidateSAMLSource validates the given SAMLSource.
 func ValidateSAMLSource(source *SAMLSource) error {
 
-	if source.IDPMetadata != "" {
+	if source.IDPMetadata != "" && source.IDPMetadataURL != "" {
+		return makeErr("IDPMedata", "If IDPMetadataURL is set, you cannot set IDPMetadata")
+	}
+
+	if source.IDPMetadata != "" || source.IDPMetadataURL != "" {
+		source.IDPURL = ""
+		source.IDPCertificate = ""
+		source.IDPIssuer = ""
+
+		if source.IDPMetadata != "" {
+			source.IDPMetadataURL = ""
+		}
+
+		if source.IDPMetadataURL != "" {
+			source.IDPMetadata = ""
+		}
+
 		return nil
 	}
 

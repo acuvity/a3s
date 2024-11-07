@@ -1136,6 +1136,31 @@ func TestValidateSAMLSource(t *testing.T) {
 		},
 
 		{
+			"metadata URL is set",
+			func(*testing.T) args {
+				return args{
+					&SAMLSource{
+						IDPMetadataURL: "https://coucou.com",
+					},
+				}
+			},
+			false,
+			nil,
+		},
+		{
+			"metadata URL is set",
+			func(*testing.T) args {
+				return args{
+					&SAMLSource{
+						IDPMetadataURL: "https://coucou.com",
+						IDPMetadata:    "coucou",
+					},
+				}
+			},
+			true,
+			nil,
+		},
+		{
 			"metadata is set",
 			func(*testing.T) args {
 				return args{
@@ -1147,6 +1172,7 @@ func TestValidateSAMLSource(t *testing.T) {
 			false,
 			nil,
 		},
+
 		{
 			"metadata is not set but all other fields are",
 			func(*testing.T) args {

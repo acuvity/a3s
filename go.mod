@@ -48,6 +48,8 @@ require (
 	golang.org/x/term v0.21.0
 )
 
+require github.com/karlseguin/ccache/v3 v3.0.6
+
 require (
 	cloud.google.com/go/compute v1.23.0 // indirect
 	github.com/Azure/go-ntlmssp v0.0.0-20221128193559-754e69321358 // indirect

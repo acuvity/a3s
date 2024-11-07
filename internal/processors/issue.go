@@ -12,6 +12,7 @@ import (
 
 	"github.com/coreos/go-oidc/v3/oidc"
 	"github.com/golang-jwt/jwt/v4"
+	"github.com/karlseguin/ccache/v3"
 	saml2 "github.com/russellhaering/gosaml2"
 	dsig "github.com/russellhaering/goxmldsig"
 	"go.acuvity.ai/a3s/internal/issuer/a3sissuer"
@@ -58,6 +59,7 @@ type IssueProcessor struct {
 	mtlsHeaderEnabled    bool
 	forbiddenOpaqueKeys  map[string]struct{}
 	waiveSecret          string
+	samlIDPMedataCache   *ccache.Cache[string]
 }
 
 // NewIssueProcessor returns a new IssueProcessor.
@@ -101,6 +103,7 @@ func NewIssueProcessor(
 		binaryModifier:       binaryModifier,
 		waiveSecret:          waiveSecret,
 		forbiddenOpaqueKeys:  fKeys,
+		samlIDPMedataCache:   ccache.New(ccache.Configure[string]().MaxSize(2048)),
 	}
 }
 
@@ -711,6 +714,10 @@ func (p *IssueProcessor) handleSAMLIssue(bctx bahamut.Context, req *api.Issue) (
 	serviceProviderIssuer := src.ServiceProviderIssuer
 	if serviceProviderIssuer == "" {
 		serviceProviderIssuer = p.issuer
+	}
+
+	if err := samlissuer.InjectRemoteIDPMetadata(src, p.samlIDPMedataCache); err != nil {
+		return nil, fmt.Errorf("unable to populate IDP metadata from the source IDPMetadataURL: %w", err)
 	}
 
 	if input.SAMLResponse == "" && input.RelayState == "" {

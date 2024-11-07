@@ -1605,7 +1605,15 @@ Type: `string`
 
 Pass some XML data containing the IDP metadata that can be used for automatic
 configuration. If you pass this attribute, every other one will be overwritten
-with the data contained in the metadata file.
+with the data contained in the metadata file, but it does not take precendence
+over IDPMetadataURL.
+
+##### `IDPMetadataURL`
+
+Type: `string`
+
+The URL where to fetch the IDPMetadata. If this is set, all other IDP fields are
+ignored and the metadata will be retrieved when needed for logging in.
 
 ##### `IDPURL`
 

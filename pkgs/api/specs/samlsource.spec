@@ -55,9 +55,20 @@ attributes:
     description: |-
       Pass some XML data containing the IDP metadata that can be used for automatic
       configuration. If you pass this attribute, every other one will be overwritten
-      with the data contained in the metadata file.
+      with the data contained in the metadata file, but it does not take precendence
+      over IDPMetadataURL.
     type: string
     exposed: true
+    omit_empty: true
+
+  - name: IDPMetadataURL
+    friendly_name: IDP Metadata URL
+    description: |-
+      The URL where to fetch the IDPMetadata. If this is set, all other IDP fields are
+      ignored and the metadata will be retrieved when needed for logging in.
+    type: string
+    exposed: true
+    stored: true
     omit_empty: true
 
   - name: IDPURL
