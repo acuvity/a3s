@@ -114,6 +114,7 @@ func TestJWKSCrud(t *testing.T) {
 
 func TestNewRemoteJWKS(t *testing.T) {
 
+	mTry = 1
 	Convey("Given I call the function with a missing context", t, func() {
 
 		jwks, err := NewRemoteJWKS(nil, nil, "toto://not-an-url") // nolint
@@ -136,10 +137,23 @@ func TestNewRemoteJWKS(t *testing.T) {
 		So(err.Error(), ShouldStartWith, `remote jwks error: unable to send request: Get "https://122.33.33.33":`)
 	})
 
-	Convey("Given a http server that returns invalid body", t, func() {
+	Convey("Given a http server that returns invalid status", t, func() {
 
 		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 			w.WriteHeader(http.StatusTeapot)
+		}))
+		jwks, err := NewRemoteJWKS(context.Background(), nil, ts.URL)
+		So(jwks, ShouldBeNil)
+		So(err, ShouldNotBeNil)
+		So(errors.As(err, &ErrJWKSRemote{}), ShouldBeTrue)
+		So(err.Error(), ShouldEqual, `remote jwks error: invalid status code: 418 I'm a teapot`)
+	})
+
+	Convey("Given a http server that returns invalid body", t, func() {
+
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+			w.WriteHeader(http.StatusOK)
+			_, _ = w.Write([]byte(""))
 		}))
 		jwks, err := NewRemoteJWKS(context.Background(), nil, ts.URL)
 		So(jwks, ShouldBeNil)

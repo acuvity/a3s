@@ -10,9 +10,11 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log/slog"
 	"math/big"
 	"net/http"
 	"sync"
+	"time"
 
 	"go.acuvity.ai/elemental"
 )
@@ -22,6 +24,7 @@ var (
 	ErrJWKSNotFound    = errors.New("kid not found in JWKS")
 	ErrJWKSInvalidType = errors.New("certificate must be ecdsa")
 	ErrJWKSKeyExists   = errors.New("key with the same kid already exists")
+	mTry               = 20
 )
 
 // A ErrJWKSRemote represents an error while
@@ -69,12 +72,30 @@ func NewRemoteJWKS(ctx context.Context, client *http.Client, url string) (*JWKS,
 		return nil, ErrJWKSRemote{Err: fmt.Errorf("unable to build request: %w", err)}
 	}
 
-	resp, err := client.Do(req)
-	if err != nil {
-		return nil, ErrJWKSRemote{Err: fmt.Errorf("unable to send request: %w", err)}
+	var resp *http.Response
+	for i := 0; i < mTry; i++ {
+
+		if resp, err = client.Do(req); err != nil {
+			err = ErrJWKSRemote{Err: fmt.Errorf("unable to send request: %w", err)}
+			slog.Warn("Unable to access JWKS. Retrying", "try", i+1, "max", mTry, err)
+			time.Sleep(3 * time.Second)
+			continue
+		}
+
+		if resp.StatusCode != http.StatusOK {
+			err = ErrJWKSRemote{Err: fmt.Errorf("invalid status code: %s", resp.Status)}
+			slog.Warn("Unable to access JWKS. Retrying", "try", i+1, "max", mTry, err)
+			time.Sleep(3 * time.Second)
+			continue
+		}
+
+		defer resp.Body.Close() // nolint
+		break
 	}
 
-	defer resp.Body.Close() // nolint
+	if err != nil {
+		return nil, err
+	}
 
 	jwks := NewJWKS()
 	data, err := io.ReadAll(resp.Body)
