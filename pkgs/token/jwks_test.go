@@ -41,6 +41,7 @@ func TestJWKSCrud(t *testing.T) {
 			So(len(k.keyMap), ShouldEqual, 1)
 			So(len(k.Keys), ShouldEqual, 1)
 			So(k.GetLast(), ShouldNotBeNil)
+			So(k.GetLastWithPrivate(), ShouldNotBeNil)
 
 			Convey("Appending it again should fail", func() {
 				err := k.Append(cert1)

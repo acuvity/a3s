@@ -181,9 +181,16 @@ func main() {
 		os.Exit(1)
 	}
 
+	prevJWTCerts, err := cfg.JWT.JWTPreviousCertificates()
+	if err != nil {
+		slog.Error("Unable to get previous JWT certificates", err)
+		os.Exit(1)
+	}
+
 	slog.Info("JWT info configured",
 		"iss", cfg.JWT.JWTIssuer,
 		"aud", cfg.JWT.JWTAudience,
+		"prev", len(prevJWTCerts),
 	)
 	if cfg.JWT.JWTWaiveValiditySecret != "" {
 		slog.Info("JWT max validity waive secret configured")
@@ -193,6 +200,13 @@ func main() {
 	if err := jwks.AppendWithPrivate(jwtCert, jwtKey); err != nil {
 		slog.Error("unable to build JWKS", err)
 		os.Exit(1)
+	}
+
+	for _, cert := range prevJWTCerts {
+		if err := jwks.Append(cert); err != nil {
+			slog.Error("Unable to append previous jwt certificate to jwks", err)
+			os.Exit(1)
+		}
 	}
 
 	if cfg.MTLSHeaderConf.Enabled {

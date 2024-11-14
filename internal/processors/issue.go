@@ -251,10 +251,10 @@ func (p *IssueProcessor) ProcessCreate(bctx bahamut.Context) (err error) {
 	}
 	idt.Source = originalSource
 
-	k := p.jwks.GetLast()
+	k := p.jwks.GetLastWithPrivate()
 	tkn, err := idt.JWT(k.PrivateKey(), k.KID, p.issuer, audience, exp, req.Cloak)
 	if err != nil {
-		return err
+		return fmt.Errorf("unable to sign jwt: %w", err)
 	}
 
 	req.Validity = time.Until(idt.ExpiresAt.Time).Round(time.Second).String()

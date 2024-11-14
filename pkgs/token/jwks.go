@@ -200,6 +200,25 @@ func (j *JWKS) GetLast() *JWKSKey {
 	return j.Keys[len(j.Keys)-1]
 }
 
+// GetLastWithPrivate returns the last inserted key that contains a private key.
+func (j *JWKS) GetLastWithPrivate() *JWKSKey {
+
+	j.RLock()
+	defer j.RUnlock()
+
+	if len(j.Keys) == 0 {
+		return nil
+	}
+
+	for i := len(j.Keys) - 1; i >= 0; i-- {
+		if k := j.Keys[i]; k.private != nil {
+			return k
+		}
+	}
+
+	return nil
+}
+
 // Del deletes the key with the given ID.
 // Returns true if something was deleted, false
 // otherwise.

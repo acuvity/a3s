@@ -74,11 +74,13 @@ type JWTConf struct {
 	JWTKeyPass             string        `mapstructure:"jwt-key-pass" desc:"JWT certificate key password" secret:"true" file:"true"`
 	JWTKeyPath             string        `mapstructure:"jwt-key" desc:"Path to the JWT certificate key pem file" secret:"true" file:"true"`
 	JWTMaxValidity         time.Duration `mapstructure:"jwt-max-validity" desc:"Maximum duration of the validity of the issued tokens" default:"720h"`
+	JWTPreviousCertPaths   []string      `mapstructure:"jwt-previous-cert" desc:"Previous valid certificates to add the JWKS to allow rotation" secret:"true" file:"true"`
 	JWTTrustedIssuers      []string      `mapstructure:"jwt-trusted-issuer" desc:"List of externally trusted issuers"`
 	JWTWaiveValiditySecret string        `mapstructure:"jwt-waive-validity-secret" desc:"The secret to use to waive max validity enforcement" file:"true" secret:"true"`
 
-	jwtKey  crypto.PrivateKey
-	jwtCert *x509.Certificate
+	jwtKey           crypto.PrivateKey
+	jwtCert          *x509.Certificate
+	previousJWTCerts []*x509.Certificate
 }
 
 // JWTCertificate returns the certificate used to verify JWTs.
@@ -97,6 +99,24 @@ func (c *JWTConf) JWTCertificate() (*x509.Certificate, crypto.PrivateKey, error)
 	c.jwtKey = jwtKey
 
 	return jwtCert, jwtKey, nil
+}
+
+// JWTPreviousCertificates returns the previous certificate used to verify JWTs.
+func (c *JWTConf) JWTPreviousCertificates() ([]*x509.Certificate, error) {
+
+	if c.previousJWTCerts != nil {
+		return c.previousJWTCerts, nil
+	}
+
+	for _, path := range c.JWTPreviousCertPaths {
+		jwtCert, err := tglib.ParseCertificatePEMs(path)
+		if err != nil {
+			return nil, fmt.Errorf("unable to read previous jwt certificate at '%s': %w", path, err)
+		}
+		c.previousJWTCerts = append(c.previousJWTCerts, jwtCert...)
+	}
+
+	return c.previousJWTCerts, nil
 }
 
 // TrustedIssuers parses --jwt-trusted-issuers and returns a list
