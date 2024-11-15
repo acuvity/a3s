@@ -65,16 +65,16 @@ func newConf() Conf {
 // JWTConf holds the configuration related to jwt management.
 type JWTConf struct {
 	JWTAudience            string        `mapstructure:"jwt-audience" desc:"Default audience for delivered jwt"`
-	JWTCertPath            string        `mapstructure:"jwt-cert" desc:"Secret to use to sign the JWT" secret:"true" file:"true"`
+	JWTCertPath            string        `mapstructure:"jwt-cert" desc:"Path to the certificate pem file use to sign the JWTs"`
 	JWTCookieDomain        string        `mapstructure:"jwt-cookie-domain" desc:"Defines the domain for the cookie"`
 	JWTCookiePolicy        string        `mapstructure:"jwt-cookie-policy" desc:"Define same site policy applied to token cookies" default:"strict" allowed:"strict,lax,none"`
 	JWTDefaultValidity     time.Duration `mapstructure:"jwt-default-validity" desc:"Default duration of the validity of the issued tokens" default:"24h"`
 	JWTForbiddenOpaqueKeys []string      `mapstructure:"jwt-forbidden-opaque-keys" desc:"List of forbidden opaque keys when issuing tokens"`
 	JWTIssuer              string        `mapstructure:"jwt-issuer" desc:"Value used for issuer jwt field"`
 	JWTKeyPass             string        `mapstructure:"jwt-key-pass" desc:"JWT certificate key password" secret:"true" file:"true"`
-	JWTKeyPath             string        `mapstructure:"jwt-key" desc:"Path to the JWT certificate key pem file" secret:"true" file:"true"`
+	JWTKeyPath             string        `mapstructure:"jwt-key" desc:"Path to the certificate key pem file used to sign to JWTs"`
 	JWTMaxValidity         time.Duration `mapstructure:"jwt-max-validity" desc:"Maximum duration of the validity of the issued tokens" default:"720h"`
-	JWTPreviousCertPaths   []string      `mapstructure:"jwt-previous-cert" desc:"Previous valid certificates to add the JWKS to allow rotation" secret:"true" file:"true"`
+	JWTPreviousCertPaths   []string      `mapstructure:"jwt-previous-cert" desc:"Previous valid certificates to add the JWKS to allow rotation"`
 	JWTTrustedIssuers      []string      `mapstructure:"jwt-trusted-issuer" desc:"List of externally trusted issuers"`
 	JWTWaiveValiditySecret string        `mapstructure:"jwt-waive-validity-secret" desc:"The secret to use to waive max validity enforcement" file:"true" secret:"true"`
 
