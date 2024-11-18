@@ -550,10 +550,6 @@ func (o *OAuth2Source) Validate() error {
 		requiredErrors = requiredErrors.Append(err)
 	}
 
-	if err := elemental.ValidateRequiredString("clientSecret", o.ClientSecret); err != nil {
-		requiredErrors = requiredErrors.Append(err)
-	}
-
 	if o.Modifier != nil {
 		elemental.ResetDefaultForZeroValues(o.Modifier)
 		if err := o.Modifier.Validate(); err != nil {
@@ -696,6 +692,7 @@ cases, you don't need to set this.`,
 		Required:       true,
 		Secret:         true,
 		Stored:         true,
+		Transient:      true,
 		Type:           "string",
 	},
 	"CreateTime": {
@@ -907,6 +904,7 @@ cases, you don't need to set this.`,
 		Required:       true,
 		Secret:         true,
 		Stored:         true,
+		Transient:      true,
 		Type:           "string",
 	},
 	"createtime": {
