@@ -4,7 +4,6 @@ import (
 	"context"
 	"crypto/tls"
 	"crypto/x509"
-	"encoding/json"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -27,6 +26,7 @@ import (
 	"go.acuvity.ai/a3s/internal/issuer/remotea3sissuer"
 	"go.acuvity.ai/a3s/internal/issuer/samlissuer"
 	"go.acuvity.ai/a3s/internal/oauth2ceremony"
+	oauth2provider "go.acuvity.ai/a3s/internal/oauth2ceremony/github"
 	"go.acuvity.ai/a3s/internal/samlceremony"
 	"go.acuvity.ai/a3s/pkgs/api"
 	"go.acuvity.ai/a3s/pkgs/auditor"
@@ -567,6 +567,14 @@ func (p *IssueProcessor) handleOAuth2Issue(bctx bahamut.Context, req *api.Issue)
 
 	src := out.(*api.OAuth2Source)
 
+	var provider oauth2provider.Provider
+	switch src.Provider {
+	case api.OAuth2SourceProviderGithub:
+		provider = oauth2provider.NewGithubProvider()
+	default:
+		return nil, fmt.Errorf("OAuth2 provider %s is not implemented yet", src.Provider)
+	}
+
 	rerr := oauth2ceremony.MakeRedirectError(bctx, input.RedirectErrorURL)
 
 	if code == "" && state == "" {
@@ -581,7 +589,10 @@ func (p *IssueProcessor) handleOAuth2Issue(bctx bahamut.Context, req *api.Issue)
 			ClientSecret: src.ClientSecret,
 			Scopes:       src.Scopes,
 			RedirectURL:  input.RedirectURL,
-			Endpoint:     oauth2.Endpoint{},
+			Endpoint: oauth2.Endpoint{
+				AuthURL:  provider.AuthURL(),
+				TokenURL: provider.TokenURL(),
+			},
 		}
 
 		cacheItem := &oauth2ceremony.CacheItem{
@@ -593,18 +604,7 @@ func (p *IssueProcessor) handleOAuth2Issue(bctx bahamut.Context, req *api.Issue)
 			return nil, rerr(fmt.Errorf("unable to cache oauth2 state: %w", err))
 		}
 
-		var authURL string
-
-		switch src.Provider {
-
-		case api.OAuth2SourceProviderGithub:
-			conf.Endpoint.AuthURL = "https://github.com/login/oauth/authorize"
-
-		case api.OAuth2SourceProviderGitlab:
-			// TODO: conf.Endpoint.AuthURL = "https://github.com/login/oauth/authorize"
-		}
-
-		authURL = conf.AuthCodeURL(state)
+		authURL := conf.AuthCodeURL(state)
 
 		if input.NoAuthRedirect {
 			input.AuthURL = authURL
@@ -632,67 +632,18 @@ func (p *IssueProcessor) handleOAuth2Issue(bctx bahamut.Context, req *api.Issue)
 		return nil, rerr(elemental.NewError("Internal Server Error", fmt.Sprintf("oauth2: unable to make provider client: %s", err), "a3s:authn", http.StatusInternalServerError))
 	}
 
-	switch src.Provider {
-
-	case api.OAuth2SourceProviderGithub:
-		conf.Endpoint.TokenURL = "https://github.com/login/oauth/access_token"
-
-	case api.OAuth2SourceProviderGitlab:
-		// TODO: conf.Endpoint.TokenURL = "https://github.com/login/oauth/access_token"
-	}
-
 	ctx := context.WithValue(bctx.Context(), oauth2.HTTPClient, client)
 	tok, err := conf.Exchange(ctx, code)
 	if err != nil {
 		return nil, rerr(elemental.NewError("Unauthorized", fmt.Sprintf("oauth2: unable to exchange code for access token: %s", err), "a3s:authn", http.StatusUnauthorized))
 	}
 
-	aclient := conf.Client(ctx, tok)
-	var r *http.Request
-
-	switch src.Provider {
-
-	case api.OAuth2SourceProviderGithub:
-		r, err = http.NewRequest(http.MethodGet, "https://api.github.com/user", nil)
-
-	case api.OAuth2SourceProviderGitlab:
-		// TODO: r, err = http.NewRequest(http.MethodGet, "https://api.github.com/user", nil)
-	}
-
+	claims, err := provider.RetrieveClaims(conf.Client(ctx, tok))
 	if err != nil {
-		return nil, rerr(elemental.NewError("Forbidden", fmt.Sprintf("oauth2: unable to retrieve user data: %s", err), "a3s:authn", http.StatusForbidden))
+		return nil, rerr(elemental.NewError("Unauthorized", fmt.Sprintf("oauth2: unable to retreieve claims: %s", err), "a3s:authn", http.StatusUnauthorized))
 	}
 
-	resp, err := aclient.Do(r)
-	if err != nil {
-		return nil, rerr(fmt.Errorf("oauth2: unable to send request to retrieve user data: %w", err))
-	}
-
-	if resp.StatusCode != http.StatusOK {
-		return nil, rerr(fmt.Errorf("oauth2: unable to send request to retrieve user data: %s", resp.Status))
-	}
-
-	dec := json.NewDecoder(resp.Body)
-
-	claims := map[string]any{}
-	if err := dec.Decode(&claims); err != nil {
-		return nil, rerr(fmt.Errorf("oauth2: unable to decode oauth user data: %w", err))
-	}
-
-	var relevantClaims = map[string]any{}
-
-	switch src.Provider {
-
-	case api.OAuth2SourceProviderGithub:
-		relevantClaims["provider"] = "github"
-		relevantClaims["login"] = claims["login"]
-
-	case api.OAuth2SourceProviderGitlab:
-		relevantClaims["provider"] = "gitlab"
-		relevantClaims["login"] = claims["login"]
-	}
-
-	return oauth2issuer.New(bctx.Context(), src, relevantClaims)
+	return oauth2issuer.New(bctx.Context(), src, claims)
 }
 
 func (p *IssueProcessor) handleSAMLIssue(bctx bahamut.Context, req *api.Issue) (token.Issuer, error) {

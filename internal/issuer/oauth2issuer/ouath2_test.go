@@ -7,10 +7,8 @@ import (
 	"crypto/x509/pkix"
 	"encoding/json"
 	"encoding/pem"
-	"fmt"
 	"net/http"
 	"net/http/httptest"
-	"reflect"
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
@@ -44,7 +42,7 @@ func TestNew(t *testing.T) {
 		src := api.NewOAuth2Source()
 		src.Name = "name"
 		src.Namespace = "/ns"
-		iss, _ := New(context.Background(), src, map[string]any{"hello": "world"})
+		iss, _ := New(context.Background(), src, []string{"hello=world"})
 		So(iss.(*oauth2Issuer).source, ShouldEqual, src)
 		So(iss.Issue().Source.Type, ShouldEqual, "oauth2")
 		So(iss.Issue().Source.Name, ShouldEqual, "name")
@@ -71,7 +69,7 @@ func TestNew(t *testing.T) {
 		src.Modifier.Certificate = string(pem.EncodeToMemory(certb))
 		src.Modifier.Key = string(pem.EncodeToMemory(keyb))
 
-		iss, _ := New(context.Background(), src, map[string]any{"hello": "world"})
+		iss, _ := New(context.Background(), src, []string{"hello=world"})
 		So(iss.(*oauth2Issuer).source, ShouldEqual, src)
 		So(iss.Issue().Identity, ShouldResemble, []string{"aa=aa", "bb=bb"})
 	})
@@ -91,7 +89,7 @@ func TestNew(t *testing.T) {
 		src.Modifier.CA = string(pem.EncodeToMemory(cab))
 		src.Modifier.URL = ts.URL
 
-		_, err := New(context.Background(), src, map[string]any{"hello": "world"})
+		_, err := New(context.Background(), src, []string{"hello=world"})
 		So(err, ShouldNotBeNil)
 		So(err.Error(), ShouldEqual, `unable to prepare source modifier: unable to create certificate: could not read key data from bytes: ''`)
 	})
@@ -114,68 +112,8 @@ func TestNew(t *testing.T) {
 		src.Modifier.Certificate = string(pem.EncodeToMemory(certb))
 		src.Modifier.Key = string(pem.EncodeToMemory(keyb))
 
-		_, err := New(context.Background(), src, map[string]any{"hello": "world"})
+		_, err := New(context.Background(), src, []string{"hello=world"})
 		So(err, ShouldNotBeNil)
 		So(err.Error(), ShouldEqual, `unable to call modifier: service returned an error: 403 Forbidden`)
 	})
-}
-
-func Test_computeOAuth2Claims(t *testing.T) {
-	type args struct {
-		claims map[string]any
-	}
-	tests := []struct {
-		name string
-		args func(t *testing.T) args
-
-		want1 []string
-	}{
-		{
-			"standard",
-			func(*testing.T) args {
-				return args{
-					map[string]any{
-						"@@string": "value",
-						"strings":  []string{"v1", "v2"},
-						"int":      42,
-						"ints":     []int{1, 2},
-						"bool":     true,
-						"ifaces":   []any{"a", "b"},
-						"map":      map[string]any{},
-						"float":    42.42,
-						"floats":   []float64{1.2, 3.4},
-						"error":    fmt.Errorf("yo"),
-					},
-				}
-			},
-			[]string{
-				"bool=true",
-				"error=yo",
-				"float=42.420000",
-				"floats=1.200000",
-				"floats=3.400000",
-				"ifaces=a",
-				"ifaces=b",
-				"int=42",
-				"ints=1",
-				"ints=2",
-				"map=map[]",
-				"string=value",
-				"strings=v1",
-				"strings=v2",
-			},
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			tArgs := tt.args(t)
-
-			got1 := computeOAuth2Claims(tArgs.claims)
-
-			if !reflect.DeepEqual(got1, tt.want1) {
-				t.Errorf("computeOAuth2laims got1 = %v, want1: %v", got1, tt.want1)
-			}
-		})
-	}
 }
