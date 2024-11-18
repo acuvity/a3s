@@ -640,7 +640,7 @@ func (p *IssueProcessor) handleOAuth2Issue(bctx bahamut.Context, req *api.Issue)
 
 	claims, err := provider.RetrieveClaims(conf.Client(ctx, tok))
 	if err != nil {
-		return nil, rerr(elemental.NewError("Unauthorized", fmt.Sprintf("oauth2: unable to retreieve claims: %s", err), "a3s:authn", http.StatusUnauthorized))
+		return nil, rerr(elemental.NewError("Unauthorized", fmt.Sprintf("oauth2: unable to retrieve claims: %s", err), "a3s:authn", http.StatusUnauthorized))
 	}
 
 	return oauth2issuer.New(bctx.Context(), src, claims)
