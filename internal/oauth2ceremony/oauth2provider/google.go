@@ -8,7 +8,7 @@ import (
 
 type googleEmailResp struct {
 	Email    string `json:"email"`
-	Name     string `json:"name"`
+	HD       string `json:"hd"`
 	Verified bool   `json:"email_verified"`
 }
 
@@ -42,7 +42,7 @@ func (*google) RetrieveClaims(client *http.Client) ([]string, error) {
 	}
 
 	// Get login
-	r, err := http.NewRequest(http.MethodGet, "https://accounts.google.com/o/oauth2/userinfo", nil)
+	r, err := http.NewRequest(http.MethodGet, "https://openidconnect.googleapis.com/v1/userinfo", nil)
 	if err != nil {
 		return nil, fmt.Errorf("google: unable to retrieve user data: %s", err)
 	}
@@ -72,10 +72,8 @@ func (*google) RetrieveClaims(client *http.Client) ([]string, error) {
 		return nil, fmt.Errorf("google: missing email information")
 	}
 
-	if l.Name != "" {
-		claims = append(claims, "login="+l.Name)
-	} else {
-		return nil, fmt.Errorf("google: missing name information")
+	if l.HD != "" {
+		claims = append(claims, "hd="+l.HD)
 	}
 
 	return claims, nil
