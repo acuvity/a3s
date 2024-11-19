@@ -24,7 +24,7 @@ func GenerateNonce(nonceSourceSize int) (string, error) {
 	}
 	sha := sha256.Sum256(nonceSource) // #nosec
 
-	return base64.RawStdEncoding.EncodeToString(sha[:]), nil
+	return base64.StdEncoding.EncodeToString(sha[:]), nil
 }
 
 // MakeClient returns a OIDC client using the given CA.

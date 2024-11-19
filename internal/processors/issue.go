@@ -26,7 +26,7 @@ import (
 	"go.acuvity.ai/a3s/internal/issuer/remotea3sissuer"
 	"go.acuvity.ai/a3s/internal/issuer/samlissuer"
 	"go.acuvity.ai/a3s/internal/oauth2ceremony"
-	oauth2provider "go.acuvity.ai/a3s/internal/oauth2ceremony/github"
+	"go.acuvity.ai/a3s/internal/oauth2ceremony/oauth2provider"
 	"go.acuvity.ai/a3s/internal/samlceremony"
 	"go.acuvity.ai/a3s/pkgs/api"
 	"go.acuvity.ai/a3s/pkgs/auditor"
@@ -567,11 +567,8 @@ func (p *IssueProcessor) handleOAuth2Issue(bctx bahamut.Context, req *api.Issue)
 
 	src := out.(*api.OAuth2Source)
 
-	var provider oauth2provider.Provider
-	switch src.Provider {
-	case api.OAuth2SourceProviderGithub:
-		provider = oauth2provider.NewGithubProvider()
-	default:
+	provider := oauth2provider.Get(src.Provider)
+	if provider == nil {
 		return nil, fmt.Errorf("OAuth2 provider %s is not implemented yet", src.Provider)
 	}
 

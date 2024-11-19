@@ -1194,7 +1194,9 @@
             "description": "Select a supported OAuth2 provider.",
             "enum": [
               "Github",
-              "Gitlab"
+              "Gitlab",
+              "Huggingface",
+              "Google"
             ],
             "example": "Github"
           },

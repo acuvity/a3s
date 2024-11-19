@@ -21,6 +21,12 @@ const (
 
 	// OAuth2SourceProviderGitlab represents the value Gitlab.
 	OAuth2SourceProviderGitlab OAuth2SourceProviderValue = "Gitlab"
+
+	// OAuth2SourceProviderGoogle represents the value Google.
+	OAuth2SourceProviderGoogle OAuth2SourceProviderValue = "Google"
+
+	// OAuth2SourceProviderHuggingface represents the value Huggingface.
+	OAuth2SourceProviderHuggingface OAuth2SourceProviderValue = "Huggingface"
 )
 
 // OAuth2SourceIdentity represents the Identity of the object.
@@ -565,7 +571,7 @@ func (o *OAuth2Source) Validate() error {
 		requiredErrors = requiredErrors.Append(err)
 	}
 
-	if err := elemental.ValidateStringInList("provider", string(o.Provider), []string{"Github", "Gitlab"}, false); err != nil {
+	if err := elemental.ValidateStringInList("provider", string(o.Provider), []string{"Github", "Gitlab", "Huggingface", "Google"}, false); err != nil {
 		errors = errors.Append(err)
 	}
 
@@ -787,7 +793,7 @@ the claims that are about to be delivered using this authentication source.`,
 		Type:           "string",
 	},
 	"Provider": {
-		AllowedChoices: []string{"Github", "Gitlab"},
+		AllowedChoices: []string{"Github", "Gitlab", "Huggingface", "Google"},
 		BSONFieldName:  "provider",
 		ConvertedName:  "Provider",
 		Description:    `Select a supported OAuth2 provider.`,
@@ -999,7 +1005,7 @@ the claims that are about to be delivered using this authentication source.`,
 		Type:           "string",
 	},
 	"provider": {
-		AllowedChoices: []string{"Github", "Gitlab"},
+		AllowedChoices: []string{"Github", "Gitlab", "Huggingface", "Google"},
 		BSONFieldName:  "provider",
 		ConvertedName:  "Provider",
 		Description:    `Select a supported OAuth2 provider.`,

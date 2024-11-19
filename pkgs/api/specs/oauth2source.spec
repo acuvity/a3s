@@ -102,6 +102,8 @@ attributes:
     allowed_choices:
     - Github
     - Gitlab
+    - Huggingface
+    - Google
     example_value: Github
 
   - name: scopes

@@ -1375,7 +1375,7 @@ The namespace of the object.
 
 ##### `provider` [`required`]
 
-Type: `enum(Github | Gitlab)`
+Type: `enum(Github | Gitlab | Huggingface | Google)`
 
 Select a supported OAuth2 provider.
 

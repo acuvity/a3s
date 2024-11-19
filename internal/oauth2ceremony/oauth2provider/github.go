@@ -6,11 +6,11 @@ import (
 	"net/http"
 )
 
-type loginResp struct {
+type githubLoginResp struct {
 	Login string `json:"login"`
 }
 
-type emailResp struct {
+type githubEmailResp struct {
 	Email    string `json:"email"`
 	Primary  bool   `json:"primary"`
 	Verified bool   `json:"verified"`
@@ -60,7 +60,7 @@ func (*github) RetrieveClaims(client *http.Client) ([]string, error) {
 		return nil, fmt.Errorf("github: unable to send request to retrieve user data: %s", resp.Status)
 	}
 
-	l := loginResp{}
+	l := githubLoginResp{}
 	dec := json.NewDecoder(resp.Body)
 	if err := dec.Decode(&l); err != nil {
 		return nil, fmt.Errorf("github: unable to decode oauth user data: %w", err)
@@ -87,7 +87,7 @@ func (*github) RetrieveClaims(client *http.Client) ([]string, error) {
 		return nil, fmt.Errorf("github: unable to send request to retrieve user emails: %s", resp.Status)
 	}
 
-	emails := []emailResp{}
+	emails := []githubEmailResp{}
 	dec = json.NewDecoder(resp.Body)
 	if err := dec.Decode(&emails); err != nil {
 		return nil, fmt.Errorf("github: unable to decode oauth user emails: %w", err)
