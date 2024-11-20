@@ -8,6 +8,7 @@ import (
 
 type gitlabUserResp struct {
 	Name     string `json:"name"`
+	Email    string `json:"email"`
 	Verified bool   `json:"email_verified"`
 }
 
@@ -71,6 +72,15 @@ func (*gitlab) RetrieveClaims(client *http.Client) ([]string, error) {
 		return nil, fmt.Errorf("gitlab: primary email is not verified")
 	}
 
+	if l.Email == "" {
+		return nil, fmt.Errorf("gitlab: missing primary email")
+	}
+
+	claims = append(claims, "email="+l.Email)
+	if domain := getDomain(l.Email); domain != "" {
+		claims = append(claims, "domain="+domain)
+	}
+
 	if l.Name != "" {
 		claims = append(claims, "login="+l.Name)
 	} else {
@@ -100,11 +110,11 @@ func (*gitlab) RetrieveClaims(client *http.Client) ([]string, error) {
 
 	for _, email := range emails {
 
-		if email.ConfirmedAt == "" {
+		if email.ConfirmedAt == "" || email.Email == l.Email {
 			continue
 		}
 
-		claims = append(claims, "email="+email.Email)
+		claims = append(claims, "alt_email="+email.Email)
 		if domain := getDomain(email.Email); domain != "" {
 			claims = append(claims, "domain="+domain)
 		}
