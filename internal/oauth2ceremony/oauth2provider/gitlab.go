@@ -114,7 +114,7 @@ func (*gitlab) RetrieveClaims(client *http.Client) ([]string, error) {
 			continue
 		}
 
-		claims = append(claims, "alt_email="+email.Email)
+		claims = append(claims, "email:alt="+email.Email)
 		if domain := getDomain(email.Email); domain != "" {
 			claims = append(claims, "domain="+domain)
 		}

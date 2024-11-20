@@ -102,7 +102,7 @@ func (*github) RetrieveClaims(client *http.Client) ([]string, error) {
 		if email.Primary {
 			claims = append(claims, "email="+email.Email)
 		} else {
-			claims = append(claims, "alt_email="+email.Email)
+			claims = append(claims, "email:alt="+email.Email)
 		}
 
 		if domain := getDomain(email.Email); domain != "" {
