@@ -68,6 +68,9 @@ func (*huggingface) RetrieveClaims(client *http.Client) ([]string, error) {
 
 	if l.Email != "" {
 		claims = append(claims, "email="+l.Email)
+		if domain := getDomain(l.Email); domain != "" {
+			claims = append(claims, "domain="+domain)
+		}
 	} else {
 		return nil, fmt.Errorf("huggingface: missing email information")
 	}

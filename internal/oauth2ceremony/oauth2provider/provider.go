@@ -2,6 +2,7 @@ package oauth2provider
 
 import (
 	"net/http"
+	"strings"
 
 	"go.acuvity.ai/a3s/pkgs/api"
 )
@@ -30,4 +31,15 @@ func Get(p api.OAuth2SourceProviderValue) Provider {
 	}
 
 	return nil
+}
+
+func getDomain(email string) string {
+
+	at := strings.LastIndex(email, "@")
+
+	if at >= 0 {
+		return email[at+1:]
+	}
+
+	return ""
 }

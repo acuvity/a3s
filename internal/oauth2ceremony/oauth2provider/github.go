@@ -95,12 +95,14 @@ func (*github) RetrieveClaims(client *http.Client) ([]string, error) {
 
 	for _, email := range emails {
 
-		if !email.Verified || !email.Primary {
+		if !email.Verified {
 			continue
 		}
 
 		claims = append(claims, "email="+email.Email)
-		break
+		if domain := getDomain(email.Email); domain != "" {
+			claims = append(claims, "domain="+domain)
+		}
 	}
 
 	return claims, nil
