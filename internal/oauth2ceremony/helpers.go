@@ -49,7 +49,7 @@ func MakeClient(ca string) (*http.Client, error) {
 		Timeout: 10 * time.Second,
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{
-				MinVersion: tls.VersionTLS13,
+				MinVersion: tls.VersionTLS12,
 				RootCAs:    pool,
 			},
 			Proxy: http.ProxyFromEnvironment,
