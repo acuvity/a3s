@@ -1,6 +1,7 @@
 package permissions
 
 import (
+	"slices"
 	"strings"
 )
 
@@ -16,6 +17,22 @@ type PermissionMap map[string]Permissions
 func Parse(authStrings []string, targetID string) PermissionMap {
 
 	perms := PermissionMap{}
+
+	slices.SortFunc(authStrings, func(a string, b string) int {
+
+		aok := strings.HasPrefix(a, "-")
+		bok := strings.HasPrefix(b, "-")
+
+		if aok && !bok {
+			return 1
+		}
+
+		if !aok && bok {
+			return -1
+		}
+
+		return strings.Compare(a, b)
+	})
 
 	for _, item := range authStrings {
 
@@ -54,14 +71,18 @@ func Parse(authStrings []string, targetID string) PermissionMap {
 			}
 		}
 
-		parts := strings.Split(actions, ",")
+		allowed := true
+		if strings.HasPrefix(resource, "-") {
+			resource = resource[1:]
+			allowed = false
+		}
 
 		if _, ok := perms[resource]; !ok {
 			perms[resource] = map[string]bool{}
 		}
 
-		for _, action := range parts {
-			perms[resource][action] = true
+		for _, action := range strings.Split(actions, ",") {
+			perms[resource][action] = allowed
 		}
 	}
 
@@ -69,11 +90,11 @@ func Parse(authStrings []string, targetID string) PermissionMap {
 }
 
 // Copy returns a copy of the receiver.
-func (p PermissionMap) Copy() PermissionMap {
+func (m PermissionMap) Copy() PermissionMap {
 
-	var out = make(PermissionMap, len(p))
+	var out = make(PermissionMap, len(m))
 
-	for i, m := range p {
+	for i, m := range m {
 		out[i] = make(Permissions, len(m))
 		for k, v := range m {
 			out[i][k] = v
@@ -84,23 +105,23 @@ func (p PermissionMap) Copy() PermissionMap {
 
 // Contains returns true if the receiver inclusively contains the given
 // PermissionsMap.
-func (p PermissionMap) Contains(other PermissionMap) bool {
+func (m PermissionMap) Contains(other PermissionMap) bool {
 
-	if len(p) == 0 {
+	if len(m) == 0 {
 		return false
 	}
 
-	star := p["*"]
+	star := m["*"]
 
 	for identity, decorators := range other {
 
-		if _, ok := p[identity]; !ok && len(star) == 0 {
+		if _, ok := m[identity]; !ok && len(star) == 0 {
 			return false
 		}
 
 		for decorator := range decorators {
-			if !p[identity][decorator] && !star[decorator] {
-				ok1 := p[identity]["*"]
+			if !m[identity][decorator] && !star[decorator] {
+				ok1 := m[identity]["*"]
 				ok2 := star["*"]
 				if !ok1 && !ok2 {
 					return false
@@ -113,17 +134,17 @@ func (p PermissionMap) Contains(other PermissionMap) bool {
 }
 
 // Intersect returns the intersection between the receiver and the given PermissionMap.
-func (p PermissionMap) Intersect(other PermissionMap) PermissionMap {
+func (m PermissionMap) Intersect(other PermissionMap) PermissionMap {
 
 	// If one or the other are empty, the intersection is nil.
-	if len(p) == 0 || len(other) == 0 {
+	if len(m) == 0 || len(other) == 0 {
 		return PermissionMap{}
 	}
 
 	// first we copy the base, since we are going to
 	// modify it.
 	candidate := PermissionMap{}
-	for k, v := range p {
+	for k, v := range m {
 		candidate[k] = Permissions{}
 		for kk, vv := range v {
 			candidate[k][kk] = vv
@@ -205,35 +226,41 @@ func (p PermissionMap) Intersect(other PermissionMap) PermissionMap {
 }
 
 // Allows returns true if the given operation on the given identity is allowed.
-func (p PermissionMap) Allows(operation string, resource string) bool {
+func (m PermissionMap) Allows(operation string, resource string) bool {
 
-	allowed := func(perms Permissions, m string) bool {
-		if ok := perms["*"]; ok {
-			if ok {
-				return true
-			}
+	allows := func(perms Permissions, op string) (bool, bool) {
+
+		gallowed, gok := perms["*"]
+		sallowed, sok := perms[op]
+
+		if gok && sok {
+			return gallowed && sallowed, true
 		}
 
-		if ok := perms[m]; ok {
-			return true
+		if sok {
+			return sallowed, true
 		}
 
-		return false
+		if gok {
+			return gallowed, true
+		}
+
+		return false, false
 	}
 
-	if perms, ok := p["*"]; ok {
-		if allowed(perms, operation) {
-			return true
-		}
+	gallowed, gok := allows(m["*"], operation)
+	sallowed, sok := allows(m[resource], operation)
+
+	if gok && sok {
+		return sallowed && gallowed
 	}
 
-	for i, perms := range p {
-		if resource != i {
-			continue
-		}
-		if allowed(perms, operation) {
-			return true
-		}
+	if gok {
+		return gallowed
+	}
+
+	if sok {
+		return sallowed
 	}
 
 	return false

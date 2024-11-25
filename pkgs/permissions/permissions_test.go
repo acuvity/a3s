@@ -599,6 +599,234 @@ func TestIsAllowed(t *testing.T) {
 			},
 			false,
 		},
+
+		{
+			"toto:get=false,post=true -> get toto -> false",
+			args{
+				PermissionMap{
+					"toto": {
+						"get":  false,
+						"post": true,
+					},
+				},
+				"get",
+				"toto",
+			},
+			false,
+		},
+		{
+			"toto:get=false,post=true -> post toto -> true",
+			args{
+				PermissionMap{
+					"toto": {
+						"get":  false,
+						"post": true,
+					},
+				},
+				"post",
+				"toto",
+			},
+			true,
+		},
+		{
+			"toto:get=false,*=true -> get toto -> false",
+			args{
+				PermissionMap{
+					"toto": {
+						"*":   true,
+						"get": false,
+					},
+				},
+				"get",
+				"toto",
+			},
+			false,
+		},
+		{
+			"toto:get=false,*=true -> post toto -> true",
+			args{
+				PermissionMap{
+					"toto": {
+						"*":   true,
+						"get": false,
+					},
+				},
+				"post",
+				"toto",
+			},
+			true,
+		},
+		{
+			"toto:get=true,*=false -> get toto -> false",
+			args{
+				PermissionMap{
+					"toto": {
+						"*":   false,
+						"get": true,
+					},
+				},
+				"get",
+				"toto",
+			},
+			false,
+		},
+		{
+			"toto:get=true,*=false -> get toto -> true",
+			args{
+				PermissionMap{
+					"toto": {
+						"*":   false,
+						"get": false,
+					},
+				},
+				"post",
+				"toto",
+			},
+			false,
+		},
+
+		{
+			"*:*, toto:get=false -> get toto -> false",
+			args{
+				PermissionMap{
+					"*": {
+						"*": true,
+					},
+					"toto": {
+						"get": false,
+					},
+				},
+				"get",
+				"toto",
+			},
+			false,
+		},
+
+		{
+			"*:*=true toto:get=false -> post toto -> true",
+			args{
+				PermissionMap{
+					"*": {
+						"*": false,
+					},
+					"toto": {
+						"get": true,
+					},
+				},
+				"get",
+				"toto",
+			},
+			false,
+		},
+		{
+			"*:post=true,get=true toto:get=false -> get toto -> false",
+			args{
+				PermissionMap{
+					"*": {
+						"post": true,
+						"get":  true,
+					},
+					"toto": {
+						"get": false,
+					},
+				},
+				"get",
+				"toto",
+			},
+			false,
+		},
+		{
+			"*:get=false, toto:get=true titi:get=true,post=true -> get toto -> false",
+			args{
+				PermissionMap{
+					"*": {
+						"get": false,
+					},
+					"toto": {
+						"get": true,
+					},
+					"titi": {
+						"get":  true,
+						"post": true,
+					},
+				},
+				"get",
+				"toto",
+			},
+			false,
+		},
+		{
+			"*:get=false, toto:get=true titi:get=true,post=true -> get titi -> false",
+			args{
+				PermissionMap{
+					"*": {
+						"get": false,
+					},
+					"toto": {
+						"get": true,
+					},
+					"titi": {
+						"get":  true,
+						"post": true,
+					},
+				},
+				"get",
+				"titi",
+			},
+			false,
+		},
+		{
+			"*:get=false, toto:get=true titi:get=true,post=true -> post titi -> true",
+			args{
+				PermissionMap{
+					"*": {
+						"get": false,
+					},
+					"toto": {
+						"get": true,
+					},
+					"titi": {
+						"get":  true,
+						"post": true,
+					},
+				},
+				"post",
+				"titi",
+			},
+			true,
+		},
+		{
+			"*:*=true, toto:*=false -> get toto -> false",
+			args{
+				PermissionMap{
+					"*": {
+						"*": true,
+					},
+					"toto": {
+						"*": false,
+					},
+				},
+				"get",
+				"toto",
+			},
+			false,
+		},
+		{
+			"*:*=true, toto:*=false -> get titi -> true",
+			args{
+				PermissionMap{
+					"*": {
+						"*": true,
+					},
+					"toto": {
+						"*": false,
+					},
+				},
+				"get",
+				"titi",
+			},
+			true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -758,11 +986,160 @@ func TestParse(t *testing.T) {
 				"api1": {"delete": true},
 			},
 		},
+
+		{
+			"check with negative permission 1",
+			args{
+				[]string{
+					"-api1:delete",
+					"api1:get,post,delete",
+				},
+				"zzz",
+			},
+			PermissionMap{
+				"api1": {"delete": false, "post": true, "get": true},
+			},
+		},
+		{
+			"check with negative permission 1.1",
+			args{
+				[]string{
+					"-api1:delete",
+					"api1:delete",
+				},
+				"zzz",
+			},
+			PermissionMap{
+				"api1": {"delete": false},
+			},
+		},
+		{
+			"check with negative permission 1.2",
+			args{
+				[]string{
+					"api1:delete",
+					"-api1:delete",
+				},
+				"zzz",
+			},
+			PermissionMap{
+				"api1": {"delete": false},
+			},
+		},
+		{
+			"check with negative permission 2",
+			args{
+				[]string{
+					"*:*",
+					"-api1:delete",
+				},
+				"zzz",
+			},
+			PermissionMap{
+				"*":    {"*": true},
+				"api1": {"delete": false},
+			},
+		},
+		{
+			"check with negative permission 2.2",
+			args{
+				[]string{
+					"api1:delete,get,post",
+					"-*:get,delete",
+				},
+				"zzz",
+			},
+			PermissionMap{
+				"*":    {"get": false, "delete": false},
+				"api1": {"delete": true, "get": true, "post": true},
+			},
+		},
+		{
+			"check with negative permission 2.3",
+			args{
+				[]string{
+					"api1:delete,get,post",
+					"api2:get,put",
+					"-*:get,delete",
+				},
+				"zzz",
+			},
+			PermissionMap{
+				"*":    {"get": false, "delete": false},
+				"api1": {"delete": true, "post": true, "get": true},
+				"api2": {"put": true, "get": true},
+			},
+		},
+		{
+			"check with negative permission 3",
+			args{
+				[]string{
+					"*:*",
+					"-*:delete",
+				},
+				"zzz",
+			},
+			PermissionMap{
+				"*": {"*": true, "delete": false},
+			},
+		},
+		{
+			"check with negative permission 3.1",
+			args{
+				[]string{
+					"-*:delete",
+					"*:*",
+				},
+				"zzz",
+			},
+			PermissionMap{
+				"*": {"*": true, "delete": false},
+			},
+		},
+		{
+			"check with negative permission 4",
+			args{
+				[]string{
+					"*:delete",
+					"-*:delete",
+				},
+				"zzz",
+			},
+			PermissionMap{
+				"*": {"delete": false},
+			},
+		},
+		{
+			"check with negative permission 4.1",
+			args{
+				[]string{
+					"-*:delete",
+					"*:delete",
+				},
+				"zzz",
+			},
+			PermissionMap{
+				"*": {"delete": false},
+			},
+		},
+		{
+			"check with negative permission 5",
+			args{
+				[]string{
+					"*:delete,post",
+					"-*:delete",
+				},
+				"zzz",
+			},
+			PermissionMap{
+				"*": {"post": true, "delete": false},
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := Parse(tt.args.perms, tt.args.targetID); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("ResolveRestrictions() = %v, want %v", got, tt.want)
+				t.Errorf("ResolveRestrictions()\ngot  %v\nwant %v", got, tt.want)
 			}
 		})
 	}
