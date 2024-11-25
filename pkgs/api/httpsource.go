@@ -544,14 +544,6 @@ func (o *HTTPSource) Validate() error {
 		errors = errors.Append(err)
 	}
 
-	if err := elemental.ValidateRequiredString("key", o.Key); err != nil {
-		requiredErrors = requiredErrors.Append(err)
-	}
-
-	if err := ValidatePEM("key", o.Key); err != nil {
-		errors = errors.Append(err)
-	}
-
 	if o.Modifier != nil {
 		elemental.ResetDefaultForZeroValues(o.Modifier)
 		if err := o.Modifier.Validate(); err != nil {
@@ -751,6 +743,7 @@ same import operation.`,
 		Required:       true,
 		Secret:         true,
 		Stored:         true,
+		Transient:      true,
 		Type:           "string",
 	},
 	"Modifier": {
@@ -954,6 +947,7 @@ same import operation.`,
 		Required:       true,
 		Secret:         true,
 		Stored:         true,
+		Transient:      true,
 		Type:           "string",
 	},
 	"modifier": {

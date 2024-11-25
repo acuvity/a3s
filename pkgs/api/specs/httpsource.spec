@@ -110,6 +110,7 @@ attributes:
       /AIgQIKjBBpiyQNZZWso5H04qke9QYMVPegiQQufFFBj32c=
       -----END PRIVATE KEY-----
     secret: true
+    transient: true
     encrypted: true
     validations:
     - $pem

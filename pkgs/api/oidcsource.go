@@ -539,10 +539,6 @@ func (o *OIDCSource) Validate() error {
 		requiredErrors = requiredErrors.Append(err)
 	}
 
-	if err := elemental.ValidateRequiredString("clientSecret", o.ClientSecret); err != nil {
-		requiredErrors = requiredErrors.Append(err)
-	}
-
 	if err := elemental.ValidateRequiredString("endpoint", o.Endpoint); err != nil {
 		requiredErrors = requiredErrors.Append(err)
 	}
@@ -681,6 +677,7 @@ cases, you don't need to set this.`,
 		Required:       true,
 		Secret:         true,
 		Stored:         true,
+		Transient:      true,
 		Type:           "string",
 	},
 	"CreateTime": {
@@ -893,6 +890,7 @@ cases, you don't need to set this.`,
 		Required:       true,
 		Secret:         true,
 		Stored:         true,
+		Transient:      true,
 		Type:           "string",
 	},
 	"createtime": {

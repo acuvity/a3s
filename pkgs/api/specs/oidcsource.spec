@@ -58,6 +58,7 @@ attributes:
     required: true
     example_value: Ytgbfjtj4652jHDFGls99jF
     secret: true
+    transient: true
     encrypted: true
 
   - name: description
