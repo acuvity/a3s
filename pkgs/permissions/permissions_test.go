@@ -827,6 +827,19 @@ func TestIsAllowed(t *testing.T) {
 			},
 			true,
 		},
+		{
+			"toto:*=true -> get titi -> false",
+			args{
+				PermissionMap{
+					"toto": {
+						"*": true,
+					},
+				},
+				"get",
+				"titi",
+			},
+			false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
