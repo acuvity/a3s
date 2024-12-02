@@ -92,12 +92,12 @@ func main() {
 		os.Exit(1)
 	}
 
-	if err := manipmongo.EnsureIndex(m, elemental.MakeIdentity("oidccache", "oidccache"), mgo.Index{
+	if err := manipmongo.EnsureIndex(m, elemental.MakeIdentity("oauth2cache", "oauth2cache"), mgo.Index{
 		Key:         []string{"time"},
 		ExpireAfter: 1 * time.Minute,
 		Name:        "index_expiration_exp",
 	}); err != nil {
-		slog.Error("Unable to create exp expiration index for oidccache", err)
+		slog.Error("Unable to create exp expiration index for oauth2cache", err)
 		os.Exit(1)
 	}
 
