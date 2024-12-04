@@ -532,6 +532,12 @@
             "description": "If set, use the provided domain for the delivered cookie.",
             "type": "string"
           },
+          "expirationTime": {
+            "description": "The expiration time of the delivered token.",
+            "format": "date-time",
+            "readOnly": true,
+            "type": "string"
+          },
           "inputA3S": {
             "$ref": "#/components/schemas/issuea3s"
           },

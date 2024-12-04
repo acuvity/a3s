@@ -64,6 +64,16 @@
         "null"
       ]
     },
+    "expirationTime": {
+      "$friendlyName": "Expiration Time",
+      "$readOnly": true,
+      "description": "The expiration time of the delivered token.",
+      "title": "expirationTime",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
     "inputA3S": {
       "$friendlyName": "InputA3S",
       "$ref": "issuea3s.json",
