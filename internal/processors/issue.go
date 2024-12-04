@@ -669,7 +669,7 @@ func (p *IssueProcessor) handleSAMLIssue(bctx bahamut.Context, req *api.Issue) (
 		return nil, fmt.Errorf("unable to populate IDP metadata from the source IDPMetadataURL: %w", err)
 	}
 
-	if input.SAMLResponse == "" && input.RelayState == "" {
+	if input.SAMLResponse == "" || input.RelayState == "" {
 
 		sp := &saml2.SAMLServiceProvider{
 			IdentityProviderSSOURL:      src.IDPURL,
