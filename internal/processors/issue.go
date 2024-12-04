@@ -462,7 +462,7 @@ func (p *IssueProcessor) handleOIDCIssue(bctx bahamut.Context, req *api.Issue) (
 
 	rerr := oauth2ceremony.MakeRedirectError(bctx, input.RedirectErrorURL)
 
-	if code == "" && state == "" {
+	if code == "" || state == "" {
 
 		state, err = oauth2ceremony.GenerateNonce(12)
 		if err != nil {
