@@ -154,7 +154,11 @@ func (a *retriever) Permissions(ctx context.Context, claims []string, ns string,
 				out[identity] = perms
 			} else {
 				for verb := range perms {
-					out[identity][verb] = true
+					if _, ok := out[identity][verb]; ok {
+						out[identity][verb] = out[identity][verb] && perms[verb]
+					} else {
+						out[identity][verb] = perms[verb]
+					}
 				}
 			}
 		}

@@ -142,6 +142,26 @@ func TestIsAuthorizedWithToken(t *testing.T) {
 			So(perms.Allows("get", "things"), ShouldEqual, true)
 		})
 
+		Convey("When there is twice a perm one, says true, one says false", func() {
+
+			m.MockRetrieveMany(t, func(mctx manipulate.Context, dest elemental.Identifiables) error {
+				if dest.Identity().IsEqual(api.AuthorizationIdentity) {
+					*dest.(*api.AuthorizationsList) = append(
+						*dest.(*api.AuthorizationsList),
+						makeAPIPol([]string{"things:get"}, nil),
+						makeAPIPol([]string{"-things:get"}, nil),
+						makeAPIPol([]string{"things:get"}, nil),
+					)
+				}
+				return nil
+			})
+
+			perms, err := r.Permissions(ctx, []string{"color=blue"}, "/a")
+
+			So(err, ShouldBeNil)
+			So(perms.Allows("get", "things"), ShouldEqual, false)
+		})
+
 		Convey("When there is a policy matching with target namespace outside of restricted ns", func() {
 
 			m.MockRetrieveMany(t, func(mctx manipulate.Context, dest elemental.Identifiables) error {
