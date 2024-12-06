@@ -27,6 +27,7 @@ import (
 	"go.acuvity.ai/a3s/internal/issuer/samlissuer"
 	"go.acuvity.ai/a3s/internal/oauth2ceremony"
 	"go.acuvity.ai/a3s/internal/oauth2ceremony/oauth2provider"
+	"go.acuvity.ai/a3s/internal/relaystate"
 	"go.acuvity.ai/a3s/internal/samlceremony"
 	"go.acuvity.ai/a3s/pkgs/api"
 	"go.acuvity.ai/a3s/pkgs/auditor"
@@ -614,16 +615,34 @@ func (p *IssueProcessor) handleOAuth2Issue(bctx bahamut.Context, req *api.Issue)
 		return nil, nil
 	}
 
-	cached, err := oauth2ceremony.Get(p.manipulator, input.State)
-	if err != nil {
-		return nil, rerr(fmt.Errorf("unable to retrieve cached oauth2 state: %w", err))
-	}
+	var conf oauth2.Config
 
-	if err := oauth2ceremony.Delete(p.manipulator, state); err != nil {
-		return nil, rerr(fmt.Errorf("unable to delete cached oauth2 state: %w", err))
-	}
+	if !relaystate.IsDirect(state) {
 
-	conf := cached.OAuth2Config
+		cached, err := oauth2ceremony.Get(p.manipulator, input.State)
+		if err != nil {
+			return nil, rerr(fmt.Errorf("unable to retrieve cached oauth2 state: %w", err))
+		}
+
+		if err := oauth2ceremony.Delete(p.manipulator, state); err != nil {
+			return nil, rerr(fmt.Errorf("unable to delete cached oauth2 state: %w", err))
+		}
+
+		conf = cached.OAuth2Config
+
+	} else {
+
+		conf = oauth2.Config{
+			ClientID:     src.ClientID,
+			ClientSecret: src.ClientSecret,
+			Scopes:       src.Scopes,
+			RedirectURL:  input.RedirectURL,
+			Endpoint: oauth2.Endpoint{
+				AuthURL:  provider.AuthURL(),
+				TokenURL: provider.TokenURL(),
+			},
+		}
+	}
 
 	client, err := oauth2ceremony.MakeClient(src.CA)
 	if err != nil {
@@ -719,13 +738,21 @@ func (p *IssueProcessor) handleSAMLIssue(bctx bahamut.Context, req *api.Issue) (
 		return nil, nil
 	}
 
-	item, err := samlceremony.Get(p.manipulator, input.RelayState)
-	if err != nil {
-		return nil, rerr(elemental.NewError("SAML Error", "Unable to find SAML session. Did you wait too long?", "a3s", http.StatusForbidden))
-	}
+	ACSURL := input.RedirectURL
 
-	if err := samlceremony.Delete(p.manipulator, input.RelayState); err != nil {
-		return nil, rerr(fmt.Errorf("unable to clean saml ceremony cache: %w", err))
+	if !relaystate.IsDirect(input.RelayState) {
+
+		item, err := samlceremony.Get(p.manipulator, input.RelayState)
+
+		if err != nil {
+			return nil, rerr(elemental.NewError("SAML Error", "Unable to find SAML session. Did you wait too long?", "a3s", http.StatusForbidden))
+		}
+
+		if err := samlceremony.Delete(p.manipulator, input.RelayState); err != nil {
+			return nil, rerr(fmt.Errorf("unable to clean saml ceremony cache: %w", err))
+		}
+
+		ACSURL = item.ACSURL
 	}
 
 	audienceURI := src.AudienceURI
@@ -738,7 +765,7 @@ func (p *IssueProcessor) handleSAMLIssue(bctx bahamut.Context, req *api.Issue) (
 		IdentityProviderIssuer:      src.IDPIssuer,
 		ServiceProviderIssuer:       p.issuer,
 		AudienceURI:                 audienceURI,
-		AssertionConsumerServiceURL: item.ACSURL,
+		AssertionConsumerServiceURL: ACSURL,
 		SPKeyStore:                  dsig.RandomKeyStoreForTest(),
 		AllowMissingAttributes:      true,
 		SignAuthnRequests:           true,
