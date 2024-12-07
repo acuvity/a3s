@@ -147,8 +147,18 @@ func Import(
 		}
 	}
 
+	if len(hashed) == 0 {
+		return nil
+	}
+
 	// Finally, we create the remaining objects.
-	for _, o := range hashed {
+	for _, obj := range lst {
+
+		o := obj.(Importable)
+
+		if _, ok := hashed[o.GetImportHash()]; !ok {
+			continue
+		}
 
 		ns := namespace
 		if localns := o.GetNamespace(); localns != "" {

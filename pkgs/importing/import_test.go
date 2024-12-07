@@ -287,6 +287,77 @@ func TestImport(t *testing.T) {
 			So(toCreate[1].(*api.Authorization).Name, ShouldEqual, "4")
 		})
 
+		Convey("When I import a list of objects with remove mode set to true", func() {
+
+			m.MockRetrieveMany(t, func(mctx manipulate.Context, dest elemental.Identifiables) error {
+				*dest.(*api.AuthorizationsList) = append(
+					*dest.(*api.AuthorizationsList),
+					&api.Authorization{
+						ID:          "1",
+						Name:        "1",
+						ImportHash:  "3132383335303230383330363332323439343833e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+						ImportLabel: "label",
+					},
+					&api.Authorization{
+						ID:          "2",
+						Name:        "2",
+						ImportHash:  "3133353237363932393233333130393837353032e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+						ImportLabel: "label",
+					},
+					&api.Authorization{
+						ID:          "3",
+						Name:        "3",
+						ImportHash:  "3",
+						ImportLabel: "label",
+					},
+				)
+				return nil
+			})
+
+			toDelete := elemental.IdentifiablesList{}
+			m.MockDelete(t, func(mctx manipulate.Context, object elemental.Identifiable) error {
+				// fmt.Println("delete ID:", object.Identifier(), "hash:", object.(Importable).GetImportHash())
+				toDelete = append(toDelete, object)
+				return nil
+			})
+
+			toCreate := elemental.IdentifiablesList{}
+			m.MockCreate(t, func(mctx manipulate.Context, object elemental.Identifiable) error {
+				// fmt.Println("create ID:", object.Identifier(), "hash:", object.(Importable).GetImportHash())
+				toCreate = append(toCreate, object)
+				return nil
+			})
+
+			objs := api.AuthorizationsList{
+				&api.Authorization{
+					Name: "1",
+				},
+				&api.Authorization{
+					Name:        "2",
+					Description: "new",
+				},
+				&api.Authorization{
+					Name: "4",
+				},
+			}
+
+			err := Import(context.Background(), api.Manager(), m, "/ns", "label", objs, true)
+			So(err, ShouldBeNil)
+
+			sort.Slice(toDelete, func(i, j int) bool {
+				return strings.Compare(toDelete[i].(*api.Authorization).Name, toDelete[j].(*api.Authorization).Name) != 1
+			})
+			sort.Slice(toCreate, func(i, j int) bool {
+				return strings.Compare(toCreate[i].(*api.Authorization).Name, toCreate[j].(*api.Authorization).Name) != 1
+			})
+
+			So(len(toDelete), ShouldEqual, 3)
+			So(toDelete[0].(*api.Authorization).Name, ShouldEqual, "1")
+			So(toDelete[1].(*api.Authorization).Name, ShouldEqual, "2")
+			So(toDelete[2].(*api.Authorization).Name, ShouldEqual, "3")
+			So(len(toCreate), ShouldEqual, 0)
+		})
+
 		Convey("When I import a list of objects and there are some existing but they 404 on delete", func() {
 
 			m.MockRetrieveMany(t, func(mctx manipulate.Context, dest elemental.Identifiables) error {
