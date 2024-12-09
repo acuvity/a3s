@@ -367,14 +367,21 @@ func main() {
 
 		for _, auditedIdentity := range cfg.AuditedIdentities {
 
-			identity := api.Manager().IdentityFromName(auditedIdentity)
+			identity := api.Manager().IdentityFromAny(auditedIdentity)
 
 			if identity.IsEmpty() {
 				slog.Error("Unknown identity found", "identity", auditedIdentity)
 				os.Exit(1)
 			}
 
-			trackedIdentities = append(trackedIdentities, &auditor.TrackedIdentity{Identity: identity})
+			trackedIdentities = append(trackedIdentities, &auditor.TrackedIdentity{
+				Identity: identity,
+				Operations: []elemental.Operation{
+					elemental.OperationCreate,
+					elemental.OperationUpdate,
+					elemental.OperationDelete,
+				},
+			})
 		}
 
 		opts = append(
