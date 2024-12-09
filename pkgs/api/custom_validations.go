@@ -242,6 +242,19 @@ func ValidateSAMLSource(source *SAMLSource) error {
 	return nil
 }
 
+// ValidateKeys validate the given included keys.
+func ValidateKeys(attribute string, keys []string) error {
+
+	for _, k := range keys {
+		kk := strings.TrimSpace(k)
+		if kk != k {
+			return makeErr(attribute, fmt.Sprintf("key '%s' must not contains any leading or trailing spaces", k))
+		}
+	}
+
+	return nil
+}
+
 func makeErr(attribute string, message string) elemental.Error {
 
 	err := elemental.NewError(

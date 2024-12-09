@@ -607,6 +607,14 @@ func (o *LDAPSource) Validate() error {
 		requiredErrors = requiredErrors.Append(err)
 	}
 
+	if err := ValidateKeys("ignoredKeys", o.IgnoredKeys); err != nil {
+		errors = errors.Append(err)
+	}
+
+	if err := ValidateKeys("includedKeys", o.IncludedKeys); err != nil {
+		errors = errors.Append(err)
+	}
+
 	if o.Modifier != nil {
 		elemental.ResetDefaultForZeroValues(o.Modifier)
 		if err := o.Modifier.Validate(); err != nil {

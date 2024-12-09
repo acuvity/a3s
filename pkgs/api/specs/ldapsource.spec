@@ -117,6 +117,8 @@ attributes:
     subtype: string
     stored: true
     omit_empty: true
+    validations:
+    - $keyValidation
 
   - name: includedKeys
     friendly_name: IncludedKeys
@@ -128,6 +130,8 @@ attributes:
     subtype: string
     stored: true
     omit_empty: true
+    validations:
+    - $keyValidation
 
   - name: modifier
     friendly_name: Modifier

@@ -18,6 +18,10 @@ $issue:
   elemental:
     name: ValidateIssue
 
+$keyValidation:
+  elemental:
+    name: ValidateKeys
+
 $pem:
   elemental:
     name: ValidatePEM

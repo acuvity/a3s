@@ -105,6 +105,8 @@ attributes:
     exposed: true
     subtype: string
     stored: true
+    validations:
+    - $keyValidation
 
   - name: includedKeys
     friendly_name: IncludedKeys
@@ -115,6 +117,8 @@ attributes:
     exposed: true
     subtype: string
     stored: true
+    validations:
+    - $keyValidation
 
   - name: modifier
     friendly_name: Modifier

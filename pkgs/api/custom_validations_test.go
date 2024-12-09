@@ -1244,3 +1244,111 @@ func TestValidateSAMLSource(t *testing.T) {
 		})
 	}
 }
+
+func TestValidateKeys(t *testing.T) {
+	type args struct {
+		attribute string
+		keys      []string
+	}
+	tests := []struct {
+		name string
+		args func(t *testing.T) args
+
+		wantErr    bool
+		inspectErr func(err error, t *testing.T) //use for more precise error evaluation after test
+	}{
+		{
+			"ok",
+			func(*testing.T) args {
+				return args{
+					attribute: "attr",
+					keys:      []string{"a", "b"},
+				}
+			},
+			false,
+			nil,
+		},
+		{
+			"empty",
+			func(*testing.T) args {
+				return args{
+					attribute: "attr",
+					keys:      []string{},
+				}
+			},
+			false,
+			nil,
+		},
+		{
+			"nil",
+			func(*testing.T) args {
+				return args{
+					attribute: "attr",
+					keys:      nil,
+				}
+			},
+			false,
+			nil,
+		},
+		{
+			"leading",
+			func(*testing.T) args {
+				return args{
+					attribute: "attr",
+					keys:      []string{"ok", " ba"},
+				}
+			},
+			true,
+			nil,
+		},
+		{
+			"trailing",
+			func(*testing.T) args {
+				return args{
+					attribute: "attr",
+					keys:      []string{"ok", "ba "},
+				}
+			},
+			true,
+			nil,
+		},
+		{
+			"leading & trailing",
+			func(*testing.T) args {
+				return args{
+					attribute: "attr",
+					keys:      []string{"ok", " ba "},
+				}
+			},
+			true,
+			nil,
+		},
+		{
+			"middle",
+			func(*testing.T) args {
+				return args{
+					attribute: "attr",
+					keys:      []string{"ok", "b a"},
+				}
+			},
+			false,
+			nil,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tArgs := tt.args(t)
+
+			err := ValidateKeys(tArgs.attribute, tArgs.keys)
+
+			if (err != nil) != tt.wantErr {
+				t.Fatalf("ValidateKeys error = %v, wantErr: %t", err, tt.wantErr)
+			}
+
+			if tt.inspectErr != nil {
+				tt.inspectErr(err, t)
+			}
+		})
+	}
+}
