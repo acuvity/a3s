@@ -13,8 +13,8 @@ model:
 attributes:
   v1:
   - name: SAMLResponse
-    friendly_name: RedirectURL
-    description: OIDC redirect url.
+    friendly_name: SAML Response
+    description: SAML Response sent by the IDP.
     type: string
     exposed: true
     omit_empty: true
@@ -30,26 +30,26 @@ attributes:
   - name: noAuthRedirect
     friendly_name: NoAuthRedirect
     description: |-
-      If set, instruct the server to return the OIDC auth url in authURL instead of
+      If set, instruct the server to return the SAML auth url in authURL instead of
       performing an HTTP redirection.
     type: boolean
     exposed: true
 
   - name: redirectErrorURL
     friendly_name: RedirectErrorURL
-    description: OIDC redirect url in case of error.
+    description: SAML redirect url in case of error.
     type: string
     exposed: true
 
   - name: redirectURL
     friendly_name: RedirectURL
-    description: OIDC redirect url.
+    description: SAML redirect url.
     type: string
     exposed: true
 
   - name: relayState
     friendly_name: Relay State
-    description: OIDC ceremony state.
+    description: SAML relay state.
     type: string
     exposed: true
     omit_empty: true

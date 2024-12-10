@@ -852,7 +852,7 @@
         "description": "Additional issuing information for the SAML source.",
         "properties": {
           "SAMLResponse": {
-            "description": "OIDC redirect url.",
+            "description": "SAML Response sent by the IDP.",
             "type": "string"
           },
           "authURL": {
@@ -861,19 +861,19 @@
             "type": "string"
           },
           "noAuthRedirect": {
-            "description": "If set, instruct the server to return the OIDC auth url in authURL instead of\nperforming an HTTP redirection.",
+            "description": "If set, instruct the server to return the SAML auth url in authURL instead of\nperforming an HTTP redirection.",
             "type": "boolean"
           },
           "redirectErrorURL": {
-            "description": "OIDC redirect url in case of error.",
+            "description": "SAML redirect url in case of error.",
             "type": "string"
           },
           "redirectURL": {
-            "description": "OIDC redirect url.",
+            "description": "SAML redirect url.",
             "type": "string"
           },
           "relayState": {
-            "description": "OIDC ceremony state.",
+            "description": "SAML relay state.",
             "type": "string"
           }
         },

@@ -13,23 +13,23 @@ import (
 
 // IssueSAML represents the model of a issuesaml
 type IssueSAML struct {
-	// OIDC redirect url.
+	// SAML Response sent by the IDP.
 	SAMLResponse string `json:"SAMLResponse,omitempty" msgpack:"SAMLResponse,omitempty" bson:"-" mapstructure:"SAMLResponse,omitempty"`
 
 	// Contains the auth URL is noAuthRedirect is set to true.
 	AuthURL string `json:"authURL,omitempty" msgpack:"authURL,omitempty" bson:"-" mapstructure:"authURL,omitempty"`
 
-	// If set, instruct the server to return the OIDC auth url in authURL instead of
+	// If set, instruct the server to return the SAML auth url in authURL instead of
 	// performing an HTTP redirection.
 	NoAuthRedirect bool `json:"noAuthRedirect" msgpack:"noAuthRedirect" bson:"-" mapstructure:"noAuthRedirect,omitempty"`
 
-	// OIDC redirect url in case of error.
+	// SAML redirect url in case of error.
 	RedirectErrorURL string `json:"redirectErrorURL" msgpack:"redirectErrorURL" bson:"-" mapstructure:"redirectErrorURL,omitempty"`
 
-	// OIDC redirect url.
+	// SAML redirect url.
 	RedirectURL string `json:"redirectURL" msgpack:"redirectURL" bson:"-" mapstructure:"redirectURL,omitempty"`
 
-	// OIDC ceremony state.
+	// SAML relay state.
 	RelayState string `json:"relayState,omitempty" msgpack:"relayState,omitempty" bson:"-" mapstructure:"relayState,omitempty"`
 
 	ModelVersion int `json:"-" msgpack:"-" bson:"_modelversion"`
@@ -164,7 +164,7 @@ var IssueSAMLAttributesMap = map[string]elemental.AttributeSpecification{
 	"SAMLResponse": {
 		AllowedChoices: []string{},
 		ConvertedName:  "SAMLResponse",
-		Description:    `OIDC redirect url.`,
+		Description:    `SAML Response sent by the IDP.`,
 		Exposed:        true,
 		Name:           "SAMLResponse",
 		Type:           "string",
@@ -181,7 +181,7 @@ var IssueSAMLAttributesMap = map[string]elemental.AttributeSpecification{
 	"NoAuthRedirect": {
 		AllowedChoices: []string{},
 		ConvertedName:  "NoAuthRedirect",
-		Description: `If set, instruct the server to return the OIDC auth url in authURL instead of
+		Description: `If set, instruct the server to return the SAML auth url in authURL instead of
 performing an HTTP redirection.`,
 		Exposed: true,
 		Name:    "noAuthRedirect",
@@ -190,7 +190,7 @@ performing an HTTP redirection.`,
 	"RedirectErrorURL": {
 		AllowedChoices: []string{},
 		ConvertedName:  "RedirectErrorURL",
-		Description:    `OIDC redirect url in case of error.`,
+		Description:    `SAML redirect url in case of error.`,
 		Exposed:        true,
 		Name:           "redirectErrorURL",
 		Type:           "string",
@@ -198,7 +198,7 @@ performing an HTTP redirection.`,
 	"RedirectURL": {
 		AllowedChoices: []string{},
 		ConvertedName:  "RedirectURL",
-		Description:    `OIDC redirect url.`,
+		Description:    `SAML redirect url.`,
 		Exposed:        true,
 		Name:           "redirectURL",
 		Type:           "string",
@@ -206,7 +206,7 @@ performing an HTTP redirection.`,
 	"RelayState": {
 		AllowedChoices: []string{},
 		ConvertedName:  "RelayState",
-		Description:    `OIDC ceremony state.`,
+		Description:    `SAML relay state.`,
 		Exposed:        true,
 		Name:           "relayState",
 		Type:           "string",
@@ -218,7 +218,7 @@ var IssueSAMLLowerCaseAttributesMap = map[string]elemental.AttributeSpecificatio
 	"samlresponse": {
 		AllowedChoices: []string{},
 		ConvertedName:  "SAMLResponse",
-		Description:    `OIDC redirect url.`,
+		Description:    `SAML Response sent by the IDP.`,
 		Exposed:        true,
 		Name:           "SAMLResponse",
 		Type:           "string",
@@ -235,7 +235,7 @@ var IssueSAMLLowerCaseAttributesMap = map[string]elemental.AttributeSpecificatio
 	"noauthredirect": {
 		AllowedChoices: []string{},
 		ConvertedName:  "NoAuthRedirect",
-		Description: `If set, instruct the server to return the OIDC auth url in authURL instead of
+		Description: `If set, instruct the server to return the SAML auth url in authURL instead of
 performing an HTTP redirection.`,
 		Exposed: true,
 		Name:    "noAuthRedirect",
@@ -244,7 +244,7 @@ performing an HTTP redirection.`,
 	"redirecterrorurl": {
 		AllowedChoices: []string{},
 		ConvertedName:  "RedirectErrorURL",
-		Description:    `OIDC redirect url in case of error.`,
+		Description:    `SAML redirect url in case of error.`,
 		Exposed:        true,
 		Name:           "redirectErrorURL",
 		Type:           "string",
@@ -252,7 +252,7 @@ performing an HTTP redirection.`,
 	"redirecturl": {
 		AllowedChoices: []string{},
 		ConvertedName:  "RedirectURL",
-		Description:    `OIDC redirect url.`,
+		Description:    `SAML redirect url.`,
 		Exposed:        true,
 		Name:           "redirectURL",
 		Type:           "string",
@@ -260,7 +260,7 @@ performing an HTTP redirection.`,
 	"relaystate": {
 		AllowedChoices: []string{},
 		ConvertedName:  "RelayState",
-		Description:    `OIDC ceremony state.`,
+		Description:    `SAML relay state.`,
 		Exposed:        true,
 		Name:           "relayState",
 		Type:           "string",

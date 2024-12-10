@@ -10,8 +10,8 @@
   "description": "Additional issuing information for the SAML source.",
   "properties": {
     "SAMLResponse": {
-      "$friendlyName": "RedirectURL",
-      "description": "OIDC redirect url.",
+      "$friendlyName": "SAML Response",
+      "description": "SAML Response sent by the IDP.",
       "title": "SAMLResponse",
       "type": [
         "string",
@@ -30,7 +30,7 @@
     },
     "noAuthRedirect": {
       "$friendlyName": "NoAuthRedirect",
-      "description": "If set, instruct the server to return the OIDC auth url in authURL instead of performing an HTTP redirection.",
+      "description": "If set, instruct the server to return the SAML auth url in authURL instead of performing an HTTP redirection.",
       "title": "noAuthRedirect",
       "type": [
         "boolean",
@@ -39,7 +39,7 @@
     },
     "redirectErrorURL": {
       "$friendlyName": "RedirectErrorURL",
-      "description": "OIDC redirect url in case of error.",
+      "description": "SAML redirect url in case of error.",
       "title": "redirectErrorURL",
       "type": [
         "string",
@@ -48,7 +48,7 @@
     },
     "redirectURL": {
       "$friendlyName": "RedirectURL",
-      "description": "OIDC redirect url.",
+      "description": "SAML redirect url.",
       "title": "redirectURL",
       "type": [
         "string",
@@ -57,7 +57,7 @@
     },
     "relayState": {
       "$friendlyName": "Relay State",
-      "description": "OIDC ceremony state.",
+      "description": "SAML relay state.",
       "title": "relayState",
       "type": [
         "string",

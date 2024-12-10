@@ -547,7 +547,7 @@ Additional issuing information for the SAML source.
 
 Type: `string`
 
-OIDC redirect url.
+SAML Response sent by the IDP.
 
 ##### `authURL` [`read_only`]
 
@@ -559,26 +559,26 @@ Contains the auth URL is noAuthRedirect is set to true.
 
 Type: `boolean`
 
-If set, instruct the server to return the OIDC auth url in authURL instead of
+If set, instruct the server to return the SAML auth url in authURL instead of
 performing an HTTP redirection.
 
 ##### `redirectErrorURL`
 
 Type: `string`
 
-OIDC redirect url in case of error.
+SAML redirect url in case of error.
 
 ##### `redirectURL`
 
 Type: `string`
 
-OIDC redirect url.
+SAML redirect url.
 
 ##### `relayState`
 
 Type: `string`
 
-OIDC ceremony state.
+SAML relay state.
 
 ### Logout
 
