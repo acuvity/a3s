@@ -31,7 +31,7 @@ func MakeRedirectError(ctx bahamut.Context, url string) func(err error) error {
 
 	return func(err error) error {
 		if url == "" {
-			return fmt.Errorf("unable to redirect saml error. empty url")
+			return err
 		}
 
 		d, e := json.Marshal(err)
