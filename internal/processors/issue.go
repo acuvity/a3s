@@ -111,6 +111,8 @@ func NewIssueProcessor(
 // ProcessCreate handles the creates requests for Issue.
 func (p *IssueProcessor) ProcessCreate(bctx bahamut.Context) (err error) {
 
+	bctx.Request().Namespace = ""
+
 	req := bctx.InputData().(*api.Issue)
 
 	validity, _ := time.ParseDuration(req.Validity) // elemental already validated this
