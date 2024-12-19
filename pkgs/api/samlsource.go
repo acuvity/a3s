@@ -116,9 +116,10 @@ type SAMLSource struct {
 	// The description of the object.
 	Description string `json:"description" msgpack:"description" bson:"description" mapstructure:"description,omitempty"`
 
-	// A list of keys that must not be imported into the identity token. If
-	// `includedKeys` is also set, and a key is in both lists, the key will be ignored.
-	IgnoredKeys []string `json:"ignoredKeys" msgpack:"ignoredKeys" bson:"ignoredkeys" mapstructure:"ignoredKeys,omitempty"`
+	// A list of claims that will be filtered out from the identity token. A claim will
+	// be ignored if it is prefixed with one of the items in the ignoredKeys list. This
+	// runs before includedKeys computation.
+	IgnoredKeys []string `json:"ignoredKeys,omitempty" msgpack:"ignoredKeys,omitempty" bson:"ignoredkeys,omitempty" mapstructure:"ignoredKeys,omitempty"`
 
 	// The hash of the structure used to compare with new import version.
 	ImportHash string `json:"importHash,omitempty" msgpack:"importHash,omitempty" bson:"importhash,omitempty" mapstructure:"importHash,omitempty"`
@@ -127,9 +128,10 @@ type SAMLSource struct {
 	// same import operation.
 	ImportLabel string `json:"importLabel,omitempty" msgpack:"importLabel,omitempty" bson:"importlabel,omitempty" mapstructure:"importLabel,omitempty"`
 
-	// A list of keys that must be imported into the identity token. If `ignoredKeys`
-	// is also set, and a key is in both lists, the key will be ignored.
-	IncludedKeys []string `json:"includedKeys" msgpack:"includedKeys" bson:"includedkeys" mapstructure:"includedKeys,omitempty"`
+	// A list of claims that defines which claims will be added to the identity
+	// token. A claim will be included if it is prefixed with one of the items in the
+	// includedKeys list. This runs after ignoreddKeys computation.
+	IncludedKeys []string `json:"includedKeys,omitempty" msgpack:"includedKeys,omitempty" bson:"includedkeys,omitempty" mapstructure:"includedKeys,omitempty"`
 
 	// Contains optional information about a remote service that can be used to modify
 	// the claims that are about to be delivered using this authentication source.
@@ -320,6 +322,12 @@ func (o *SAMLSource) SetCreateTime(createTime time.Time) {
 	o.CreateTime = createTime
 }
 
+// GetIgnoredKeys returns the IgnoredKeys of the receiver.
+func (o *SAMLSource) GetIgnoredKeys() []string {
+
+	return o.IgnoredKeys
+}
+
 // GetImportHash returns the ImportHash of the receiver.
 func (o *SAMLSource) GetImportHash() string {
 
@@ -342,6 +350,12 @@ func (o *SAMLSource) GetImportLabel() string {
 func (o *SAMLSource) SetImportLabel(importLabel string) {
 
 	o.ImportLabel = importLabel
+}
+
+// GetIncludedKeys returns the IncludedKeys of the receiver.
+func (o *SAMLSource) GetIncludedKeys() []string {
+
+	return o.IncludedKeys
 }
 
 // GetNamespace returns the Namespace of the receiver.
@@ -799,9 +813,11 @@ the issuer URL.`,
 		AllowedChoices: []string{},
 		BSONFieldName:  "ignoredkeys",
 		ConvertedName:  "IgnoredKeys",
-		Description: `A list of keys that must not be imported into the identity token. If
-` + "`" + `includedKeys` + "`" + ` is also set, and a key is in both lists, the key will be ignored.`,
+		Description: `A list of claims that will be filtered out from the identity token. A claim will
+be ignored if it is prefixed with one of the items in the ignoredKeys list. This
+runs before includedKeys computation.`,
 		Exposed: true,
+		Getter:  true,
 		Name:    "ignoredKeys",
 		Stored:  true,
 		SubType: "string",
@@ -839,9 +855,11 @@ same import operation.`,
 		AllowedChoices: []string{},
 		BSONFieldName:  "includedkeys",
 		ConvertedName:  "IncludedKeys",
-		Description: `A list of keys that must be imported into the identity token. If ` + "`" + `ignoredKeys` + "`" + `
-is also set, and a key is in both lists, the key will be ignored.`,
+		Description: `A list of claims that defines which claims will be added to the identity
+token. A claim will be included if it is prefixed with one of the items in the
+includedKeys list. This runs after ignoreddKeys computation.`,
 		Exposed: true,
+		Getter:  true,
 		Name:    "includedKeys",
 		Stored:  true,
 		SubType: "string",
@@ -1071,9 +1089,11 @@ the issuer URL.`,
 		AllowedChoices: []string{},
 		BSONFieldName:  "ignoredkeys",
 		ConvertedName:  "IgnoredKeys",
-		Description: `A list of keys that must not be imported into the identity token. If
-` + "`" + `includedKeys` + "`" + ` is also set, and a key is in both lists, the key will be ignored.`,
+		Description: `A list of claims that will be filtered out from the identity token. A claim will
+be ignored if it is prefixed with one of the items in the ignoredKeys list. This
+runs before includedKeys computation.`,
 		Exposed: true,
+		Getter:  true,
 		Name:    "ignoredKeys",
 		Stored:  true,
 		SubType: "string",
@@ -1111,9 +1131,11 @@ same import operation.`,
 		AllowedChoices: []string{},
 		BSONFieldName:  "includedkeys",
 		ConvertedName:  "IncludedKeys",
-		Description: `A list of keys that must be imported into the identity token. If ` + "`" + `ignoredKeys` + "`" + `
-is also set, and a key is in both lists, the key will be ignored.`,
+		Description: `A list of claims that defines which claims will be added to the identity
+token. A claim will be included if it is prefixed with one of the items in the
+includedKeys list. This runs after ignoreddKeys computation.`,
 		Exposed: true,
+		Getter:  true,
 		Name:    "includedKeys",
 		Stored:  true,
 		SubType: "string",
@@ -1328,8 +1350,9 @@ type SparseSAMLSource struct {
 	// The description of the object.
 	Description *string `json:"description,omitempty" msgpack:"description,omitempty" bson:"description,omitempty" mapstructure:"description,omitempty"`
 
-	// A list of keys that must not be imported into the identity token. If
-	// `includedKeys` is also set, and a key is in both lists, the key will be ignored.
+	// A list of claims that will be filtered out from the identity token. A claim will
+	// be ignored if it is prefixed with one of the items in the ignoredKeys list. This
+	// runs before includedKeys computation.
 	IgnoredKeys *[]string `json:"ignoredKeys,omitempty" msgpack:"ignoredKeys,omitempty" bson:"ignoredkeys,omitempty" mapstructure:"ignoredKeys,omitempty"`
 
 	// The hash of the structure used to compare with new import version.
@@ -1339,8 +1362,9 @@ type SparseSAMLSource struct {
 	// same import operation.
 	ImportLabel *string `json:"importLabel,omitempty" msgpack:"importLabel,omitempty" bson:"importlabel,omitempty" mapstructure:"importLabel,omitempty"`
 
-	// A list of keys that must be imported into the identity token. If `ignoredKeys`
-	// is also set, and a key is in both lists, the key will be ignored.
+	// A list of claims that defines which claims will be added to the identity
+	// token. A claim will be included if it is prefixed with one of the items in the
+	// includedKeys list. This runs after ignoreddKeys computation.
 	IncludedKeys *[]string `json:"includedKeys,omitempty" msgpack:"includedKeys,omitempty" bson:"includedkeys,omitempty" mapstructure:"includedKeys,omitempty"`
 
 	// Contains optional information about a remote service that can be used to modify
@@ -1673,6 +1697,16 @@ func (o *SparseSAMLSource) SetCreateTime(createTime time.Time) {
 	o.CreateTime = &createTime
 }
 
+// GetIgnoredKeys returns the IgnoredKeys of the receiver.
+func (o *SparseSAMLSource) GetIgnoredKeys() (out []string) {
+
+	if o.IgnoredKeys == nil {
+		return
+	}
+
+	return *o.IgnoredKeys
+}
+
 // GetImportHash returns the ImportHash of the receiver.
 func (o *SparseSAMLSource) GetImportHash() (out string) {
 
@@ -1703,6 +1737,16 @@ func (o *SparseSAMLSource) GetImportLabel() (out string) {
 func (o *SparseSAMLSource) SetImportLabel(importLabel string) {
 
 	o.ImportLabel = &importLabel
+}
+
+// GetIncludedKeys returns the IncludedKeys of the receiver.
+func (o *SparseSAMLSource) GetIncludedKeys() (out []string) {
+
+	if o.IncludedKeys == nil {
+		return
+	}
+
+	return *o.IncludedKeys
 }
 
 // GetNamespace returns the Namespace of the receiver.
@@ -1802,10 +1846,10 @@ type mongoAttributesSAMLSource struct {
 	AudienceURI                string            `bson:"audienceuri"`
 	CreateTime                 time.Time         `bson:"createtime"`
 	Description                string            `bson:"description"`
-	IgnoredKeys                []string          `bson:"ignoredkeys"`
+	IgnoredKeys                []string          `bson:"ignoredkeys,omitempty"`
 	ImportHash                 string            `bson:"importhash,omitempty"`
 	ImportLabel                string            `bson:"importlabel,omitempty"`
-	IncludedKeys               []string          `bson:"includedkeys"`
+	IncludedKeys               []string          `bson:"includedkeys,omitempty"`
 	Modifier                   *IdentityModifier `bson:"modifier,omitempty"`
 	Name                       string            `bson:"name"`
 	Namespace                  string            `bson:"namespace"`

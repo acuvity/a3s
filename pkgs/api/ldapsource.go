@@ -129,8 +129,9 @@ type LDAPSource struct {
 	// The description of the object.
 	Description string `json:"description" msgpack:"description" bson:"description" mapstructure:"description,omitempty"`
 
-	// A list of keys that must not be imported into the identity token. If
-	// `includedKeys` is also set, and a key is in both lists, the key will be ignored.
+	// A list of claims that will be filtered out from the identity token. A claim will
+	// be ignored if it is prefixed with one of the items in the ignoredKeys list. This
+	// runs before includedKeys computation.
 	IgnoredKeys []string `json:"ignoredKeys,omitempty" msgpack:"ignoredKeys,omitempty" bson:"ignoredkeys,omitempty" mapstructure:"ignoredKeys,omitempty"`
 
 	// The hash of the structure used to compare with new import version.
@@ -140,8 +141,9 @@ type LDAPSource struct {
 	// same import operation.
 	ImportLabel string `json:"importLabel,omitempty" msgpack:"importLabel,omitempty" bson:"importlabel,omitempty" mapstructure:"importLabel,omitempty"`
 
-	// A list of keys that must be imported into the identity token. If `ignoredKeys`
-	// is also set, and a key is in both lists, the key will be ignored.
+	// A list of claims that defines which claims will be added to the identity
+	// token. A claim will be included if it is prefixed with one of the items in the
+	// includedKeys list. This runs after ignoreddKeys computation.
 	IncludedKeys []string `json:"includedKeys,omitempty" msgpack:"includedKeys,omitempty" bson:"includedkeys,omitempty" mapstructure:"includedKeys,omitempty"`
 
 	// Contains optional information about a remote service that can be used to modify
@@ -325,6 +327,12 @@ func (o *LDAPSource) SetCreateTime(createTime time.Time) {
 	o.CreateTime = createTime
 }
 
+// GetIgnoredKeys returns the IgnoredKeys of the receiver.
+func (o *LDAPSource) GetIgnoredKeys() []string {
+
+	return o.IgnoredKeys
+}
+
 // GetImportHash returns the ImportHash of the receiver.
 func (o *LDAPSource) GetImportHash() string {
 
@@ -347,6 +355,12 @@ func (o *LDAPSource) GetImportLabel() string {
 func (o *LDAPSource) SetImportLabel(importLabel string) {
 
 	o.ImportLabel = importLabel
+}
+
+// GetIncludedKeys returns the IncludedKeys of the receiver.
+func (o *LDAPSource) GetIncludedKeys() []string {
+
+	return o.IncludedKeys
 }
 
 // GetNamespace returns the Namespace of the receiver.
@@ -829,9 +843,11 @@ systems, the value may be ` + "`" + `uid={USERNAME}` + "`" + `.`,
 		AllowedChoices: []string{},
 		BSONFieldName:  "ignoredkeys",
 		ConvertedName:  "IgnoredKeys",
-		Description: `A list of keys that must not be imported into the identity token. If
-` + "`" + `includedKeys` + "`" + ` is also set, and a key is in both lists, the key will be ignored.`,
+		Description: `A list of claims that will be filtered out from the identity token. A claim will
+be ignored if it is prefixed with one of the items in the ignoredKeys list. This
+runs before includedKeys computation.`,
 		Exposed: true,
+		Getter:  true,
 		Name:    "ignoredKeys",
 		Stored:  true,
 		SubType: "string",
@@ -869,9 +885,11 @@ same import operation.`,
 		AllowedChoices: []string{},
 		BSONFieldName:  "includedkeys",
 		ConvertedName:  "IncludedKeys",
-		Description: `A list of keys that must be imported into the identity token. If ` + "`" + `ignoredKeys` + "`" + `
-is also set, and a key is in both lists, the key will be ignored.`,
+		Description: `A list of claims that defines which claims will be added to the identity
+token. A claim will be included if it is prefixed with one of the items in the
+includedKeys list. This runs after ignoreddKeys computation.`,
 		Exposed: true,
+		Getter:  true,
 		Name:    "includedKeys",
 		Stored:  true,
 		SubType: "string",
@@ -1090,9 +1108,11 @@ systems, the value may be ` + "`" + `uid={USERNAME}` + "`" + `.`,
 		AllowedChoices: []string{},
 		BSONFieldName:  "ignoredkeys",
 		ConvertedName:  "IgnoredKeys",
-		Description: `A list of keys that must not be imported into the identity token. If
-` + "`" + `includedKeys` + "`" + ` is also set, and a key is in both lists, the key will be ignored.`,
+		Description: `A list of claims that will be filtered out from the identity token. A claim will
+be ignored if it is prefixed with one of the items in the ignoredKeys list. This
+runs before includedKeys computation.`,
 		Exposed: true,
+		Getter:  true,
 		Name:    "ignoredKeys",
 		Stored:  true,
 		SubType: "string",
@@ -1130,9 +1150,11 @@ same import operation.`,
 		AllowedChoices: []string{},
 		BSONFieldName:  "includedkeys",
 		ConvertedName:  "IncludedKeys",
-		Description: `A list of keys that must be imported into the identity token. If ` + "`" + `ignoredKeys` + "`" + `
-is also set, and a key is in both lists, the key will be ignored.`,
+		Description: `A list of claims that defines which claims will be added to the identity
+token. A claim will be included if it is prefixed with one of the items in the
+includedKeys list. This runs after ignoreddKeys computation.`,
 		Exposed: true,
+		Getter:  true,
 		Name:    "includedKeys",
 		Stored:  true,
 		SubType: "string",
@@ -1325,8 +1347,9 @@ type SparseLDAPSource struct {
 	// The description of the object.
 	Description *string `json:"description,omitempty" msgpack:"description,omitempty" bson:"description,omitempty" mapstructure:"description,omitempty"`
 
-	// A list of keys that must not be imported into the identity token. If
-	// `includedKeys` is also set, and a key is in both lists, the key will be ignored.
+	// A list of claims that will be filtered out from the identity token. A claim will
+	// be ignored if it is prefixed with one of the items in the ignoredKeys list. This
+	// runs before includedKeys computation.
 	IgnoredKeys *[]string `json:"ignoredKeys,omitempty" msgpack:"ignoredKeys,omitempty" bson:"ignoredkeys,omitempty" mapstructure:"ignoredKeys,omitempty"`
 
 	// The hash of the structure used to compare with new import version.
@@ -1336,8 +1359,9 @@ type SparseLDAPSource struct {
 	// same import operation.
 	ImportLabel *string `json:"importLabel,omitempty" msgpack:"importLabel,omitempty" bson:"importlabel,omitempty" mapstructure:"importLabel,omitempty"`
 
-	// A list of keys that must be imported into the identity token. If `ignoredKeys`
-	// is also set, and a key is in both lists, the key will be ignored.
+	// A list of claims that defines which claims will be added to the identity
+	// token. A claim will be included if it is prefixed with one of the items in the
+	// includedKeys list. This runs after ignoreddKeys computation.
 	IncludedKeys *[]string `json:"includedKeys,omitempty" msgpack:"includedKeys,omitempty" bson:"includedkeys,omitempty" mapstructure:"includedKeys,omitempty"`
 
 	// Contains optional information about a remote service that can be used to modify
@@ -1671,6 +1695,16 @@ func (o *SparseLDAPSource) SetCreateTime(createTime time.Time) {
 	o.CreateTime = &createTime
 }
 
+// GetIgnoredKeys returns the IgnoredKeys of the receiver.
+func (o *SparseLDAPSource) GetIgnoredKeys() (out []string) {
+
+	if o.IgnoredKeys == nil {
+		return
+	}
+
+	return *o.IgnoredKeys
+}
+
 // GetImportHash returns the ImportHash of the receiver.
 func (o *SparseLDAPSource) GetImportHash() (out string) {
 
@@ -1701,6 +1735,16 @@ func (o *SparseLDAPSource) GetImportLabel() (out string) {
 func (o *SparseLDAPSource) SetImportLabel(importLabel string) {
 
 	o.ImportLabel = &importLabel
+}
+
+// GetIncludedKeys returns the IncludedKeys of the receiver.
+func (o *SparseLDAPSource) GetIncludedKeys() (out []string) {
+
+	if o.IncludedKeys == nil {
+		return
+	}
+
+	return *o.IncludedKeys
 }
 
 // GetNamespace returns the Namespace of the receiver.

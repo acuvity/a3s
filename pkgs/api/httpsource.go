@@ -106,12 +106,22 @@ type HTTPSource struct {
 	// The description of the object.
 	Description string `json:"description" msgpack:"description" bson:"description" mapstructure:"description,omitempty"`
 
+	// A list of claims that will be filtered out from the identity token. A claim will
+	// be ignored if it is prefixed with one of the items in the ignoredKeys list. This
+	// runs before includedKeys computation.
+	IgnoredKeys []string `json:"ignoredKeys,omitempty" msgpack:"ignoredKeys,omitempty" bson:"ignoredkeys,omitempty" mapstructure:"ignoredKeys,omitempty"`
+
 	// The hash of the structure used to compare with new import version.
 	ImportHash string `json:"importHash,omitempty" msgpack:"importHash,omitempty" bson:"importhash,omitempty" mapstructure:"importHash,omitempty"`
 
 	// The user-defined import label that allows the system to group resources from the
 	// same import operation.
 	ImportLabel string `json:"importLabel,omitempty" msgpack:"importLabel,omitempty" bson:"importlabel,omitempty" mapstructure:"importLabel,omitempty"`
+
+	// A list of claims that defines which claims will be added to the identity
+	// token. A claim will be included if it is prefixed with one of the items in the
+	// includedKeys list. This runs after ignoreddKeys computation.
+	IncludedKeys []string `json:"includedKeys,omitempty" msgpack:"includedKeys,omitempty" bson:"includedkeys,omitempty" mapstructure:"includedKeys,omitempty"`
 
 	// Key associated to the client certificate.
 	Key string `json:"key" msgpack:"key" bson:"key" mapstructure:"key,omitempty"`
@@ -143,6 +153,8 @@ func NewHTTPSource() *HTTPSource {
 
 	return &HTTPSource{
 		ModelVersion: 1,
+		IgnoredKeys:  []string{},
+		IncludedKeys: []string{},
 	}
 }
 
@@ -182,8 +194,10 @@ func (o *HTTPSource) GetBSON() (any, error) {
 	s.Certificate = o.Certificate
 	s.CreateTime = o.CreateTime
 	s.Description = o.Description
+	s.IgnoredKeys = o.IgnoredKeys
 	s.ImportHash = o.ImportHash
 	s.ImportLabel = o.ImportLabel
+	s.IncludedKeys = o.IncludedKeys
 	s.Key = o.Key
 	s.Modifier = o.Modifier
 	s.Name = o.Name
@@ -214,8 +228,10 @@ func (o *HTTPSource) SetBSON(raw bson.Raw) error {
 	o.Certificate = s.Certificate
 	o.CreateTime = s.CreateTime
 	o.Description = s.Description
+	o.IgnoredKeys = s.IgnoredKeys
 	o.ImportHash = s.ImportHash
 	o.ImportLabel = s.ImportLabel
+	o.IncludedKeys = s.IncludedKeys
 	o.Key = s.Key
 	o.Modifier = s.Modifier
 	o.Name = s.Name
@@ -280,6 +296,12 @@ func (o *HTTPSource) SetCreateTime(createTime time.Time) {
 	o.CreateTime = createTime
 }
 
+// GetIgnoredKeys returns the IgnoredKeys of the receiver.
+func (o *HTTPSource) GetIgnoredKeys() []string {
+
+	return o.IgnoredKeys
+}
+
 // GetImportHash returns the ImportHash of the receiver.
 func (o *HTTPSource) GetImportHash() string {
 
@@ -302,6 +324,12 @@ func (o *HTTPSource) GetImportLabel() string {
 func (o *HTTPSource) SetImportLabel(importLabel string) {
 
 	o.ImportLabel = importLabel
+}
+
+// GetIncludedKeys returns the IncludedKeys of the receiver.
+func (o *HTTPSource) GetIncludedKeys() []string {
+
+	return o.IncludedKeys
 }
 
 // GetNamespace returns the Namespace of the receiver.
@@ -359,21 +387,23 @@ func (o *HTTPSource) ToSparse(fields ...string) elemental.SparseIdentifiable {
 	if len(fields) == 0 {
 		// nolint: goimports
 		return &SparseHTTPSource{
-			CA:          &o.CA,
-			ID:          &o.ID,
-			URL:         &o.URL,
-			Certificate: &o.Certificate,
-			CreateTime:  &o.CreateTime,
-			Description: &o.Description,
-			ImportHash:  &o.ImportHash,
-			ImportLabel: &o.ImportLabel,
-			Key:         &o.Key,
-			Modifier:    o.Modifier,
-			Name:        &o.Name,
-			Namespace:   &o.Namespace,
-			UpdateTime:  &o.UpdateTime,
-			ZHash:       &o.ZHash,
-			Zone:        &o.Zone,
+			CA:           &o.CA,
+			ID:           &o.ID,
+			URL:          &o.URL,
+			Certificate:  &o.Certificate,
+			CreateTime:   &o.CreateTime,
+			Description:  &o.Description,
+			IgnoredKeys:  &o.IgnoredKeys,
+			ImportHash:   &o.ImportHash,
+			ImportLabel:  &o.ImportLabel,
+			IncludedKeys: &o.IncludedKeys,
+			Key:          &o.Key,
+			Modifier:     o.Modifier,
+			Name:         &o.Name,
+			Namespace:    &o.Namespace,
+			UpdateTime:   &o.UpdateTime,
+			ZHash:        &o.ZHash,
+			Zone:         &o.Zone,
 		}
 	}
 
@@ -392,10 +422,14 @@ func (o *HTTPSource) ToSparse(fields ...string) elemental.SparseIdentifiable {
 			sp.CreateTime = &(o.CreateTime)
 		case "description":
 			sp.Description = &(o.Description)
+		case "ignoredKeys":
+			sp.IgnoredKeys = &(o.IgnoredKeys)
 		case "importHash":
 			sp.ImportHash = &(o.ImportHash)
 		case "importLabel":
 			sp.ImportLabel = &(o.ImportLabel)
+		case "includedKeys":
+			sp.IncludedKeys = &(o.IncludedKeys)
 		case "key":
 			sp.Key = &(o.Key)
 		case "modifier":
@@ -461,11 +495,17 @@ func (o *HTTPSource) Patch(sparse elemental.SparseIdentifiable) {
 	if so.Description != nil {
 		o.Description = *so.Description
 	}
+	if so.IgnoredKeys != nil {
+		o.IgnoredKeys = *so.IgnoredKeys
+	}
 	if so.ImportHash != nil {
 		o.ImportHash = *so.ImportHash
 	}
 	if so.ImportLabel != nil {
 		o.ImportLabel = *so.ImportLabel
+	}
+	if so.IncludedKeys != nil {
+		o.IncludedKeys = *so.IncludedKeys
 	}
 	if so.Key != nil {
 		o.Key = *so.Key
@@ -544,6 +584,14 @@ func (o *HTTPSource) Validate() error {
 		errors = errors.Append(err)
 	}
 
+	if err := ValidateKeys("ignoredKeys", o.IgnoredKeys); err != nil {
+		errors = errors.Append(err)
+	}
+
+	if err := ValidateKeys("includedKeys", o.IncludedKeys); err != nil {
+		errors = errors.Append(err)
+	}
+
 	if o.Modifier != nil {
 		elemental.ResetDefaultForZeroValues(o.Modifier)
 		if err := o.Modifier.Validate(); err != nil {
@@ -601,10 +649,14 @@ func (o *HTTPSource) ValueForAttribute(name string) any {
 		return o.CreateTime
 	case "description":
 		return o.Description
+	case "ignoredKeys":
+		return o.IgnoredKeys
 	case "importHash":
 		return o.ImportHash
 	case "importLabel":
 		return o.ImportLabel
+	case "includedKeys":
+		return o.IncludedKeys
 	case "key":
 		return o.Key
 	case "modifier":
@@ -704,6 +756,20 @@ endpoint does not support client certificate authentication.`,
 		Stored:         true,
 		Type:           "string",
 	},
+	"IgnoredKeys": {
+		AllowedChoices: []string{},
+		BSONFieldName:  "ignoredkeys",
+		ConvertedName:  "IgnoredKeys",
+		Description: `A list of claims that will be filtered out from the identity token. A claim will
+be ignored if it is prefixed with one of the items in the ignoredKeys list. This
+runs before includedKeys computation.`,
+		Exposed: true,
+		Getter:  true,
+		Name:    "ignoredKeys",
+		Stored:  true,
+		SubType: "string",
+		Type:    "list",
+	},
 	"ImportHash": {
 		AllowedChoices: []string{},
 		Autogenerated:  true,
@@ -731,6 +797,20 @@ same import operation.`,
 		Setter:  true,
 		Stored:  true,
 		Type:    "string",
+	},
+	"IncludedKeys": {
+		AllowedChoices: []string{},
+		BSONFieldName:  "includedkeys",
+		ConvertedName:  "IncludedKeys",
+		Description: `A list of claims that defines which claims will be added to the identity
+token. A claim will be included if it is prefixed with one of the items in the
+includedKeys list. This runs after ignoreddKeys computation.`,
+		Exposed: true,
+		Getter:  true,
+		Name:    "includedKeys",
+		Stored:  true,
+		SubType: "string",
+		Type:    "list",
 	},
 	"Key": {
 		AllowedChoices: []string{},
@@ -908,6 +988,20 @@ endpoint does not support client certificate authentication.`,
 		Stored:         true,
 		Type:           "string",
 	},
+	"ignoredkeys": {
+		AllowedChoices: []string{},
+		BSONFieldName:  "ignoredkeys",
+		ConvertedName:  "IgnoredKeys",
+		Description: `A list of claims that will be filtered out from the identity token. A claim will
+be ignored if it is prefixed with one of the items in the ignoredKeys list. This
+runs before includedKeys computation.`,
+		Exposed: true,
+		Getter:  true,
+		Name:    "ignoredKeys",
+		Stored:  true,
+		SubType: "string",
+		Type:    "list",
+	},
 	"importhash": {
 		AllowedChoices: []string{},
 		Autogenerated:  true,
@@ -935,6 +1029,20 @@ same import operation.`,
 		Setter:  true,
 		Stored:  true,
 		Type:    "string",
+	},
+	"includedkeys": {
+		AllowedChoices: []string{},
+		BSONFieldName:  "includedkeys",
+		ConvertedName:  "IncludedKeys",
+		Description: `A list of claims that defines which claims will be added to the identity
+token. A claim will be included if it is prefixed with one of the items in the
+includedKeys list. This runs after ignoreddKeys computation.`,
+		Exposed: true,
+		Getter:  true,
+		Name:    "includedKeys",
+		Stored:  true,
+		SubType: "string",
+		Type:    "list",
 	},
 	"key": {
 		AllowedChoices: []string{},
@@ -1117,12 +1225,22 @@ type SparseHTTPSource struct {
 	// The description of the object.
 	Description *string `json:"description,omitempty" msgpack:"description,omitempty" bson:"description,omitempty" mapstructure:"description,omitempty"`
 
+	// A list of claims that will be filtered out from the identity token. A claim will
+	// be ignored if it is prefixed with one of the items in the ignoredKeys list. This
+	// runs before includedKeys computation.
+	IgnoredKeys *[]string `json:"ignoredKeys,omitempty" msgpack:"ignoredKeys,omitempty" bson:"ignoredkeys,omitempty" mapstructure:"ignoredKeys,omitempty"`
+
 	// The hash of the structure used to compare with new import version.
 	ImportHash *string `json:"importHash,omitempty" msgpack:"importHash,omitempty" bson:"importhash,omitempty" mapstructure:"importHash,omitempty"`
 
 	// The user-defined import label that allows the system to group resources from the
 	// same import operation.
 	ImportLabel *string `json:"importLabel,omitempty" msgpack:"importLabel,omitempty" bson:"importlabel,omitempty" mapstructure:"importLabel,omitempty"`
+
+	// A list of claims that defines which claims will be added to the identity
+	// token. A claim will be included if it is prefixed with one of the items in the
+	// includedKeys list. This runs after ignoreddKeys computation.
+	IncludedKeys *[]string `json:"includedKeys,omitempty" msgpack:"includedKeys,omitempty" bson:"includedkeys,omitempty" mapstructure:"includedKeys,omitempty"`
 
 	// Key associated to the client certificate.
 	Key *string `json:"key,omitempty" msgpack:"key,omitempty" bson:"key,omitempty" mapstructure:"key,omitempty"`
@@ -1207,11 +1325,17 @@ func (o *SparseHTTPSource) GetBSON() (any, error) {
 	if o.Description != nil {
 		s.Description = o.Description
 	}
+	if o.IgnoredKeys != nil {
+		s.IgnoredKeys = o.IgnoredKeys
+	}
 	if o.ImportHash != nil {
 		s.ImportHash = o.ImportHash
 	}
 	if o.ImportLabel != nil {
 		s.ImportLabel = o.ImportLabel
+	}
+	if o.IncludedKeys != nil {
+		s.IncludedKeys = o.IncludedKeys
 	}
 	if o.Key != nil {
 		s.Key = o.Key
@@ -1268,11 +1392,17 @@ func (o *SparseHTTPSource) SetBSON(raw bson.Raw) error {
 	if s.Description != nil {
 		o.Description = s.Description
 	}
+	if s.IgnoredKeys != nil {
+		o.IgnoredKeys = s.IgnoredKeys
+	}
 	if s.ImportHash != nil {
 		o.ImportHash = s.ImportHash
 	}
 	if s.ImportLabel != nil {
 		o.ImportLabel = s.ImportLabel
+	}
+	if s.IncludedKeys != nil {
+		o.IncludedKeys = s.IncludedKeys
 	}
 	if s.Key != nil {
 		o.Key = s.Key
@@ -1327,11 +1457,17 @@ func (o *SparseHTTPSource) ToPlain() elemental.PlainIdentifiable {
 	if o.Description != nil {
 		out.Description = *o.Description
 	}
+	if o.IgnoredKeys != nil {
+		out.IgnoredKeys = *o.IgnoredKeys
+	}
 	if o.ImportHash != nil {
 		out.ImportHash = *o.ImportHash
 	}
 	if o.ImportLabel != nil {
 		out.ImportLabel = *o.ImportLabel
+	}
+	if o.IncludedKeys != nil {
+		out.IncludedKeys = *o.IncludedKeys
 	}
 	if o.Key != nil {
 		out.Key = *o.Key
@@ -1410,6 +1546,16 @@ func (o *SparseHTTPSource) SetCreateTime(createTime time.Time) {
 	o.CreateTime = &createTime
 }
 
+// GetIgnoredKeys returns the IgnoredKeys of the receiver.
+func (o *SparseHTTPSource) GetIgnoredKeys() (out []string) {
+
+	if o.IgnoredKeys == nil {
+		return
+	}
+
+	return *o.IgnoredKeys
+}
+
 // GetImportHash returns the ImportHash of the receiver.
 func (o *SparseHTTPSource) GetImportHash() (out string) {
 
@@ -1440,6 +1586,16 @@ func (o *SparseHTTPSource) GetImportLabel() (out string) {
 func (o *SparseHTTPSource) SetImportLabel(importLabel string) {
 
 	o.ImportLabel = &importLabel
+}
+
+// GetIncludedKeys returns the IncludedKeys of the receiver.
+func (o *SparseHTTPSource) GetIncludedKeys() (out []string) {
+
+	if o.IncludedKeys == nil {
+		return
+	}
+
+	return *o.IncludedKeys
 }
 
 // GetNamespace returns the Namespace of the receiver.
@@ -1531,36 +1687,40 @@ func (o *SparseHTTPSource) DeepCopyInto(out *SparseHTTPSource) {
 }
 
 type mongoAttributesHTTPSource struct {
-	CA          string            `bson:"ca"`
-	ID          bson.ObjectId     `bson:"_id,omitempty"`
-	URL         string            `bson:"url"`
-	Certificate string            `bson:"certificate"`
-	CreateTime  time.Time         `bson:"createtime"`
-	Description string            `bson:"description"`
-	ImportHash  string            `bson:"importhash,omitempty"`
-	ImportLabel string            `bson:"importlabel,omitempty"`
-	Key         string            `bson:"key"`
-	Modifier    *IdentityModifier `bson:"modifier,omitempty"`
-	Name        string            `bson:"name"`
-	Namespace   string            `bson:"namespace"`
-	UpdateTime  time.Time         `bson:"updatetime"`
-	ZHash       int               `bson:"zhash"`
-	Zone        int               `bson:"zone"`
+	CA           string            `bson:"ca"`
+	ID           bson.ObjectId     `bson:"_id,omitempty"`
+	URL          string            `bson:"url"`
+	Certificate  string            `bson:"certificate"`
+	CreateTime   time.Time         `bson:"createtime"`
+	Description  string            `bson:"description"`
+	IgnoredKeys  []string          `bson:"ignoredkeys,omitempty"`
+	ImportHash   string            `bson:"importhash,omitempty"`
+	ImportLabel  string            `bson:"importlabel,omitempty"`
+	IncludedKeys []string          `bson:"includedkeys,omitempty"`
+	Key          string            `bson:"key"`
+	Modifier     *IdentityModifier `bson:"modifier,omitempty"`
+	Name         string            `bson:"name"`
+	Namespace    string            `bson:"namespace"`
+	UpdateTime   time.Time         `bson:"updatetime"`
+	ZHash        int               `bson:"zhash"`
+	Zone         int               `bson:"zone"`
 }
 type mongoAttributesSparseHTTPSource struct {
-	CA          *string           `bson:"ca,omitempty"`
-	ID          bson.ObjectId     `bson:"_id,omitempty"`
-	URL         *string           `bson:"url,omitempty"`
-	Certificate *string           `bson:"certificate,omitempty"`
-	CreateTime  *time.Time        `bson:"createtime,omitempty"`
-	Description *string           `bson:"description,omitempty"`
-	ImportHash  *string           `bson:"importhash,omitempty"`
-	ImportLabel *string           `bson:"importlabel,omitempty"`
-	Key         *string           `bson:"key,omitempty"`
-	Modifier    *IdentityModifier `bson:"modifier,omitempty"`
-	Name        *string           `bson:"name,omitempty"`
-	Namespace   *string           `bson:"namespace,omitempty"`
-	UpdateTime  *time.Time        `bson:"updatetime,omitempty"`
-	ZHash       *int              `bson:"zhash,omitempty"`
-	Zone        *int              `bson:"zone,omitempty"`
+	CA           *string           `bson:"ca,omitempty"`
+	ID           bson.ObjectId     `bson:"_id,omitempty"`
+	URL          *string           `bson:"url,omitempty"`
+	Certificate  *string           `bson:"certificate,omitempty"`
+	CreateTime   *time.Time        `bson:"createtime,omitempty"`
+	Description  *string           `bson:"description,omitempty"`
+	IgnoredKeys  *[]string         `bson:"ignoredkeys,omitempty"`
+	ImportHash   *string           `bson:"importhash,omitempty"`
+	ImportLabel  *string           `bson:"importlabel,omitempty"`
+	IncludedKeys *[]string         `bson:"includedkeys,omitempty"`
+	Key          *string           `bson:"key,omitempty"`
+	Modifier     *IdentityModifier `bson:"modifier,omitempty"`
+	Name         *string           `bson:"name,omitempty"`
+	Namespace    *string           `bson:"namespace,omitempty"`
+	UpdateTime   *time.Time        `bson:"updatetime,omitempty"`
+	ZHash        *int              `bson:"zhash,omitempty"`
+	Zone         *int              `bson:"zone,omitempty"`
 }

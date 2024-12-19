@@ -31,6 +31,7 @@ import (
 	"go.acuvity.ai/a3s/internal/samlceremony"
 	"go.acuvity.ai/a3s/pkgs/api"
 	"go.acuvity.ai/a3s/pkgs/auditor"
+	"go.acuvity.ai/a3s/pkgs/claims"
 	"go.acuvity.ai/a3s/pkgs/modifier/binary"
 	"go.acuvity.ai/a3s/pkgs/modifier/plugin"
 	"go.acuvity.ai/a3s/pkgs/permissions"
@@ -152,24 +153,22 @@ func (p *IssueProcessor) ProcessCreate(bctx bahamut.Context) (err error) {
 		audience = jwt.ClaimStrings{p.audience}
 	}
 
+	source, err := retrieveSource(
+		bctx.Context(),
+		p.manipulator,
+		req.SourceNamespace,
+		req.SourceName,
+		identityFromType(req.SourceType),
+	)
+	if err != nil {
+		return err
+	}
+
 	var issuer token.Issuer
 
 	switch req.SourceType {
 
-	case api.IssueSourceTypeMTLS:
-		issuer, err = p.handleCertificateIssue(
-			bctx.Context(),
-			req,
-			bctx.Request().TLSConnectionState,
-			bctx.Request().Headers.Get(p.mtlsHeaderKey),
-		)
-
-	case api.IssueSourceTypeLDAP:
-		issuer, err = p.handleLDAPIssue(bctx.Context(), req)
-
-	case api.IssueSourceTypeHTTP:
-		issuer, err = p.handleHTTPIssue(bctx.Context(), req)
-
+	// sourceless cases
 	case api.IssueSourceTypeAWS:
 		issuer, err = p.handleAWSIssue(req)
 
@@ -178,27 +177,6 @@ func (p *IssueProcessor) ProcessCreate(bctx bahamut.Context) (err error) {
 
 	case api.IssueSourceTypeGCP:
 		issuer, err = p.handleGCPIssue(req)
-
-	case api.IssueSourceTypeRemoteA3S:
-		issuer, err = p.handleRemoteA3SIssue(bctx.Context(), req)
-
-	case api.IssueSourceTypeOIDC:
-		issuer, err = p.handleOIDCIssue(bctx, req)
-		if issuer == nil && err == nil {
-			return nil
-		}
-
-	case api.IssueSourceTypeOAuth2:
-		issuer, err = p.handleOAuth2Issue(bctx, req)
-		if issuer == nil && err == nil {
-			return nil
-		}
-
-	case api.IssueSourceTypeSAML:
-		issuer, err = p.handleSAMLIssue(bctx, req)
-		if issuer == nil && err == nil {
-			return nil
-		}
 
 	case api.IssueSourceTypeA3S:
 		if req.Validity == "" {
@@ -210,6 +188,38 @@ func (p *IssueProcessor) ProcessCreate(bctx bahamut.Context) (err error) {
 		if p.waiveSecret != req.WaiveValiditySecret {
 			exp = time.Time{}
 		}
+
+	// source based cases
+	case api.IssueSourceTypeMTLS:
+		issuer, err = p.handleCertificateIssue(bctx.Context(), source, bctx.Request().TLSConnectionState, bctx.Request().Headers.Get(p.mtlsHeaderKey))
+
+	case api.IssueSourceTypeLDAP:
+		issuer, err = p.handleLDAPIssue(bctx.Context(), source, req)
+
+	case api.IssueSourceTypeHTTP:
+		issuer, err = p.handleHTTPIssue(bctx.Context(), source, req)
+
+	case api.IssueSourceTypeRemoteA3S:
+		issuer, err = p.handleRemoteA3SIssue(bctx.Context(), source, req)
+
+	case api.IssueSourceTypeOIDC:
+		issuer, err = p.handleOIDCIssue(bctx, source, req)
+		if issuer == nil && err == nil {
+			return nil
+		}
+
+	case api.IssueSourceTypeOAuth2:
+		issuer, err = p.handleOAuth2Issue(bctx, source, req)
+		if issuer == nil && err == nil {
+			return nil
+		}
+
+	case api.IssueSourceTypeSAML:
+		issuer, err = p.handleSAMLIssue(bctx, source, req)
+		if issuer == nil && err == nil {
+			return nil
+		}
+
 	}
 
 	if err != nil {
@@ -253,6 +263,12 @@ func (p *IssueProcessor) ProcessCreate(bctx bahamut.Context) (err error) {
 		}
 	}
 	idt.Source = originalSource
+
+	if source != nil {
+		if filter, ok := source.(claims.Filterable); ok {
+			idt.Identity = claims.Filter(idt.Identity, filter)
+		}
+	}
 
 	k := p.jwks.GetLastWithPrivate()
 	tkn, err := idt.JWT(k.PrivateKey(), k.KID, p.issuer, audience, exp, req.Cloak)
@@ -300,7 +316,7 @@ func (p *IssueProcessor) ProcessCreate(bctx bahamut.Context) (err error) {
 	return nil
 }
 
-func (p *IssueProcessor) handleCertificateIssue(ctx context.Context, req *api.Issue, tlsState *tls.ConnectionState, tlsHeader string) (token.Issuer, error) {
+func (p *IssueProcessor) handleCertificateIssue(ctx context.Context, source elemental.Identifiable, tlsState *tls.ConnectionState, tlsHeader string) (token.Issuer, error) {
 
 	// We get the peer certificate.
 	var certs []*x509.Certificate
@@ -337,11 +353,7 @@ func (p *IssueProcessor) handleCertificateIssue(ctx context.Context, req *api.Is
 		return nil, elemental.NewError("Bad Request", "No user certificates", "a3s:authn", http.StatusBadRequest)
 	}
 
-	out, err := retrieveSource(ctx, p.manipulator, req.SourceNamespace, req.SourceName, api.MTLSSourceIdentity)
-	if err != nil {
-		return nil, err
-	}
-	src := out.(*api.MTLSSource)
+	src := source.(*api.MTLSSource)
 
 	iss, err := mtlsissuer.New(ctx, src, certs[0])
 	if err != nil {
@@ -351,14 +363,10 @@ func (p *IssueProcessor) handleCertificateIssue(ctx context.Context, req *api.Is
 	return iss, nil
 }
 
-func (p *IssueProcessor) handleLDAPIssue(ctx context.Context, req *api.Issue) (token.Issuer, error) {
+func (p *IssueProcessor) handleLDAPIssue(ctx context.Context, source elemental.Identifiable, req *api.Issue) (token.Issuer, error) {
 
-	out, err := retrieveSource(ctx, p.manipulator, req.SourceNamespace, req.SourceName, api.LDAPSourceIdentity)
-	if err != nil {
-		return nil, err
-	}
+	src := source.(*api.LDAPSource)
 
-	src := out.(*api.LDAPSource)
 	iss, err := ldapissuer.New(ctx, src, req.InputLDAP.Username, req.InputLDAP.Password)
 	if err != nil {
 		return nil, err
@@ -367,14 +375,10 @@ func (p *IssueProcessor) handleLDAPIssue(ctx context.Context, req *api.Issue) (t
 	return iss, nil
 }
 
-func (p *IssueProcessor) handleHTTPIssue(ctx context.Context, req *api.Issue) (token.Issuer, error) {
+func (p *IssueProcessor) handleHTTPIssue(ctx context.Context, source elemental.Identifiable, req *api.Issue) (token.Issuer, error) {
 
-	out, err := retrieveSource(ctx, p.manipulator, req.SourceNamespace, req.SourceName, api.HTTPSourceIdentity)
-	if err != nil {
-		return nil, err
-	}
+	src := source.(*api.HTTPSource)
 
-	src := out.(*api.HTTPSource)
 	iss, err := httpissuer.New(ctx, src, httpissuer.Credentials{
 		Username: req.InputHTTP.Username,
 		Password: req.InputHTTP.Password,
@@ -434,14 +438,10 @@ func (p *IssueProcessor) handleTokenIssue(req *api.Issue, validity time.Duration
 	return iss, nil
 }
 
-func (p *IssueProcessor) handleRemoteA3SIssue(ctx context.Context, req *api.Issue) (token.Issuer, error) {
+func (p *IssueProcessor) handleRemoteA3SIssue(ctx context.Context, source elemental.Identifiable, req *api.Issue) (token.Issuer, error) {
 
-	out, err := retrieveSource(ctx, p.manipulator, req.SourceNamespace, req.SourceName, api.A3SSourceIdentity)
-	if err != nil {
-		return nil, err
-	}
+	src := source.(*api.A3SSource)
 
-	src := out.(*api.A3SSource)
 	iss, err := remotea3sissuer.New(ctx, src, req.InputRemoteA3S.Token)
 	if err != nil {
 		return nil, err
@@ -450,23 +450,19 @@ func (p *IssueProcessor) handleRemoteA3SIssue(ctx context.Context, req *api.Issu
 	return iss, nil
 }
 
-func (p *IssueProcessor) handleOIDCIssue(bctx bahamut.Context, req *api.Issue) (token.Issuer, error) {
+func (p *IssueProcessor) handleOIDCIssue(bctx bahamut.Context, source elemental.Identifiable, req *api.Issue) (token.Issuer, error) {
 
 	input := req.InputOIDC
 	state := input.State
 	code := input.Code
 
-	out, err := retrieveSource(bctx.Context(), p.manipulator, req.SourceNamespace, req.SourceName, api.OIDCSourceIdentity)
-	if err != nil {
-		return nil, err
-	}
-
-	src := out.(*api.OIDCSource)
+	src := source.(*api.OIDCSource)
 
 	rerr := oauth2ceremony.MakeRedirectError(bctx, input.RedirectErrorURL)
 
 	if code == "" || state == "" {
 
+		var err error
 		state, err = oauth2ceremony.GenerateNonce(12)
 		if err != nil {
 			return nil, rerr(fmt.Errorf("unable to generate nonce for oidc state: %w", err))
@@ -558,18 +554,13 @@ func (p *IssueProcessor) handleOIDCIssue(bctx bahamut.Context, req *api.Issue) (
 	return oidcissuer.New(bctx.Context(), src, claims)
 }
 
-func (p *IssueProcessor) handleOAuth2Issue(bctx bahamut.Context, req *api.Issue) (token.Issuer, error) {
+func (p *IssueProcessor) handleOAuth2Issue(bctx bahamut.Context, source elemental.Identifiable, req *api.Issue) (token.Issuer, error) {
 
 	input := req.InputOAuth2
 	state := input.State
 	code := input.Code
 
-	out, err := retrieveSource(bctx.Context(), p.manipulator, req.SourceNamespace, req.SourceName, api.OAuth2SourceIdentity)
-	if err != nil {
-		return nil, err
-	}
-
-	src := out.(*api.OAuth2Source)
+	src := source.(*api.OAuth2Source)
 
 	provider := oauth2provider.Get(src.Provider)
 	if provider == nil {
@@ -580,6 +571,7 @@ func (p *IssueProcessor) handleOAuth2Issue(bctx bahamut.Context, req *api.Issue)
 
 	if code == "" && state == "" {
 
+		var err error
 		state, err = oauth2ceremony.GenerateNonce(12)
 		if err != nil {
 			return nil, rerr(fmt.Errorf("unable to generate oauth2 state: %w", err))
@@ -665,20 +657,11 @@ func (p *IssueProcessor) handleOAuth2Issue(bctx bahamut.Context, req *api.Issue)
 	return oauth2issuer.New(bctx.Context(), src, claims)
 }
 
-func (p *IssueProcessor) handleSAMLIssue(bctx bahamut.Context, req *api.Issue) (token.Issuer, error) {
+func (p *IssueProcessor) handleSAMLIssue(bctx bahamut.Context, source elemental.Identifiable, req *api.Issue) (token.Issuer, error) {
 
 	input := req.InputSAML
-	out, err := retrieveSource(
-		bctx.Context(),
-		p.manipulator,
-		req.SourceNamespace,
-		req.SourceName,
-		api.SAMLSourceIdentity,
-	)
-	if err != nil {
-		return nil, fmt.Errorf("unable to retrieve saml source '%s' in namespace '%s': %w", req.SourceName, req.SourceNamespace, err)
-	}
-	src := out.(*api.SAMLSource)
+
+	src := source.(*api.SAMLSource)
 	rerr := samlceremony.MakeRedirectError(bctx, input.RedirectErrorURL)
 
 	serviceProviderIssuer := src.ServiceProviderIssuer
@@ -813,6 +796,10 @@ func retrieveSource(
 	identity elemental.Identity,
 ) (elemental.Identifiable, error) {
 
+	if identity.IsEmpty() {
+		return nil, nil
+	}
+
 	if namespace == "" {
 		return nil, elemental.NewError(
 			"Bad Request",
@@ -849,7 +836,7 @@ func retrieveSource(
 	case 0:
 		return nil, elemental.NewError(
 			"Not Found",
-			"Unable to find the request auth source",
+			"Unable to find the requested auth source",
 			"a3s:authn",
 			http.StatusNotFound,
 		)
@@ -859,4 +846,26 @@ func retrieveSource(
 	}
 
 	return lst[0], nil
+}
+
+func identityFromType(srcType api.IssueSourceTypeValue) elemental.Identity {
+
+	switch srcType {
+	case api.IssueSourceTypeMTLS:
+		return api.MTLSSourceIdentity
+	case api.IssueSourceTypeLDAP:
+		return api.LDAPSourceIdentity
+	case api.IssueSourceTypeHTTP:
+		return api.HTTPSourceIdentity
+	case api.IssueSourceTypeRemoteA3S:
+		return api.A3SSourceIdentity
+	case api.IssueSourceTypeOIDC:
+		return api.OIDCSourceIdentity
+	case api.IssueSourceTypeOAuth2:
+		return api.OAuth2SourceIdentity
+	case api.IssueSourceTypeSAML:
+		return api.SAMLSourceIdentity
+	}
+
+	return elemental.Identity{}
 }

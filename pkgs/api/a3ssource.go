@@ -104,12 +104,22 @@ type A3SSource struct {
 	// left empty, the issuer value will be used.
 	Endpoint string `json:"endpoint" msgpack:"endpoint" bson:"endpoint" mapstructure:"endpoint,omitempty"`
 
+	// A list of claims that will be filtered out from the identity token. A claim will
+	// be ignored if it is prefixed with one of the items in the ignoredKeys list. This
+	// runs before includedKeys computation.
+	IgnoredKeys []string `json:"ignoredKeys,omitempty" msgpack:"ignoredKeys,omitempty" bson:"ignoredkeys,omitempty" mapstructure:"ignoredKeys,omitempty"`
+
 	// The hash of the structure used to compare with new import version.
 	ImportHash string `json:"importHash,omitempty" msgpack:"importHash,omitempty" bson:"importhash,omitempty" mapstructure:"importHash,omitempty"`
 
 	// The user-defined import label that allows the system to group resources from the
 	// same import operation.
 	ImportLabel string `json:"importLabel,omitempty" msgpack:"importLabel,omitempty" bson:"importlabel,omitempty" mapstructure:"importLabel,omitempty"`
+
+	// A list of claims that defines which claims will be added to the identity
+	// token. A claim will be included if it is prefixed with one of the items in the
+	// includedKeys list. This runs after ignoreddKeys computation.
+	IncludedKeys []string `json:"includedKeys,omitempty" msgpack:"includedKeys,omitempty" bson:"includedkeys,omitempty" mapstructure:"includedKeys,omitempty"`
 
 	// The issuer that represents the remote a3s server.
 	Issuer string `json:"issuer" msgpack:"issuer" bson:"issuer" mapstructure:"issuer,omitempty"`
@@ -141,6 +151,8 @@ func NewA3SSource() *A3SSource {
 
 	return &A3SSource{
 		ModelVersion: 1,
+		IgnoredKeys:  []string{},
+		IncludedKeys: []string{},
 	}
 }
 
@@ -180,8 +192,10 @@ func (o *A3SSource) GetBSON() (any, error) {
 	s.CreateTime = o.CreateTime
 	s.Description = o.Description
 	s.Endpoint = o.Endpoint
+	s.IgnoredKeys = o.IgnoredKeys
 	s.ImportHash = o.ImportHash
 	s.ImportLabel = o.ImportLabel
+	s.IncludedKeys = o.IncludedKeys
 	s.Issuer = o.Issuer
 	s.Modifier = o.Modifier
 	s.Name = o.Name
@@ -212,8 +226,10 @@ func (o *A3SSource) SetBSON(raw bson.Raw) error {
 	o.CreateTime = s.CreateTime
 	o.Description = s.Description
 	o.Endpoint = s.Endpoint
+	o.IgnoredKeys = s.IgnoredKeys
 	o.ImportHash = s.ImportHash
 	o.ImportLabel = s.ImportLabel
+	o.IncludedKeys = s.IncludedKeys
 	o.Issuer = s.Issuer
 	o.Modifier = s.Modifier
 	o.Name = s.Name
@@ -278,6 +294,12 @@ func (o *A3SSource) SetCreateTime(createTime time.Time) {
 	o.CreateTime = createTime
 }
 
+// GetIgnoredKeys returns the IgnoredKeys of the receiver.
+func (o *A3SSource) GetIgnoredKeys() []string {
+
+	return o.IgnoredKeys
+}
+
 // GetImportHash returns the ImportHash of the receiver.
 func (o *A3SSource) GetImportHash() string {
 
@@ -300,6 +322,12 @@ func (o *A3SSource) GetImportLabel() string {
 func (o *A3SSource) SetImportLabel(importLabel string) {
 
 	o.ImportLabel = importLabel
+}
+
+// GetIncludedKeys returns the IncludedKeys of the receiver.
+func (o *A3SSource) GetIncludedKeys() []string {
+
+	return o.IncludedKeys
 }
 
 // GetNamespace returns the Namespace of the receiver.
@@ -357,21 +385,23 @@ func (o *A3SSource) ToSparse(fields ...string) elemental.SparseIdentifiable {
 	if len(fields) == 0 {
 		// nolint: goimports
 		return &SparseA3SSource{
-			CA:          &o.CA,
-			ID:          &o.ID,
-			Audience:    &o.Audience,
-			CreateTime:  &o.CreateTime,
-			Description: &o.Description,
-			Endpoint:    &o.Endpoint,
-			ImportHash:  &o.ImportHash,
-			ImportLabel: &o.ImportLabel,
-			Issuer:      &o.Issuer,
-			Modifier:    o.Modifier,
-			Name:        &o.Name,
-			Namespace:   &o.Namespace,
-			UpdateTime:  &o.UpdateTime,
-			ZHash:       &o.ZHash,
-			Zone:        &o.Zone,
+			CA:           &o.CA,
+			ID:           &o.ID,
+			Audience:     &o.Audience,
+			CreateTime:   &o.CreateTime,
+			Description:  &o.Description,
+			Endpoint:     &o.Endpoint,
+			IgnoredKeys:  &o.IgnoredKeys,
+			ImportHash:   &o.ImportHash,
+			ImportLabel:  &o.ImportLabel,
+			IncludedKeys: &o.IncludedKeys,
+			Issuer:       &o.Issuer,
+			Modifier:     o.Modifier,
+			Name:         &o.Name,
+			Namespace:    &o.Namespace,
+			UpdateTime:   &o.UpdateTime,
+			ZHash:        &o.ZHash,
+			Zone:         &o.Zone,
 		}
 	}
 
@@ -390,10 +420,14 @@ func (o *A3SSource) ToSparse(fields ...string) elemental.SparseIdentifiable {
 			sp.Description = &(o.Description)
 		case "endpoint":
 			sp.Endpoint = &(o.Endpoint)
+		case "ignoredKeys":
+			sp.IgnoredKeys = &(o.IgnoredKeys)
 		case "importHash":
 			sp.ImportHash = &(o.ImportHash)
 		case "importLabel":
 			sp.ImportLabel = &(o.ImportLabel)
+		case "includedKeys":
+			sp.IncludedKeys = &(o.IncludedKeys)
 		case "issuer":
 			sp.Issuer = &(o.Issuer)
 		case "modifier":
@@ -439,11 +473,17 @@ func (o *A3SSource) Patch(sparse elemental.SparseIdentifiable) {
 	if so.Endpoint != nil {
 		o.Endpoint = *so.Endpoint
 	}
+	if so.IgnoredKeys != nil {
+		o.IgnoredKeys = *so.IgnoredKeys
+	}
 	if so.ImportHash != nil {
 		o.ImportHash = *so.ImportHash
 	}
 	if so.ImportLabel != nil {
 		o.ImportLabel = *so.ImportLabel
+	}
+	if so.IncludedKeys != nil {
+		o.IncludedKeys = *so.IncludedKeys
 	}
 	if so.Issuer != nil {
 		o.Issuer = *so.Issuer
@@ -499,6 +539,14 @@ func (o *A3SSource) Validate() error {
 	requiredErrors := elemental.Errors{}
 
 	if err := ValidatePEM("CA", o.CA); err != nil {
+		errors = errors.Append(err)
+	}
+
+	if err := ValidateKeys("ignoredKeys", o.IgnoredKeys); err != nil {
+		errors = errors.Append(err)
+	}
+
+	if err := ValidateKeys("includedKeys", o.IncludedKeys); err != nil {
 		errors = errors.Append(err)
 	}
 
@@ -563,10 +611,14 @@ func (o *A3SSource) ValueForAttribute(name string) any {
 		return o.Description
 	case "endpoint":
 		return o.Endpoint
+	case "ignoredKeys":
+		return o.IgnoredKeys
 	case "importHash":
 		return o.ImportHash
 	case "importLabel":
 		return o.ImportLabel
+	case "includedKeys":
+		return o.IncludedKeys
 	case "issuer":
 		return o.Issuer
 	case "modifier":
@@ -661,6 +713,20 @@ left empty, the issuer value will be used.`,
 		Stored:  true,
 		Type:    "string",
 	},
+	"IgnoredKeys": {
+		AllowedChoices: []string{},
+		BSONFieldName:  "ignoredkeys",
+		ConvertedName:  "IgnoredKeys",
+		Description: `A list of claims that will be filtered out from the identity token. A claim will
+be ignored if it is prefixed with one of the items in the ignoredKeys list. This
+runs before includedKeys computation.`,
+		Exposed: true,
+		Getter:  true,
+		Name:    "ignoredKeys",
+		Stored:  true,
+		SubType: "string",
+		Type:    "list",
+	},
 	"ImportHash": {
 		AllowedChoices: []string{},
 		Autogenerated:  true,
@@ -688,6 +754,20 @@ same import operation.`,
 		Setter:  true,
 		Stored:  true,
 		Type:    "string",
+	},
+	"IncludedKeys": {
+		AllowedChoices: []string{},
+		BSONFieldName:  "includedkeys",
+		ConvertedName:  "IncludedKeys",
+		Description: `A list of claims that defines which claims will be added to the identity
+token. A claim will be included if it is prefixed with one of the items in the
+includedKeys list. This runs after ignoreddKeys computation.`,
+		Exposed: true,
+		Getter:  true,
+		Name:    "includedKeys",
+		Stored:  true,
+		SubType: "string",
+		Type:    "list",
 	},
 	"Issuer": {
 		AllowedChoices: []string{},
@@ -857,6 +937,20 @@ left empty, the issuer value will be used.`,
 		Stored:  true,
 		Type:    "string",
 	},
+	"ignoredkeys": {
+		AllowedChoices: []string{},
+		BSONFieldName:  "ignoredkeys",
+		ConvertedName:  "IgnoredKeys",
+		Description: `A list of claims that will be filtered out from the identity token. A claim will
+be ignored if it is prefixed with one of the items in the ignoredKeys list. This
+runs before includedKeys computation.`,
+		Exposed: true,
+		Getter:  true,
+		Name:    "ignoredKeys",
+		Stored:  true,
+		SubType: "string",
+		Type:    "list",
+	},
 	"importhash": {
 		AllowedChoices: []string{},
 		Autogenerated:  true,
@@ -884,6 +978,20 @@ same import operation.`,
 		Setter:  true,
 		Stored:  true,
 		Type:    "string",
+	},
+	"includedkeys": {
+		AllowedChoices: []string{},
+		BSONFieldName:  "includedkeys",
+		ConvertedName:  "IncludedKeys",
+		Description: `A list of claims that defines which claims will be added to the identity
+token. A claim will be included if it is prefixed with one of the items in the
+includedKeys list. This runs after ignoreddKeys computation.`,
+		Exposed: true,
+		Getter:  true,
+		Name:    "includedKeys",
+		Stored:  true,
+		SubType: "string",
+		Type:    "list",
 	},
 	"issuer": {
 		AllowedChoices: []string{},
@@ -1061,12 +1169,22 @@ type SparseA3SSource struct {
 	// left empty, the issuer value will be used.
 	Endpoint *string `json:"endpoint,omitempty" msgpack:"endpoint,omitempty" bson:"endpoint,omitempty" mapstructure:"endpoint,omitempty"`
 
+	// A list of claims that will be filtered out from the identity token. A claim will
+	// be ignored if it is prefixed with one of the items in the ignoredKeys list. This
+	// runs before includedKeys computation.
+	IgnoredKeys *[]string `json:"ignoredKeys,omitempty" msgpack:"ignoredKeys,omitempty" bson:"ignoredkeys,omitempty" mapstructure:"ignoredKeys,omitempty"`
+
 	// The hash of the structure used to compare with new import version.
 	ImportHash *string `json:"importHash,omitempty" msgpack:"importHash,omitempty" bson:"importhash,omitempty" mapstructure:"importHash,omitempty"`
 
 	// The user-defined import label that allows the system to group resources from the
 	// same import operation.
 	ImportLabel *string `json:"importLabel,omitempty" msgpack:"importLabel,omitempty" bson:"importlabel,omitempty" mapstructure:"importLabel,omitempty"`
+
+	// A list of claims that defines which claims will be added to the identity
+	// token. A claim will be included if it is prefixed with one of the items in the
+	// includedKeys list. This runs after ignoreddKeys computation.
+	IncludedKeys *[]string `json:"includedKeys,omitempty" msgpack:"includedKeys,omitempty" bson:"includedkeys,omitempty" mapstructure:"includedKeys,omitempty"`
 
 	// The issuer that represents the remote a3s server.
 	Issuer *string `json:"issuer,omitempty" msgpack:"issuer,omitempty" bson:"issuer,omitempty" mapstructure:"issuer,omitempty"`
@@ -1151,11 +1269,17 @@ func (o *SparseA3SSource) GetBSON() (any, error) {
 	if o.Endpoint != nil {
 		s.Endpoint = o.Endpoint
 	}
+	if o.IgnoredKeys != nil {
+		s.IgnoredKeys = o.IgnoredKeys
+	}
 	if o.ImportHash != nil {
 		s.ImportHash = o.ImportHash
 	}
 	if o.ImportLabel != nil {
 		s.ImportLabel = o.ImportLabel
+	}
+	if o.IncludedKeys != nil {
+		s.IncludedKeys = o.IncludedKeys
 	}
 	if o.Issuer != nil {
 		s.Issuer = o.Issuer
@@ -1212,11 +1336,17 @@ func (o *SparseA3SSource) SetBSON(raw bson.Raw) error {
 	if s.Endpoint != nil {
 		o.Endpoint = s.Endpoint
 	}
+	if s.IgnoredKeys != nil {
+		o.IgnoredKeys = s.IgnoredKeys
+	}
 	if s.ImportHash != nil {
 		o.ImportHash = s.ImportHash
 	}
 	if s.ImportLabel != nil {
 		o.ImportLabel = s.ImportLabel
+	}
+	if s.IncludedKeys != nil {
+		o.IncludedKeys = s.IncludedKeys
 	}
 	if s.Issuer != nil {
 		o.Issuer = s.Issuer
@@ -1271,11 +1401,17 @@ func (o *SparseA3SSource) ToPlain() elemental.PlainIdentifiable {
 	if o.Endpoint != nil {
 		out.Endpoint = *o.Endpoint
 	}
+	if o.IgnoredKeys != nil {
+		out.IgnoredKeys = *o.IgnoredKeys
+	}
 	if o.ImportHash != nil {
 		out.ImportHash = *o.ImportHash
 	}
 	if o.ImportLabel != nil {
 		out.ImportLabel = *o.ImportLabel
+	}
+	if o.IncludedKeys != nil {
+		out.IncludedKeys = *o.IncludedKeys
 	}
 	if o.Issuer != nil {
 		out.Issuer = *o.Issuer
@@ -1334,6 +1470,16 @@ func (o *SparseA3SSource) SetCreateTime(createTime time.Time) {
 	o.CreateTime = &createTime
 }
 
+// GetIgnoredKeys returns the IgnoredKeys of the receiver.
+func (o *SparseA3SSource) GetIgnoredKeys() (out []string) {
+
+	if o.IgnoredKeys == nil {
+		return
+	}
+
+	return *o.IgnoredKeys
+}
+
 // GetImportHash returns the ImportHash of the receiver.
 func (o *SparseA3SSource) GetImportHash() (out string) {
 
@@ -1364,6 +1510,16 @@ func (o *SparseA3SSource) GetImportLabel() (out string) {
 func (o *SparseA3SSource) SetImportLabel(importLabel string) {
 
 	o.ImportLabel = &importLabel
+}
+
+// GetIncludedKeys returns the IncludedKeys of the receiver.
+func (o *SparseA3SSource) GetIncludedKeys() (out []string) {
+
+	if o.IncludedKeys == nil {
+		return
+	}
+
+	return *o.IncludedKeys
 }
 
 // GetNamespace returns the Namespace of the receiver.
@@ -1455,36 +1611,40 @@ func (o *SparseA3SSource) DeepCopyInto(out *SparseA3SSource) {
 }
 
 type mongoAttributesA3SSource struct {
-	CA          string            `bson:"ca"`
-	ID          bson.ObjectId     `bson:"_id,omitempty"`
-	Audience    string            `bson:"audience"`
-	CreateTime  time.Time         `bson:"createtime"`
-	Description string            `bson:"description"`
-	Endpoint    string            `bson:"endpoint"`
-	ImportHash  string            `bson:"importhash,omitempty"`
-	ImportLabel string            `bson:"importlabel,omitempty"`
-	Issuer      string            `bson:"issuer"`
-	Modifier    *IdentityModifier `bson:"modifier,omitempty"`
-	Name        string            `bson:"name"`
-	Namespace   string            `bson:"namespace"`
-	UpdateTime  time.Time         `bson:"updatetime"`
-	ZHash       int               `bson:"zhash"`
-	Zone        int               `bson:"zone"`
+	CA           string            `bson:"ca"`
+	ID           bson.ObjectId     `bson:"_id,omitempty"`
+	Audience     string            `bson:"audience"`
+	CreateTime   time.Time         `bson:"createtime"`
+	Description  string            `bson:"description"`
+	Endpoint     string            `bson:"endpoint"`
+	IgnoredKeys  []string          `bson:"ignoredkeys,omitempty"`
+	ImportHash   string            `bson:"importhash,omitempty"`
+	ImportLabel  string            `bson:"importlabel,omitempty"`
+	IncludedKeys []string          `bson:"includedkeys,omitempty"`
+	Issuer       string            `bson:"issuer"`
+	Modifier     *IdentityModifier `bson:"modifier,omitempty"`
+	Name         string            `bson:"name"`
+	Namespace    string            `bson:"namespace"`
+	UpdateTime   time.Time         `bson:"updatetime"`
+	ZHash        int               `bson:"zhash"`
+	Zone         int               `bson:"zone"`
 }
 type mongoAttributesSparseA3SSource struct {
-	CA          *string           `bson:"ca,omitempty"`
-	ID          bson.ObjectId     `bson:"_id,omitempty"`
-	Audience    *string           `bson:"audience,omitempty"`
-	CreateTime  *time.Time        `bson:"createtime,omitempty"`
-	Description *string           `bson:"description,omitempty"`
-	Endpoint    *string           `bson:"endpoint,omitempty"`
-	ImportHash  *string           `bson:"importhash,omitempty"`
-	ImportLabel *string           `bson:"importlabel,omitempty"`
-	Issuer      *string           `bson:"issuer,omitempty"`
-	Modifier    *IdentityModifier `bson:"modifier,omitempty"`
-	Name        *string           `bson:"name,omitempty"`
-	Namespace   *string           `bson:"namespace,omitempty"`
-	UpdateTime  *time.Time        `bson:"updatetime,omitempty"`
-	ZHash       *int              `bson:"zhash,omitempty"`
-	Zone        *int              `bson:"zone,omitempty"`
+	CA           *string           `bson:"ca,omitempty"`
+	ID           bson.ObjectId     `bson:"_id,omitempty"`
+	Audience     *string           `bson:"audience,omitempty"`
+	CreateTime   *time.Time        `bson:"createtime,omitempty"`
+	Description  *string           `bson:"description,omitempty"`
+	Endpoint     *string           `bson:"endpoint,omitempty"`
+	IgnoredKeys  *[]string         `bson:"ignoredkeys,omitempty"`
+	ImportHash   *string           `bson:"importhash,omitempty"`
+	ImportLabel  *string           `bson:"importlabel,omitempty"`
+	IncludedKeys *[]string         `bson:"includedkeys,omitempty"`
+	Issuer       *string           `bson:"issuer,omitempty"`
+	Modifier     *IdentityModifier `bson:"modifier,omitempty"`
+	Name         *string           `bson:"name,omitempty"`
+	Namespace    *string           `bson:"namespace,omitempty"`
+	UpdateTime   *time.Time        `bson:"updatetime,omitempty"`
+	ZHash        *int              `bson:"zhash,omitempty"`
+	Zone         *int              `bson:"zone,omitempty"`
 }

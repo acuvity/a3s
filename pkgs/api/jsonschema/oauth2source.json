@@ -3,7 +3,8 @@
     "@sharded",
     "@identifiable",
     "@importable",
-    "@timed"
+    "@timed",
+    "@claimfilter"
   ],
   "$friendlyName": "OAuth2 Source",
   "$friendlyNamePlural": "OAuth2 Sources",
@@ -66,6 +67,18 @@
         "null"
       ]
     },
+    "ignoredKeys": {
+      "$friendlyName": "IgnoredKeys",
+      "description": "A list of claims that will be filtered out from the identity token. A claim will be ignored if it is prefixed with one of the items in the ignoredKeys list. This runs before includedKeys computation.",
+      "items": {
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "title": "ignoredKeys",
+      "type": "array"
+    },
     "importHash": {
       "$creationOnly": true,
       "$friendlyName": "ImportHash",
@@ -85,6 +98,18 @@
         "string",
         "null"
       ]
+    },
+    "includedKeys": {
+      "$friendlyName": "IncludedKeys",
+      "description": "A list of claims that defines which claims will be added to the identity token. A claim will be included if it is prefixed with one of the items in the includedKeys list. This runs after ignoreddKeys computation.",
+      "items": {
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "title": "includedKeys",
+      "type": "array"
     },
     "modifier": {
       "$friendlyName": "Modifier",

@@ -20,6 +20,7 @@ model:
   - '@identifiable'
   - '@importable'
   - '@timed'
+  - '@claimfilter'
 
 # Indexes
 indexes:

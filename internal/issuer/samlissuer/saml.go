@@ -54,9 +54,7 @@ func (c *samlIssuer) Issue() *token.IdentityToken {
 
 func (c *samlIssuer) fromAssertion(ctx context.Context, assertion *saml2.AssertionInfo) (err error) {
 
-	inc, exc := computeSAMLInclusion(c.source)
-
-	c.token.Identity = computeSAMLAssertion(assertion, inc, exc)
+	c.token.Identity = computeSAMLAssertion(assertion)
 
 	if srcmod := c.source.Modifier; srcmod != nil {
 
@@ -73,23 +71,13 @@ func (c *samlIssuer) fromAssertion(ctx context.Context, assertion *saml2.Asserti
 	return nil
 }
 
-func computeSAMLAssertion(assertion *saml2.AssertionInfo, inc map[string]struct{}, exc map[string]struct{}) []string {
+func computeSAMLAssertion(assertion *saml2.AssertionInfo) []string {
 
 	out := []string{"nameid=" + assertion.NameID}
 
 	for k, v := range assertion.Values {
 
 		k = strings.TrimLeft(k, "@")
-
-		if _, ok := exc[strings.ToLower(k)]; ok {
-			continue
-		}
-
-		if len(inc) > 0 {
-			if _, ok := inc[strings.ToLower(k)]; !ok {
-				continue
-			}
-		}
 
 		for _, vv := range v.Values {
 			out = append(out, fmt.Sprintf("%s=%s", k, vv.Value))
@@ -99,21 +87,6 @@ func computeSAMLAssertion(assertion *saml2.AssertionInfo, inc map[string]struct{
 	sort.Strings(out)
 
 	return out
-}
-
-func computeSAMLInclusion(src *api.SAMLSource) (inc map[string]struct{}, exc map[string]struct{}) {
-
-	inc = make(map[string]struct{}, len(src.IncludedKeys))
-	for _, key := range src.IncludedKeys {
-		inc[strings.ToLower(key)] = struct{}{}
-	}
-
-	exc = make(map[string]struct{}, len(src.IgnoredKeys))
-	for _, key := range src.IgnoredKeys {
-		exc[strings.ToLower(key)] = struct{}{}
-	}
-
-	return inc, exc
 }
 
 // InjectRemoteIDPMetadata retrieves the remove IDP metadata, then

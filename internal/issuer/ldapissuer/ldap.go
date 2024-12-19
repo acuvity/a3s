@@ -53,9 +53,7 @@ func (c *ldapIssuer) fromCredentials(ctx context.Context, username string, passw
 		return err
 	}
 
-	inc, exc := computeLDAPInclusion(c.source)
-
-	c.token.Identity = computeLDAPClaims(entry, dn, inc, exc)
+	c.token.Identity = computeLDAPClaims(entry, dn)
 
 	if srcmod := c.source.Modifier; srcmod != nil {
 
@@ -153,7 +151,7 @@ func (c *ldapIssuer) retrieveEntry(username string, password string) (*ldap.Entr
 	return entry, dn, nil
 }
 
-func computeLDAPClaims(entry *ldap.Entry, dn *ldap.DN, inc map[string]struct{}, exc map[string]struct{}) (claims []string) {
+func computeLDAPClaims(entry *ldap.Entry, dn *ldap.DN) (claims []string) {
 
 	claims = append(claims, fmt.Sprintf("dn=%s", entry.DN))
 
@@ -176,16 +174,6 @@ func computeLDAPClaims(entry *ldap.Entry, dn *ldap.DN, inc map[string]struct{}, 
 			continue
 		}
 
-		if _, ok := exc[strings.ToLower(attr.Name)]; ok {
-			continue
-		}
-
-		if len(inc) > 0 {
-			if _, ok := inc[strings.ToLower(attr.Name)]; !ok {
-				continue
-			}
-		}
-
 		if len(attr.Values) == 0 {
 			continue
 		}
@@ -198,19 +186,4 @@ func computeLDAPClaims(entry *ldap.Entry, dn *ldap.DN, inc map[string]struct{}, 
 	}
 
 	return claims
-}
-
-func computeLDAPInclusion(src *api.LDAPSource) (inc map[string]struct{}, exc map[string]struct{}) {
-
-	inc = make(map[string]struct{}, len(src.IncludedKeys))
-	for _, key := range src.IncludedKeys {
-		inc[strings.ToLower(key)] = struct{}{}
-	}
-
-	exc = make(map[string]struct{}, len(src.IgnoredKeys))
-	for _, key := range src.IgnoredKeys {
-		exc[strings.ToLower(key)] = struct{}{}
-	}
-
-	return inc, exc
 }

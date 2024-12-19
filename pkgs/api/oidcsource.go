@@ -108,12 +108,22 @@ type OIDCSource struct {
 	// endpoint](https://openid.net/specs/openid-connect-discovery-1_0.html#IssuerDiscovery).
 	Endpoint string `json:"endpoint" msgpack:"endpoint" bson:"endpoint" mapstructure:"endpoint,omitempty"`
 
+	// A list of claims that will be filtered out from the identity token. A claim will
+	// be ignored if it is prefixed with one of the items in the ignoredKeys list. This
+	// runs before includedKeys computation.
+	IgnoredKeys []string `json:"ignoredKeys,omitempty" msgpack:"ignoredKeys,omitempty" bson:"ignoredkeys,omitempty" mapstructure:"ignoredKeys,omitempty"`
+
 	// The hash of the structure used to compare with new import version.
 	ImportHash string `json:"importHash,omitempty" msgpack:"importHash,omitempty" bson:"importhash,omitempty" mapstructure:"importHash,omitempty"`
 
 	// The user-defined import label that allows the system to group resources from the
 	// same import operation.
 	ImportLabel string `json:"importLabel,omitempty" msgpack:"importLabel,omitempty" bson:"importlabel,omitempty" mapstructure:"importLabel,omitempty"`
+
+	// A list of claims that defines which claims will be added to the identity
+	// token. A claim will be included if it is prefixed with one of the items in the
+	// includedKeys list. This runs after ignoreddKeys computation.
+	IncludedKeys []string `json:"includedKeys,omitempty" msgpack:"includedKeys,omitempty" bson:"includedkeys,omitempty" mapstructure:"includedKeys,omitempty"`
 
 	// Contains optional information about a remote service that can be used to modify
 	// the claims that are about to be delivered using this authentication source.
@@ -145,6 +155,8 @@ func NewOIDCSource() *OIDCSource {
 
 	return &OIDCSource{
 		ModelVersion: 1,
+		IgnoredKeys:  []string{},
+		IncludedKeys: []string{},
 		Scopes:       []string{},
 	}
 }
@@ -186,8 +198,10 @@ func (o *OIDCSource) GetBSON() (any, error) {
 	s.CreateTime = o.CreateTime
 	s.Description = o.Description
 	s.Endpoint = o.Endpoint
+	s.IgnoredKeys = o.IgnoredKeys
 	s.ImportHash = o.ImportHash
 	s.ImportLabel = o.ImportLabel
+	s.IncludedKeys = o.IncludedKeys
 	s.Modifier = o.Modifier
 	s.Name = o.Name
 	s.Namespace = o.Namespace
@@ -219,8 +233,10 @@ func (o *OIDCSource) SetBSON(raw bson.Raw) error {
 	o.CreateTime = s.CreateTime
 	o.Description = s.Description
 	o.Endpoint = s.Endpoint
+	o.IgnoredKeys = s.IgnoredKeys
 	o.ImportHash = s.ImportHash
 	o.ImportLabel = s.ImportLabel
+	o.IncludedKeys = s.IncludedKeys
 	o.Modifier = s.Modifier
 	o.Name = s.Name
 	o.Namespace = s.Namespace
@@ -285,6 +301,12 @@ func (o *OIDCSource) SetCreateTime(createTime time.Time) {
 	o.CreateTime = createTime
 }
 
+// GetIgnoredKeys returns the IgnoredKeys of the receiver.
+func (o *OIDCSource) GetIgnoredKeys() []string {
+
+	return o.IgnoredKeys
+}
+
 // GetImportHash returns the ImportHash of the receiver.
 func (o *OIDCSource) GetImportHash() string {
 
@@ -307,6 +329,12 @@ func (o *OIDCSource) GetImportLabel() string {
 func (o *OIDCSource) SetImportLabel(importLabel string) {
 
 	o.ImportLabel = importLabel
+}
+
+// GetIncludedKeys returns the IncludedKeys of the receiver.
+func (o *OIDCSource) GetIncludedKeys() []string {
+
+	return o.IncludedKeys
 }
 
 // GetNamespace returns the Namespace of the receiver.
@@ -371,8 +399,10 @@ func (o *OIDCSource) ToSparse(fields ...string) elemental.SparseIdentifiable {
 			CreateTime:   &o.CreateTime,
 			Description:  &o.Description,
 			Endpoint:     &o.Endpoint,
+			IgnoredKeys:  &o.IgnoredKeys,
 			ImportHash:   &o.ImportHash,
 			ImportLabel:  &o.ImportLabel,
+			IncludedKeys: &o.IncludedKeys,
 			Modifier:     o.Modifier,
 			Name:         &o.Name,
 			Namespace:    &o.Namespace,
@@ -400,10 +430,14 @@ func (o *OIDCSource) ToSparse(fields ...string) elemental.SparseIdentifiable {
 			sp.Description = &(o.Description)
 		case "endpoint":
 			sp.Endpoint = &(o.Endpoint)
+		case "ignoredKeys":
+			sp.IgnoredKeys = &(o.IgnoredKeys)
 		case "importHash":
 			sp.ImportHash = &(o.ImportHash)
 		case "importLabel":
 			sp.ImportLabel = &(o.ImportLabel)
+		case "includedKeys":
+			sp.IncludedKeys = &(o.IncludedKeys)
 		case "modifier":
 			sp.Modifier = o.Modifier
 		case "name":
@@ -472,11 +506,17 @@ func (o *OIDCSource) Patch(sparse elemental.SparseIdentifiable) {
 	if so.Endpoint != nil {
 		o.Endpoint = *so.Endpoint
 	}
+	if so.IgnoredKeys != nil {
+		o.IgnoredKeys = *so.IgnoredKeys
+	}
 	if so.ImportHash != nil {
 		o.ImportHash = *so.ImportHash
 	}
 	if so.ImportLabel != nil {
 		o.ImportLabel = *so.ImportLabel
+	}
+	if so.IncludedKeys != nil {
+		o.IncludedKeys = *so.IncludedKeys
 	}
 	if so.Modifier != nil {
 		o.Modifier = so.Modifier
@@ -543,6 +583,14 @@ func (o *OIDCSource) Validate() error {
 		requiredErrors = requiredErrors.Append(err)
 	}
 
+	if err := ValidateKeys("ignoredKeys", o.IgnoredKeys); err != nil {
+		errors = errors.Append(err)
+	}
+
+	if err := ValidateKeys("includedKeys", o.IncludedKeys); err != nil {
+		errors = errors.Append(err)
+	}
+
 	if o.Modifier != nil {
 		elemental.ResetDefaultForZeroValues(o.Modifier)
 		if err := o.Modifier.Validate(); err != nil {
@@ -602,10 +650,14 @@ func (o *OIDCSource) ValueForAttribute(name string) any {
 		return o.Description
 	case "endpoint":
 		return o.Endpoint
+	case "ignoredKeys":
+		return o.IgnoredKeys
 	case "importHash":
 		return o.ImportHash
 	case "importLabel":
 		return o.ImportLabel
+	case "includedKeys":
+		return o.IncludedKeys
 	case "modifier":
 		return o.Modifier
 	case "name":
@@ -717,6 +769,20 @@ endpoint](https://openid.net/specs/openid-connect-discovery-1_0.html#IssuerDisco
 		Stored:   true,
 		Type:     "string",
 	},
+	"IgnoredKeys": {
+		AllowedChoices: []string{},
+		BSONFieldName:  "ignoredkeys",
+		ConvertedName:  "IgnoredKeys",
+		Description: `A list of claims that will be filtered out from the identity token. A claim will
+be ignored if it is prefixed with one of the items in the ignoredKeys list. This
+runs before includedKeys computation.`,
+		Exposed: true,
+		Getter:  true,
+		Name:    "ignoredKeys",
+		Stored:  true,
+		SubType: "string",
+		Type:    "list",
+	},
 	"ImportHash": {
 		AllowedChoices: []string{},
 		Autogenerated:  true,
@@ -744,6 +810,20 @@ same import operation.`,
 		Setter:  true,
 		Stored:  true,
 		Type:    "string",
+	},
+	"IncludedKeys": {
+		AllowedChoices: []string{},
+		BSONFieldName:  "includedkeys",
+		ConvertedName:  "IncludedKeys",
+		Description: `A list of claims that defines which claims will be added to the identity
+token. A claim will be included if it is prefixed with one of the items in the
+includedKeys list. This runs after ignoreddKeys computation.`,
+		Exposed: true,
+		Getter:  true,
+		Name:    "includedKeys",
+		Stored:  true,
+		SubType: "string",
+		Type:    "list",
 	},
 	"Modifier": {
 		AllowedChoices: []string{},
@@ -930,6 +1010,20 @@ endpoint](https://openid.net/specs/openid-connect-discovery-1_0.html#IssuerDisco
 		Stored:   true,
 		Type:     "string",
 	},
+	"ignoredkeys": {
+		AllowedChoices: []string{},
+		BSONFieldName:  "ignoredkeys",
+		ConvertedName:  "IgnoredKeys",
+		Description: `A list of claims that will be filtered out from the identity token. A claim will
+be ignored if it is prefixed with one of the items in the ignoredKeys list. This
+runs before includedKeys computation.`,
+		Exposed: true,
+		Getter:  true,
+		Name:    "ignoredKeys",
+		Stored:  true,
+		SubType: "string",
+		Type:    "list",
+	},
 	"importhash": {
 		AllowedChoices: []string{},
 		Autogenerated:  true,
@@ -957,6 +1051,20 @@ same import operation.`,
 		Setter:  true,
 		Stored:  true,
 		Type:    "string",
+	},
+	"includedkeys": {
+		AllowedChoices: []string{},
+		BSONFieldName:  "includedkeys",
+		ConvertedName:  "IncludedKeys",
+		Description: `A list of claims that defines which claims will be added to the identity
+token. A claim will be included if it is prefixed with one of the items in the
+includedKeys list. This runs after ignoreddKeys computation.`,
+		Exposed: true,
+		Getter:  true,
+		Name:    "includedKeys",
+		Stored:  true,
+		SubType: "string",
+		Type:    "list",
 	},
 	"modifier": {
 		AllowedChoices: []string{},
@@ -1138,12 +1246,22 @@ type SparseOIDCSource struct {
 	// endpoint](https://openid.net/specs/openid-connect-discovery-1_0.html#IssuerDiscovery).
 	Endpoint *string `json:"endpoint,omitempty" msgpack:"endpoint,omitempty" bson:"endpoint,omitempty" mapstructure:"endpoint,omitempty"`
 
+	// A list of claims that will be filtered out from the identity token. A claim will
+	// be ignored if it is prefixed with one of the items in the ignoredKeys list. This
+	// runs before includedKeys computation.
+	IgnoredKeys *[]string `json:"ignoredKeys,omitempty" msgpack:"ignoredKeys,omitempty" bson:"ignoredkeys,omitempty" mapstructure:"ignoredKeys,omitempty"`
+
 	// The hash of the structure used to compare with new import version.
 	ImportHash *string `json:"importHash,omitempty" msgpack:"importHash,omitempty" bson:"importhash,omitempty" mapstructure:"importHash,omitempty"`
 
 	// The user-defined import label that allows the system to group resources from the
 	// same import operation.
 	ImportLabel *string `json:"importLabel,omitempty" msgpack:"importLabel,omitempty" bson:"importlabel,omitempty" mapstructure:"importLabel,omitempty"`
+
+	// A list of claims that defines which claims will be added to the identity
+	// token. A claim will be included if it is prefixed with one of the items in the
+	// includedKeys list. This runs after ignoreddKeys computation.
+	IncludedKeys *[]string `json:"includedKeys,omitempty" msgpack:"includedKeys,omitempty" bson:"includedkeys,omitempty" mapstructure:"includedKeys,omitempty"`
 
 	// Contains optional information about a remote service that can be used to modify
 	// the claims that are about to be delivered using this authentication source.
@@ -1231,11 +1349,17 @@ func (o *SparseOIDCSource) GetBSON() (any, error) {
 	if o.Endpoint != nil {
 		s.Endpoint = o.Endpoint
 	}
+	if o.IgnoredKeys != nil {
+		s.IgnoredKeys = o.IgnoredKeys
+	}
 	if o.ImportHash != nil {
 		s.ImportHash = o.ImportHash
 	}
 	if o.ImportLabel != nil {
 		s.ImportLabel = o.ImportLabel
+	}
+	if o.IncludedKeys != nil {
+		s.IncludedKeys = o.IncludedKeys
 	}
 	if o.Modifier != nil {
 		s.Modifier = o.Modifier
@@ -1295,11 +1419,17 @@ func (o *SparseOIDCSource) SetBSON(raw bson.Raw) error {
 	if s.Endpoint != nil {
 		o.Endpoint = s.Endpoint
 	}
+	if s.IgnoredKeys != nil {
+		o.IgnoredKeys = s.IgnoredKeys
+	}
 	if s.ImportHash != nil {
 		o.ImportHash = s.ImportHash
 	}
 	if s.ImportLabel != nil {
 		o.ImportLabel = s.ImportLabel
+	}
+	if s.IncludedKeys != nil {
+		o.IncludedKeys = s.IncludedKeys
 	}
 	if s.Modifier != nil {
 		o.Modifier = s.Modifier
@@ -1357,11 +1487,17 @@ func (o *SparseOIDCSource) ToPlain() elemental.PlainIdentifiable {
 	if o.Endpoint != nil {
 		out.Endpoint = *o.Endpoint
 	}
+	if o.IgnoredKeys != nil {
+		out.IgnoredKeys = *o.IgnoredKeys
+	}
 	if o.ImportHash != nil {
 		out.ImportHash = *o.ImportHash
 	}
 	if o.ImportLabel != nil {
 		out.ImportLabel = *o.ImportLabel
+	}
+	if o.IncludedKeys != nil {
+		out.IncludedKeys = *o.IncludedKeys
 	}
 	if o.Modifier != nil {
 		out.Modifier = o.Modifier
@@ -1440,6 +1576,16 @@ func (o *SparseOIDCSource) SetCreateTime(createTime time.Time) {
 	o.CreateTime = &createTime
 }
 
+// GetIgnoredKeys returns the IgnoredKeys of the receiver.
+func (o *SparseOIDCSource) GetIgnoredKeys() (out []string) {
+
+	if o.IgnoredKeys == nil {
+		return
+	}
+
+	return *o.IgnoredKeys
+}
+
 // GetImportHash returns the ImportHash of the receiver.
 func (o *SparseOIDCSource) GetImportHash() (out string) {
 
@@ -1470,6 +1616,16 @@ func (o *SparseOIDCSource) GetImportLabel() (out string) {
 func (o *SparseOIDCSource) SetImportLabel(importLabel string) {
 
 	o.ImportLabel = &importLabel
+}
+
+// GetIncludedKeys returns the IncludedKeys of the receiver.
+func (o *SparseOIDCSource) GetIncludedKeys() (out []string) {
+
+	if o.IncludedKeys == nil {
+		return
+	}
+
+	return *o.IncludedKeys
 }
 
 // GetNamespace returns the Namespace of the receiver.
@@ -1568,8 +1724,10 @@ type mongoAttributesOIDCSource struct {
 	CreateTime   time.Time         `bson:"createtime"`
 	Description  string            `bson:"description"`
 	Endpoint     string            `bson:"endpoint"`
+	IgnoredKeys  []string          `bson:"ignoredkeys,omitempty"`
 	ImportHash   string            `bson:"importhash,omitempty"`
 	ImportLabel  string            `bson:"importlabel,omitempty"`
+	IncludedKeys []string          `bson:"includedkeys,omitempty"`
 	Modifier     *IdentityModifier `bson:"modifier,omitempty"`
 	Name         string            `bson:"name"`
 	Namespace    string            `bson:"namespace"`
@@ -1586,8 +1744,10 @@ type mongoAttributesSparseOIDCSource struct {
 	CreateTime   *time.Time        `bson:"createtime,omitempty"`
 	Description  *string           `bson:"description,omitempty"`
 	Endpoint     *string           `bson:"endpoint,omitempty"`
+	IgnoredKeys  *[]string         `bson:"ignoredkeys,omitempty"`
 	ImportHash   *string           `bson:"importhash,omitempty"`
 	ImportLabel  *string           `bson:"importlabel,omitempty"`
+	IncludedKeys *[]string         `bson:"includedkeys,omitempty"`
 	Modifier     *IdentityModifier `bson:"modifier,omitempty"`
 	Name         *string           `bson:"name,omitempty"`
 	Namespace    *string           `bson:"namespace,omitempty"`

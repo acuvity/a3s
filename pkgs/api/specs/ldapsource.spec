@@ -18,6 +18,7 @@ model:
   - '@identifiable'
   - '@importable'
   - '@timed'
+  - '@claimfilter'
 
 # Indexes
 indexes:
@@ -106,32 +107,6 @@ attributes:
     type: string
     exposed: true
     stored: true
-
-  - name: ignoredKeys
-    friendly_name: IgnoredKeys
-    description: |-
-      A list of keys that must not be imported into the identity token. If
-      `includedKeys` is also set, and a key is in both lists, the key will be ignored.
-    type: list
-    exposed: true
-    subtype: string
-    stored: true
-    omit_empty: true
-    validations:
-    - $keyValidation
-
-  - name: includedKeys
-    friendly_name: IncludedKeys
-    description: |-
-      A list of keys that must be imported into the identity token. If `ignoredKeys`
-      is also set, and a key is in both lists, the key will be ignored.
-    type: list
-    exposed: true
-    subtype: string
-    stored: true
-    omit_empty: true
-    validations:
-    - $keyValidation
 
   - name: modifier
     friendly_name: Modifier

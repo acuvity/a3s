@@ -1,0 +1,32 @@
+# Attributes
+attributes:
+  v1:
+  - name: ignoredKeys
+    friendly_name: IgnoredKeys
+    description: |-
+      A list of claims that will be filtered out from the identity token. A claim will
+      be ignored if it is prefixed with one of the items in the ignoredKeys list. This
+      runs before includedKeys computation.
+    type: list
+    exposed: true
+    subtype: string
+    stored: true
+    getter: true
+    omit_empty: true
+    validations:
+    - $keyValidation
+
+  - name: includedKeys
+    friendly_name: IncludedKeys
+    description: |-
+      A list of claims that defines which claims will be added to the identity
+      token. A claim will be included if it is prefixed with one of the items in the
+      includedKeys list. This runs after ignoreddKeys computation.
+    type: list
+    exposed: true
+    subtype: string
+    stored: true
+    getter: true
+    omit_empty: true
+    validations:
+    - $keyValidation
