@@ -41,7 +41,7 @@ jobs:
           git config --global url."https://acuvity:${GOTOKEN}@github.com/acuvity".insteadOf "https://github.com/acuvity"
           make
 
-      - uses: acuvity/cov@1.0.0
+      - uses: acuvity/cov@1.0.2
         with:
           main_branch: master
           cov_file: unit_coverage.out
