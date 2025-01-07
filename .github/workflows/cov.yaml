@@ -20,7 +20,7 @@ jobs:
       - name: setup
         run: |
           git config --global url."https://acuvity:${GOTOKEN}@github.com/acuvity".insteadOf "https://github.com/acuvity"
-      - uses: acuvity/cov@1.0.0
+      - uses: acuvity/cov@1.0.2
         with:
           cov_mode: send-status
           workflow_run_id: ${{github.event.workflow_run.id}}
