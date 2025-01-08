@@ -250,6 +250,12 @@ func (p *IssueProcessor) ProcessCreate(bctx bahamut.Context) (err error) {
 		idt.Refresh = true
 	}
 
+	if source != nil {
+		if filter, ok := source.(claims.Filterable); ok {
+			idt.Identity = claims.Filter(idt.Identity, filter)
+		}
+	}
+
 	originalSource := idt.Source
 	if p.pluginModifier != nil {
 		if idt, err = p.pluginModifier.Token(bctx.Context(), p.manipulator, idt, p.issuer); err != nil {
@@ -263,12 +269,6 @@ func (p *IssueProcessor) ProcessCreate(bctx bahamut.Context) (err error) {
 		}
 	}
 	idt.Source = originalSource
-
-	if source != nil {
-		if filter, ok := source.(claims.Filterable); ok {
-			idt.Identity = claims.Filter(idt.Identity, filter)
-		}
-	}
 
 	k := p.jwks.GetLastWithPrivate()
 	tkn, err := idt.JWT(k.PrivateKey(), k.KID, p.issuer, audience, exp, req.Cloak)
