@@ -12,8 +12,6 @@ import (
 	"strings"
 	"time"
 
-	goplugin "plugin"
-
 	"github.com/ghodss/yaml"
 	"github.com/globalsign/mgo"
 	"go.acuvity.ai/a3s/internal/hasher"
@@ -36,11 +34,14 @@ import (
 	"go.acuvity.ai/a3s/pkgs/permissions"
 	"go.acuvity.ai/a3s/pkgs/push"
 	"go.acuvity.ai/a3s/pkgs/token"
+	"go.acuvity.ai/a3s/pkgs/version"
 	"go.acuvity.ai/bahamut"
 	"go.acuvity.ai/elemental"
 	"go.acuvity.ai/manipulate"
 	"go.acuvity.ai/manipulate/manipmongo"
 	"go.acuvity.ai/tg/tglib"
+
+	goplugin "plugin"
 
 	gwpush "go.acuvity.ai/bahamut/gateway/upstreamer/push"
 )
@@ -74,6 +75,7 @@ func main() {
 	if closeFunc := bootstrap.ConfigureLogger("a3s", cfg.LoggingConf); closeFunc != nil {
 		defer closeFunc()
 	}
+	version.Log(cfg.Prefix())
 
 	if cfg.InitDB {
 		if err := createMongoDBAccount(cfg.MongoConf, cfg.InitDBUsername); err != nil {

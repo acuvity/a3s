@@ -10,12 +10,8 @@ import (
 	"go.acuvity.ai/a3s/pkgs/authenticator"
 	"go.acuvity.ai/a3s/pkgs/conf"
 	"go.acuvity.ai/a3s/pkgs/lombric"
+	"go.acuvity.ai/a3s/pkgs/version"
 	"go.acuvity.ai/tg/tglib"
-)
-
-var (
-	version = "v0.0.0"
-	commit  = "dev"
 )
 
 // Conf holds the main configuration flags.
@@ -53,7 +49,7 @@ func (c *Conf) Prefix() string { return "a3s" }
 
 // PrintVersion prints the current version.
 func (c *Conf) PrintVersion() {
-	fmt.Printf("a3s %s (%s)", version, commit)
+	fmt.Println(version.String(c.Prefix()))
 }
 
 func newConf() Conf {

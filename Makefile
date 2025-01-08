@@ -5,6 +5,13 @@ CONTAINER_REPO ?= "a3s"
 CONTAINER_IMAGE ?= "a3s"
 CONTAINER_TAG ?= "dev"
 
+GIT_SHA=$(shell git rev-parse --short HEAD)
+GIT_BRANCH=$(shell git rev-parse --abbrev-ref HEAD)
+GIT_TAG=$(shell git describe --tags --abbrev=0 --match='v[0-9]*.[0-9]*.[0-9]*' 2> /dev/null | sed 's/^.//')
+BUILD_DATE=$(shell date)
+VERSION_PKG="go.acuvity.ai/a3s/pkgs/version"
+LDFLAGS ?= -ldflags="-w -s -X '$(VERSION_PKG).GitSha=$(GIT_SHA)' -X '$(VERSION_PKG).GitBranch=$(GIT_BRANCH)' -X '$(VERSION_PKG).GitTag=$(GIT_TAG)' -X '$(VERSION_PKG).BuildDate=$(BUILD_DATE)'"
+
 export GO111MODULE = on
 
 default: lint vuln test a3s cli
@@ -65,28 +72,28 @@ codegen: api ui generate
 ## Main build
 
 a3s:
-	cd cmd/a3s && go build -ldflags="-w -s" -trimpath
+	cd cmd/a3s && go build $(LDFLAGS) -trimpath
 
 a3s_linux:
-	cd cmd/a3s && GOOS=linux GOARCH=amd64 go build -ldflags="-w -s" -trimpath
+	cd cmd/a3s && GOOS=linux GOARCH=amd64 go build $(LDFLAGS) -trimpath
 
 cli:
-	cd cmd/a3sctl && CGO_ENABLED=0 go build -ldflags="-w -s" -trimpath
+	cd cmd/a3sctl && CGO_ENABLED=0 go build $(LDFLAGS) -trimpath
 
 cli_linux:
-	cd cmd/a3sctl && CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-w -s" -trimpath
+	cd cmd/a3sctl && CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build $(LDFLAGS) -trimpath
 
 install_a3s:
-	cd cmd/a3s && go install -ldflags="-w -s" -trimpath
+	cd cmd/a3s && go install $(LDFLAGS) -trimpath
 
 install_a3s_linux:
-	cd cmd/a3s && GOOS=linux GOARCH=amd64 go install -ldflags="-w -s" -trimpath
+	cd cmd/a3s && GOOS=linux GOARCH=amd64 go install $(LDFLAGS) -trimpath
 
 install_cli:
-	cd cmd/a3sctl && CGO_ENABLED=0 go install -ldflags="-w -s" -trimpath
+	cd cmd/a3sctl && CGO_ENABLED=0 go install $(LDFLAGS) -trimpath
 
 install_cli_linux:
-	cd cmd/a3sctl && CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go install -ldflags="-w -s" -trimpath
+	cd cmd/a3sctl && CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go install $(LDFLAGS) -trimpath
 
 ## Containers
 
