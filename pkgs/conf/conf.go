@@ -323,7 +323,7 @@ type APIServerConf struct {
 	MaxConnections        int      `mapstructure:"max-conns" desc:"Max number concurrent TCP connection"`
 	MaxProcs              int      `mapstructure:"max-procs" desc:"Set the max number thread Go will start"`
 	PublicAPIURL          string   `mapstructure:"public-api-url" desc:"Publicly announced API URL"`
-	PrivateAPIURL         string   `mapstructure:"private-api-url" description:"The private api url to use instead of the public api url" default:""`
+	PrivateAPIURL         string   `mapstructure:"private-api-url" desc:"The private api url to use instead of the public api url" default:""`
 }
 
 // MongoConf holds the configuration for mongo db authentication.
