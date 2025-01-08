@@ -3,7 +3,9 @@ package main
 import (
 	"crypto"
 	"crypto/x509"
+	"encoding/asn1"
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
@@ -26,6 +28,8 @@ type Conf struct {
 	InitData           string   `mapstructure:"init-data" desc:"Path to an import file containing initial provisionning data"`
 	InitPlatformCAPath string   `mapstructure:"init-platform-ca" desc:"Path to the platform CA to use to initialize platform permissions"`
 	InitRootUserCAPath string   `mapstructure:"init-root-ca" desc:"Path to the root CA to use to initialize root permissions"`
+	OIDSourceName      string   `mapstructure:"oid-source-name" desc:"For MTLS sources. OID to look for in the client certificate's DN to infer source name"`
+	OIDSourceNamespace string   `mapstructure:"oid-source-namespace" desc:"For MTLS sources. OID to look for in the client certificate's DN to infer source namespace"`
 	PluginModifier     string   `mapstructure:"plugin-modifier" desc:"Path to a go plugin implemeting the plugin.Modifier interface"`
 
 	JWT JWTConf `mapstructure:",squash"`
@@ -50,6 +54,37 @@ func (c *Conf) Prefix() string { return "a3s" }
 // PrintVersion prints the current version.
 func (c *Conf) PrintVersion() {
 	fmt.Println(version.String(c.Prefix()))
+}
+
+// SourceOIDs returns the parsed source name and namespace OIDs.
+func (c *Conf) SourceOIDs() (name asn1.ObjectIdentifier, namespace asn1.ObjectIdentifier, err error) {
+
+	parse := func(oid string) (asn1.ObjectIdentifier, error) {
+		parts := strings.Split(oid, ".")
+		o := asn1.ObjectIdentifier{}
+		for _, digit := range parts {
+			d, err := strconv.Atoi(digit)
+			if err != nil {
+				return nil, fmt.Errorf("unable to parse oid %s: %w", oid, err)
+			}
+			o = append(o, d)
+		}
+		return o, nil
+	}
+
+	if c.OIDSourceName != "" {
+		if name, err = parse(c.OIDSourceName); err != nil {
+			return nil, nil, fmt.Errorf("invalid --oid-source-name: %w", err)
+		}
+	}
+
+	if c.OIDSourceNamespace != "" {
+		if namespace, err = parse(c.OIDSourceNamespace); err != nil {
+			return nil, nil, fmt.Errorf("invalid --oid-source-namespace: %w", err)
+		}
+	}
+
+	return name, namespace, nil
 }
 
 func newConf() Conf {

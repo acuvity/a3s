@@ -486,6 +486,16 @@ func main() {
 		slog.Info("Forbidden opaque keys", "keys", cfg.JWT.JWTForbiddenOpaqueKeys)
 	}
 
+	oidSourceName, oidSourceNamespace, err := cfg.SourceOIDs()
+	if err != nil {
+		slog.Error("Unable to parse source OIDs", err)
+		os.Exit(1)
+	}
+
+	if len(oidSourceName) > 0 || len(oidSourceNamespace) > 0 {
+		slog.Info("OID source set", "name", oidSourceName, "namespace", oidSourceNamespace)
+	}
+
 	bahamut.RegisterProcessorOrDie(server,
 		processors.NewIssueProcessor(
 			m,
@@ -503,6 +513,8 @@ func main() {
 			cfg.MTLSHeaderConf.Passphrase,
 			pluginModifier,
 			binaryModifier,
+			oidSourceName,
+			oidSourceNamespace,
 		),
 		api.IssueIdentity,
 	)

@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/tls"
 	"crypto/x509"
+	"encoding/asn1"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -62,6 +63,8 @@ type IssueProcessor struct {
 	forbiddenOpaqueKeys  map[string]struct{}
 	waiveSecret          string
 	samlIDPMedataCache   *ccache.Cache[string]
+	oidSourceName        asn1.ObjectIdentifier
+	oidSourceNamespace   asn1.ObjectIdentifier
 }
 
 // NewIssueProcessor returns a new IssueProcessor.
@@ -81,6 +84,8 @@ func NewIssueProcessor(
 	mtlsHeaderPass string,
 	pluginModifier plugin.Modifier,
 	binaryModifier *binary.Modifier,
+	oidSourceName asn1.ObjectIdentifier,
+	oidSourceNamespace asn1.ObjectIdentifier,
 ) *IssueProcessor {
 
 	// Make a map for fast lookups.
@@ -106,6 +111,8 @@ func NewIssueProcessor(
 		waiveSecret:          waiveSecret,
 		forbiddenOpaqueKeys:  fKeys,
 		samlIDPMedataCache:   ccache.New(ccache.Configure[string]().MaxSize(2048)),
+		oidSourceName:        oidSourceName,
+		oidSourceNamespace:   oidSourceNamespace,
 	}
 }
 
@@ -153,6 +160,18 @@ func (p *IssueProcessor) ProcessCreate(bctx bahamut.Context) (err error) {
 		audience = jwt.ClaimStrings{p.audience}
 	}
 
+	// If we have a
+	var certs []*x509.Certificate
+
+	if req.SourceType == api.IssueSourceTypeMTLS && bctx.Request().TLSConnectionState != nil {
+
+		if certs, err = p.extractCertificate(bctx.Request().TLSConnectionState, bctx.Request().Headers.Get(p.mtlsHeaderKey)); err != nil {
+			return err
+		}
+
+		req.SourceName, req.SourceNamespace = p.sourceFromExtraNames(certs, req.SourceName, req.SourceNamespace)
+	}
+
 	source, err := retrieveSource(
 		bctx.Context(),
 		p.manipulator,
@@ -191,7 +210,7 @@ func (p *IssueProcessor) ProcessCreate(bctx bahamut.Context) (err error) {
 
 	// source based cases
 	case api.IssueSourceTypeMTLS:
-		issuer, err = p.handleCertificateIssue(bctx.Context(), source, bctx.Request().TLSConnectionState, bctx.Request().Headers.Get(p.mtlsHeaderKey))
+		issuer, err = p.handleCertificateIssue(bctx.Context(), source, certs)
 
 	case api.IssueSourceTypeLDAP:
 		issuer, err = p.handleLDAPIssue(bctx.Context(), source, req)
@@ -316,38 +335,7 @@ func (p *IssueProcessor) ProcessCreate(bctx bahamut.Context) (err error) {
 	return nil
 }
 
-func (p *IssueProcessor) handleCertificateIssue(ctx context.Context, source elemental.Identifiable, tlsState *tls.ConnectionState, tlsHeader string) (token.Issuer, error) {
-
-	// We get the peer certificate.
-	var certs []*x509.Certificate
-
-	// If mtls header is enabled, and the header is not empty
-	// we will use it instead of the cert from the tls state.
-	if p.mtlsHeaderEnabled && tlsHeader != "" {
-
-		// First we create an elemental.AESAttributeEncrypter
-		cipher, err := elemental.NewAESAttributeEncrypter(p.mtlsHeaderPass)
-		if err != nil {
-			return nil, fmt.Errorf("unable to build AES encrypter: %w", err)
-		}
-
-		// Then we decrypt the content of the header.
-		header, err := cipher.DecryptString(tlsHeader)
-		if err != nil {
-			return nil, fmt.Errorf("unable to decrypt header: %w", err)
-		}
-
-		// Then we try to extract a certificate out of the decrypted blob.
-		certs, err = mtls.CertificatesFromHeader(header)
-		if err != nil {
-			return nil, fmt.Errorf("unable to retrieve certificate from mtls header: %w", err)
-		}
-
-		// If we reach here, the decoded certificate from the header will be used to
-		// to match against the source.
-	} else {
-		certs = tlsState.PeerCertificates
-	}
+func (p *IssueProcessor) handleCertificateIssue(ctx context.Context, source elemental.Identifiable, certs []*x509.Certificate) (token.Issuer, error) {
 
 	if len(certs) == 0 {
 		return nil, elemental.NewError("Bad Request", "No user certificates", "a3s:authn", http.StatusBadRequest)
@@ -836,7 +824,7 @@ func retrieveSource(
 	case 0:
 		return nil, elemental.NewError(
 			"Not Found",
-			"Unable to find the requested auth source",
+			fmt.Sprintf("Unable to find the requested auth source '%s' in namespace '%s'", name, namespace),
 			"a3s:authn",
 			http.StatusNotFound,
 		)
@@ -868,4 +856,68 @@ func identityFromType(srcType api.IssueSourceTypeValue) elemental.Identity {
 	}
 
 	return elemental.Identity{}
+}
+
+func (p *IssueProcessor) extractCertificate(tlsState *tls.ConnectionState, tlsHeader string) ([]*x509.Certificate, error) {
+
+	// We get the peer certificate.
+	var certs []*x509.Certificate
+
+	// If mtls header is enabled, and the header is not empty
+	// we will use it instead of the cert from the tls state.
+	if p.mtlsHeaderEnabled && tlsHeader != "" {
+
+		// First we create an elemental.AESAttributeEncrypter
+		cipher, err := elemental.NewAESAttributeEncrypter(p.mtlsHeaderPass)
+		if err != nil {
+			return nil, fmt.Errorf("unable to build AES encrypter: %w", err)
+		}
+
+		// Then we decrypt the content of the header.
+		header, err := cipher.DecryptString(tlsHeader)
+		if err != nil {
+			return nil, fmt.Errorf("unable to decrypt header: %w", err)
+		}
+
+		// Then we try to extract a certificate out of the decrypted blob.
+		certs, err = mtls.CertificatesFromHeader(header)
+		if err != nil {
+			return nil, fmt.Errorf("unable to retrieve certificate from mtls header: %w", err)
+		}
+
+		// If we reach here, the decoded certificate from the header will be used to
+		// to match against the source.
+	} else {
+		certs = tlsState.PeerCertificates
+	}
+
+	return certs, nil
+}
+
+func (p *IssueProcessor) sourceFromExtraNames(certs []*x509.Certificate, sourceName string, sourceNamespace string) (string, string) {
+
+	if len(p.oidSourceName) == 0 && len(p.oidSourceNamespace) == 0 {
+		return sourceName, sourceNamespace
+	}
+
+	if len(certs) == 0 || len(certs[0].Extensions) == 0 {
+		return sourceName, sourceNamespace
+	}
+
+	for _, ext := range certs[0].Subject.Names {
+
+		if ext.Type.Equal(p.oidSourceNamespace) && sourceNamespace == "" {
+			if n, ok := ext.Value.(string); ok {
+				sourceNamespace = n
+			}
+		}
+
+		if ext.Type.Equal(p.oidSourceName) && sourceName == "" {
+			if n, ok := ext.Value.(string); ok {
+				sourceName = n
+			}
+		}
+	}
+
+	return sourceName, sourceNamespace
 }
