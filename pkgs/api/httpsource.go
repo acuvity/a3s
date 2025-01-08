@@ -109,7 +109,7 @@ type HTTPSource struct {
 	// A list of claims that will be filtered out from the identity token. A claim will
 	// be ignored if it is prefixed with one of the items in the ignoredKeys list. This
 	// runs before includedKeys computation.
-	IgnoredKeys []string `json:"ignoredKeys,omitempty" msgpack:"ignoredKeys,omitempty" bson:"ignoredkeys,omitempty" mapstructure:"ignoredKeys,omitempty"`
+	IgnoredKeys []string `json:"ignoredKeys" msgpack:"ignoredKeys" bson:"ignoredkeys" mapstructure:"ignoredKeys,omitempty"`
 
 	// The hash of the structure used to compare with new import version.
 	ImportHash string `json:"importHash,omitempty" msgpack:"importHash,omitempty" bson:"importhash,omitempty" mapstructure:"importHash,omitempty"`
@@ -121,7 +121,7 @@ type HTTPSource struct {
 	// A list of claims that defines which claims will be added to the identity
 	// token. A claim will be included if it is prefixed with one of the items in the
 	// includedKeys list. This runs after ignoreddKeys computation.
-	IncludedKeys []string `json:"includedKeys,omitempty" msgpack:"includedKeys,omitempty" bson:"includedkeys,omitempty" mapstructure:"includedKeys,omitempty"`
+	IncludedKeys []string `json:"includedKeys" msgpack:"includedKeys" bson:"includedkeys" mapstructure:"includedKeys,omitempty"`
 
 	// Key associated to the client certificate.
 	Key string `json:"key" msgpack:"key" bson:"key" mapstructure:"key,omitempty"`
@@ -1693,10 +1693,10 @@ type mongoAttributesHTTPSource struct {
 	Certificate  string            `bson:"certificate"`
 	CreateTime   time.Time         `bson:"createtime"`
 	Description  string            `bson:"description"`
-	IgnoredKeys  []string          `bson:"ignoredkeys,omitempty"`
+	IgnoredKeys  []string          `bson:"ignoredkeys"`
 	ImportHash   string            `bson:"importhash,omitempty"`
 	ImportLabel  string            `bson:"importlabel,omitempty"`
-	IncludedKeys []string          `bson:"includedkeys,omitempty"`
+	IncludedKeys []string          `bson:"includedkeys"`
 	Key          string            `bson:"key"`
 	Modifier     *IdentityModifier `bson:"modifier,omitempty"`
 	Name         string            `bson:"name"`

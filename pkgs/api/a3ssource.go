@@ -107,7 +107,7 @@ type A3SSource struct {
 	// A list of claims that will be filtered out from the identity token. A claim will
 	// be ignored if it is prefixed with one of the items in the ignoredKeys list. This
 	// runs before includedKeys computation.
-	IgnoredKeys []string `json:"ignoredKeys,omitempty" msgpack:"ignoredKeys,omitempty" bson:"ignoredkeys,omitempty" mapstructure:"ignoredKeys,omitempty"`
+	IgnoredKeys []string `json:"ignoredKeys" msgpack:"ignoredKeys" bson:"ignoredkeys" mapstructure:"ignoredKeys,omitempty"`
 
 	// The hash of the structure used to compare with new import version.
 	ImportHash string `json:"importHash,omitempty" msgpack:"importHash,omitempty" bson:"importhash,omitempty" mapstructure:"importHash,omitempty"`
@@ -119,7 +119,7 @@ type A3SSource struct {
 	// A list of claims that defines which claims will be added to the identity
 	// token. A claim will be included if it is prefixed with one of the items in the
 	// includedKeys list. This runs after ignoreddKeys computation.
-	IncludedKeys []string `json:"includedKeys,omitempty" msgpack:"includedKeys,omitempty" bson:"includedkeys,omitempty" mapstructure:"includedKeys,omitempty"`
+	IncludedKeys []string `json:"includedKeys" msgpack:"includedKeys" bson:"includedkeys" mapstructure:"includedKeys,omitempty"`
 
 	// The issuer that represents the remote a3s server.
 	Issuer string `json:"issuer" msgpack:"issuer" bson:"issuer" mapstructure:"issuer,omitempty"`
@@ -1617,10 +1617,10 @@ type mongoAttributesA3SSource struct {
 	CreateTime   time.Time         `bson:"createtime"`
 	Description  string            `bson:"description"`
 	Endpoint     string            `bson:"endpoint"`
-	IgnoredKeys  []string          `bson:"ignoredkeys,omitempty"`
+	IgnoredKeys  []string          `bson:"ignoredkeys"`
 	ImportHash   string            `bson:"importhash,omitempty"`
 	ImportLabel  string            `bson:"importlabel,omitempty"`
-	IncludedKeys []string          `bson:"includedkeys,omitempty"`
+	IncludedKeys []string          `bson:"includedkeys"`
 	Issuer       string            `bson:"issuer"`
 	Modifier     *IdentityModifier `bson:"modifier,omitempty"`
 	Name         string            `bson:"name"`

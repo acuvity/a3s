@@ -12,7 +12,6 @@ attributes:
     subtype: string
     stored: true
     getter: true
-    omit_empty: true
     validations:
     - $keyValidation
 
@@ -27,6 +26,5 @@ attributes:
     subtype: string
     stored: true
     getter: true
-    omit_empty: true
     validations:
     - $keyValidation
