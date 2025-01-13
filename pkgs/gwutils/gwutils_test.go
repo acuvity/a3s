@@ -132,7 +132,7 @@ func TestMakeTLSPeerCertificateVerifier(t *testing.T) {
 
 			err := verifier([][]byte{block.Bytes}, nil)
 			So(err, ShouldNotBeNil)
-			So(err.Error(), ShouldEqual, "unable to retrieve any matching mtlssource")
+			So(err.Error(), ShouldEqual, "unable to locate mtls source: no matching mtls source for the given certificate signing CA")
 		})
 
 		Convey("When more than one source match, it should fail", func() {
@@ -148,12 +148,13 @@ func TestMakeTLSPeerCertificateVerifier(t *testing.T) {
 						CA: string(pem.EncodeToMemory(block)),
 					},
 				)
+
 				return nil
 			})
 
 			err := verifier([][]byte{block.Bytes}, nil)
 			So(err, ShouldNotBeNil)
-			So(err.Error(), ShouldEqual, "more than one mtls sources hold the signing CA. this is not supported")
+			So(err.Error(), ShouldEqual, "unable to locate mtls source: more than one mtls sources hold the signing CA")
 		})
 	})
 }

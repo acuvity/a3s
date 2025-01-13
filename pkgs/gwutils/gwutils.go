@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/karlseguin/ccache/v2"
 	"go.acuvity.ai/a3s/pkgs/api"
@@ -65,34 +66,13 @@ func MakeTLSPeerCertificateVerifier(
 
 		if item == nil || item.Expired() {
 
-			tctx, cancel := context.WithTimeout(ctx, cfg.timeout)
-			defer cancel()
-
-			mctx := manipulate.NewContext(
-				tctx,
-				manipulate.ContextOptionRecursive(true),
-				manipulate.ContextOptionFilter(
-					elemental.NewFilterComposer().
-						WithKey("subjectKeyIDs").Equals(authorityKeyID).
-						Done(),
-				),
-			)
-
-			sources := api.MTLSSourcesList{}
-			if err := m.RetrieveMany(mctx, &sources); err != nil {
-				return fmt.Errorf("unable to retrieve mtlssources: %w", err)
-			}
-
-			switch len(sources) {
-			case 1:
-			case 0:
-				return fmt.Errorf("unable to retrieve any matching mtlssource")
-			default:
-				return fmt.Errorf("more than one mtls sources hold the signing CA. this is not supported")
+			source, err := MTLSSourceForCertificate(ctx, m, cert)
+			if err != nil {
+				return err
 			}
 
 			pool = x509.NewCertPool()
-			pool.AppendCertsFromPEM([]byte(sources[0].CA))
+			pool.AppendCertsFromPEM([]byte(source.CA))
 			cache.Set(authorityKeyID, pool, cfg.cacheDuration)
 		} else {
 			pool = item.Value().(*x509.CertPool)
@@ -111,6 +91,58 @@ func MakeTLSPeerCertificateVerifier(
 
 		return nil
 	}
+}
+
+// ErrMTLSSource represents error while trying to locate
+// an MTLS source.
+type ErrMTLSSource struct {
+	err error
+}
+
+// Unwrap implements the error interface.
+func (e ErrMTLSSource) Unwrap() error {
+	return e.err
+}
+
+// Error implements the error interface.
+func (e ErrMTLSSource) Error() string {
+	return fmt.Sprintf("unable to locate mtls source: %s", e.err)
+}
+
+// MTLSSourceForCertificate tries to locate the source defined with the CA used to sign the given certificate.
+// If there is no or multiple sources matching, this function will return an ErrMTLSSource error.
+func MTLSSourceForCertificate(ctx context.Context, m manipulate.Manipulator, cert *x509.Certificate) (*api.MTLSSource, error) {
+
+	authorityKeyID := fmt.Sprintf("%02X", cert.AuthorityKeyId)
+
+	tctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	defer cancel()
+
+	mctx := manipulate.NewContext(
+		tctx,
+		manipulate.ContextOptionRecursive(true),
+		manipulate.ContextOptionFilter(
+			elemental.NewFilterComposer().
+				WithKey("subjectKeyIDs").Equals(authorityKeyID).
+				Done(),
+		),
+	)
+
+	sources := api.MTLSSourcesList{}
+	if err := m.RetrieveMany(mctx, &sources); err != nil {
+		return nil, fmt.Errorf("unable to retrieve mtlssources: %w", err)
+	}
+
+	switch len(sources) {
+	case 1:
+	case 0:
+		return nil, ErrMTLSSource{err: fmt.Errorf("no matching mtls source for the given certificate signing CA")}
+
+	default:
+		return nil, ErrMTLSSource{err: fmt.Errorf("more than one mtls sources hold the signing CA")}
+	}
+
+	return sources[0], nil
 }
 
 // MakeTLSPeerCertificateForwarder returns a bahamut gateway.InterceptorFunc

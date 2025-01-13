@@ -5,6 +5,7 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"encoding/asn1"
+	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -33,6 +34,7 @@ import (
 	"go.acuvity.ai/a3s/pkgs/api"
 	"go.acuvity.ai/a3s/pkgs/auditor"
 	"go.acuvity.ai/a3s/pkgs/claims"
+	"go.acuvity.ai/a3s/pkgs/gwutils"
 	"go.acuvity.ai/a3s/pkgs/modifier/binary"
 	"go.acuvity.ai/a3s/pkgs/modifier/plugin"
 	"go.acuvity.ai/a3s/pkgs/permissions"
@@ -160,8 +162,13 @@ func (p *IssueProcessor) ProcessCreate(bctx bahamut.Context) (err error) {
 		audience = jwt.ClaimStrings{p.audience}
 	}
 
-	// If we have a
+	// If we have a user certificate, we will try to find the
+	// associated mtls source. First by looking at eventual extra names
+	// configured, then by matching the cert's Issuer fingerprint.
+	// If we can't find anything, we'll proceed by using the req.SourceName
+	// and req.SourceNamespace
 	var certs []*x509.Certificate
+	var source elemental.Identifiable
 
 	if req.SourceType == api.IssueSourceTypeMTLS && bctx.Request().TLSConnectionState != nil {
 
@@ -169,18 +176,31 @@ func (p *IssueProcessor) ProcessCreate(bctx bahamut.Context) (err error) {
 			return err
 		}
 
-		req.SourceName, req.SourceNamespace = p.sourceFromExtraNames(certs, req.SourceName, req.SourceNamespace)
+		var found bool
+		if req.SourceName, req.SourceNamespace, found = p.sourceFromExtraNames(certs, req.SourceName, req.SourceNamespace); !found {
+			// We now try matching the CA
+			mtlssource, err := gwutils.MTLSSourceForCertificate(bctx.Context(), p.manipulator, certs[0])
+			if err != nil {
+				if !errors.Is(err, gwutils.ErrMTLSSource{}) {
+					return err
+				}
+			}
+			req.SourceName, req.SourceNamespace = mtlssource.Name, mtlssource.Namespace
+			source = mtlssource
+		}
 	}
 
-	source, err := retrieveSource(
-		bctx.Context(),
-		p.manipulator,
-		req.SourceNamespace,
-		req.SourceName,
-		identityFromType(req.SourceType),
-	)
-	if err != nil {
-		return err
+	if source == nil {
+		source, err = retrieveSource(
+			bctx.Context(),
+			p.manipulator,
+			req.SourceNamespace,
+			req.SourceName,
+			identityFromType(req.SourceType),
+		)
+		if err != nil {
+			return err
+		}
 	}
 
 	var issuer token.Issuer
@@ -894,30 +914,33 @@ func (p *IssueProcessor) extractCertificate(tlsState *tls.ConnectionState, tlsHe
 	return certs, nil
 }
 
-func (p *IssueProcessor) sourceFromExtraNames(certs []*x509.Certificate, sourceName string, sourceNamespace string) (string, string) {
+func (p *IssueProcessor) sourceFromExtraNames(certs []*x509.Certificate, sourceName string, sourceNamespace string) (string, string, bool) {
 
 	if len(p.oidSourceName) == 0 && len(p.oidSourceNamespace) == 0 {
-		return sourceName, sourceNamespace
+		return sourceName, sourceNamespace, false
 	}
 
 	if len(certs) == 0 || len(certs[0].Extensions) == 0 {
-		return sourceName, sourceNamespace
+		return sourceName, sourceNamespace, false
 	}
 
+	var found bool
 	for _, ext := range certs[0].Subject.Names {
 
 		if ext.Type.Equal(p.oidSourceNamespace) && sourceNamespace == "" {
 			if n, ok := ext.Value.(string); ok {
 				sourceNamespace = n
+				found = true
 			}
 		}
 
 		if ext.Type.Equal(p.oidSourceName) && sourceName == "" {
 			if n, ok := ext.Value.(string); ok {
 				sourceName = n
+				found = true
 			}
 		}
 	}
 
-	return sourceName, sourceNamespace
+	return sourceName, sourceNamespace, found
 }
