@@ -496,6 +496,13 @@ func main() {
 		slog.Info("OID source set", "name", oidSourceName, "namespace", oidSourceNamespace)
 	}
 
+	if cfg.MTLSHeaderConf.HeaderForceHeaderKey != "" {
+		slog.Info("MTLS from header force configured",
+			"header", cfg.MTLSHeaderConf.HeaderForceHeaderKey,
+			"value", cfg.MTLSHeaderConf.HeaderForceHeaderValue,
+		)
+	}
+
 	bahamut.RegisterProcessorOrDie(server,
 		processors.NewIssueProcessor(
 			m,
@@ -511,6 +518,8 @@ func main() {
 			cfg.MTLSHeaderConf.Enabled,
 			cfg.MTLSHeaderConf.HeaderKey,
 			cfg.MTLSHeaderConf.Passphrase,
+			cfg.MTLSHeaderConf.HeaderForceHeaderKey,
+			cfg.MTLSHeaderConf.HeaderForceHeaderValue,
 			pluginModifier,
 			binaryModifier,
 			oidSourceName,

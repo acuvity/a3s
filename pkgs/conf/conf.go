@@ -473,9 +473,11 @@ type NATSConsumerConf struct {
 
 // MTLSHeaderConf holds the conf for the secure MTLS header.
 type MTLSHeaderConf struct {
-	Enabled    bool   `mapstructure:"mtls-header-enabled" desc:"Trust the value of the defined header containing a user certificate. This is insecure if there is no proper tls verification happening upstream"`
-	HeaderKey  string `mapstructure:"mtls-header-key" desc:"The header to check for user certificates" default:"x-tls-certificate"`
-	Passphrase string `mapstructure:"mtls-header-passphrase" desc:"The passphrase to decrypt the AES encrypted header content. It is mandatory if --mtls-header-enabled is set." secret:"true" file:"true"`
+	Enabled                bool   `mapstructure:"mtls-header-enabled" desc:"Trust the value of the defined header containing a user certificate. This is insecure if there is no proper tls verification happening upstream"`
+	HeaderForceHeaderKey   string `mapstructure:"mtls-header-force-header-key" desc:"If not empty, checking mtls will only be done from the header key if the request contains the given header" default:"X-Bahamut-Gateway"`
+	HeaderForceHeaderValue string `mapstructure:"mtls-header-force-header-value" desc:"The value of the force header that will trigger a force mtls from headers" default:"public"`
+	HeaderKey              string `mapstructure:"mtls-header-key" desc:"The header to check for user certificates" default:"x-tls-certificate"`
+	Passphrase             string `mapstructure:"mtls-header-passphrase" desc:"The passphrase to decrypt the AES encrypted header content. It is mandatory if --mtls-header-enabled is set." secret:"true" file:"true"`
 }
 
 // A3SClientConf holds a3s config.

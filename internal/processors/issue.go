@@ -49,24 +49,26 @@ import (
 
 // A IssueProcessor is a bahamut processor for Issue.
 type IssueProcessor struct {
-	manipulator          manipulate.Manipulator
-	pluginModifier       plugin.Modifier
-	binaryModifier       *binary.Modifier
-	jwks                 *token.JWKS
-	audience             string
-	cookieDomain         string
-	issuer               string
-	mtlsHeaderKey        string
-	mtlsHeaderPass       string
-	maxValidity          time.Duration
-	defaultValidity      time.Duration
-	cookieSameSitePolicy http.SameSite
-	mtlsHeaderEnabled    bool
-	forbiddenOpaqueKeys  map[string]struct{}
-	waiveSecret          string
-	samlIDPMedataCache   *ccache.Cache[string]
-	oidSourceName        asn1.ObjectIdentifier
-	oidSourceNamespace   asn1.ObjectIdentifier
+	manipulator           manipulate.Manipulator
+	pluginModifier        plugin.Modifier
+	binaryModifier        *binary.Modifier
+	jwks                  *token.JWKS
+	audience              string
+	cookieDomain          string
+	issuer                string
+	mtlsHeaderKey         string
+	mtlsHeaderPass        string
+	mtlsHeaderBypassKey   string
+	mtlsHeaderBypassValue string
+	maxValidity           time.Duration
+	defaultValidity       time.Duration
+	cookieSameSitePolicy  http.SameSite
+	mtlsHeaderEnabled     bool
+	forbiddenOpaqueKeys   map[string]struct{}
+	waiveSecret           string
+	samlIDPMedataCache    *ccache.Cache[string]
+	oidSourceName         asn1.ObjectIdentifier
+	oidSourceNamespace    asn1.ObjectIdentifier
 }
 
 // NewIssueProcessor returns a new IssueProcessor.
@@ -84,6 +86,8 @@ func NewIssueProcessor(
 	mtlsHeaderEnabled bool,
 	mtlsHeaderKey string,
 	mtlsHeaderPass string,
+	mtlsHeaderBypassKey string,
+	mtlsHeaderBypassValue string,
 	pluginModifier plugin.Modifier,
 	binaryModifier *binary.Modifier,
 	oidSourceName asn1.ObjectIdentifier,
@@ -97,24 +101,26 @@ func NewIssueProcessor(
 	}
 
 	return &IssueProcessor{
-		manipulator:          manipulator,
-		jwks:                 jwks,
-		defaultValidity:      defaultValidity,
-		maxValidity:          maxValidity,
-		issuer:               issuer,
-		audience:             audience,
-		cookieSameSitePolicy: cookieSameSitePolicy,
-		cookieDomain:         cookieDomain,
-		mtlsHeaderEnabled:    mtlsHeaderEnabled,
-		mtlsHeaderKey:        mtlsHeaderKey,
-		mtlsHeaderPass:       mtlsHeaderPass,
-		pluginModifier:       pluginModifier,
-		binaryModifier:       binaryModifier,
-		waiveSecret:          waiveSecret,
-		forbiddenOpaqueKeys:  fKeys,
-		samlIDPMedataCache:   ccache.New(ccache.Configure[string]().MaxSize(2048)),
-		oidSourceName:        oidSourceName,
-		oidSourceNamespace:   oidSourceNamespace,
+		manipulator:           manipulator,
+		jwks:                  jwks,
+		defaultValidity:       defaultValidity,
+		maxValidity:           maxValidity,
+		issuer:                issuer,
+		audience:              audience,
+		cookieSameSitePolicy:  cookieSameSitePolicy,
+		cookieDomain:          cookieDomain,
+		mtlsHeaderEnabled:     mtlsHeaderEnabled,
+		mtlsHeaderKey:         mtlsHeaderKey,
+		mtlsHeaderPass:        mtlsHeaderPass,
+		mtlsHeaderBypassKey:   mtlsHeaderBypassKey,
+		mtlsHeaderBypassValue: mtlsHeaderBypassValue,
+		pluginModifier:        pluginModifier,
+		binaryModifier:        binaryModifier,
+		waiveSecret:           waiveSecret,
+		forbiddenOpaqueKeys:   fKeys,
+		samlIDPMedataCache:    ccache.New(ccache.Configure[string]().MaxSize(2048)),
+		oidSourceName:         oidSourceName,
+		oidSourceNamespace:    oidSourceNamespace,
 	}
 }
 
@@ -172,21 +178,32 @@ func (p *IssueProcessor) ProcessCreate(bctx bahamut.Context) (err error) {
 
 	if req.SourceType == api.IssueSourceTypeMTLS && bctx.Request().TLSConnectionState != nil {
 
-		if certs, err = p.extractCertificate(bctx.Request().TLSConnectionState, bctx.Request().Headers.Get(p.mtlsHeaderKey)); err != nil {
+		var bypassTLSState bool
+		if p.mtlsHeaderBypassKey != "" {
+			bypassTLSState = bctx.Request().Headers.Get(p.mtlsHeaderBypassKey) == p.mtlsHeaderBypassValue
+		}
+
+		if certs, err = p.extractCertificate(
+			bctx.Request().TLSConnectionState,
+			bctx.Request().Headers.Get(p.mtlsHeaderKey),
+			bypassTLSState,
+		); err != nil {
 			return err
 		}
 
-		var found bool
-		if req.SourceName, req.SourceNamespace, found = p.sourceFromExtraNames(certs, req.SourceName, req.SourceNamespace); !found {
-			// We now try matching the CA
-			mtlssource, err := gwutils.MTLSSourceForCertificate(bctx.Context(), p.manipulator, certs[0])
-			if err != nil {
-				if !errors.Is(err, gwutils.ErrMTLSSource{}) {
-					return err
+		if len(certs) > 0 {
+			var found bool
+			if req.SourceName, req.SourceNamespace, found = p.sourceFromExtraNames(certs, req.SourceName, req.SourceNamespace); !found {
+				// We now try matching the CA
+				mtlssource, err := gwutils.MTLSSourceForCertificate(bctx.Context(), p.manipulator, certs[0])
+				if err != nil {
+					if !errors.Is(err, gwutils.ErrMTLSSource{}) {
+						return err
+					}
 				}
+				req.SourceName, req.SourceNamespace = mtlssource.Name, mtlssource.Namespace
+				source = mtlssource
 			}
-			req.SourceName, req.SourceNamespace = mtlssource.Name, mtlssource.Namespace
-			source = mtlssource
 		}
 	}
 
@@ -878,7 +895,7 @@ func identityFromType(srcType api.IssueSourceTypeValue) elemental.Identity {
 	return elemental.Identity{}
 }
 
-func (p *IssueProcessor) extractCertificate(tlsState *tls.ConnectionState, tlsHeader string) ([]*x509.Certificate, error) {
+func (p *IssueProcessor) extractCertificate(tlsState *tls.ConnectionState, tlsHeader string, bypassTLSState bool) ([]*x509.Certificate, error) {
 
 	// We get the peer certificate.
 	var certs []*x509.Certificate
@@ -904,10 +921,9 @@ func (p *IssueProcessor) extractCertificate(tlsState *tls.ConnectionState, tlsHe
 		if err != nil {
 			return nil, fmt.Errorf("unable to retrieve certificate from mtls header: %w", err)
 		}
-
+	} else if !bypassTLSState {
 		// If we reach here, the decoded certificate from the header will be used to
 		// to match against the source.
-	} else {
 		certs = tlsState.PeerCertificates
 	}
 
