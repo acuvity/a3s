@@ -82,9 +82,9 @@ func (p *ImportProcessor) ProcessCreate(bctx bahamut.Context) error {
 
 	for _, lst := range values {
 
-		if len(lst.List()) == 0 {
-			continue
-		}
+		// if len(lst.List()) == 0 {
+		// 	continue
+		// }
 
 		if err := importing.Import(
 			bctx.Context(),
