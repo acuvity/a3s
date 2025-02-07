@@ -18,22 +18,33 @@ func checkRevocation(ctx context.Context, m manipulate.Manipulator, namespace st
 
 	revs := api.SparseRevocationsList{}
 
+	filters := []*elemental.Filter{}
+
+	if tokenID != "" {
+		filters = append(filters, elemental.NewFilterComposer().
+			WithKey("tokenID").Equals(tokenID).
+			Done(),
+		)
+	}
+
+	if len(claims) > 0 {
+		filters = append(filters, elemental.NewFilterComposer().
+			WithKey("flattenedsubject").In(itags...).
+			Done(),
+		)
+	}
+
+	if len(filters) == 0 {
+		return false, nil
+	}
+
 	if err := m.RetrieveMany(
 		manipulate.NewContext(
 			ctx,
 			manipulate.ContextOptionNamespace(namespace),
 			manipulate.ContextOptionPropagated(true),
 			manipulate.ContextOptionFields([]string{"tokenID", "subject"}),
-			manipulate.ContextOptionFilter(
-				elemental.NewFilterComposer().Or(
-					elemental.NewFilterComposer().
-						WithKey("tokenID").Equals(tokenID).
-						Done(),
-					elemental.NewFilterComposer().
-						WithKey("flattenedsubject").In(itags...).
-						Done(),
-				).Done(),
-			),
+			manipulate.ContextOptionFilter(elemental.NewFilterComposer().Or(filters...).Done()),
 		),
 		&revs,
 	); err != nil {
