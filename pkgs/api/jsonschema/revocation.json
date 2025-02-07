@@ -52,12 +52,26 @@
         "null"
       ]
     },
+    "subject": {
+      "$friendlyName": "Subject",
+      "description": "A tag expression that identifies the authorized user(s).",
+      "items": {
+        "items": {
+          "type": "string"
+        },
+        "type": "array"
+      },
+      "title": "subject",
+      "type": "array"
+    },
     "tokenID": {
       "$friendlyName": "TokenID",
-      "$required": true,
       "description": "The ID of the revoked token.",
       "title": "tokenID",
-      "type": "string"
+      "type": [
+        "string",
+        "null"
+      ]
     },
     "updateTime": {
       "$friendlyName": "UpdateTime",
@@ -70,9 +84,7 @@
       ]
     }
   },
-  "required": [
-    "tokenID"
-  ],
+  "required": [],
   "title": "Revocation",
   "type": "object"
 }

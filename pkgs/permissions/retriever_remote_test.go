@@ -207,50 +207,95 @@ func TestRevoked(t *testing.T) {
 			var expectedIdentity elemental.Identity
 			var expectedFilter *elemental.Filter
 			var expectedNamespace string
-			m.MockCount(t, func(mctx manipulate.Context, identity elemental.Identity) (int, error) {
-				expectedIdentity = identity
+			m.MockRetrieveMany(t, func(mctx manipulate.Context, dest elemental.Identifiables) error {
+				expectedIdentity = dest.Identity()
 				expectedFilter = mctx.Filter()
 				expectedNamespace = mctx.Namespace()
-				return 0, nil
+
+				*dest.(*api.SparseRevocationsList) = append(
+					*dest.(*api.SparseRevocationsList),
+					&api.SparseRevocation{
+						TokenID: func() *string { s := "not-abcdef"; return &s }(),
+						Subject: func() *[][]string { s := [][]string{{"b=b"}}; return &s }(),
+					},
+				)
+				return nil
 			})
 
-			revoked, err := r.Revoked(context.Background(), "/ns", "abcdef")
+			revoked, err := r.Revoked(context.Background(), "/ns", "abcdef", []string{"a"})
 
 			So(err, ShouldBeNil)
 			So(expectedIdentity.IsEqual(api.RevocationIdentity), ShouldBeTrue)
 			So(expectedNamespace, ShouldEqual, "/ns")
-			So(expectedFilter.String(), ShouldEqual, `tokenID == "abcdef"`)
+			So(expectedFilter.String(), ShouldEqual, `((tokenID == "abcdef") or (flattenedsubject in ["a"]))`)
 			So(revoked, ShouldBeFalse)
 		})
 
-		Convey("When retrieving revocations is OK and is revoked", func() {
+		Convey("When retrieving revocations is OK and is revoked by token ID", func() {
 
 			var expectedIdentity elemental.Identity
 			var expectedFilter *elemental.Filter
 			var expectedNamespace string
-			m.MockCount(t, func(mctx manipulate.Context, identity elemental.Identity) (int, error) {
-				expectedIdentity = identity
-				expectedNamespace = mctx.Namespace()
+			m.MockRetrieveMany(t, func(mctx manipulate.Context, dest elemental.Identifiables) error {
+				expectedIdentity = dest.Identity()
 				expectedFilter = mctx.Filter()
-				return 1, nil
+				expectedNamespace = mctx.Namespace()
+
+				*dest.(*api.SparseRevocationsList) = append(
+					*dest.(*api.SparseRevocationsList),
+					&api.SparseRevocation{
+						TokenID: func() *string { s := "abcdef"; return &s }(),
+						Subject: func() *[][]string { s := [][]string{{"b=b"}}; return &s }(),
+					},
+				)
+				return nil
 			})
 
-			revoked, err := r.Revoked(context.Background(), "/ns", "abcdef")
+			revoked, err := r.Revoked(context.Background(), "/ns", "abcdef", []string{"a"})
 
 			So(err, ShouldBeNil)
 			So(expectedIdentity.IsEqual(api.RevocationIdentity), ShouldBeTrue)
 			So(expectedNamespace, ShouldEqual, "/ns")
-			So(expectedFilter.String(), ShouldEqual, `tokenID == "abcdef"`)
+			So(expectedFilter.String(), ShouldEqual, `((tokenID == "abcdef") or (flattenedsubject in ["a"]))`)
+			So(revoked, ShouldBeTrue)
+		})
+
+		Convey("When retrieving revocations is OK and is revoked by subject", func() {
+
+			var expectedIdentity elemental.Identity
+			var expectedFilter *elemental.Filter
+			var expectedNamespace string
+			m.MockRetrieveMany(t, func(mctx manipulate.Context, dest elemental.Identifiables) error {
+				expectedIdentity = dest.Identity()
+				expectedFilter = mctx.Filter()
+				expectedNamespace = mctx.Namespace()
+
+				*dest.(*api.SparseRevocationsList) = append(
+					*dest.(*api.SparseRevocationsList),
+					&api.SparseRevocation{
+						TokenID: func() *string { s := "not-abcdef"; return &s }(),
+						Subject: func() *[][]string { s := [][]string{{"a"}}; return &s }(),
+					},
+				)
+				return nil
+			})
+
+			revoked, err := r.Revoked(context.Background(), "/ns", "abcdef", []string{"a"})
+
+			So(err, ShouldBeNil)
+			So(expectedIdentity.IsEqual(api.RevocationIdentity), ShouldBeTrue)
+			So(expectedNamespace, ShouldEqual, "/ns")
+			So(expectedFilter.String(), ShouldEqual, `((tokenID == "abcdef") or (flattenedsubject in ["a"]))`)
 			So(revoked, ShouldBeTrue)
 		})
 
 		Convey("When retrieving revocations is not OK", func() {
 
-			m.MockCount(t, func(mctx manipulate.Context, identity elemental.Identity) (int, error) {
-				return 0, fmt.Errorf("boom")
+			m.MockRetrieveMany(t, func(mctx manipulate.Context, dest elemental.Identifiables) error {
+				return fmt.Errorf("boom")
 			})
 
-			revoked, err := r.Revoked(context.Background(), "/", "abcdef")
+			revoked, err := r.Revoked(context.Background(), "/", "abcdef", []string{"a"})
 
 			So(err, ShouldNotBeNil)
 			So(err.Error(), ShouldEqual, "unable to retrieve revocations: boom")

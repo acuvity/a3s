@@ -201,7 +201,7 @@ func (a *authorizer) CheckAuthorization(ctx context.Context, claims []string, op
 
 	// Handle token revocation
 	if r := a.revocationCache.Get(ns, key); r == nil || r.Expired() {
-		revoked, err := a.retriever.Revoked(ctx, ns, cfg.tokenID)
+		revoked, err := a.retriever.Revoked(ctx, ns, cfg.tokenID, claims)
 		if err != nil {
 			return false, err
 		}

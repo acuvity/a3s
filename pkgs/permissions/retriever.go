@@ -22,7 +22,7 @@ type Retriever interface {
 	Permissions(ctx context.Context, claims []string, ns string, opts ...RetrieverOption) (PermissionMap, error)
 
 	// Revoked returns true if the given token ID is in a revocation list.
-	Revoked(ctx context.Context, namespace string, tokenID string) (bool, error)
+	Revoked(ctx context.Context, namespace string, tokenID string, claim []string) (bool, error)
 }
 
 type retriever struct {
@@ -195,23 +195,9 @@ func (a *retriever) Permissions(ctx context.Context, claims []string, ns string,
 	return out, nil
 }
 
-func (a *retriever) Revoked(ctx context.Context, namespace string, tokenID string) (bool, error) {
+func (a *retriever) Revoked(ctx context.Context, namespace string, tokenID string, claims []string) (bool, error) {
 
-	c, err := a.manipulator.Count(
-		manipulate.NewContext(
-			ctx,
-			manipulate.ContextOptionNamespace(namespace),
-			manipulate.ContextOptionPropagated(true),
-			manipulate.ContextOptionFilter(
-				elemental.NewFilterComposer().
-					WithKey("tokenID").Equals(tokenID).
-					Done(),
-			),
-		),
-		api.RevocationIdentity,
-	)
-
-	return c > 0, err
+	return checkRevocation(ctx, a.manipulator, namespace, tokenID, claims)
 }
 
 func (a *retriever) resolvePoliciesMatchingClaims(ctx context.Context, claims []string, ns string, label string) (api.AuthorizationsList, error) {

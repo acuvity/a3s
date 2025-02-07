@@ -31,13 +31,14 @@ func (p *RevocationProcessor) ProcessCreate(bctx bahamut.Context) error {
 
 	revocation := bctx.InputData().(*api.Revocation)
 	if revocation.Expiration.IsZero() {
-		revocation.Expiration = time.Now().Add(24 * time.Hour)
+		revocation.Expiration = time.Now().Add(8765 * time.Hour)
 	}
 
 	return crud.Create(
 		bctx,
 		p.manipulator,
 		bctx.InputData().(*api.Revocation),
+		crud.OptionPreWriteHook(p.makePreHook()),
 		crud.OptionPostWriteHook(p.makeNotify()),
 	)
 }
@@ -73,5 +74,13 @@ func (p *RevocationProcessor) makeNotify() crud.PostWriteHook {
 				Data: obj.(*api.Revocation).Namespace,
 			},
 		)
+	}
+}
+
+func (p *RevocationProcessor) makePreHook() crud.PreWriteHook {
+	return func(obj elemental.Identifiable, original elemental.Identifiable) error {
+		rev := obj.(*api.Revocation)
+		rev.FlattenedSubject = flattenTags(rev.Subject)
+		return nil
 	}
 }

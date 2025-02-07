@@ -2515,7 +2515,13 @@ Type: `string`
 
 The namespace of the object.
 
-##### `tokenID` [`required`]
+##### `subject`
+
+Type: `[][]string`
+
+A tag expression that identifies the authorized user(s).
+
+##### `tokenID`
 
 Type: `string`
 

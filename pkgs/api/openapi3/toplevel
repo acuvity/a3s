@@ -1520,6 +1520,16 @@
             "readOnly": true,
             "type": "string"
           },
+          "subject": {
+            "description": "A tag expression that identifies the authorized user(s).",
+            "items": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "type": "array"
+          },
           "tokenID": {
             "description": "The ID of the revoked token.",
             "example": "ff199ae8-8e15-4daf-9c90-155d9cba90c2",
@@ -1532,9 +1542,6 @@
             "type": "string"
           }
         },
-        "required": [
-          "tokenID"
-        ],
         "type": "object"
       },
       "samlsource": {

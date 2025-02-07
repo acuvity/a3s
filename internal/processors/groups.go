@@ -30,7 +30,7 @@ func NewGroupProcessor(
 // ProcessCreate handles the creates requests for Groups.
 func (p *GroupsProcessors) ProcessCreate(bctx bahamut.Context) error {
 	return crud.Create(bctx, p.manipulator, bctx.InputData().(*api.Group),
-		crud.OptionPreWriteHook(p.makePreHook(bctx)),
+		crud.OptionPreWriteHook(p.makePreHook()),
 		crud.OptionPostWriteHook(p.makeNotify()),
 	)
 }
@@ -48,7 +48,7 @@ func (p *GroupsProcessors) ProcessRetrieve(bctx bahamut.Context) error {
 // ProcessUpdate handles the update requests for Groups.
 func (p *GroupsProcessors) ProcessUpdate(bctx bahamut.Context) error {
 	return crud.Update(bctx, p.manipulator, bctx.InputData().(*api.Group),
-		crud.OptionPreWriteHook(p.makePreHook(bctx)),
+		crud.OptionPreWriteHook(p.makePreHook()),
 		crud.OptionPostWriteHook(p.makeNotify()),
 	)
 }
@@ -77,7 +77,7 @@ func (p *GroupsProcessors) makeNotify() crud.PostWriteHook {
 	}
 }
 
-func (p *GroupsProcessors) makePreHook(_ bahamut.Context) crud.PreWriteHook {
+func (p *GroupsProcessors) makePreHook() crud.PreWriteHook {
 	return func(obj elemental.Identifiable, original elemental.Identifiable) error {
 		group := obj.(*api.Group)
 		group.FlattenedSubject = flattenTags(group.Subject)

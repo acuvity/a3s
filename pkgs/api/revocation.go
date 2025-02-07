@@ -93,11 +93,17 @@ type Revocation struct {
 	// The expiration date of the token.
 	Expiration time.Time `json:"expiration" msgpack:"expiration" bson:"expiration" mapstructure:"expiration,omitempty"`
 
+	// This is a set of all subject tags for matching in the DB.
+	FlattenedSubject []string `json:"-" msgpack:"-" bson:"flattenedsubject" mapstructure:"-,omitempty"`
+
 	// The namespace of the object.
 	Namespace string `json:"namespace" msgpack:"namespace" bson:"namespace" mapstructure:"namespace,omitempty"`
 
 	// Propagates the api authorization to all of its children. This is always true.
 	Propagate bool `json:"-" msgpack:"-" bson:"propagate" mapstructure:"-,omitempty"`
+
+	// A tag expression that identifies the authorized user(s).
+	Subject [][]string `json:"subject" msgpack:"subject" bson:"subject" mapstructure:"subject,omitempty"`
 
 	// The ID of the revoked token.
 	TokenID string `json:"tokenID" msgpack:"tokenID" bson:"tokenid" mapstructure:"tokenID,omitempty"`
@@ -118,8 +124,10 @@ type Revocation struct {
 func NewRevocation() *Revocation {
 
 	return &Revocation{
-		ModelVersion: 1,
-		Propagate:    true,
+		ModelVersion:     1,
+		FlattenedSubject: []string{},
+		Propagate:        true,
+		Subject:          [][]string{},
 	}
 }
 
@@ -156,8 +164,10 @@ func (o *Revocation) GetBSON() (any, error) {
 	}
 	s.CreateTime = o.CreateTime
 	s.Expiration = o.Expiration
+	s.FlattenedSubject = o.FlattenedSubject
 	s.Namespace = o.Namespace
 	s.Propagate = o.Propagate
+	s.Subject = o.Subject
 	s.TokenID = o.TokenID
 	s.UpdateTime = o.UpdateTime
 	s.ZHash = o.ZHash
@@ -182,8 +192,10 @@ func (o *Revocation) SetBSON(raw bson.Raw) error {
 	o.ID = s.ID.Hex()
 	o.CreateTime = s.CreateTime
 	o.Expiration = s.Expiration
+	o.FlattenedSubject = s.FlattenedSubject
 	o.Namespace = s.Namespace
 	o.Propagate = s.Propagate
+	o.Subject = s.Subject
 	o.TokenID = s.TokenID
 	o.UpdateTime = s.UpdateTime
 	o.ZHash = s.ZHash
@@ -312,15 +324,17 @@ func (o *Revocation) ToSparse(fields ...string) elemental.SparseIdentifiable {
 	if len(fields) == 0 {
 		// nolint: goimports
 		return &SparseRevocation{
-			ID:         &o.ID,
-			CreateTime: &o.CreateTime,
-			Expiration: &o.Expiration,
-			Namespace:  &o.Namespace,
-			Propagate:  &o.Propagate,
-			TokenID:    &o.TokenID,
-			UpdateTime: &o.UpdateTime,
-			ZHash:      &o.ZHash,
-			Zone:       &o.Zone,
+			ID:               &o.ID,
+			CreateTime:       &o.CreateTime,
+			Expiration:       &o.Expiration,
+			FlattenedSubject: &o.FlattenedSubject,
+			Namespace:        &o.Namespace,
+			Propagate:        &o.Propagate,
+			Subject:          &o.Subject,
+			TokenID:          &o.TokenID,
+			UpdateTime:       &o.UpdateTime,
+			ZHash:            &o.ZHash,
+			Zone:             &o.Zone,
 		}
 	}
 
@@ -333,10 +347,14 @@ func (o *Revocation) ToSparse(fields ...string) elemental.SparseIdentifiable {
 			sp.CreateTime = &(o.CreateTime)
 		case "expiration":
 			sp.Expiration = &(o.Expiration)
+		case "flattenedSubject":
+			sp.FlattenedSubject = &(o.FlattenedSubject)
 		case "namespace":
 			sp.Namespace = &(o.Namespace)
 		case "propagate":
 			sp.Propagate = &(o.Propagate)
+		case "subject":
+			sp.Subject = &(o.Subject)
 		case "tokenID":
 			sp.TokenID = &(o.TokenID)
 		case "updateTime":
@@ -367,11 +385,17 @@ func (o *Revocation) Patch(sparse elemental.SparseIdentifiable) {
 	if so.Expiration != nil {
 		o.Expiration = *so.Expiration
 	}
+	if so.FlattenedSubject != nil {
+		o.FlattenedSubject = *so.FlattenedSubject
+	}
 	if so.Namespace != nil {
 		o.Namespace = *so.Namespace
 	}
 	if so.Propagate != nil {
 		o.Propagate = *so.Propagate
+	}
+	if so.Subject != nil {
+		o.Subject = *so.Subject
 	}
 	if so.TokenID != nil {
 		o.TokenID = *so.TokenID
@@ -417,8 +441,11 @@ func (o *Revocation) Validate() error {
 	errors := elemental.Errors{}
 	requiredErrors := elemental.Errors{}
 
-	if err := elemental.ValidateRequiredString("tokenID", o.TokenID); err != nil {
-		requiredErrors = requiredErrors.Append(err)
+	if err := ValidateAuthorizationSubject("subject", o.Subject); err != nil {
+		errors = errors.Append(err)
+	}
+	if err := ValidateTagsExpression("subject", o.Subject); err != nil {
+		errors = errors.Append(err)
 	}
 
 	if len(requiredErrors) > 0 {
@@ -461,10 +488,14 @@ func (o *Revocation) ValueForAttribute(name string) any {
 		return o.CreateTime
 	case "expiration":
 		return o.Expiration
+	case "flattenedSubject":
+		return o.FlattenedSubject
 	case "namespace":
 		return o.Namespace
 	case "propagate":
 		return o.Propagate
+	case "subject":
+		return o.Subject
 	case "tokenID":
 		return o.TokenID
 	case "updateTime":
@@ -521,6 +552,16 @@ var RevocationAttributesMap = map[string]elemental.AttributeSpecification{
 		Stored:         true,
 		Type:           "time",
 	},
+	"FlattenedSubject": {
+		AllowedChoices: []string{},
+		BSONFieldName:  "flattenedsubject",
+		ConvertedName:  "FlattenedSubject",
+		Description:    `This is a set of all subject tags for matching in the DB.`,
+		Name:           "flattenedSubject",
+		Stored:         true,
+		SubType:        "string",
+		Type:           "list",
+	},
 	"Namespace": {
 		AllowedChoices: []string{},
 		Autogenerated:  true,
@@ -548,6 +589,18 @@ var RevocationAttributesMap = map[string]elemental.AttributeSpecification{
 		Stored:         true,
 		Type:           "boolean",
 	},
+	"Subject": {
+		AllowedChoices: []string{},
+		BSONFieldName:  "subject",
+		ConvertedName:  "Subject",
+		Description:    `A tag expression that identifies the authorized user(s).`,
+		Exposed:        true,
+		Name:           "subject",
+		Orderable:      true,
+		Stored:         true,
+		SubType:        "[][]string",
+		Type:           "external",
+	},
 	"TokenID": {
 		AllowedChoices: []string{},
 		BSONFieldName:  "tokenid",
@@ -555,7 +608,6 @@ var RevocationAttributesMap = map[string]elemental.AttributeSpecification{
 		Description:    `The ID of the revoked token.`,
 		Exposed:        true,
 		Name:           "tokenID",
-		Required:       true,
 		Stored:         true,
 		Type:           "string",
 	},
@@ -646,6 +698,16 @@ var RevocationLowerCaseAttributesMap = map[string]elemental.AttributeSpecificati
 		Stored:         true,
 		Type:           "time",
 	},
+	"flattenedsubject": {
+		AllowedChoices: []string{},
+		BSONFieldName:  "flattenedsubject",
+		ConvertedName:  "FlattenedSubject",
+		Description:    `This is a set of all subject tags for matching in the DB.`,
+		Name:           "flattenedSubject",
+		Stored:         true,
+		SubType:        "string",
+		Type:           "list",
+	},
 	"namespace": {
 		AllowedChoices: []string{},
 		Autogenerated:  true,
@@ -673,6 +735,18 @@ var RevocationLowerCaseAttributesMap = map[string]elemental.AttributeSpecificati
 		Stored:         true,
 		Type:           "boolean",
 	},
+	"subject": {
+		AllowedChoices: []string{},
+		BSONFieldName:  "subject",
+		ConvertedName:  "Subject",
+		Description:    `A tag expression that identifies the authorized user(s).`,
+		Exposed:        true,
+		Name:           "subject",
+		Orderable:      true,
+		Stored:         true,
+		SubType:        "[][]string",
+		Type:           "external",
+	},
 	"tokenid": {
 		AllowedChoices: []string{},
 		BSONFieldName:  "tokenid",
@@ -680,7 +754,6 @@ var RevocationLowerCaseAttributesMap = map[string]elemental.AttributeSpecificati
 		Description:    `The ID of the revoked token.`,
 		Exposed:        true,
 		Name:           "tokenID",
-		Required:       true,
 		Stored:         true,
 		Type:           "string",
 	},
@@ -800,11 +873,17 @@ type SparseRevocation struct {
 	// The expiration date of the token.
 	Expiration *time.Time `json:"expiration,omitempty" msgpack:"expiration,omitempty" bson:"expiration,omitempty" mapstructure:"expiration,omitempty"`
 
+	// This is a set of all subject tags for matching in the DB.
+	FlattenedSubject *[]string `json:"-" msgpack:"-" bson:"flattenedsubject,omitempty" mapstructure:"-,omitempty"`
+
 	// The namespace of the object.
 	Namespace *string `json:"namespace,omitempty" msgpack:"namespace,omitempty" bson:"namespace,omitempty" mapstructure:"namespace,omitempty"`
 
 	// Propagates the api authorization to all of its children. This is always true.
 	Propagate *bool `json:"-" msgpack:"-" bson:"propagate,omitempty" mapstructure:"-,omitempty"`
+
+	// A tag expression that identifies the authorized user(s).
+	Subject *[][]string `json:"subject,omitempty" msgpack:"subject,omitempty" bson:"subject,omitempty" mapstructure:"subject,omitempty"`
 
 	// The ID of the revoked token.
 	TokenID *string `json:"tokenID,omitempty" msgpack:"tokenID,omitempty" bson:"tokenid,omitempty" mapstructure:"tokenID,omitempty"`
@@ -870,11 +949,17 @@ func (o *SparseRevocation) GetBSON() (any, error) {
 	if o.Expiration != nil {
 		s.Expiration = o.Expiration
 	}
+	if o.FlattenedSubject != nil {
+		s.FlattenedSubject = o.FlattenedSubject
+	}
 	if o.Namespace != nil {
 		s.Namespace = o.Namespace
 	}
 	if o.Propagate != nil {
 		s.Propagate = o.Propagate
+	}
+	if o.Subject != nil {
+		s.Subject = o.Subject
 	}
 	if o.TokenID != nil {
 		s.TokenID = o.TokenID
@@ -913,11 +998,17 @@ func (o *SparseRevocation) SetBSON(raw bson.Raw) error {
 	if s.Expiration != nil {
 		o.Expiration = s.Expiration
 	}
+	if s.FlattenedSubject != nil {
+		o.FlattenedSubject = s.FlattenedSubject
+	}
 	if s.Namespace != nil {
 		o.Namespace = s.Namespace
 	}
 	if s.Propagate != nil {
 		o.Propagate = s.Propagate
+	}
+	if s.Subject != nil {
+		o.Subject = s.Subject
 	}
 	if s.TokenID != nil {
 		o.TokenID = s.TokenID
@@ -954,11 +1045,17 @@ func (o *SparseRevocation) ToPlain() elemental.PlainIdentifiable {
 	if o.Expiration != nil {
 		out.Expiration = *o.Expiration
 	}
+	if o.FlattenedSubject != nil {
+		out.FlattenedSubject = *o.FlattenedSubject
+	}
 	if o.Namespace != nil {
 		out.Namespace = *o.Namespace
 	}
 	if o.Propagate != nil {
 		out.Propagate = *o.Propagate
+	}
+	if o.Subject != nil {
+		out.Subject = *o.Subject
 	}
 	if o.TokenID != nil {
 		out.TokenID = *o.TokenID
@@ -1113,24 +1210,28 @@ func (o *SparseRevocation) DeepCopyInto(out *SparseRevocation) {
 }
 
 type mongoAttributesRevocation struct {
-	ID         bson.ObjectId `bson:"_id,omitempty"`
-	CreateTime time.Time     `bson:"createtime"`
-	Expiration time.Time     `bson:"expiration"`
-	Namespace  string        `bson:"namespace"`
-	Propagate  bool          `bson:"propagate"`
-	TokenID    string        `bson:"tokenid"`
-	UpdateTime time.Time     `bson:"updatetime"`
-	ZHash      int           `bson:"zhash"`
-	Zone       int           `bson:"zone"`
+	ID               bson.ObjectId `bson:"_id,omitempty"`
+	CreateTime       time.Time     `bson:"createtime"`
+	Expiration       time.Time     `bson:"expiration"`
+	FlattenedSubject []string      `bson:"flattenedsubject"`
+	Namespace        string        `bson:"namespace"`
+	Propagate        bool          `bson:"propagate"`
+	Subject          [][]string    `bson:"subject"`
+	TokenID          string        `bson:"tokenid"`
+	UpdateTime       time.Time     `bson:"updatetime"`
+	ZHash            int           `bson:"zhash"`
+	Zone             int           `bson:"zone"`
 }
 type mongoAttributesSparseRevocation struct {
-	ID         bson.ObjectId `bson:"_id,omitempty"`
-	CreateTime *time.Time    `bson:"createtime,omitempty"`
-	Expiration *time.Time    `bson:"expiration,omitempty"`
-	Namespace  *string       `bson:"namespace,omitempty"`
-	Propagate  *bool         `bson:"propagate,omitempty"`
-	TokenID    *string       `bson:"tokenid,omitempty"`
-	UpdateTime *time.Time    `bson:"updatetime,omitempty"`
-	ZHash      *int          `bson:"zhash,omitempty"`
-	Zone       *int          `bson:"zone,omitempty"`
+	ID               bson.ObjectId `bson:"_id,omitempty"`
+	CreateTime       *time.Time    `bson:"createtime,omitempty"`
+	Expiration       *time.Time    `bson:"expiration,omitempty"`
+	FlattenedSubject *[]string     `bson:"flattenedsubject,omitempty"`
+	Namespace        *string       `bson:"namespace,omitempty"`
+	Propagate        *bool         `bson:"propagate,omitempty"`
+	Subject          *[][]string   `bson:"subject,omitempty"`
+	TokenID          *string       `bson:"tokenid,omitempty"`
+	UpdateTime       *time.Time    `bson:"updatetime,omitempty"`
+	ZHash            *int          `bson:"zhash,omitempty"`
+	Zone             *int          `bson:"zone,omitempty"`
 }

@@ -2,11 +2,8 @@ package permissions
 
 import (
 	"context"
-	"fmt"
-	"net/http"
 
 	"go.acuvity.ai/a3s/pkgs/api"
-	"go.acuvity.ai/elemental"
 	"go.acuvity.ai/manipulate"
 )
 
@@ -88,28 +85,7 @@ func (a *remoteRetriever) Permissions(ctx context.Context, claims []string, ns s
 	return out, nil
 }
 
-func (a *remoteRetriever) Revoked(ctx context.Context, namespace string, tokenID string) (bool, error) {
+func (a *remoteRetriever) Revoked(ctx context.Context, namespace string, tokenID string, claims []string) (bool, error) {
 
-	c, err := a.manipulator.Count(
-		manipulate.NewContext(
-			ctx,
-			manipulate.ContextOptionNamespace(namespace),
-			manipulate.ContextOptionPropagated(true),
-			manipulate.ContextOptionFilter(
-				elemental.NewFilterComposer().
-					WithKey("tokenID").Equals(tokenID).
-					Done(),
-			),
-		),
-		api.RevocationIdentity,
-	)
-	if err != nil {
-		if elemental.IsErrorWithCode(err, http.StatusForbidden) {
-			return false, nil
-		}
-
-		return false, fmt.Errorf("unable to retrieve revocations: %w", err)
-	}
-
-	return c > 0, nil
+	return checkRevocation(ctx, a.manipulator, namespace, tokenID, claims)
 }

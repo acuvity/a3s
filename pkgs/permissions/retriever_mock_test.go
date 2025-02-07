@@ -31,16 +31,16 @@ func TestMockRetriever(t *testing.T) {
 		})
 
 		Convey("Calling Revoked without mock should work", func() {
-			revoked, err := r.Revoked(context.Background(), "/", "abcdef")
+			revoked, err := r.Revoked(context.Background(), "/", "abcdef", []string{"a"})
 			So(err, ShouldBeNil)
 			So(revoked, ShouldBeFalse)
 		})
 
 		Convey("Calling Revoked with mock should work", func() {
-			r.MockRevoked(t, func(context.Context, string, string) (bool, error) {
+			r.MockRevoked(t, func(context.Context, string, string, []string) (bool, error) {
 				return true, nil
 			})
-			revoked, err := r.Revoked(context.Background(), "/", "abcdef")
+			revoked, err := r.Revoked(context.Background(), "/", "abcdef", []string{"a"})
 			So(err, ShouldBeNil)
 			So(revoked, ShouldBeTrue)
 		})

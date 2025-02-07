@@ -140,8 +140,10 @@ var (
 		"permissions": nil,
 		"revocation": {
 			{":shard", ":unique", "zone", "zHash"},
+			{"flattenedSubject"},
 			{"namespace"},
 			{"namespace", "ID"},
+			{"namespace", "flattenedSubject"},
 			{"namespace", "tokenid"},
 			{"tokenid"},
 		},
