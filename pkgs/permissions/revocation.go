@@ -41,11 +41,11 @@ func checkRevocation(ctx context.Context, m manipulate.Manipulator, namespace st
 	}
 
 	for _, rev := range revs {
-		if rev.TokenID != nil && *rev.TokenID == tokenID {
+		if rev.TokenID != nil && *rev.TokenID != "" && *rev.TokenID == tokenID {
 			return true, nil
 		}
 
-		if rev.Subject != nil {
+		if rev.Subject != nil && len(*rev.Subject) >= 0 {
 			if Match(*rev.Subject, claims) {
 				return true, nil
 			}
