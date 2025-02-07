@@ -37,16 +37,19 @@ func checkRevocation(ctx context.Context, m manipulate.Manipulator, namespace st
 		),
 		&revs,
 	); err != nil {
+		fmt.Println("no because 1")
 		return false, fmt.Errorf("unable to retrieve revocations: %w", err)
 	}
 
 	for _, rev := range revs {
 		if rev.TokenID != nil && *rev.TokenID == tokenID {
+			fmt.Println("revoked because 2")
 			return true, nil
 		}
 
-		if rev.Subject != nil {
+		if rev.Subject != nil && len(*rev.Subject) >= 0 {
 			if Match(*rev.Subject, claims) {
+				fmt.Println("revoked because 3")
 				return true, nil
 			}
 		}
