@@ -7,9 +7,10 @@ import (
 )
 
 type gitlabUserResp struct {
-	Name     string `json:"name"`
-	Email    string `json:"email"`
-	Verified bool   `json:"email_verified"`
+	Name      string `json:"name"`
+	Email     string `json:"email"`
+	Verified  bool   `json:"email_verified"`
+	AvatarURL string `json:"picture"`
 }
 
 type gitlabEmailResp struct {
@@ -85,6 +86,10 @@ func (*gitlab) RetrieveClaims(client *http.Client) ([]string, error) {
 		claims = append(claims, "login="+l.Name)
 	} else {
 		return nil, fmt.Errorf("gitlab: missing name information")
+	}
+
+	if l.AvatarURL != "" {
+		claims = append(claims, "avatar="+l.AvatarURL)
 	}
 
 	// Get emails

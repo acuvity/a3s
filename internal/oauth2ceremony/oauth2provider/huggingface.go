@@ -7,9 +7,10 @@ import (
 )
 
 type hgEmailResp struct {
-	Email    string `json:"email"`
-	Name     string `json:"name"`
-	Verified bool   `json:"email_verified"`
+	Email     string `json:"email"`
+	Name      string `json:"name"`
+	Verified  bool   `json:"email_verified"`
+	AvatarURL string `json:"picture"`
 }
 
 type huggingface struct {
@@ -60,6 +61,10 @@ func (*huggingface) RetrieveClaims(client *http.Client) ([]string, error) {
 	dec := json.NewDecoder(resp.Body)
 	if err := dec.Decode(&l); err != nil {
 		return nil, fmt.Errorf("huggingface: unable to decode oauth user data: %w", err)
+	}
+
+	if l.AvatarURL != "" {
+		claims = append(claims, "avatar="+l.AvatarURL)
 	}
 
 	if !l.Verified {

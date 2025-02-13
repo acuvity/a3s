@@ -7,9 +7,10 @@ import (
 )
 
 type googleEmailResp struct {
-	Email    string `json:"email"`
-	HD       string `json:"hd"`
-	Verified bool   `json:"email_verified"`
+	Email     string `json:"email"`
+	HD        string `json:"hd"`
+	Verified  bool   `json:"email_verified"`
+	AvatarURL string `json:"picture"`
 }
 
 type google struct {
@@ -60,6 +61,10 @@ func (*google) RetrieveClaims(client *http.Client) ([]string, error) {
 	dec := json.NewDecoder(resp.Body)
 	if err := dec.Decode(&l); err != nil {
 		return nil, fmt.Errorf("google: unable to decode oauth user data: %w", err)
+	}
+
+	if l.AvatarURL != "" {
+		claims = append(claims, "avatar="+l.AvatarURL)
 	}
 
 	if !l.Verified {

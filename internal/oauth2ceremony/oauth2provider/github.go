@@ -7,7 +7,8 @@ import (
 )
 
 type githubLoginResp struct {
-	Login string `json:"login"`
+	Login     string `json:"login"`
+	AvatarURL string `json:"avatar_url"`
 }
 
 type githubEmailResp struct {
@@ -70,6 +71,10 @@ func (*github) RetrieveClaims(client *http.Client) ([]string, error) {
 		claims = append(claims, "login="+l.Login)
 	} else {
 		return nil, fmt.Errorf("github: missing login information")
+	}
+
+	if l.AvatarURL != "" {
+		claims = append(claims, "avatar="+l.AvatarURL)
 	}
 
 	// Get emails
