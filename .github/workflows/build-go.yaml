@@ -23,6 +23,7 @@ jobs:
       matrix:
         go:
           - "1.23"
+          - "1.24"
     steps:
       - uses: actions/checkout@v4
 
@@ -42,6 +43,7 @@ jobs:
           make
 
       - uses: acuvity/cov@1.0.2
+        if: ${{ matrix.go == '1.24' }}
         with:
           main_branch: master
           cov_file: unit_coverage.out
