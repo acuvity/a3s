@@ -1,16 +1,16 @@
 module go.acuvity.ai/a3s
 
-go 1.22.0
+go 1.23.0
 
-toolchain go1.23.5
+toolchain go1.24.0
 
 require (
-	go.acuvity.ai/bahamut v0.0.0-20250123171448-045da6e0f070
-	go.acuvity.ai/elemental v0.0.0-20250114154951-59db3af44e2c
-	go.acuvity.ai/manipulate v0.0.0-20250123171402-74bbb3af4dc8
-	go.acuvity.ai/regolithe v0.0.0-20250114154847-efb27183b9b1 // indirect
-	go.acuvity.ai/tg v0.0.0-20250109032659-01df62fd30d1
-	go.acuvity.ai/wsc v0.0.0-20250107185701-b84376bdb60b // indirect
+	go.acuvity.ai/bahamut v0.0.0-20250226152621-d4dd109ed78a
+	go.acuvity.ai/elemental v0.0.0-20250226152430-c139902eba00
+	go.acuvity.ai/manipulate v0.0.0-20250226152511-2dd5e02f0f34
+	go.acuvity.ai/regolithe v0.0.0-20250226152157-fbd9f24f9cec // indirect
+	go.acuvity.ai/tg v0.0.0-20250220234315-d9494083aa3a
+	go.acuvity.ai/wsc v0.0.0-20250219220143-0153e5776946 // indirect
 )
 
 require (
@@ -49,7 +49,7 @@ require (
 	github.com/ugorji/go/codec v1.2.12
 	go.uber.org/automaxprocs v1.6.0
 	golang.org/x/oauth2 v0.24.0
-	golang.org/x/term v0.28.0
+	golang.org/x/term v0.29.0
 )
 
 require (
@@ -144,13 +144,13 @@ require (
 	github.com/yusufpapurcu/wmi v1.2.4 // indirect
 	go.uber.org/atomic v1.11.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
-	golang.org/x/crypto v0.32.0 // indirect
+	golang.org/x/crypto v0.35.0 // indirect
 	golang.org/x/exp v0.0.0-20240719175910-8a7402abbf56 // indirect
 	golang.org/x/mod v0.19.0 // indirect
 	golang.org/x/net v0.34.0 // indirect
-	golang.org/x/sync v0.10.0 // indirect
-	golang.org/x/sys v0.29.0 // indirect
-	golang.org/x/text v0.21.0 // indirect
+	golang.org/x/sync v0.11.0 // indirect
+	golang.org/x/sys v0.30.0 // indirect
+	golang.org/x/text v0.22.0 // indirect
 	golang.org/x/time v0.9.0 // indirect
 	golang.org/x/tools v0.23.0 // indirect
 	google.golang.org/protobuf v1.36.3 // indirect
