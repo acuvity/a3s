@@ -11,7 +11,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/golang-jwt/jwt/v4"
+	"github.com/golang-jwt/jwt/v5"
 	. "github.com/smartystreets/goconvey/convey"
 	"go.acuvity.ai/a3s/pkgs/api"
 	"go.acuvity.ai/a3s/pkgs/token"
@@ -134,7 +134,7 @@ func TestCommonAuth(t *testing.T) {
 			action, idt, err := a.CheckAuthentication(context.Background(), token)
 
 			So(err, ShouldNotBeNil)
-			So(err.Error(), ShouldEqual, `error 401 (a3s:authn): Unauthorized: Authentication rejected with error: unable to parse jwt: crypto/ecdsa: verification error`)
+			So(err.Error(), ShouldEqual, "error 401 (a3s:authn): Unauthorized: Authentication rejected with error: unable to parse jwt: token signature is invalid: crypto/ecdsa: verification error")
 			So(action, ShouldEqual, bahamut.AuthActionKO)
 			So(idt, ShouldBeNil)
 		})
@@ -146,7 +146,7 @@ func TestCommonAuth(t *testing.T) {
 			action, idt, err := a.CheckAuthentication(context.Background(), token)
 
 			So(err, ShouldNotBeNil)
-			So(err.Error(), ShouldEqual, `error 401 (a3s:authn): Unauthorized: Authentication rejected with error: unable to parse jwt: token contains an invalid number of segments`)
+			So(err.Error(), ShouldEqual, `error 401 (a3s:authn): Unauthorized: Authentication rejected with error: unable to parse jwt: token is malformed: token contains an invalid number of segments`)
 			So(action, ShouldEqual, bahamut.AuthActionKO)
 			So(idt, ShouldBeNil)
 		})
@@ -227,7 +227,7 @@ func TestAuthenticateSession(t *testing.T) {
 			action, err := a.AuthenticateSession(session)
 
 			So(err, ShouldNotBeNil)
-			So(err.Error(), ShouldEqual, "error 401 (a3s:authn): Unauthorized: Authentication rejected with error: unable to parse jwt: crypto/ecdsa: verification error")
+			So(err.Error(), ShouldEqual, "error 401 (a3s:authn): Unauthorized: Authentication rejected with error: unable to parse jwt: token signature is invalid: crypto/ecdsa: verification error")
 			So(action, ShouldEqual, bahamut.AuthActionKO)
 		})
 	})
@@ -313,7 +313,7 @@ func TestAuthenticateRequest(t *testing.T) {
 			action, err := a.AuthenticateRequest(ctx)
 
 			So(err, ShouldNotBeNil)
-			So(err.Error(), ShouldEqual, "error 401 (a3s:authn): Unauthorized: Authentication rejected with error: unable to parse jwt: crypto/ecdsa: verification error")
+			So(err.Error(), ShouldEqual, "error 401 (a3s:authn): Unauthorized: Authentication rejected with error: unable to parse jwt: token signature is invalid: crypto/ecdsa: verification error")
 			So(action, ShouldEqual, bahamut.AuthActionKO)
 		})
 	})
@@ -343,7 +343,7 @@ func TestHandleFederatedToken(t *testing.T) {
 			a := New(jwks, "iss", "aud", OptionExternalTrustedIssuers(RemoteIssuer{URL: "a"}))
 			rjwks, rissuer, err := a.handleFederatedToken(context.Background(), "not a token and it will make it fail")
 			So(err, ShouldNotBeNil)
-			So(err.Error(), ShouldEqual, "Unable to parse input token: unable to parse unverified jwt: token contains an invalid number of segments")
+			So(err.Error(), ShouldEqual, "Unable to parse input token: unable to parse unverified jwt: token is malformed: token contains an invalid number of segments")
 			So(rjwks, ShouldBeNil)
 			So(rissuer, ShouldBeEmpty)
 		})

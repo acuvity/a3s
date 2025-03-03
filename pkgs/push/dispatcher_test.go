@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/golang-jwt/jwt/v4"
+	"github.com/golang-jwt/jwt/v5"
 	. "github.com/smartystreets/goconvey/convey"
 	"go.acuvity.ai/a3s/pkgs/api"
 	"go.acuvity.ai/a3s/pkgs/authorizer"
@@ -86,7 +86,7 @@ func TestOnPushSessionInit(t *testing.T) {
 			ok, err := h.OnPushSessionInit(s)
 			So(ok, ShouldBeFalse)
 			So(err, ShouldNotBeNil)
-			So(err.Error(), ShouldEqual, "unable to compute authz restrictions from token: token contains an invalid number of segments")
+			So(err.Error(), ShouldEqual, "unable to compute authz restrictions from token: token is malformed: token contains an invalid number of segments")
 		})
 
 		Convey("When authorizer errors", func() {
@@ -360,7 +360,7 @@ func TestShouldDispatch(t *testing.T) {
 			evt := elemental.NewEvent(elemental.EventDelete, api.NewAuthorization())
 			ok, err := h.ShouldDispatch(s, evt, pushedEntity{Namespace: "/test/yo"})
 			So(err, ShouldNotBeNil)
-			So(err.Error(), ShouldEqual, "unable to compute authz restrictions from token: token contains an invalid number of segments")
+			So(err.Error(), ShouldEqual, "unable to compute authz restrictions from token: token is malformed: token contains an invalid number of segments")
 			So(ok, ShouldBeFalse)
 		})
 	})

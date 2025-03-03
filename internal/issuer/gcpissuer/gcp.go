@@ -5,9 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"time"
 
-	"github.com/golang-jwt/jwt/v4"
+	"github.com/golang-jwt/jwt/v5"
 	"go.acuvity.ai/a3s/pkgs/token"
 	"go.acuvity.ai/tg/tglib"
 )
@@ -60,34 +59,36 @@ func (c *gcpIssuer) fromToken(tokenString string, audience string) (err error) {
 		return err
 	}
 
+	if len(certsMap) == 0 {
+		return fmt.Errorf("missing certificates")
+	}
+
 	gcpToken := gcpJWT{}
+	var processed bool
 	for _, v := range certsMap {
 		cert, err := tglib.ParseCertificate([]byte(v))
 		if err != nil {
 			return err
 		}
-		if _, err := jwt.ParseWithClaims(tokenString, &gcpToken, func(t *jwt.Token) (any, error) {
-			if _, ok := t.Method.(*jwt.SigningMethodRSA); ok {
-				return cert.PublicKey.(*rsa.PublicKey), nil
-			}
-			return nil, fmt.Errorf("unexpected signing method: %s", t.Header["alg"])
-		}); err == nil {
+		if _, err := jwt.ParseWithClaims(
+			tokenString,
+			&gcpToken,
+			func(t *jwt.Token) (any, error) {
+				if _, ok := t.Method.(*jwt.SigningMethodRSA); ok {
+					return cert.PublicKey.(*rsa.PublicKey), nil
+				}
+				return nil, fmt.Errorf("unexpected signing method: %s", t.Header["alg"])
+			},
+			jwt.WithIssuer(gcpClaimsRequiredIssuer),
+			jwt.WithAudience(audience),
+		); err == nil {
+			processed = true
 			break
 		}
 	}
 
-	if ok := gcpToken.VerifyExpiresAt(time.Now(), true); !ok {
-		return ErrGCP{Err: fmt.Errorf("GCP token is expired")}
-	}
-
-	if gcpToken.Issuer != gcpClaimsRequiredIssuer {
-		return ErrGCP{Err: fmt.Errorf("Invalid issuer from gcp token '%s'. Want '%s'", gcpToken.Issuer, gcpClaimsRequiredIssuer)}
-	}
-
-	if audience != "" {
-		if !gcpToken.VerifyAudience(audience, true) {
-			return ErrGCP{Err: fmt.Errorf("invalid audience '%s' want '%s'", gcpToken.Audience, audience)}
-		}
+	if !processed {
+		return fmt.Errorf("unable to verify the token with any certificate")
 	}
 
 	c.token.Identity = computeGCPClaims(gcpToken)

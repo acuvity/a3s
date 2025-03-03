@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/golang-jwt/jwt/v4"
+	"github.com/golang-jwt/jwt/v5"
 	"go.acuvity.ai/a3s/pkgs/permissions"
 	"go.acuvity.ai/a3s/pkgs/token"
 )
@@ -65,10 +65,19 @@ func (c *a3sIssuer) fromToken(
 		return ErrInputToken{Err: fmt.Errorf("you cannot request a token with no audience from a token that has one")}
 	}
 
+	var audienceFound bool
+L:
 	for _, aud := range audience {
-		if !c.token.VerifyAudience(aud, true) {
-			return ErrInputToken{Err: fmt.Errorf("requested audience '%s' is not declared in initial token", aud)}
+		for _, iaud := range c.token.Audience {
+			if iaud == aud {
+				audienceFound = true
+				break L
+			}
 		}
+	}
+
+	if !audienceFound {
+		return ErrInputToken{Err: fmt.Errorf("requested audience '%v' is not declared in initial token", audience)}
 	}
 
 	if !orest.Zero() {

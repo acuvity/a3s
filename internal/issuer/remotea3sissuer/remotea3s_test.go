@@ -244,7 +244,7 @@ func TestNew(t *testing.T) {
 		iss, err := New(context.Background(), source, rtokString)
 		So(iss, ShouldBeNil)
 		So(err, ShouldNotBeNil)
-		So(err.Error(), ShouldStartWith, `remote a3s error: unable to parse remote a3s token: unable to parse jwt: unable to find kid`)
+		So(err.Error(), ShouldStartWith, "remote a3s error: unable to parse remote a3s token: unable to parse jwt: token is unverifiable: error while executing keyfunc: unable to find kid")
 	})
 
 	Convey("Given an http server and a A3SSource but remote jwks is unavailable", t, func() {

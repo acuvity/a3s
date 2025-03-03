@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/gofrs/uuid"
-	"github.com/golang-jwt/jwt/v4"
+	"github.com/golang-jwt/jwt/v5"
 	"go.acuvity.ai/a3s/pkgs/permissions"
 )
 
@@ -79,25 +79,29 @@ func (t *IdentityToken) Map() map[string][]string {
 // and requiredAudience. The token must contain the "kid" header, and that ID must match an existing key in JWKS.
 // The function will populate the identity token's source using the @source* claims.
 // The claim @source:type is mandatory and the function will return an error if it is missing.
-func Parse(tokenString string, keychain *JWKS, trustedIssuer string, requiredAudience string) (*IdentityToken, error) {
+func Parse(
+	tokenString string,
+	keychain *JWKS,
+	trustedIssuer string,
+	requiredAudience string,
+	opts ...jwt.ParserOption,
+) (*IdentityToken, error) {
+
+	if requiredAudience != "" {
+		opts = append(opts, jwt.WithAudience(requiredAudience))
+	}
+
+	if trustedIssuer != "" {
+		opts = append(opts, jwt.WithIssuer(trustedIssuer))
+	}
 
 	idt := &IdentityToken{}
-	if _, err := jwt.ParseWithClaims(tokenString, idt, makeKeyFunc(keychain)); err != nil {
+	if _, err := jwt.ParseWithClaims(tokenString, idt, makeKeyFunc(keychain), opts...); err != nil {
 		return nil, fmt.Errorf("unable to parse jwt: %w", err)
 	}
 
 	if err := finalizeTokenParsing(idt); err != nil {
 		return nil, err
-	}
-
-	if !idt.VerifyIssuer(trustedIssuer, true) {
-		return nil, fmt.Errorf("issuer '%s' is not acceptable. want '%s'", idt.Issuer, trustedIssuer)
-	}
-
-	if requiredAudience != "" {
-		if !idt.VerifyAudience(requiredAudience, true) {
-			return nil, fmt.Errorf("audience '%s' is not acceptable. want '%s'", idt.Audience, requiredAudience)
-		}
 	}
 
 	return idt, nil

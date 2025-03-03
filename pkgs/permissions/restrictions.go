@@ -5,7 +5,7 @@ import (
 	"net"
 
 	"github.com/apparentlymart/go-cidr/cidr"
-	"github.com/golang-jwt/jwt/v4"
+	"github.com/golang-jwt/jwt/v5"
 	"go.acuvity.ai/elemental"
 )
 

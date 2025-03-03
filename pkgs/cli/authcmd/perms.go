@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/ghodss/yaml"
-	"github.com/golang-jwt/jwt/v4"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"go.acuvity.ai/a3s/pkgs/api"

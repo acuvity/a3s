@@ -3,7 +3,7 @@ package gcpissuer
 import (
 	"fmt"
 
-	"github.com/golang-jwt/jwt/v4"
+	"github.com/golang-jwt/jwt/v5"
 )
 
 // ErrGCP represents an error that happened

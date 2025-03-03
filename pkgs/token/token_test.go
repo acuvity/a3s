@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/golang-jwt/jwt/v4"
+	"github.com/golang-jwt/jwt/v5"
 	. "github.com/smartystreets/goconvey/convey"
 	"go.acuvity.ai/a3s/pkgs/permissions"
 	"go.acuvity.ai/tg/tglib"
@@ -134,7 +134,7 @@ func TestParse(t *testing.T) {
 
 			So(token2, ShouldBeNil)
 			So(err, ShouldNotBeNil)
-			So(err.Error(), ShouldEqual, "issuer 'iss' is not acceptable. want 'iss2'")
+			So(err.Error(), ShouldEqual, "unable to parse jwt: token has invalid claims: token has invalid issuer")
 		})
 
 		Convey("When I call Parse on a token missing the @source:type claim", func() {
@@ -150,7 +150,7 @@ func TestParse(t *testing.T) {
 
 			token, _ := claims.SignedString(key)
 
-			token2, err := Parse(token, keychain, "iss2", "aud")
+			token2, err := Parse(token, keychain, "iss2", "")
 
 			So(token2, ShouldBeNil)
 			So(err, ShouldNotBeNil)
@@ -162,7 +162,7 @@ func TestParse(t *testing.T) {
 
 			So(token2, ShouldBeNil)
 			So(err, ShouldNotBeNil)
-			So(err.Error(), ShouldEqual, "audience '[aud]' is not acceptable. want 'aud2'")
+			So(err.Error(), ShouldEqual, "unable to parse jwt: token has invalid claims: token has invalid audience")
 		})
 
 		Convey("When I call Parse using the wrong signer certificate", func() {
@@ -174,7 +174,7 @@ func TestParse(t *testing.T) {
 
 			So(token2, ShouldBeNil)
 			So(err, ShouldNotBeNil)
-			So(err.Error(), ShouldEqual, fmt.Sprintf("unable to parse jwt: unable to find kid '%s': kid not found in JWKS", kid))
+			So(err.Error(), ShouldEqual, fmt.Sprintf("unable to parse jwt: token is unverifiable: error while executing keyfunc: unable to find kid '%s': kid not found in JWKS", kid))
 		})
 
 		Convey("When I call Parse using a wrong asigning method", func() {
@@ -184,7 +184,7 @@ func TestParse(t *testing.T) {
 
 			So(token2, ShouldBeNil)
 			So(err, ShouldNotBeNil)
-			So(err.Error(), ShouldEqual, "unable to parse jwt: unexpected signing method: HS256")
+			So(err.Error(), ShouldEqual, "unable to parse jwt: token is unverifiable: error while executing keyfunc: unexpected signing method: HS256")
 		})
 	})
 }
@@ -201,6 +201,7 @@ func TestParseUnverified(t *testing.T) {
 			Name:      "mysource",
 		})
 
+		token1.ExpiresAt = jwt.NewNumericDate(time.Now().Add(1 * time.Minute)) // we check that ParseUnverified does not actually verifies.
 		token1.Source.Type = "certificate"
 		token1.Source.Namespace = "/my/ns"
 		token1.Source.Name = "mysource"
@@ -262,7 +263,7 @@ func TestParseUnverified(t *testing.T) {
 
 			token, err := ParseUnverified("this is not a token")
 			So(err, ShouldNotBeNil)
-			So(err.Error(), ShouldEqual, "unable to parse unverified jwt: token contains an invalid number of segments")
+			So(err.Error(), ShouldEqual, "unable to parse unverified jwt: token is malformed: token contains an invalid number of segments")
 			So(token, ShouldBeNil)
 		})
 	})

@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/golang-jwt/jwt/v4"
+	"github.com/golang-jwt/jwt/v5"
 	. "github.com/smartystreets/goconvey/convey"
 	"go.acuvity.ai/a3s/pkgs/token"
 	"go.acuvity.ai/tg/tglib"
@@ -63,7 +63,7 @@ func TestFromToken(t *testing.T) {
 		c := newA3SIssuer()
 		err := c.fromToken(token, keychain, "", nil, 0, false)
 		So(err, ShouldNotBeNil)
-		So(err.Error(), ShouldEqual, `unable to compute restrictions: unable to compute authz restrictions from token: json: cannot unmarshal string into Go struct field Restrictions.restrictions.networks of type []string`)
+		So(err.Error(), ShouldEqual, "unable to compute restrictions: unable to compute authz restrictions from token: token is malformed: could not JSON decode claim: json: cannot unmarshal string into Go struct field Restrictions.restrictions.networks of type []string")
 	})
 
 	Convey("Using a token that is missing kid", t, func() {
@@ -71,7 +71,7 @@ func TestFromToken(t *testing.T) {
 		c := newA3SIssuer()
 		err := c.fromToken(token, keychain, "", nil, 0, false)
 		So(err, ShouldNotBeNil)
-		So(err.Error(), ShouldEqual, `unable to parse input token: unable to parse jwt: token has no KID in its header`)
+		So(err.Error(), ShouldEqual, "unable to parse input token: unable to parse jwt: token is unverifiable: error while executing keyfunc: token has no KID in its header")
 	})
 
 	Convey("Using a token that has no restrictions", t, func() {
@@ -124,10 +124,10 @@ func TestFromToken(t *testing.T) {
 
 		token, _ := mc.JWT(key, kid, "iss", jwt.ClaimStrings{"aud1", "aud2"}, time.Time{}, nil)
 		c := newA3SIssuer()
-		err := c.fromToken(token, keychain, "iss", jwt.ClaimStrings{"aud2", "aud3"}, 0, false)
+		err := c.fromToken(token, keychain, "iss", jwt.ClaimStrings{"aud3", "aud4"}, 0, false)
 
 		So(err, ShouldNotBeNil)
-		So(err.Error(), ShouldEqual, "unable to parse input token: requested audience 'aud3' is not declared in initial token")
+		So(err.Error(), ShouldEqual, "unable to parse input token: requested audience '[aud3 aud4]' is not declared in initial token")
 	})
 
 	Convey("When requested token audience is empty", t, func() {

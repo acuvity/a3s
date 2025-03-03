@@ -5,7 +5,7 @@ import (
 	"io"
 	"time"
 
-	"github.com/golang-jwt/jwt/v4"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/hokaccha/go-prettyjson"
 	"github.com/mdp/qrterminal"
 )
