@@ -7,8 +7,8 @@ toolchain go1.24.0
 require (
 	go.acuvity.ai/bahamut v0.0.0-20250226152621-d4dd109ed78a
 	go.acuvity.ai/elemental v0.0.0-20250226152430-c139902eba00
-	go.acuvity.ai/manipulate v0.0.0-20250226152511-2dd5e02f0f34
-	go.acuvity.ai/regolithe v0.0.0-20250226152157-fbd9f24f9cec // indirect
+	go.acuvity.ai/manipulate v0.0.0-20250331211103-13b505fe3e16
+	go.acuvity.ai/regolithe v0.0.0-20250321141528-1fe83b60f317 // indirect
 	go.acuvity.ai/tg v0.0.0-20250220234315-d9494083aa3a
 	go.acuvity.ai/wsc v0.0.0-20250219220143-0153e5776946 // indirect
 )
