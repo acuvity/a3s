@@ -211,13 +211,13 @@ func main() {
 		}
 	}
 
-	if cfg.MTLSHeaderConf.Enabled {
-		if cfg.MTLSHeaderConf.Passphrase == "" {
+	if cfg.MTLSHeaderConf.Enabled { // nolint
+		if cfg.MTLSHeaderConf.Passphrase == "" { // nolint
 			slog.Error("You must pass --mtls-header-passphrase when --mtls-header-enabled is set")
 			os.Exit(1)
 		}
 		var cipher string
-		switch len(cfg.MTLSHeaderConf.Passphrase) {
+		switch len(cfg.MTLSHeaderConf.Passphrase) { // nolint
 		case 16:
 			cipher = "AES-128"
 		case 24:
@@ -229,7 +229,7 @@ func main() {
 			os.Exit(1)
 		}
 		slog.Info("MTLS header trust set",
-			"header", cfg.MTLSHeaderConf.HeaderKey,
+			"header", cfg.HeaderKey,
 			"cipher", cipher,
 		)
 	}
@@ -287,7 +287,7 @@ func main() {
 	}
 
 	if cfg.NATSURL == "" {
-		nserver, err := bootstrap.MakeNATSServer(&cfg.NATSPublisherConf.NATSConf)
+		nserver, err := bootstrap.MakeNATSServer(&cfg.NATSConf)
 		if err != nil {
 			slog.Error("Unable to make nats server", err)
 			os.Exit(1)
@@ -401,7 +401,7 @@ func main() {
 		)
 	}
 
-	privateAPIURL := cfg.APIServerConf.PrivateAPIURL
+	privateAPIURL := cfg.PrivateAPIURL
 	if privateAPIURL == "" {
 		privateAPIURL = publicAPIURL
 	}
@@ -496,30 +496,30 @@ func main() {
 		slog.Info("OID source set", "name", oidSourceName, "namespace", oidSourceNamespace)
 	}
 
-	if cfg.MTLSHeaderConf.HeaderForceHeaderKey != "" {
+	if cfg.HeaderForceHeaderKey != "" {
 		slog.Info("MTLS from header force configured",
-			"header", cfg.MTLSHeaderConf.HeaderForceHeaderKey,
-			"value", cfg.MTLSHeaderConf.HeaderForceHeaderValue,
+			"header", cfg.HeaderForceHeaderKey,
+			"value", cfg.HeaderForceHeaderValue,
 		)
 	}
 
 	bahamut.RegisterProcessorOrDie(server,
-		processors.NewIssueProcessor(
+		processors.NewIssueProcessor( // nolint
 			m,
 			jwks,
-			cfg.JWT.JWTDefaultValidity,
-			cfg.JWT.JWTMaxValidity,
-			cfg.JWT.JWTIssuer,
-			cfg.JWT.JWTAudience,
-			cfg.JWT.JWTForbiddenOpaqueKeys,
-			cfg.JWT.JWTWaiveValiditySecret,
+			cfg.JWT.JWTDefaultValidity,     // nolint
+			cfg.JWT.JWTMaxValidity,         // nolint
+			cfg.JWT.JWTIssuer,              // nolint
+			cfg.JWT.JWTAudience,            // nolint
+			cfg.JWT.JWTForbiddenOpaqueKeys, // nolint
+			cfg.JWT.JWTWaiveValiditySecret, // nolint
 			cookiePolicy,
 			cookieDomain,
-			cfg.MTLSHeaderConf.Enabled,
-			cfg.MTLSHeaderConf.HeaderKey,
-			cfg.MTLSHeaderConf.Passphrase,
-			cfg.MTLSHeaderConf.HeaderForceHeaderKey,
-			cfg.MTLSHeaderConf.HeaderForceHeaderValue,
+			cfg.MTLSHeaderConf.Enabled,              // nolint
+			cfg.MTLSHeaderConf.HeaderKey,            // nolint
+			cfg.MTLSHeaderConf.Passphrase,           // nolint
+			cfg.MTLSHeaderConf.HeaderForceHeaderKey, // nolint
+			cfg.MTLSHeaderConf.HeaderForceHeaderValue, // nolint
 			pluginModifier,
 			binaryModifier,
 			oidSourceName,
@@ -606,15 +606,17 @@ func errorTransformer(err error) error {
 	}
 
 	for ierr := errors.Unwrap(err); ierr != nil; ierr = errors.Unwrap(ierr) {
-		if e, ok := ierr.(elemental.Error); ok {
+		var e elemental.Error
+		if errors.As(ierr, &e) {
 			e.Description = strings.SplitN(err.Error(), e.Error(), 2)[0] + e.Description
 			err = e
 			break
 		}
 
-		if e, ok := ierr.(elemental.Errors); ok {
-			e[0].Description = strings.SplitN(err.Error(), e[0].Error(), 2)[0] + e[0].Description
-			err = e
+		var ee elemental.Errors
+		if errors.As(ierr, &ee) {
+			ee[0].Description = strings.SplitN(err.Error(), ee[0].Error(), 2)[0] + ee[0].Description
+			err = ee
 			break
 		}
 	}

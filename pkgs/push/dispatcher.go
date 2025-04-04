@@ -108,7 +108,7 @@ func (g *dispatcher) ShouldDispatch(session bahamut.PushSession, event *elementa
 
 	// If the object is in a parent namespace or in a child namespace
 	// and it's not in recursive mode, we don't push unless it is propagating.
-	if !(isFromCurrentNS || (isFromChildNS && isRecursive)) {
+	if !(isFromCurrentNS || (isFromChildNS && isRecursive)) { // nolint
 
 		// If the object is not from a parent NS, we don't push.
 		if !isFromParentNS {

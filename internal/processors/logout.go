@@ -82,7 +82,7 @@ func (p *LogoutProcessor) ProcessCreate(bctx bahamut.Context) error {
 			),
 			revocation,
 		); err != nil {
-			return fmt.Errorf("Unable to revoke token: %w", err)
+			return fmt.Errorf("unable to revoke token: %w", err)
 		}
 
 		slog.Info("Revoked token after logout", "ns", namespace, "jti", idt.ID)

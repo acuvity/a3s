@@ -123,7 +123,7 @@ func (c *ldapIssuer) retrieveEntry(username string, password string) (*ldap.Entr
 		0,
 		0,
 		false,
-		fmt.Sprintf("(&(%s))", strings.Replace(c.source.BindSearchFilter, "{USERNAME}", username, -1)),
+		fmt.Sprintf("(&(%s))", strings.ReplaceAll(c.source.BindSearchFilter, "{USERNAME}", username)),
 		nil,
 		nil,
 	)

@@ -51,13 +51,14 @@ func (*gitlab) RetrieveClaims(client *http.Client) ([]string, error) {
 	// Get login
 	r, err := http.NewRequest(http.MethodGet, "https://gitlab.com/oauth/userinfo", nil)
 	if err != nil {
-		return nil, fmt.Errorf("gitlab: unable to retrieve user data: %s", err)
+		return nil, fmt.Errorf("gitlab: unable to retrieve user data: %w", err)
 	}
 
 	resp, err := client.Do(r)
 	if err != nil {
 		return nil, fmt.Errorf("gitlab: unable to send request to retrieve user data: %w", err)
 	}
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("gitlab: unable to send request to retrieve user data: %s", resp.Status)
@@ -95,13 +96,14 @@ func (*gitlab) RetrieveClaims(client *http.Client) ([]string, error) {
 	// Get emails
 	r, err = http.NewRequest(http.MethodGet, "https://gitlab.com/api/v4/user/emails", nil)
 	if err != nil {
-		return nil, fmt.Errorf("gitlab: unable to retrieve user emails: %s", err)
+		return nil, fmt.Errorf("gitlab: unable to retrieve user emails: %w", err)
 	}
 
 	resp, err = client.Do(r)
 	if err != nil {
 		return nil, fmt.Errorf("gitlab: unable to send request to retrieve user emails: %w", err)
 	}
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("gitlab: unable to send request to retrieve user emails: %s", resp.Status)

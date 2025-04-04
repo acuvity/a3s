@@ -123,7 +123,7 @@ func TestNewRemoteJWKS(t *testing.T) {
 		So(err, ShouldNotBeNil)
 		So(errors.As(err, &ErrJWKSRemote{}), ShouldBeTrue)
 		So(err.Error(), ShouldEqual, `remote jwks error: unable to build request: net/http: nil Context`)
-		So(err.(ErrJWKSRemote).Unwrap().Error(), ShouldEqual, `unable to build request: net/http: nil Context`)
+		So(err.(ErrJWKSRemote).Unwrap().Error(), ShouldEqual, `unable to build request: net/http: nil Context`) // nolint
 	})
 
 	Convey("Given I call the function pointing to a non existing server", t, func() {

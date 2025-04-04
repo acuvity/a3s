@@ -45,13 +45,14 @@ func (*huggingface) RetrieveClaims(client *http.Client) ([]string, error) {
 	// Get login
 	r, err := http.NewRequest(http.MethodGet, "https://huggingface.co/oauth/userinfo", nil)
 	if err != nil {
-		return nil, fmt.Errorf("huggingface: unable to retrieve user data: %s", err)
+		return nil, fmt.Errorf("huggingface: unable to retrieve user data: %w", err)
 	}
 
 	resp, err := client.Do(r)
 	if err != nil {
 		return nil, fmt.Errorf("huggingface: unable to send request to retrieve user data: %w", err)
 	}
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("huggingface: unable to send request to retrieve user data: %s", resp.Status)

@@ -134,7 +134,7 @@ func Initialize(conf Configurable) {
 	// Clean up all secrets
 	if p, ok := conf.(EnvPrexixer); ok {
 		for _, key := range secretFlags {
-			env := strings.Replace(strings.ToUpper(p.Prefix()+"_"+key), "-", "_", -1)
+			env := strings.ReplaceAll(strings.ToUpper(p.Prefix()+"_"+key), "-", "_")
 			if err := os.Unsetenv(env); err != nil {
 				panic("Unable to unset secret env variable " + env)
 			}

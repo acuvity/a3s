@@ -108,6 +108,7 @@ func InjectRemoteIDPMetadata(source *api.SAMLSource, cache *ccache.Cache[string]
 		if err != nil {
 			return fmt.Errorf("unable to retrieve IDP Metadata from SAML source '%s' in namespace '%s': %w", source.Name, source.Namespace, err)
 		}
+		defer func() { _ = resp.Body.Close() }()
 
 		if resp.StatusCode != http.StatusOK {
 			return fmt.Errorf("IDP Metdata server returned an error from SAML source '%s' in namespace '%s': %s", source.Name, source.Namespace, resp.Status)

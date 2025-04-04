@@ -49,6 +49,7 @@ func (c *gcpIssuer) fromToken(tokenString string, audience string) (err error) {
 	if err != nil {
 		return err
 	}
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("invalid status code returned: %d", resp.StatusCode)

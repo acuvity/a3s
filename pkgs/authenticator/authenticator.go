@@ -149,7 +149,7 @@ func (a *Authenticator) handleFederatedToken(ctx context.Context, tokenString st
 	// Parse the token to extract the issuer.
 	uidt, err := token.ParseUnverified(tokenString)
 	if err != nil {
-		return nil, "", fmt.Errorf("Unable to parse input token: %w", err)
+		return nil, "", fmt.Errorf("unable to parse input token: %w", err)
 	}
 
 	// If the issuer is the local one, we stop.
@@ -181,13 +181,13 @@ func (a *Authenticator) handleFederatedToken(ctx context.Context, tokenString st
 	pool := remoteIssuer.Pool
 	if pool == nil {
 		if pool, err = x509.SystemCertPool(); err != nil {
-			return nil, "", fmt.Errorf("Unable to pull system cert pool: %w", err)
+			return nil, "", fmt.Errorf("unable to pull system cert pool: %w", err)
 		}
 	}
 
 	// We go fetch the JWKS.
 	if jwks, err = token.JWKSFromTokenIssuer(ctx, uidt, &tls.Config{RootCAs: pool, MinVersion: tls.VersionTLS13}); err != nil {
-		return nil, "", fmt.Errorf("Unable to retrieve remote jwks: %w", err)
+		return nil, "", fmt.Errorf("unable to retrieve remote jwks: %w", err)
 	}
 
 	// And we cache it.

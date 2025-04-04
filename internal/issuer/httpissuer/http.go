@@ -93,6 +93,7 @@ func (c *httpIssuer) fromCredentials(ctx context.Context, creds Credentials) err
 	if err != nil {
 		return ErrHTTP{Err: fmt.Errorf("unable to send request: %w", err)}
 	}
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK {
 		return ErrHTTPResponse{Err: fmt.Errorf("server responded with '%s'", resp.Status)}

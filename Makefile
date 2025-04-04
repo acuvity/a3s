@@ -22,26 +22,18 @@ default: lint vuln test a3s cli
 lint:
 	golangci-lint run \
 		--timeout=5m \
-		--disable-all \
-		--exclude-use-default=false \
-		--exclude=dot-imports \
-		--exclude=package-comments \
-		--exclude=unused-parameter \
-		--exclude=dot-imports \
+		--disable=govet  \
 		--enable=errcheck \
-		--enable=goimports \
 		--enable=ineffassign \
-		--enable=revive \
 		--enable=unused \
-		--enable=staticcheck \
 		--enable=unconvert \
 		--enable=misspell \
 		--enable=prealloc \
 		--enable=nakedret \
-		--enable=typecheck \
 		--enable=unparam \
-		--enable=gosimple \
 		--enable=nilerr \
+		--enable=bodyclose \
+		--enable=errorlint \
 		./...
 
 
