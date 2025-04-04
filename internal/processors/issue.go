@@ -333,6 +333,7 @@ func (p *IssueProcessor) ProcessCreate(bctx bahamut.Context) (err error) {
 	}
 
 	req.Validity = time.Until(idt.ExpiresAt.Time).Round(time.Second).String()
+	req.WaiveValiditySecret = ""
 	req.ExpirationTime = idt.ExpiresAt.Time
 	req.Claims = idt.Identity
 	req.InputLDAP = nil
