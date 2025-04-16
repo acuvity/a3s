@@ -2,6 +2,7 @@ package claims
 
 import (
 	"fmt"
+	"net/mail"
 	"strings"
 )
 
@@ -112,7 +113,7 @@ func Split(tag string, key *string, value *string) (err error) {
 		return
 	}
 
-	for i := 0; i < l; i++ {
+	for i := range l {
 		if tag[i] == '=' {
 			if i+1 >= l {
 				return fmt.Errorf("invalid tag: missing value '%s'", tag)
@@ -141,4 +142,42 @@ func ToMap(claims []string) (Map, error) {
 	}
 
 	return claimsMap, nil
+}
+
+// Email tries to find an email in the claims.
+func Email(claims Map) string {
+
+	options := []string{
+		"http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name",
+		"preferred_username",
+		"nameid",
+		"email",
+	}
+
+	isEmail := func(email string) bool {
+		if email == "" {
+			return false
+		}
+		_, err := mail.ParseAddress(email)
+		return err == nil
+	}
+
+	for _, opt := range options {
+		vv := claims[opt]
+		for _, v := range vv {
+			if isEmail(v) {
+				return v
+			}
+		}
+	}
+
+	for _, vv := range claims {
+		for _, v := range vv {
+			if isEmail(v) {
+				return v
+			}
+		}
+	}
+
+	return ""
 }

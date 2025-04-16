@@ -163,3 +163,92 @@ func TestFilter(t *testing.T) {
 		})
 	}
 }
+
+func TestEmail(t *testing.T) {
+	type args struct {
+		claims Map
+	}
+	tests := []struct {
+		name string
+		args args
+		want string
+	}{
+		{
+			"no email found",
+			args{
+				claims: Map{
+					"a": {"b"},
+					"b": {"c"},
+				},
+			},
+			"",
+		},
+		{
+			"use saml claim",
+			args{
+				claims: Map{
+					"http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name": {"b@b.fr"},
+					"b": {"c"},
+				},
+			},
+			"b@b.fr",
+		},
+		{
+			"use preferred_username",
+			args{
+				claims: Map{
+					"preferred_username": {"b@b.fr"},
+					"b":                  {"c"},
+				},
+			},
+			"b@b.fr",
+		},
+		{
+			"use nameid",
+			args{
+				claims: Map{
+					"x":      {"c@c.fr"},
+					"nameid": {"b@b.fr"},
+				},
+			},
+			"b@b.fr",
+		},
+		{
+			"use email",
+			args{
+				claims: Map{
+					"x":     {"c@c.fr"},
+					"email": {"b@b.fr"},
+				},
+			},
+			"b@b.fr",
+		},
+		{
+			"multiple values with email",
+			args{
+				claims: Map{
+					"x": {"a", "c@c.fr"},
+				},
+			},
+			"c@c.fr",
+		},
+		{
+			"random search",
+			args{
+				claims: Map{
+					"y": {"y"},
+					"z": {"z"},
+					"x": {"b@b.fr"},
+				},
+			},
+			"b@b.fr",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := Email(tt.args.claims); got != tt.want {
+				t.Errorf("Email() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
