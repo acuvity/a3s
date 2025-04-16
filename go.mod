@@ -1,8 +1,8 @@
 module go.acuvity.ai/a3s
 
-go 1.23.0
+go 1.24
 
-toolchain go1.24.0
+toolchain go1.24.2
 
 require (
 	go.acuvity.ai/bahamut v0.0.0-20250226152621-d4dd109ed78a
@@ -76,7 +76,7 @@ require (
 	github.com/go-git/gcfg v1.5.1-0.20230307220236-3a3c6141e376 // indirect
 	github.com/go-git/go-billy/v5 v5.6.1 // indirect
 	github.com/go-git/go-git/v5 v5.13.1 // indirect
-	github.com/go-jose/go-jose/v4 v4.0.2 // indirect
+	github.com/go-jose/go-jose/v4 v4.1.0 // indirect
 	github.com/go-ole/go-ole v1.2.6 // indirect
 	github.com/go-zoo/bone v1.3.0 // indirect
 	github.com/golang/groupcache v0.0.0-20241129210726-2c02b8208cf8 // indirect
