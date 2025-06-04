@@ -133,8 +133,9 @@ func TestHash(t *testing.T) {
 
 func Test_sanitize(t *testing.T) {
 	type args struct {
-		obj     Importable
-		manager elemental.ModelManager
+		restName string
+		obj      Importable
+		manager  elemental.ModelManager
 	}
 	tests := []struct {
 		name string
@@ -155,6 +156,7 @@ func Test_sanitize(t *testing.T) {
 				obj.CreateTime = time.Now()
 				obj.Namespace = "should not be removed because its used to computed hash"
 				return args{
+					obj.Identity().Name,
 					obj,
 					api.Manager(),
 				}
@@ -179,6 +181,7 @@ func Test_sanitize(t *testing.T) {
 				obj.Namespace = "should not be removed because its used to computed hash"
 				obj.Modifier = api.NewIdentityModifier()
 				return args{
+					obj.Identity().Name,
 					obj,
 					api.Manager(),
 				}
@@ -204,6 +207,7 @@ func Test_sanitize(t *testing.T) {
 				obj.Modifier = api.NewIdentityModifier()
 				obj.Modifier.Certificate = "cert"
 				return args{
+					obj.Identity().Name,
 					obj,
 					api.Manager(),
 				}
@@ -231,6 +235,7 @@ func Test_sanitize(t *testing.T) {
 				obj.Namespace = "should not be removed because its used to computed hash"
 				obj.SecurityProtocol = api.LDAPSourceSecurityProtocolTLS
 				return args{
+					obj.Identity().Name,
 					obj,
 					api.Manager(),
 				}
@@ -255,6 +260,7 @@ func Test_sanitize(t *testing.T) {
 				obj.Namespace = "should not be removed because its used to computed hash"
 				obj.SecurityProtocol = api.LDAPSourceSecurityProtocolInbandTLS
 				return args{
+					obj.Identity().Name,
 					obj,
 					api.Manager(),
 				}
@@ -274,7 +280,7 @@ func Test_sanitize(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			tArgs := tt.args(t)
 
-			got1, err := sanitize(tArgs.obj, tArgs.manager)
+			got1, err := sanitize(tArgs.restName, tArgs.obj, tArgs.manager)
 
 			if !reflect.DeepEqual(got1, tt.want1) {
 				t.Errorf("sanitize got1 = %v, want1: %v", got1, tt.want1)
