@@ -6,7 +6,7 @@
   "$modelPackage": "a3s",
   "$modelResourceName": "authz",
   "$modelRestName": "authz",
-  "additionalProperties": true,
+  "additionalProperties": false,
   "description": "API to verify permissions.",
   "properties": {
     "ID": {

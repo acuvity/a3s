@@ -11,7 +11,7 @@
   "$modelPackage": "a3s",
   "$modelResourceName": "namespaces",
   "$modelRestName": "namespace",
-  "additionalProperties": true,
+  "additionalProperties": false,
   "description": "A namespace is grouping object. Every object is part of a namespace, and every request is made against a namespace. Namespaces form a tree hierarchy.",
   "properties": {
     "ID": {

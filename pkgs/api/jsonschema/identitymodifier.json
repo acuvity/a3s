@@ -6,7 +6,7 @@
   "$modelPackage": "a3s",
   "$modelResourceName": "identitymodifier",
   "$modelRestName": "identitymodifier",
-  "additionalProperties": true,
+  "additionalProperties": false,
   "description": "Information about a remote endpoint to call to eventually modify the identity claims about to be issued when using the parent source.",
   "properties": {
     "CA": {

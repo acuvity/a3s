@@ -5,6 +5,7 @@ package api
 
 import (
 	"fmt"
+	"slices"
 	"time"
 
 	"github.com/globalsign/mgo/bson"
@@ -49,14 +50,14 @@ func (o OAuth2SourcesList) Identity() elemental.Identity {
 // Copy returns a pointer to a copy the OAuth2SourcesList.
 func (o OAuth2SourcesList) Copy() elemental.Identifiables {
 
-	out := append(OAuth2SourcesList{}, o...)
+	out := slices.Clone(o)
 	return &out
 }
 
 // Append appends the objects to the a new copy of the OAuth2SourcesList.
 func (o OAuth2SourcesList) Append(objects ...elemental.Identifiable) elemental.Identifiables {
 
-	out := append(OAuth2SourcesList{}, o...)
+	out := slices.Clone(o)
 	for _, obj := range objects {
 		out = append(out, obj.(*OAuth2Source))
 	}
@@ -68,7 +69,7 @@ func (o OAuth2SourcesList) Append(objects ...elemental.Identifiable) elemental.I
 func (o OAuth2SourcesList) List() elemental.IdentifiablesList {
 
 	out := make(elemental.IdentifiablesList, len(o))
-	for i := 0; i < len(o); i++ {
+	for i := range len(o) {
 		out[i] = o[i]
 	}
 
@@ -86,7 +87,7 @@ func (o OAuth2SourcesList) DefaultOrder() []string {
 func (o OAuth2SourcesList) ToSparse(fields ...string) elemental.Identifiables {
 
 	out := make(SparseOAuth2SourcesList, len(o))
-	for i := 0; i < len(o); i++ {
+	for i := range len(o) {
 		out[i] = o[i].ToSparse(fields...).(*SparseOAuth2Source)
 	}
 
@@ -1190,14 +1191,14 @@ func (o SparseOAuth2SourcesList) Identity() elemental.Identity {
 // Copy returns a pointer to a copy the SparseOAuth2SourcesList.
 func (o SparseOAuth2SourcesList) Copy() elemental.Identifiables {
 
-	copy := append(SparseOAuth2SourcesList{}, o...)
+	copy := slices.Clone(o)
 	return &copy
 }
 
 // Append appends the objects to the a new copy of the SparseOAuth2SourcesList.
 func (o SparseOAuth2SourcesList) Append(objects ...elemental.Identifiable) elemental.Identifiables {
 
-	out := append(SparseOAuth2SourcesList{}, o...)
+	out := slices.Clone(o)
 	for _, obj := range objects {
 		out = append(out, obj.(*SparseOAuth2Source))
 	}
@@ -1209,7 +1210,7 @@ func (o SparseOAuth2SourcesList) Append(objects ...elemental.Identifiable) eleme
 func (o SparseOAuth2SourcesList) List() elemental.IdentifiablesList {
 
 	out := make(elemental.IdentifiablesList, len(o))
-	for i := 0; i < len(o); i++ {
+	for i := range len(o) {
 		out[i] = o[i]
 	}
 
@@ -1226,7 +1227,7 @@ func (o SparseOAuth2SourcesList) DefaultOrder() []string {
 func (o SparseOAuth2SourcesList) ToPlain() elemental.IdentifiablesList {
 
 	out := make(elemental.IdentifiablesList, len(o))
-	for i := 0; i < len(o); i++ {
+	for i := range len(o) {
 		out[i] = o[i].ToPlain()
 	}
 

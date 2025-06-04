@@ -6,7 +6,7 @@
   "$modelPackage": "a3s",
   "$modelResourceName": "issuea3s",
   "$modelRestName": "issuea3s",
-  "additionalProperties": true,
+  "additionalProperties": false,
   "description": "Additional issuing information for A3S token source.",
   "properties": {
     "token": {

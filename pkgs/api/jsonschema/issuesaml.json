@@ -6,7 +6,7 @@
   "$modelPackage": "a3s",
   "$modelResourceName": "issuesaml",
   "$modelRestName": "issuesaml",
-  "additionalProperties": true,
+  "additionalProperties": false,
   "description": "Additional issuing information for the SAML source.",
   "properties": {
     "SAMLResponse": {

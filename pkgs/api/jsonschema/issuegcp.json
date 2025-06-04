@@ -6,7 +6,7 @@
   "$modelPackage": "a3s",
   "$modelResourceName": "issuegcp",
   "$modelRestName": "issuegcp",
-  "additionalProperties": true,
+  "additionalProperties": false,
   "description": "Additional issuing information for GCP identity token source.",
   "properties": {
     "audience": {

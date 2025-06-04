@@ -12,7 +12,7 @@
   "$modelPackage": "a3s",
   "$modelResourceName": "mtlssources",
   "$modelRestName": "mtlssource",
-  "additionalProperties": true,
+  "additionalProperties": false,
   "description": "An MTLS Auth source can be used to issue tokens based on user certificates.",
   "properties": {
     "CA": {

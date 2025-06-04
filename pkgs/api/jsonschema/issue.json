@@ -6,7 +6,7 @@
   "$modelPackage": "authn",
   "$modelResourceName": "issue",
   "$modelRestName": "issue",
-  "additionalProperties": true,
+  "additionalProperties": false,
   "description": "Issues a new a normalized token using various authentication sources.",
   "properties": {
     "audience": {

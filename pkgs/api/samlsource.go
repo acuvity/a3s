@@ -5,6 +5,7 @@ package api
 
 import (
 	"fmt"
+	"slices"
 	"time"
 
 	"github.com/globalsign/mgo/bson"
@@ -32,14 +33,14 @@ func (o SAMLSourcesList) Identity() elemental.Identity {
 // Copy returns a pointer to a copy the SAMLSourcesList.
 func (o SAMLSourcesList) Copy() elemental.Identifiables {
 
-	out := append(SAMLSourcesList{}, o...)
+	out := slices.Clone(o)
 	return &out
 }
 
 // Append appends the objects to the a new copy of the SAMLSourcesList.
 func (o SAMLSourcesList) Append(objects ...elemental.Identifiable) elemental.Identifiables {
 
-	out := append(SAMLSourcesList{}, o...)
+	out := slices.Clone(o)
 	for _, obj := range objects {
 		out = append(out, obj.(*SAMLSource))
 	}
@@ -51,7 +52,7 @@ func (o SAMLSourcesList) Append(objects ...elemental.Identifiable) elemental.Ide
 func (o SAMLSourcesList) List() elemental.IdentifiablesList {
 
 	out := make(elemental.IdentifiablesList, len(o))
-	for i := 0; i < len(o); i++ {
+	for i := range len(o) {
 		out[i] = o[i]
 	}
 
@@ -69,7 +70,7 @@ func (o SAMLSourcesList) DefaultOrder() []string {
 func (o SAMLSourcesList) ToSparse(fields ...string) elemental.Identifiables {
 
 	out := make(SparseSAMLSourcesList, len(o))
-	for i := 0; i < len(o); i++ {
+	for i := range len(o) {
 		out[i] = o[i].ToSparse(fields...).(*SparseSAMLSource)
 	}
 
@@ -1267,14 +1268,14 @@ func (o SparseSAMLSourcesList) Identity() elemental.Identity {
 // Copy returns a pointer to a copy the SparseSAMLSourcesList.
 func (o SparseSAMLSourcesList) Copy() elemental.Identifiables {
 
-	copy := append(SparseSAMLSourcesList{}, o...)
+	copy := slices.Clone(o)
 	return &copy
 }
 
 // Append appends the objects to the a new copy of the SparseSAMLSourcesList.
 func (o SparseSAMLSourcesList) Append(objects ...elemental.Identifiable) elemental.Identifiables {
 
-	out := append(SparseSAMLSourcesList{}, o...)
+	out := slices.Clone(o)
 	for _, obj := range objects {
 		out = append(out, obj.(*SparseSAMLSource))
 	}
@@ -1286,7 +1287,7 @@ func (o SparseSAMLSourcesList) Append(objects ...elemental.Identifiable) element
 func (o SparseSAMLSourcesList) List() elemental.IdentifiablesList {
 
 	out := make(elemental.IdentifiablesList, len(o))
-	for i := 0; i < len(o); i++ {
+	for i := range len(o) {
 		out[i] = o[i]
 	}
 
@@ -1303,7 +1304,7 @@ func (o SparseSAMLSourcesList) DefaultOrder() []string {
 func (o SparseSAMLSourcesList) ToPlain() elemental.IdentifiablesList {
 
 	out := make(elemental.IdentifiablesList, len(o))
-	for i := 0; i < len(o); i++ {
+	for i := range len(o) {
 		out[i] = o[i].ToPlain()
 	}
 

@@ -5,6 +5,7 @@ package api
 
 import (
 	"fmt"
+	"slices"
 
 	"github.com/globalsign/mgo/bson"
 	"github.com/mitchellh/copystructure"
@@ -31,14 +32,14 @@ func (o LogoutsList) Identity() elemental.Identity {
 // Copy returns a pointer to a copy the LogoutsList.
 func (o LogoutsList) Copy() elemental.Identifiables {
 
-	out := append(LogoutsList{}, o...)
+	out := slices.Clone(o)
 	return &out
 }
 
 // Append appends the objects to the a new copy of the LogoutsList.
 func (o LogoutsList) Append(objects ...elemental.Identifiable) elemental.Identifiables {
 
-	out := append(LogoutsList{}, o...)
+	out := slices.Clone(o)
 	for _, obj := range objects {
 		out = append(out, obj.(*Logout))
 	}
@@ -50,7 +51,7 @@ func (o LogoutsList) Append(objects ...elemental.Identifiable) elemental.Identif
 func (o LogoutsList) List() elemental.IdentifiablesList {
 
 	out := make(elemental.IdentifiablesList, len(o))
-	for i := 0; i < len(o); i++ {
+	for i := range len(o) {
 		out[i] = o[i]
 	}
 
@@ -68,7 +69,7 @@ func (o LogoutsList) DefaultOrder() []string {
 func (o LogoutsList) ToSparse(fields ...string) elemental.Identifiables {
 
 	out := make(SparseLogoutsList, len(o))
-	for i := 0; i < len(o); i++ {
+	for i := range len(o) {
 		out[i] = o[i].ToSparse(fields...).(*SparseLogout)
 	}
 
@@ -279,14 +280,14 @@ func (o SparseLogoutsList) Identity() elemental.Identity {
 // Copy returns a pointer to a copy the SparseLogoutsList.
 func (o SparseLogoutsList) Copy() elemental.Identifiables {
 
-	copy := append(SparseLogoutsList{}, o...)
+	copy := slices.Clone(o)
 	return &copy
 }
 
 // Append appends the objects to the a new copy of the SparseLogoutsList.
 func (o SparseLogoutsList) Append(objects ...elemental.Identifiable) elemental.Identifiables {
 
-	out := append(SparseLogoutsList{}, o...)
+	out := slices.Clone(o)
 	for _, obj := range objects {
 		out = append(out, obj.(*SparseLogout))
 	}
@@ -298,7 +299,7 @@ func (o SparseLogoutsList) Append(objects ...elemental.Identifiable) elemental.I
 func (o SparseLogoutsList) List() elemental.IdentifiablesList {
 
 	out := make(elemental.IdentifiablesList, len(o))
-	for i := 0; i < len(o); i++ {
+	for i := range len(o) {
 		out[i] = o[i]
 	}
 
@@ -315,7 +316,7 @@ func (o SparseLogoutsList) DefaultOrder() []string {
 func (o SparseLogoutsList) ToPlain() elemental.IdentifiablesList {
 
 	out := make(elemental.IdentifiablesList, len(o))
-	for i := 0; i < len(o); i++ {
+	for i := range len(o) {
 		out[i] = o[i].ToPlain()
 	}
 

@@ -12,7 +12,7 @@
   "$modelPackage": "a3s",
   "$modelResourceName": "httpsources",
   "$modelRestName": "httpsource",
-  "additionalProperties": true,
+  "additionalProperties": false,
   "description": "A source that can call a remote service to validate generic credentials.",
   "properties": {
     "CA": {

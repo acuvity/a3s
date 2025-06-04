@@ -12,7 +12,7 @@
   "$modelPackage": "a3s",
   "$modelResourceName": "samlsources",
   "$modelRestName": "samlsource",
-  "additionalProperties": true,
+  "additionalProperties": false,
   "description": "Defines a remote SAML to use as an authentication source.",
   "properties": {
     "ID": {

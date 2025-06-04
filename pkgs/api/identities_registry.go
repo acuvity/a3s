@@ -397,6 +397,35 @@ func (f modelManager) AllIdentities() []elemental.Identity {
 	return AllIdentities()
 }
 
+func (f modelManager) DetachedFromString(name string) any {
+
+	switch name {
+
+	case "issuea3s", "IssueA3S":
+		return NewIssueA3S()
+	case "issueaws", "IssueAWS":
+		return NewIssueAWS()
+	case "issueazure", "IssueAzure":
+		return NewIssueAzure()
+	case "issuegcp", "IssueGCP":
+		return NewIssueGCP()
+	case "issuehttp", "IssueHTTP":
+		return NewIssueHTTP()
+	case "issueldap", "IssueLDAP":
+		return NewIssueLDAP()
+	case "issueoauth2", "IssueOAuth2":
+		return NewIssueOAuth2()
+	case "issueoidc", "IssueOIDC":
+		return NewIssueOIDC()
+	case "issueremotea3s", "IssueRemoteA3S":
+		return NewIssueRemoteA3S()
+	case "issuesaml", "IssueSAML":
+		return NewIssueSAML()
+	default:
+		return nil
+	}
+}
+
 var manager = modelManager{}
 
 // Manager returns the model elemental.ModelManager.

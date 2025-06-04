@@ -5,6 +5,7 @@ package api
 
 import (
 	"fmt"
+	"slices"
 	"time"
 
 	"github.com/globalsign/mgo/bson"
@@ -32,14 +33,14 @@ func (o NamespacesList) Identity() elemental.Identity {
 // Copy returns a pointer to a copy the NamespacesList.
 func (o NamespacesList) Copy() elemental.Identifiables {
 
-	out := append(NamespacesList{}, o...)
+	out := slices.Clone(o)
 	return &out
 }
 
 // Append appends the objects to the a new copy of the NamespacesList.
 func (o NamespacesList) Append(objects ...elemental.Identifiable) elemental.Identifiables {
 
-	out := append(NamespacesList{}, o...)
+	out := slices.Clone(o)
 	for _, obj := range objects {
 		out = append(out, obj.(*Namespace))
 	}
@@ -51,7 +52,7 @@ func (o NamespacesList) Append(objects ...elemental.Identifiable) elemental.Iden
 func (o NamespacesList) List() elemental.IdentifiablesList {
 
 	out := make(elemental.IdentifiablesList, len(o))
-	for i := 0; i < len(o); i++ {
+	for i := range len(o) {
 		out[i] = o[i]
 	}
 
@@ -69,7 +70,7 @@ func (o NamespacesList) DefaultOrder() []string {
 func (o NamespacesList) ToSparse(fields ...string) elemental.Identifiables {
 
 	out := make(SparseNamespacesList, len(o))
-	for i := 0; i < len(o); i++ {
+	for i := range len(o) {
 		out[i] = o[i].ToSparse(fields...).(*SparseNamespace)
 	}
 
@@ -895,14 +896,14 @@ func (o SparseNamespacesList) Identity() elemental.Identity {
 // Copy returns a pointer to a copy the SparseNamespacesList.
 func (o SparseNamespacesList) Copy() elemental.Identifiables {
 
-	copy := append(SparseNamespacesList{}, o...)
+	copy := slices.Clone(o)
 	return &copy
 }
 
 // Append appends the objects to the a new copy of the SparseNamespacesList.
 func (o SparseNamespacesList) Append(objects ...elemental.Identifiable) elemental.Identifiables {
 
-	out := append(SparseNamespacesList{}, o...)
+	out := slices.Clone(o)
 	for _, obj := range objects {
 		out = append(out, obj.(*SparseNamespace))
 	}
@@ -914,7 +915,7 @@ func (o SparseNamespacesList) Append(objects ...elemental.Identifiable) elementa
 func (o SparseNamespacesList) List() elemental.IdentifiablesList {
 
 	out := make(elemental.IdentifiablesList, len(o))
-	for i := 0; i < len(o); i++ {
+	for i := range len(o) {
 		out[i] = o[i]
 	}
 
@@ -931,7 +932,7 @@ func (o SparseNamespacesList) DefaultOrder() []string {
 func (o SparseNamespacesList) ToPlain() elemental.IdentifiablesList {
 
 	out := make(elemental.IdentifiablesList, len(o))
-	for i := 0; i < len(o); i++ {
+	for i := range len(o) {
 		out[i] = o[i].ToPlain()
 	}
 

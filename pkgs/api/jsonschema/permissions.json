@@ -6,7 +6,7 @@
   "$modelPackage": "a3s",
   "$modelResourceName": "permissions",
   "$modelRestName": "permissions",
-  "additionalProperties": true,
+  "additionalProperties": false,
   "description": "API to retrieve the permissions from a user identity.",
   "properties": {
     "ID": {

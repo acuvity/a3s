@@ -5,6 +5,7 @@ package api
 
 import (
 	"fmt"
+	"slices"
 	"time"
 
 	"github.com/globalsign/mgo/bson"
@@ -32,14 +33,14 @@ func (o NamespaceDeletionRecordsList) Identity() elemental.Identity {
 // Copy returns a pointer to a copy the NamespaceDeletionRecordsList.
 func (o NamespaceDeletionRecordsList) Copy() elemental.Identifiables {
 
-	out := append(NamespaceDeletionRecordsList{}, o...)
+	out := slices.Clone(o)
 	return &out
 }
 
 // Append appends the objects to the a new copy of the NamespaceDeletionRecordsList.
 func (o NamespaceDeletionRecordsList) Append(objects ...elemental.Identifiable) elemental.Identifiables {
 
-	out := append(NamespaceDeletionRecordsList{}, o...)
+	out := slices.Clone(o)
 	for _, obj := range objects {
 		out = append(out, obj.(*NamespaceDeletionRecord))
 	}
@@ -51,7 +52,7 @@ func (o NamespaceDeletionRecordsList) Append(objects ...elemental.Identifiable) 
 func (o NamespaceDeletionRecordsList) List() elemental.IdentifiablesList {
 
 	out := make(elemental.IdentifiablesList, len(o))
-	for i := 0; i < len(o); i++ {
+	for i := range len(o) {
 		out[i] = o[i]
 	}
 
@@ -69,7 +70,7 @@ func (o NamespaceDeletionRecordsList) DefaultOrder() []string {
 func (o NamespaceDeletionRecordsList) ToSparse(fields ...string) elemental.Identifiables {
 
 	out := make(SparseNamespaceDeletionRecordsList, len(o))
-	for i := 0; i < len(o); i++ {
+	for i := range len(o) {
 		out[i] = o[i].ToSparse(fields...).(*SparseNamespaceDeletionRecord)
 	}
 
@@ -520,14 +521,14 @@ func (o SparseNamespaceDeletionRecordsList) Identity() elemental.Identity {
 // Copy returns a pointer to a copy the SparseNamespaceDeletionRecordsList.
 func (o SparseNamespaceDeletionRecordsList) Copy() elemental.Identifiables {
 
-	copy := append(SparseNamespaceDeletionRecordsList{}, o...)
+	copy := slices.Clone(o)
 	return &copy
 }
 
 // Append appends the objects to the a new copy of the SparseNamespaceDeletionRecordsList.
 func (o SparseNamespaceDeletionRecordsList) Append(objects ...elemental.Identifiable) elemental.Identifiables {
 
-	out := append(SparseNamespaceDeletionRecordsList{}, o...)
+	out := slices.Clone(o)
 	for _, obj := range objects {
 		out = append(out, obj.(*SparseNamespaceDeletionRecord))
 	}
@@ -539,7 +540,7 @@ func (o SparseNamespaceDeletionRecordsList) Append(objects ...elemental.Identifi
 func (o SparseNamespaceDeletionRecordsList) List() elemental.IdentifiablesList {
 
 	out := make(elemental.IdentifiablesList, len(o))
-	for i := 0; i < len(o); i++ {
+	for i := range len(o) {
 		out[i] = o[i]
 	}
 
@@ -556,7 +557,7 @@ func (o SparseNamespaceDeletionRecordsList) DefaultOrder() []string {
 func (o SparseNamespaceDeletionRecordsList) ToPlain() elemental.IdentifiablesList {
 
 	out := make(elemental.IdentifiablesList, len(o))
-	for i := 0; i < len(o); i++ {
+	for i := range len(o) {
 		out[i] = o[i].ToPlain()
 	}
 

@@ -11,7 +11,7 @@
   "$modelPackage": "a3s",
   "$modelResourceName": "authorizations",
   "$modelRestName": "authorization",
-  "additionalProperties": true,
+  "additionalProperties": false,
   "description": "TODO.",
   "properties": {
     "ID": {

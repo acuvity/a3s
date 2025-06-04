@@ -5,6 +5,7 @@ package api
 
 import (
 	"fmt"
+	"slices"
 
 	"github.com/globalsign/mgo/bson"
 	"github.com/mitchellh/copystructure"
@@ -48,14 +49,14 @@ func (o IdentityModifiersList) Identity() elemental.Identity {
 // Copy returns a pointer to a copy the IdentityModifiersList.
 func (o IdentityModifiersList) Copy() elemental.Identifiables {
 
-	out := append(IdentityModifiersList{}, o...)
+	out := slices.Clone(o)
 	return &out
 }
 
 // Append appends the objects to the a new copy of the IdentityModifiersList.
 func (o IdentityModifiersList) Append(objects ...elemental.Identifiable) elemental.Identifiables {
 
-	out := append(IdentityModifiersList{}, o...)
+	out := slices.Clone(o)
 	for _, obj := range objects {
 		out = append(out, obj.(*IdentityModifier))
 	}
@@ -67,7 +68,7 @@ func (o IdentityModifiersList) Append(objects ...elemental.Identifiable) element
 func (o IdentityModifiersList) List() elemental.IdentifiablesList {
 
 	out := make(elemental.IdentifiablesList, len(o))
-	for i := 0; i < len(o); i++ {
+	for i := range len(o) {
 		out[i] = o[i]
 	}
 
@@ -85,7 +86,7 @@ func (o IdentityModifiersList) DefaultOrder() []string {
 func (o IdentityModifiersList) ToSparse(fields ...string) elemental.Identifiables {
 
 	out := make(SparseIdentityModifiersList, len(o))
-	for i := 0; i < len(o); i++ {
+	for i := range len(o) {
 		out[i] = o[i].ToSparse(fields...).(*SparseIdentityModifier)
 	}
 
@@ -536,14 +537,14 @@ func (o SparseIdentityModifiersList) Identity() elemental.Identity {
 // Copy returns a pointer to a copy the SparseIdentityModifiersList.
 func (o SparseIdentityModifiersList) Copy() elemental.Identifiables {
 
-	copy := append(SparseIdentityModifiersList{}, o...)
+	copy := slices.Clone(o)
 	return &copy
 }
 
 // Append appends the objects to the a new copy of the SparseIdentityModifiersList.
 func (o SparseIdentityModifiersList) Append(objects ...elemental.Identifiable) elemental.Identifiables {
 
-	out := append(SparseIdentityModifiersList{}, o...)
+	out := slices.Clone(o)
 	for _, obj := range objects {
 		out = append(out, obj.(*SparseIdentityModifier))
 	}
@@ -555,7 +556,7 @@ func (o SparseIdentityModifiersList) Append(objects ...elemental.Identifiable) e
 func (o SparseIdentityModifiersList) List() elemental.IdentifiablesList {
 
 	out := make(elemental.IdentifiablesList, len(o))
-	for i := 0; i < len(o); i++ {
+	for i := range len(o) {
 		out[i] = o[i]
 	}
 
@@ -572,7 +573,7 @@ func (o SparseIdentityModifiersList) DefaultOrder() []string {
 func (o SparseIdentityModifiersList) ToPlain() elemental.IdentifiablesList {
 
 	out := make(elemental.IdentifiablesList, len(o))
-	for i := 0; i < len(o); i++ {
+	for i := range len(o) {
 		out[i] = o[i].ToPlain()
 	}
 

@@ -6,7 +6,7 @@
   "$modelPackage": "a3s",
   "$modelResourceName": "issueoidc",
   "$modelRestName": "issueoidc",
-  "additionalProperties": true,
+  "additionalProperties": false,
   "description": "Additional issuing information for the OIDC source.",
   "properties": {
     "authURL": {

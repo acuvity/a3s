@@ -12,7 +12,7 @@
   "$modelPackage": "a3s",
   "$modelResourceName": "ldapsources",
   "$modelRestName": "ldapsource",
-  "additionalProperties": true,
+  "additionalProperties": false,
   "description": "Defines a remote LDAP to use as an authentication source.",
   "properties": {
     "CA": {

@@ -5,6 +5,7 @@ package api
 
 import (
 	"fmt"
+	"slices"
 	"time"
 
 	"github.com/globalsign/mgo/bson"
@@ -46,14 +47,14 @@ func (o LDAPSourcesList) Identity() elemental.Identity {
 // Copy returns a pointer to a copy the LDAPSourcesList.
 func (o LDAPSourcesList) Copy() elemental.Identifiables {
 
-	out := append(LDAPSourcesList{}, o...)
+	out := slices.Clone(o)
 	return &out
 }
 
 // Append appends the objects to the a new copy of the LDAPSourcesList.
 func (o LDAPSourcesList) Append(objects ...elemental.Identifiable) elemental.Identifiables {
 
-	out := append(LDAPSourcesList{}, o...)
+	out := slices.Clone(o)
 	for _, obj := range objects {
 		out = append(out, obj.(*LDAPSource))
 	}
@@ -65,7 +66,7 @@ func (o LDAPSourcesList) Append(objects ...elemental.Identifiable) elemental.Ide
 func (o LDAPSourcesList) List() elemental.IdentifiablesList {
 
 	out := make(elemental.IdentifiablesList, len(o))
-	for i := 0; i < len(o); i++ {
+	for i := range len(o) {
 		out[i] = o[i]
 	}
 
@@ -83,7 +84,7 @@ func (o LDAPSourcesList) DefaultOrder() []string {
 func (o LDAPSourcesList) ToSparse(fields ...string) elemental.Identifiables {
 
 	out := make(SparseLDAPSourcesList, len(o))
-	for i := 0; i < len(o); i++ {
+	for i := range len(o) {
 		out[i] = o[i].ToSparse(fields...).(*SparseLDAPSource)
 	}
 
@@ -1265,14 +1266,14 @@ func (o SparseLDAPSourcesList) Identity() elemental.Identity {
 // Copy returns a pointer to a copy the SparseLDAPSourcesList.
 func (o SparseLDAPSourcesList) Copy() elemental.Identifiables {
 
-	copy := append(SparseLDAPSourcesList{}, o...)
+	copy := slices.Clone(o)
 	return &copy
 }
 
 // Append appends the objects to the a new copy of the SparseLDAPSourcesList.
 func (o SparseLDAPSourcesList) Append(objects ...elemental.Identifiable) elemental.Identifiables {
 
-	out := append(SparseLDAPSourcesList{}, o...)
+	out := slices.Clone(o)
 	for _, obj := range objects {
 		out = append(out, obj.(*SparseLDAPSource))
 	}
@@ -1284,7 +1285,7 @@ func (o SparseLDAPSourcesList) Append(objects ...elemental.Identifiable) element
 func (o SparseLDAPSourcesList) List() elemental.IdentifiablesList {
 
 	out := make(elemental.IdentifiablesList, len(o))
-	for i := 0; i < len(o); i++ {
+	for i := range len(o) {
 		out[i] = o[i]
 	}
 
@@ -1301,7 +1302,7 @@ func (o SparseLDAPSourcesList) DefaultOrder() []string {
 func (o SparseLDAPSourcesList) ToPlain() elemental.IdentifiablesList {
 
 	out := make(elemental.IdentifiablesList, len(o))
-	for i := 0; i < len(o); i++ {
+	for i := range len(o) {
 		out[i] = o[i].ToPlain()
 	}
 

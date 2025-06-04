@@ -12,7 +12,7 @@
   "$modelPackage": "a3s",
   "$modelResourceName": "a3ssources",
   "$modelRestName": "a3ssource",
-  "additionalProperties": true,
+  "additionalProperties": false,
   "description": "A source allowing to trust a remote instance of A3S.",
   "properties": {
     "CA": {

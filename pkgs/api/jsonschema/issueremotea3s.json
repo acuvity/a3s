@@ -6,7 +6,7 @@
   "$modelPackage": "a3s",
   "$modelResourceName": "issueremotea3s",
   "$modelRestName": "issueremotea3s",
-  "additionalProperties": true,
+  "additionalProperties": false,
   "description": "Additional issuing information for a remote A3S token source.",
   "properties": {
     "token": {

@@ -5,6 +5,7 @@ package api
 
 import (
 	"fmt"
+	"slices"
 	"time"
 
 	"github.com/globalsign/mgo/bson"
@@ -32,14 +33,14 @@ func (o RevocationsList) Identity() elemental.Identity {
 // Copy returns a pointer to a copy the RevocationsList.
 func (o RevocationsList) Copy() elemental.Identifiables {
 
-	out := append(RevocationsList{}, o...)
+	out := slices.Clone(o)
 	return &out
 }
 
 // Append appends the objects to the a new copy of the RevocationsList.
 func (o RevocationsList) Append(objects ...elemental.Identifiable) elemental.Identifiables {
 
-	out := append(RevocationsList{}, o...)
+	out := slices.Clone(o)
 	for _, obj := range objects {
 		out = append(out, obj.(*Revocation))
 	}
@@ -51,7 +52,7 @@ func (o RevocationsList) Append(objects ...elemental.Identifiable) elemental.Ide
 func (o RevocationsList) List() elemental.IdentifiablesList {
 
 	out := make(elemental.IdentifiablesList, len(o))
-	for i := 0; i < len(o); i++ {
+	for i := range len(o) {
 		out[i] = o[i]
 	}
 
@@ -69,7 +70,7 @@ func (o RevocationsList) DefaultOrder() []string {
 func (o RevocationsList) ToSparse(fields ...string) elemental.Identifiables {
 
 	out := make(SparseRevocationsList, len(o))
-	for i := 0; i < len(o); i++ {
+	for i := range len(o) {
 		out[i] = o[i].ToSparse(fields...).(*SparseRevocation)
 	}
 
@@ -813,14 +814,14 @@ func (o SparseRevocationsList) Identity() elemental.Identity {
 // Copy returns a pointer to a copy the SparseRevocationsList.
 func (o SparseRevocationsList) Copy() elemental.Identifiables {
 
-	copy := append(SparseRevocationsList{}, o...)
+	copy := slices.Clone(o)
 	return &copy
 }
 
 // Append appends the objects to the a new copy of the SparseRevocationsList.
 func (o SparseRevocationsList) Append(objects ...elemental.Identifiable) elemental.Identifiables {
 
-	out := append(SparseRevocationsList{}, o...)
+	out := slices.Clone(o)
 	for _, obj := range objects {
 		out = append(out, obj.(*SparseRevocation))
 	}
@@ -832,7 +833,7 @@ func (o SparseRevocationsList) Append(objects ...elemental.Identifiable) element
 func (o SparseRevocationsList) List() elemental.IdentifiablesList {
 
 	out := make(elemental.IdentifiablesList, len(o))
-	for i := 0; i < len(o); i++ {
+	for i := range len(o) {
 		out[i] = o[i]
 	}
 
@@ -849,7 +850,7 @@ func (o SparseRevocationsList) DefaultOrder() []string {
 func (o SparseRevocationsList) ToPlain() elemental.IdentifiablesList {
 
 	out := make(elemental.IdentifiablesList, len(o))
-	for i := 0; i < len(o); i++ {
+	for i := range len(o) {
 		out[i] = o[i].ToPlain()
 	}
 

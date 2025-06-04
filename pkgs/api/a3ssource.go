@@ -5,6 +5,7 @@ package api
 
 import (
 	"fmt"
+	"slices"
 	"time"
 
 	"github.com/globalsign/mgo/bson"
@@ -32,14 +33,14 @@ func (o A3SSourcesList) Identity() elemental.Identity {
 // Copy returns a pointer to a copy the A3SSourcesList.
 func (o A3SSourcesList) Copy() elemental.Identifiables {
 
-	out := append(A3SSourcesList{}, o...)
+	out := slices.Clone(o)
 	return &out
 }
 
 // Append appends the objects to the a new copy of the A3SSourcesList.
 func (o A3SSourcesList) Append(objects ...elemental.Identifiable) elemental.Identifiables {
 
-	out := append(A3SSourcesList{}, o...)
+	out := slices.Clone(o)
 	for _, obj := range objects {
 		out = append(out, obj.(*A3SSource))
 	}
@@ -51,7 +52,7 @@ func (o A3SSourcesList) Append(objects ...elemental.Identifiable) elemental.Iden
 func (o A3SSourcesList) List() elemental.IdentifiablesList {
 
 	out := make(elemental.IdentifiablesList, len(o))
-	for i := 0; i < len(o); i++ {
+	for i := range len(o) {
 		out[i] = o[i]
 	}
 
@@ -69,7 +70,7 @@ func (o A3SSourcesList) DefaultOrder() []string {
 func (o A3SSourcesList) ToSparse(fields ...string) elemental.Identifiables {
 
 	out := make(SparseA3SSourcesList, len(o))
-	for i := 0; i < len(o); i++ {
+	for i := range len(o) {
 		out[i] = o[i].ToSparse(fields...).(*SparseA3SSource)
 	}
 
@@ -1098,14 +1099,14 @@ func (o SparseA3SSourcesList) Identity() elemental.Identity {
 // Copy returns a pointer to a copy the SparseA3SSourcesList.
 func (o SparseA3SSourcesList) Copy() elemental.Identifiables {
 
-	copy := append(SparseA3SSourcesList{}, o...)
+	copy := slices.Clone(o)
 	return &copy
 }
 
 // Append appends the objects to the a new copy of the SparseA3SSourcesList.
 func (o SparseA3SSourcesList) Append(objects ...elemental.Identifiable) elemental.Identifiables {
 
-	out := append(SparseA3SSourcesList{}, o...)
+	out := slices.Clone(o)
 	for _, obj := range objects {
 		out = append(out, obj.(*SparseA3SSource))
 	}
@@ -1117,7 +1118,7 @@ func (o SparseA3SSourcesList) Append(objects ...elemental.Identifiable) elementa
 func (o SparseA3SSourcesList) List() elemental.IdentifiablesList {
 
 	out := make(elemental.IdentifiablesList, len(o))
-	for i := 0; i < len(o); i++ {
+	for i := range len(o) {
 		out[i] = o[i]
 	}
 
@@ -1134,7 +1135,7 @@ func (o SparseA3SSourcesList) DefaultOrder() []string {
 func (o SparseA3SSourcesList) ToPlain() elemental.IdentifiablesList {
 
 	out := make(elemental.IdentifiablesList, len(o))
-	for i := 0; i < len(o); i++ {
+	for i := range len(o) {
 		out[i] = o[i].ToPlain()
 	}
 

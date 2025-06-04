@@ -9,7 +9,7 @@
   "$modelPackage": "a3s",
   "$modelResourceName": "namespacedeletionrecords",
   "$modelRestName": "namespacedeletionrecord",
-  "additionalProperties": true,
+  "additionalProperties": false,
   "description": "A namespace deletion record holds the namespace that was deleted and the date it was deleted.",
   "properties": {
     "ID": {

@@ -5,6 +5,7 @@ package api
 
 import (
 	"fmt"
+	"slices"
 	"time"
 
 	"github.com/globalsign/mgo/bson"
@@ -32,14 +33,14 @@ func (o MTLSSourcesList) Identity() elemental.Identity {
 // Copy returns a pointer to a copy the MTLSSourcesList.
 func (o MTLSSourcesList) Copy() elemental.Identifiables {
 
-	out := append(MTLSSourcesList{}, o...)
+	out := slices.Clone(o)
 	return &out
 }
 
 // Append appends the objects to the a new copy of the MTLSSourcesList.
 func (o MTLSSourcesList) Append(objects ...elemental.Identifiable) elemental.Identifiables {
 
-	out := append(MTLSSourcesList{}, o...)
+	out := slices.Clone(o)
 	for _, obj := range objects {
 		out = append(out, obj.(*MTLSSource))
 	}
@@ -51,7 +52,7 @@ func (o MTLSSourcesList) Append(objects ...elemental.Identifiable) elemental.Ide
 func (o MTLSSourcesList) List() elemental.IdentifiablesList {
 
 	out := make(elemental.IdentifiablesList, len(o))
-	for i := 0; i < len(o); i++ {
+	for i := range len(o) {
 		out[i] = o[i]
 	}
 
@@ -69,7 +70,7 @@ func (o MTLSSourcesList) DefaultOrder() []string {
 func (o MTLSSourcesList) ToSparse(fields ...string) elemental.Identifiables {
 
 	out := make(SparseMTLSSourcesList, len(o))
-	for i := 0; i < len(o); i++ {
+	for i := range len(o) {
 		out[i] = o[i].ToSparse(fields...).(*SparseMTLSSource)
 	}
 
@@ -1073,14 +1074,14 @@ func (o SparseMTLSSourcesList) Identity() elemental.Identity {
 // Copy returns a pointer to a copy the SparseMTLSSourcesList.
 func (o SparseMTLSSourcesList) Copy() elemental.Identifiables {
 
-	copy := append(SparseMTLSSourcesList{}, o...)
+	copy := slices.Clone(o)
 	return &copy
 }
 
 // Append appends the objects to the a new copy of the SparseMTLSSourcesList.
 func (o SparseMTLSSourcesList) Append(objects ...elemental.Identifiable) elemental.Identifiables {
 
-	out := append(SparseMTLSSourcesList{}, o...)
+	out := slices.Clone(o)
 	for _, obj := range objects {
 		out = append(out, obj.(*SparseMTLSSource))
 	}
@@ -1092,7 +1093,7 @@ func (o SparseMTLSSourcesList) Append(objects ...elemental.Identifiable) element
 func (o SparseMTLSSourcesList) List() elemental.IdentifiablesList {
 
 	out := make(elemental.IdentifiablesList, len(o))
-	for i := 0; i < len(o); i++ {
+	for i := range len(o) {
 		out[i] = o[i]
 	}
 
@@ -1109,7 +1110,7 @@ func (o SparseMTLSSourcesList) DefaultOrder() []string {
 func (o SparseMTLSSourcesList) ToPlain() elemental.IdentifiablesList {
 
 	out := make(elemental.IdentifiablesList, len(o))
-	for i := 0; i < len(o); i++ {
+	for i := range len(o) {
 		out[i] = o[i].ToPlain()
 	}
 

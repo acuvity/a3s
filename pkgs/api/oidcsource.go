@@ -5,6 +5,7 @@ package api
 
 import (
 	"fmt"
+	"slices"
 	"time"
 
 	"github.com/globalsign/mgo/bson"
@@ -32,14 +33,14 @@ func (o OIDCSourcesList) Identity() elemental.Identity {
 // Copy returns a pointer to a copy the OIDCSourcesList.
 func (o OIDCSourcesList) Copy() elemental.Identifiables {
 
-	out := append(OIDCSourcesList{}, o...)
+	out := slices.Clone(o)
 	return &out
 }
 
 // Append appends the objects to the a new copy of the OIDCSourcesList.
 func (o OIDCSourcesList) Append(objects ...elemental.Identifiable) elemental.Identifiables {
 
-	out := append(OIDCSourcesList{}, o...)
+	out := slices.Clone(o)
 	for _, obj := range objects {
 		out = append(out, obj.(*OIDCSource))
 	}
@@ -51,7 +52,7 @@ func (o OIDCSourcesList) Append(objects ...elemental.Identifiable) elemental.Ide
 func (o OIDCSourcesList) List() elemental.IdentifiablesList {
 
 	out := make(elemental.IdentifiablesList, len(o))
-	for i := 0; i < len(o); i++ {
+	for i := range len(o) {
 		out[i] = o[i]
 	}
 
@@ -69,7 +70,7 @@ func (o OIDCSourcesList) DefaultOrder() []string {
 func (o OIDCSourcesList) ToSparse(fields ...string) elemental.Identifiables {
 
 	out := make(SparseOIDCSourcesList, len(o))
-	for i := 0; i < len(o); i++ {
+	for i := range len(o) {
 		out[i] = o[i].ToSparse(fields...).(*SparseOIDCSource)
 	}
 
@@ -1171,14 +1172,14 @@ func (o SparseOIDCSourcesList) Identity() elemental.Identity {
 // Copy returns a pointer to a copy the SparseOIDCSourcesList.
 func (o SparseOIDCSourcesList) Copy() elemental.Identifiables {
 
-	copy := append(SparseOIDCSourcesList{}, o...)
+	copy := slices.Clone(o)
 	return &copy
 }
 
 // Append appends the objects to the a new copy of the SparseOIDCSourcesList.
 func (o SparseOIDCSourcesList) Append(objects ...elemental.Identifiable) elemental.Identifiables {
 
-	out := append(SparseOIDCSourcesList{}, o...)
+	out := slices.Clone(o)
 	for _, obj := range objects {
 		out = append(out, obj.(*SparseOIDCSource))
 	}
@@ -1190,7 +1191,7 @@ func (o SparseOIDCSourcesList) Append(objects ...elemental.Identifiable) element
 func (o SparseOIDCSourcesList) List() elemental.IdentifiablesList {
 
 	out := make(elemental.IdentifiablesList, len(o))
-	for i := 0; i < len(o); i++ {
+	for i := range len(o) {
 		out[i] = o[i]
 	}
 
@@ -1207,7 +1208,7 @@ func (o SparseOIDCSourcesList) DefaultOrder() []string {
 func (o SparseOIDCSourcesList) ToPlain() elemental.IdentifiablesList {
 
 	out := make(elemental.IdentifiablesList, len(o))
-	for i := 0; i < len(o); i++ {
+	for i := range len(o) {
 		out[i] = o[i].ToPlain()
 	}
 

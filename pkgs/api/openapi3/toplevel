@@ -1657,6 +1657,17 @@
         ],
         "type": "object"
       }
+    },
+    "securitySchemes": {
+      "BearerAuth": {
+        "scheme": "bearer",
+        "type": "http"
+      },
+      "NamespaceHeader": {
+        "in": "header",
+        "name": "X-Namespace",
+        "type": "apiKey"
+      }
     }
   },
   "info": {
@@ -3512,6 +3523,12 @@
       }
     }
   },
+  "security": [
+    {
+      "BearerAuth": [],
+      "NamespaceHeader": []
+    }
+  ],
   "servers": [
     {
       "url": "https://api.acuvity.ai"

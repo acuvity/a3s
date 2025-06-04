@@ -10,7 +10,7 @@
   "$modelPackage": "a3s",
   "$modelResourceName": "revocations",
   "$modelRestName": "revocation",
-  "additionalProperties": true,
+  "additionalProperties": false,
   "description": "A Revocation allows to mark a token as revoked based on its ID (jti).",
   "properties": {
     "ID": {

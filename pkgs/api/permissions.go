@@ -5,6 +5,7 @@ package api
 
 import (
 	"fmt"
+	"slices"
 
 	"github.com/globalsign/mgo/bson"
 	"github.com/mitchellh/copystructure"
@@ -31,14 +32,14 @@ func (o PermissionsList) Identity() elemental.Identity {
 // Copy returns a pointer to a copy the PermissionsList.
 func (o PermissionsList) Copy() elemental.Identifiables {
 
-	out := append(PermissionsList{}, o...)
+	out := slices.Clone(o)
 	return &out
 }
 
 // Append appends the objects to the a new copy of the PermissionsList.
 func (o PermissionsList) Append(objects ...elemental.Identifiable) elemental.Identifiables {
 
-	out := append(PermissionsList{}, o...)
+	out := slices.Clone(o)
 	for _, obj := range objects {
 		out = append(out, obj.(*Permissions))
 	}
@@ -50,7 +51,7 @@ func (o PermissionsList) Append(objects ...elemental.Identifiable) elemental.Ide
 func (o PermissionsList) List() elemental.IdentifiablesList {
 
 	out := make(elemental.IdentifiablesList, len(o))
-	for i := 0; i < len(o); i++ {
+	for i := range len(o) {
 		out[i] = o[i]
 	}
 
@@ -68,7 +69,7 @@ func (o PermissionsList) DefaultOrder() []string {
 func (o PermissionsList) ToSparse(fields ...string) elemental.Identifiables {
 
 	out := make(SparsePermissionsList, len(o))
-	for i := 0; i < len(o); i++ {
+	for i := range len(o) {
 		out[i] = o[i].ToSparse(fields...).(*SparsePermissions)
 	}
 
@@ -748,14 +749,14 @@ func (o SparsePermissionsList) Identity() elemental.Identity {
 // Copy returns a pointer to a copy the SparsePermissionsList.
 func (o SparsePermissionsList) Copy() elemental.Identifiables {
 
-	copy := append(SparsePermissionsList{}, o...)
+	copy := slices.Clone(o)
 	return &copy
 }
 
 // Append appends the objects to the a new copy of the SparsePermissionsList.
 func (o SparsePermissionsList) Append(objects ...elemental.Identifiable) elemental.Identifiables {
 
-	out := append(SparsePermissionsList{}, o...)
+	out := slices.Clone(o)
 	for _, obj := range objects {
 		out = append(out, obj.(*SparsePermissions))
 	}
@@ -767,7 +768,7 @@ func (o SparsePermissionsList) Append(objects ...elemental.Identifiable) element
 func (o SparsePermissionsList) List() elemental.IdentifiablesList {
 
 	out := make(elemental.IdentifiablesList, len(o))
-	for i := 0; i < len(o); i++ {
+	for i := range len(o) {
 		out[i] = o[i]
 	}
 
@@ -784,7 +785,7 @@ func (o SparsePermissionsList) DefaultOrder() []string {
 func (o SparsePermissionsList) ToPlain() elemental.IdentifiablesList {
 
 	out := make(elemental.IdentifiablesList, len(o))
-	for i := 0; i < len(o); i++ {
+	for i := range len(o) {
 		out[i] = o[i].ToPlain()
 	}
 

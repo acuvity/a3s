@@ -6,7 +6,7 @@
   "$modelPackage": "a3s",
   "$modelResourceName": "issueoauth2",
   "$modelRestName": "issueoauth2",
-  "additionalProperties": true,
+  "additionalProperties": false,
   "description": "Additional issuing information for the OAuth2 source.",
   "properties": {
     "authURL": {

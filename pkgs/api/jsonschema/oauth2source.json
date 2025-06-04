@@ -12,7 +12,7 @@
   "$modelPackage": "a3s",
   "$modelResourceName": "oauth2sources",
   "$modelRestName": "oauth2source",
-  "additionalProperties": true,
+  "additionalProperties": false,
   "description": "An Oauth Auth source can be used to issue tokens based on supported OAuth2 providers. accounts.",
   "properties": {
     "CA": {

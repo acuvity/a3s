@@ -12,7 +12,7 @@
   "$modelPackage": "a3s",
   "$modelResourceName": "oidcsources",
   "$modelRestName": "oidcsource",
-  "additionalProperties": true,
+  "additionalProperties": false,
   "description": "An OIDC Auth source can be used to issue tokens based on existing OIDC accounts.",
   "properties": {
     "CA": {

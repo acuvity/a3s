@@ -5,6 +5,7 @@ package api
 
 import (
 	"fmt"
+	"slices"
 
 	"github.com/globalsign/mgo/bson"
 	"github.com/mitchellh/copystructure"
@@ -31,14 +32,14 @@ func (o AuthzsList) Identity() elemental.Identity {
 // Copy returns a pointer to a copy the AuthzsList.
 func (o AuthzsList) Copy() elemental.Identifiables {
 
-	out := append(AuthzsList{}, o...)
+	out := slices.Clone(o)
 	return &out
 }
 
 // Append appends the objects to the a new copy of the AuthzsList.
 func (o AuthzsList) Append(objects ...elemental.Identifiable) elemental.Identifiables {
 
-	out := append(AuthzsList{}, o...)
+	out := slices.Clone(o)
 	for _, obj := range objects {
 		out = append(out, obj.(*Authz))
 	}
@@ -50,7 +51,7 @@ func (o AuthzsList) Append(objects ...elemental.Identifiable) elemental.Identifi
 func (o AuthzsList) List() elemental.IdentifiablesList {
 
 	out := make(elemental.IdentifiablesList, len(o))
-	for i := 0; i < len(o); i++ {
+	for i := range len(o) {
 		out[i] = o[i]
 	}
 
@@ -68,7 +69,7 @@ func (o AuthzsList) DefaultOrder() []string {
 func (o AuthzsList) ToSparse(fields ...string) elemental.Identifiables {
 
 	out := make(SparseAuthzsList, len(o))
-	for i := 0; i < len(o); i++ {
+	for i := range len(o) {
 		out[i] = o[i].ToSparse(fields...).(*SparseAuthz)
 	}
 
@@ -501,14 +502,14 @@ func (o SparseAuthzsList) Identity() elemental.Identity {
 // Copy returns a pointer to a copy the SparseAuthzsList.
 func (o SparseAuthzsList) Copy() elemental.Identifiables {
 
-	copy := append(SparseAuthzsList{}, o...)
+	copy := slices.Clone(o)
 	return &copy
 }
 
 // Append appends the objects to the a new copy of the SparseAuthzsList.
 func (o SparseAuthzsList) Append(objects ...elemental.Identifiable) elemental.Identifiables {
 
-	out := append(SparseAuthzsList{}, o...)
+	out := slices.Clone(o)
 	for _, obj := range objects {
 		out = append(out, obj.(*SparseAuthz))
 	}
@@ -520,7 +521,7 @@ func (o SparseAuthzsList) Append(objects ...elemental.Identifiable) elemental.Id
 func (o SparseAuthzsList) List() elemental.IdentifiablesList {
 
 	out := make(elemental.IdentifiablesList, len(o))
-	for i := 0; i < len(o); i++ {
+	for i := range len(o) {
 		out[i] = o[i]
 	}
 
@@ -537,7 +538,7 @@ func (o SparseAuthzsList) DefaultOrder() []string {
 func (o SparseAuthzsList) ToPlain() elemental.IdentifiablesList {
 
 	out := make(elemental.IdentifiablesList, len(o))
-	for i := 0; i < len(o); i++ {
+	for i := range len(o) {
 		out[i] = o[i].ToPlain()
 	}
 

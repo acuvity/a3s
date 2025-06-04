@@ -5,6 +5,7 @@ package api
 
 import (
 	"fmt"
+	"slices"
 	"time"
 
 	"github.com/globalsign/mgo/bson"
@@ -32,14 +33,14 @@ func (o HTTPSourcesList) Identity() elemental.Identity {
 // Copy returns a pointer to a copy the HTTPSourcesList.
 func (o HTTPSourcesList) Copy() elemental.Identifiables {
 
-	out := append(HTTPSourcesList{}, o...)
+	out := slices.Clone(o)
 	return &out
 }
 
 // Append appends the objects to the a new copy of the HTTPSourcesList.
 func (o HTTPSourcesList) Append(objects ...elemental.Identifiable) elemental.Identifiables {
 
-	out := append(HTTPSourcesList{}, o...)
+	out := slices.Clone(o)
 	for _, obj := range objects {
 		out = append(out, obj.(*HTTPSource))
 	}
@@ -51,7 +52,7 @@ func (o HTTPSourcesList) Append(objects ...elemental.Identifiable) elemental.Ide
 func (o HTTPSourcesList) List() elemental.IdentifiablesList {
 
 	out := make(elemental.IdentifiablesList, len(o))
-	for i := 0; i < len(o); i++ {
+	for i := range len(o) {
 		out[i] = o[i]
 	}
 
@@ -69,7 +70,7 @@ func (o HTTPSourcesList) DefaultOrder() []string {
 func (o HTTPSourcesList) ToSparse(fields ...string) elemental.Identifiables {
 
 	out := make(SparseHTTPSourcesList, len(o))
-	for i := 0; i < len(o); i++ {
+	for i := range len(o) {
 		out[i] = o[i].ToSparse(fields...).(*SparseHTTPSource)
 	}
 
@@ -1152,14 +1153,14 @@ func (o SparseHTTPSourcesList) Identity() elemental.Identity {
 // Copy returns a pointer to a copy the SparseHTTPSourcesList.
 func (o SparseHTTPSourcesList) Copy() elemental.Identifiables {
 
-	copy := append(SparseHTTPSourcesList{}, o...)
+	copy := slices.Clone(o)
 	return &copy
 }
 
 // Append appends the objects to the a new copy of the SparseHTTPSourcesList.
 func (o SparseHTTPSourcesList) Append(objects ...elemental.Identifiable) elemental.Identifiables {
 
-	out := append(SparseHTTPSourcesList{}, o...)
+	out := slices.Clone(o)
 	for _, obj := range objects {
 		out = append(out, obj.(*SparseHTTPSource))
 	}
@@ -1171,7 +1172,7 @@ func (o SparseHTTPSourcesList) Append(objects ...elemental.Identifiable) element
 func (o SparseHTTPSourcesList) List() elemental.IdentifiablesList {
 
 	out := make(elemental.IdentifiablesList, len(o))
-	for i := 0; i < len(o); i++ {
+	for i := range len(o) {
 		out[i] = o[i]
 	}
 
@@ -1188,7 +1189,7 @@ func (o SparseHTTPSourcesList) DefaultOrder() []string {
 func (o SparseHTTPSourcesList) ToPlain() elemental.IdentifiablesList {
 
 	out := make(elemental.IdentifiablesList, len(o))
-	for i := 0; i < len(o); i++ {
+	for i := range len(o) {
 		out[i] = o[i].ToPlain()
 	}
 

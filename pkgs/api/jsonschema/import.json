@@ -6,7 +6,7 @@
   "$modelPackage": "a3s",
   "$modelResourceName": "import",
   "$modelRestName": "import",
-  "additionalProperties": true,
+  "additionalProperties": false,
   "description": "Import multiple resource at once.",
   "properties": {
     "A3SSources": {
