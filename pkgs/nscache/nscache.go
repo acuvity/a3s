@@ -70,7 +70,7 @@ func (c *NamespacedCache) Start(ctx context.Context) {
 			if msg.Data != nil {
 				c.cleanupCacheForNamespace(msg.Data.(string))
 			} else {
-				slog.Error("Received namespae change notification without data", "msg", msg.Type, "data", msg.Data)
+				slog.Error("Received namespace change notification without data", "msg", msg.Type, "data", msg.Data)
 			}
 		},
 	)
