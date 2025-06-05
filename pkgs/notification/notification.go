@@ -35,14 +35,14 @@ func Subscribe(ctx context.Context, pubsub bahamut.PubSubClient, topic string, h
 				go func(p *bahamut.Publication) {
 					msg := &Message{}
 					if err := p.Decode(&msg); err != nil {
-						slog.Error("Unable to decode notification message", err)
+						slog.Error("Unable to decode notification publication", err)
 						return
 					}
 					handler(msg)
 				}(pub)
 
 			case err := <-errors:
-				slog.Error("Received error from nats in notification", err)
+				slog.Error("Received error from notification pubsub", err)
 
 			case <-ctx.Done():
 				d()
