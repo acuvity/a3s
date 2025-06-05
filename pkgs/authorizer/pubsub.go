@@ -86,6 +86,8 @@ func (w *webSocketPubSub) Connect(context.Context) error {
 					msg.Data = d.Namespace
 				case api.RevocationIdentity.Name:
 					msg.Data = d.Namespace
+				case api.GroupIdentity.Name:
+					msg.Data = d.Namespace
 				}
 
 				// Then we create a publication and wrap the msg inside.
