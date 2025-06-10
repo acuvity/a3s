@@ -1612,6 +1612,10 @@
             },
             "type": "array"
           },
+          "keysTranslationEnabled": {
+            "description": "When true, translate some common keys to shorter versions. For instance,\n`htps://schemas.microsoft.com/ws/2008/06/identity/claims/name=x` would become\n`@ad:name=x`.",
+            "type": "boolean"
+          },
           "modifier": {
             "$ref": "#/components/schemas/identitymodifier"
           },

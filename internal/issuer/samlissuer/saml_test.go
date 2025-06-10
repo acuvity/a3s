@@ -124,7 +124,8 @@ func TestNew(t *testing.T) {
 
 func Test_computeSAMLAssertion(t *testing.T) {
 	type args struct {
-		claims *saml2.AssertionInfo
+		claims    *saml2.AssertionInfo
+		translate bool
 	}
 	tests := []struct {
 		name string
@@ -160,6 +161,7 @@ func Test_computeSAMLAssertion(t *testing.T) {
 							},
 						},
 					},
+					false,
 				}
 			},
 			[]string{
@@ -169,13 +171,115 @@ func Test_computeSAMLAssertion(t *testing.T) {
 				"nameid=coucou",
 			},
 		},
+		{
+			"ldap without translation",
+			func(*testing.T) args {
+				return args{
+					&saml2.AssertionInfo{
+						NameID: "coucou",
+						Values: saml2.Values{
+							"http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name": types.Attribute{
+								Name: "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name",
+								Values: []types.AttributeValue{
+									{
+										Value: "jean",
+									},
+									{
+										Value: "michel",
+									},
+								},
+							},
+							"http://schemas.microsoft.com/identity/claims/displayname": types.Attribute{
+								Name: "http://schemas.microsoft.com/identity/claims/displayname",
+								Values: []types.AttributeValue{
+									{
+										Value: "jean.michel@domain.com",
+									},
+								},
+							},
+							"http://schemas.microsoft.com/ws/2008/06/identity/claims/groups": types.Attribute{
+								Name: "http://schemas.microsoft.com/ws/2008/06/identity/claims/groups",
+								Values: []types.AttributeValue{
+									{
+										Value: "a",
+									},
+									{
+										Value: "b",
+									},
+								},
+							},
+						},
+					},
+					false,
+				}
+			},
+			[]string{
+				"http://schemas.microsoft.com/identity/claims/displayname=jean.michel@domain.com",
+				"http://schemas.microsoft.com/ws/2008/06/identity/claims/groups=a",
+				"http://schemas.microsoft.com/ws/2008/06/identity/claims/groups=b",
+				"http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name=jean",
+				"http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name=michel",
+				"nameid=coucou",
+			},
+		},
+		{
+			"ldap with translation",
+			func(*testing.T) args {
+				return args{
+					&saml2.AssertionInfo{
+						NameID: "coucou",
+						Values: saml2.Values{
+							"http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name": types.Attribute{
+								Name: "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name",
+								Values: []types.AttributeValue{
+									{
+										Value: "jean",
+									},
+									{
+										Value: "michel",
+									},
+								},
+							},
+							"http://schemas.microsoft.com/identity/claims/displayname": types.Attribute{
+								Name: "http://schemas.microsoft.com/identity/claims/displayname",
+								Values: []types.AttributeValue{
+									{
+										Value: "jean.michel@domain.com",
+									},
+								},
+							},
+							"http://schemas.microsoft.com/ws/2008/06/identity/claims/groups": types.Attribute{
+								Name: "http://schemas.microsoft.com/ws/2008/06/identity/claims/groups",
+								Values: []types.AttributeValue{
+									{
+										Value: "a",
+									},
+									{
+										Value: "b",
+									},
+								},
+							},
+						},
+					},
+					true,
+				}
+			},
+			[]string{
+				"ad:displayname=jean.michel@domain.com",
+				"ad:group=a",
+				"ad:group=b",
+				"ad:name=jean",
+				"ad:name=michel",
+				"nameid=coucou",
+			},
+		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			tArgs := tt.args(t)
 
-			got1 := computeSAMLAssertion(tArgs.claims)
+			got1 := computeSAMLAssertion(tArgs.claims, tArgs.translate)
 
 			if !reflect.DeepEqual(got1, tt.want1) {
 				t.Errorf("computeOIDClaims got1 = %v, want1: %v", got1, tt.want1)

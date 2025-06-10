@@ -1631,6 +1631,7 @@ MIICvDCCAaQCAQAwdzELMAkGA1UEBhMCVVMxDTALBgNVBAgMBFV0YWgxDzANBgNV
   "IDPIssuer": "https://accounts.google.com/o/saml2/idp?idpid=AbDcef123",
   "IDPURL": "https://accounts.google.com/o/saml2/idp?idpid=AbDcef123",
   "audienceURI": "spn:abc-3423-fdsfs-fdsfs",
+  "keysTranslationEnabled": false,
   "name": "mypki",
   "serviceProviderIssuer": "abc-3423-fdsfs-fdsfs",
   "skipResponseSignatureCheck": false,
@@ -1756,6 +1757,14 @@ Type: `[]string`
 A list of claims that defines which claims will be added to the identity
 token. A claim will be included if it is prefixed with one of the items in the
 includedKeys list. This runs after ignoreddKeys computation.
+
+##### `keysTranslationEnabled`
+
+Type: `boolean`
+
+When true, translate some common keys to shorter versions. For instance,
+`htps://schemas.microsoft.com/ws/2008/06/identity/claims/name=x` would become
+`@ad:name=x`.
 
 ##### `modifier`
 

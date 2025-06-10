@@ -142,6 +142,15 @@
       "title": "includedKeys",
       "type": "array"
     },
+    "keysTranslationEnabled": {
+      "$friendlyName": "Keys Translation Enabled",
+      "description": "When true, translate some common keys to shorter versions. For instance, `htps://schemas.microsoft.com/ws/2008/06/identity/claims/name=x` would become `@ad:name=x`.",
+      "title": "keysTranslationEnabled",
+      "type": [
+        "boolean",
+        "null"
+      ]
+    },
     "modifier": {
       "$friendlyName": "Modifier",
       "$ref": "identitymodifier.json",

@@ -97,6 +97,16 @@ attributes:
     exposed: true
     stored: true
 
+  - name: keysTranslationEnabled
+    friendly_name: Keys Translation Enabled
+    description: |-
+      When true, translate some common keys to shorter versions. For instance,
+      `htps://schemas.microsoft.com/ws/2008/06/identity/claims/name=x` would become
+      `@ad:name=x`.
+    type: boolean
+    exposed: true
+    stored: true
+
   - name: modifier
     friendly_name: Modifier
     description: |-

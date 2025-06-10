@@ -134,6 +134,11 @@ type SAMLSource struct {
 	// includedKeys list. This runs after ignoreddKeys computation.
 	IncludedKeys []string `json:"includedKeys" msgpack:"includedKeys" bson:"includedkeys" mapstructure:"includedKeys,omitempty"`
 
+	// When true, translate some common keys to shorter versions. For instance,
+	// `htps://schemas.microsoft.com/ws/2008/06/identity/claims/name=x` would become
+	// `@ad:name=x`.
+	KeysTranslationEnabled bool `json:"keysTranslationEnabled" msgpack:"keysTranslationEnabled" bson:"keystranslationenabled" mapstructure:"keysTranslationEnabled,omitempty"`
+
 	// Contains optional information about a remote service that can be used to modify
 	// the claims that are about to be delivered using this authentication source.
 	Modifier *IdentityModifier `json:"modifier,omitempty" msgpack:"modifier,omitempty" bson:"modifier,omitempty" mapstructure:"modifier,omitempty"`
@@ -219,6 +224,7 @@ func (o *SAMLSource) GetBSON() (any, error) {
 	s.ImportHash = o.ImportHash
 	s.ImportLabel = o.ImportLabel
 	s.IncludedKeys = o.IncludedKeys
+	s.KeysTranslationEnabled = o.KeysTranslationEnabled
 	s.Modifier = o.Modifier
 	s.Name = o.Name
 	s.Namespace = o.Namespace
@@ -257,6 +263,7 @@ func (o *SAMLSource) SetBSON(raw bson.Raw) error {
 	o.ImportHash = s.ImportHash
 	o.ImportLabel = s.ImportLabel
 	o.IncludedKeys = s.IncludedKeys
+	o.KeysTranslationEnabled = s.KeysTranslationEnabled
 	o.Modifier = s.Modifier
 	o.Name = s.Name
 	o.Namespace = s.Namespace
@@ -427,6 +434,7 @@ func (o *SAMLSource) ToSparse(fields ...string) elemental.SparseIdentifiable {
 			ImportHash:                 &o.ImportHash,
 			ImportLabel:                &o.ImportLabel,
 			IncludedKeys:               &o.IncludedKeys,
+			KeysTranslationEnabled:     &o.KeysTranslationEnabled,
 			Modifier:                   o.Modifier,
 			Name:                       &o.Name,
 			Namespace:                  &o.Namespace,
@@ -468,6 +476,8 @@ func (o *SAMLSource) ToSparse(fields ...string) elemental.SparseIdentifiable {
 			sp.ImportLabel = &(o.ImportLabel)
 		case "includedKeys":
 			sp.IncludedKeys = &(o.IncludedKeys)
+		case "keysTranslationEnabled":
+			sp.KeysTranslationEnabled = &(o.KeysTranslationEnabled)
 		case "modifier":
 			sp.Modifier = o.Modifier
 		case "name":
@@ -537,6 +547,9 @@ func (o *SAMLSource) Patch(sparse elemental.SparseIdentifiable) {
 	}
 	if so.IncludedKeys != nil {
 		o.IncludedKeys = *so.IncludedKeys
+	}
+	if so.KeysTranslationEnabled != nil {
+		o.KeysTranslationEnabled = *so.KeysTranslationEnabled
 	}
 	if so.Modifier != nil {
 		o.Modifier = so.Modifier
@@ -681,6 +694,8 @@ func (o *SAMLSource) ValueForAttribute(name string) any {
 		return o.ImportLabel
 	case "includedKeys":
 		return o.IncludedKeys
+	case "keysTranslationEnabled":
+		return o.KeysTranslationEnabled
 	case "modifier":
 		return o.Modifier
 	case "name":
@@ -865,6 +880,18 @@ includedKeys list. This runs after ignoreddKeys computation.`,
 		Stored:  true,
 		SubType: "string",
 		Type:    "list",
+	},
+	"KeysTranslationEnabled": {
+		AllowedChoices: []string{},
+		BSONFieldName:  "keystranslationenabled",
+		ConvertedName:  "KeysTranslationEnabled",
+		Description: `When true, translate some common keys to shorter versions. For instance,
+` + "`" + `htps://schemas.microsoft.com/ws/2008/06/identity/claims/name=x` + "`" + ` would become
+` + "`" + `@ad:name=x` + "`" + `.`,
+		Exposed: true,
+		Name:    "keysTranslationEnabled",
+		Stored:  true,
+		Type:    "boolean",
 	},
 	"Modifier": {
 		AllowedChoices: []string{},
@@ -1142,6 +1169,18 @@ includedKeys list. This runs after ignoreddKeys computation.`,
 		SubType: "string",
 		Type:    "list",
 	},
+	"keystranslationenabled": {
+		AllowedChoices: []string{},
+		BSONFieldName:  "keystranslationenabled",
+		ConvertedName:  "KeysTranslationEnabled",
+		Description: `When true, translate some common keys to shorter versions. For instance,
+` + "`" + `htps://schemas.microsoft.com/ws/2008/06/identity/claims/name=x` + "`" + ` would become
+` + "`" + `@ad:name=x` + "`" + `.`,
+		Exposed: true,
+		Name:    "keysTranslationEnabled",
+		Stored:  true,
+		Type:    "boolean",
+	},
 	"modifier": {
 		AllowedChoices: []string{},
 		BSONFieldName:  "modifier",
@@ -1368,6 +1407,11 @@ type SparseSAMLSource struct {
 	// includedKeys list. This runs after ignoreddKeys computation.
 	IncludedKeys *[]string `json:"includedKeys,omitempty" msgpack:"includedKeys,omitempty" bson:"includedkeys,omitempty" mapstructure:"includedKeys,omitempty"`
 
+	// When true, translate some common keys to shorter versions. For instance,
+	// `htps://schemas.microsoft.com/ws/2008/06/identity/claims/name=x` would become
+	// `@ad:name=x`.
+	KeysTranslationEnabled *bool `json:"keysTranslationEnabled,omitempty" msgpack:"keysTranslationEnabled,omitempty" bson:"keystranslationenabled,omitempty" mapstructure:"keysTranslationEnabled,omitempty"`
+
 	// Contains optional information about a remote service that can be used to modify
 	// the claims that are about to be delivered using this authentication source.
 	Modifier *IdentityModifier `json:"modifier,omitempty" msgpack:"modifier,omitempty" bson:"modifier,omitempty" mapstructure:"modifier,omitempty"`
@@ -1476,6 +1520,9 @@ func (o *SparseSAMLSource) GetBSON() (any, error) {
 	if o.IncludedKeys != nil {
 		s.IncludedKeys = o.IncludedKeys
 	}
+	if o.KeysTranslationEnabled != nil {
+		s.KeysTranslationEnabled = o.KeysTranslationEnabled
+	}
 	if o.Modifier != nil {
 		s.Modifier = o.Modifier
 	}
@@ -1554,6 +1601,9 @@ func (o *SparseSAMLSource) SetBSON(raw bson.Raw) error {
 	}
 	if s.IncludedKeys != nil {
 		o.IncludedKeys = s.IncludedKeys
+	}
+	if s.KeysTranslationEnabled != nil {
+		o.KeysTranslationEnabled = s.KeysTranslationEnabled
 	}
 	if s.Modifier != nil {
 		o.Modifier = s.Modifier
@@ -1634,6 +1684,9 @@ func (o *SparseSAMLSource) ToPlain() elemental.PlainIdentifiable {
 	}
 	if o.IncludedKeys != nil {
 		out.IncludedKeys = *o.IncludedKeys
+	}
+	if o.KeysTranslationEnabled != nil {
+		out.KeysTranslationEnabled = *o.KeysTranslationEnabled
 	}
 	if o.Modifier != nil {
 		out.Modifier = o.Modifier
@@ -1851,6 +1904,7 @@ type mongoAttributesSAMLSource struct {
 	ImportHash                 string            `bson:"importhash,omitempty"`
 	ImportLabel                string            `bson:"importlabel,omitempty"`
 	IncludedKeys               []string          `bson:"includedkeys"`
+	KeysTranslationEnabled     bool              `bson:"keystranslationenabled"`
 	Modifier                   *IdentityModifier `bson:"modifier,omitempty"`
 	Name                       string            `bson:"name"`
 	Namespace                  string            `bson:"namespace"`
@@ -1874,6 +1928,7 @@ type mongoAttributesSparseSAMLSource struct {
 	ImportHash                 *string           `bson:"importhash,omitempty"`
 	ImportLabel                *string           `bson:"importlabel,omitempty"`
 	IncludedKeys               *[]string         `bson:"includedkeys,omitempty"`
+	KeysTranslationEnabled     *bool             `bson:"keystranslationenabled,omitempty"`
 	Modifier                   *IdentityModifier `bson:"modifier,omitempty"`
 	Name                       *string           `bson:"name,omitempty"`
 	Namespace                  *string           `bson:"namespace,omitempty"`

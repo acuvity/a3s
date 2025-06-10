@@ -20,6 +20,16 @@ import (
 	"go.acuvity.ai/a3s/pkgs/token"
 )
 
+var keyTranslation map[string]string
+
+func init() {
+	keyTranslation = map[string]string{
+		"http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name":     "ad:name",
+		"http://schemas.microsoft.com/identity/claims/displayname":       "ad:displayname",
+		"http://schemas.microsoft.com/ws/2008/06/identity/claims/groups": "ad:group",
+	}
+}
+
 // New returns a new Azure issuer.
 func New(ctx context.Context, source *api.SAMLSource, assertion *saml2.AssertionInfo) (token.Issuer, error) {
 
@@ -54,7 +64,7 @@ func (c *samlIssuer) Issue() *token.IdentityToken {
 
 func (c *samlIssuer) fromAssertion(ctx context.Context, assertion *saml2.AssertionInfo) (err error) {
 
-	c.token.Identity = computeSAMLAssertion(assertion)
+	c.token.Identity = computeSAMLAssertion(assertion, c.source.KeysTranslationEnabled)
 
 	if srcmod := c.source.Modifier; srcmod != nil {
 
@@ -71,13 +81,19 @@ func (c *samlIssuer) fromAssertion(ctx context.Context, assertion *saml2.Asserti
 	return nil
 }
 
-func computeSAMLAssertion(assertion *saml2.AssertionInfo) []string {
+func computeSAMLAssertion(assertion *saml2.AssertionInfo, translate bool) []string {
 
 	out := []string{"nameid=" + assertion.NameID}
 
 	for k, v := range assertion.Values {
 
 		k = strings.TrimLeft(k, "@")
+
+		if translate {
+			if kk, ok := keyTranslation[k]; ok {
+				k = kk
+			}
+		}
 
 		for _, vv := range v.Values {
 			out = append(out, fmt.Sprintf("%s=%s", k, vv.Value))
