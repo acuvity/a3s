@@ -7,7 +7,6 @@ import (
 	"encoding/asn1"
 	"errors"
 	"fmt"
-	"log/slog"
 	"net/http"
 	"time"
 
@@ -350,6 +349,7 @@ func (p *IssueProcessor) ProcessCreate(bctx bahamut.Context) (err error) {
 		if domain == "" {
 			domain = p.cookieDomain
 		}
+
 		c := &http.Cookie{
 			Name:     "x-a3s-token",
 			Value:    tkn,
@@ -360,9 +360,15 @@ func (p *IssueProcessor) ProcessCreate(bctx bahamut.Context) (err error) {
 			Path:     "/",
 			Domain:   domain,
 		}
+
 		if err := c.Valid(); err != nil {
-			slog.Error("Cookie about to be delivered is not valid", err)
+			return elemental.NewError("", fmt.Sprintf("The generated token is invalid: %s", err), "a3s:authn", http.StatusInternalServerError)
 		}
+
+		if len(c.String()) >= 4096 {
+			return elemental.NewError("", fmt.Sprintf("The generated token is too large to be stored as a cookie. max: 4096, current: %d", len(tkn)), "a3s:authn", http.StatusRequestHeaderFieldsTooLarge)
+		}
+
 		bctx.AddOutputCookies(c)
 	} else {
 		req.Token = tkn
