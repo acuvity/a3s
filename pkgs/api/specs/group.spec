@@ -107,7 +107,6 @@ attributes:
     orderable: true
     validations:
     - $tags_expression
-    - $authorization_subject
 
   - name: weight
     friendly_name: Weight

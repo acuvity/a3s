@@ -388,6 +388,263 @@ func TestValidateTagsExpression(t *testing.T) {
 				}
 			},
 		},
+		{
+			"double equal",
+			func(*testing.T) args {
+				return args{
+					"attr",
+					[][]string{{"a=b=c"}},
+				}
+			},
+			false,
+			nil,
+		},
+		{
+			"space before first equal",
+			func(*testing.T) args {
+				return args{
+					"attr",
+					[][]string{{"a =b=c"}},
+				}
+			},
+			true,
+			func(err error, t *testing.T) {
+				wanted := "error 422 (a3s): Validation Error: 'a =b=c' must contain at least one '=' symbol separating two valid words"
+				if err.Error() != wanted {
+					t.Logf("wanted %s but got %s", wanted, err.Error())
+					t.Fail()
+				}
+			},
+		},
+		{
+			"space after first equal",
+			func(*testing.T) args {
+				return args{
+					"attr",
+					[][]string{{"a= b=c"}},
+				}
+			},
+			false,
+			nil,
+		},
+		{
+			"missing key",
+			func(*testing.T) args {
+				return args{
+					"attr",
+					[][]string{{"=c"}},
+				}
+			},
+			true,
+			func(err error, t *testing.T) {
+				wanted := "error 422 (a3s): Validation Error: '=c' must contain at least one '=' symbol separating two valid words"
+				if err.Error() != wanted {
+					t.Logf("wanted %s but got %s", wanted, err.Error())
+					t.Fail()
+				}
+			},
+		},
+		{
+			"missing value",
+			func(*testing.T) args {
+				return args{
+					"attr",
+					[][]string{{"a="}},
+				}
+			},
+			true,
+			func(err error, t *testing.T) {
+				wanted := "error 422 (a3s): Validation Error: 'a=' must contain at least one '=' symbol separating two valid words"
+				if err.Error() != wanted {
+					t.Logf("wanted %s but got %s", wanted, err.Error())
+					t.Fail()
+				}
+			},
+		},
+		{
+			"only equal",
+			func(*testing.T) args {
+				return args{
+					"attr",
+					[][]string{{"="}},
+				}
+			},
+			true,
+			func(err error, t *testing.T) {
+				wanted := "error 422 (a3s): Validation Error: '=' must contain at least one '=' symbol separating two valid words"
+				if err.Error() != wanted {
+					t.Logf("wanted %s but got %s", wanted, err.Error())
+					t.Fail()
+				}
+			},
+		},
+
+		{
+			"valid subject",
+			func(*testing.T) args {
+				return args{
+					"subject",
+					[][]string{
+						{"@auth:realm=certificate", "@auth:claim=a"},
+						{"@auth:realm=vince", "@auth:claim=a", "@auth:claim=b"},
+					},
+				}
+			},
+			false,
+			nil,
+		},
+		{
+			"broken tag with no equal",
+			func(*testing.T) args {
+				return args{
+					"subject",
+					[][]string{
+						{"@auth:realm=saml", "@auth:claim"},
+					},
+				}
+			},
+			true,
+			func(err error, t *testing.T) {
+				wanted := "error 422 (a3s): Validation Error: '@auth:claim' must contain at least one '=' symbol separating two valid words"
+				if err.Error() != wanted {
+					t.Logf("wanted %s but got %s", wanted, err.Error())
+					t.Fail()
+				}
+			},
+		},
+		{
+			"broken tag with no value",
+			func(*testing.T) args {
+				return args{
+					"subject",
+					[][]string{
+						{"@auth:realm=saml", "@auth:claim="},
+					},
+				}
+			},
+			true,
+			func(err error, t *testing.T) {
+				wanted := "error 422 (a3s): Validation Error: '@auth:claim=' must contain at least one '=' symbol separating two valid words"
+				if err.Error() != wanted {
+					t.Logf("wanted %s but got %s", wanted, err.Error())
+					t.Fail()
+				}
+			},
+		},
+		{
+			"tag with leading spaces",
+			func(*testing.T) args {
+				return args{
+					"subject",
+					[][]string{
+						{" leading=space"},
+					},
+				}
+			},
+			true,
+			func(err error, t *testing.T) {
+				wanted := "error 422 (a3s): Validation Error: ' leading=space' must not contain any leading or trailing spaces"
+				if err.Error() != wanted {
+					t.Logf("wanted %s but got %s", wanted, err.Error())
+					t.Fail()
+				}
+			},
+		},
+		{
+			"tag with trailing spaces",
+			func(*testing.T) args {
+				return args{
+					"subject",
+					[][]string{
+						{"trailing=space "},
+					},
+				}
+			},
+			true,
+			func(err error, t *testing.T) {
+				wanted := "error 422 (a3s): Validation Error: 'trailing=space ' must not contain any leading or trailing spaces"
+				if err.Error() != wanted {
+					t.Logf("wanted %s but got %s", wanted, err.Error())
+					t.Fail()
+				}
+			},
+		},
+		{
+			"tag with leading tab",
+			func(*testing.T) args {
+				return args{
+					"subject",
+					[][]string{
+						{"\tleading=space"},
+					},
+				}
+			},
+			true,
+			func(err error, t *testing.T) {
+				wanted := "error 422 (a3s): Validation Error: '\tleading=space' must not contain any leading or trailing spaces"
+				if err.Error() != wanted {
+					t.Logf("wanted %s but got %s", wanted, err.Error())
+					t.Fail()
+				}
+			},
+		},
+		{
+			"tag with trailing spaces",
+			func(*testing.T) args {
+				return args{
+					"subject",
+					[][]string{
+						{"trailing=space\t"},
+					},
+				}
+			},
+			true,
+			func(err error, t *testing.T) {
+				wanted := "error 422 (a3s): Validation Error: 'trailing=space\t' must not contain any leading or trailing spaces"
+				if err.Error() != wanted {
+					t.Logf("wanted %s but got %s", wanted, err.Error())
+					t.Fail()
+				}
+			},
+		},
+		{
+			"tag with leading CR",
+			func(*testing.T) args {
+				return args{
+					"subject",
+					[][]string{
+						{"\nleading=space"},
+					},
+				}
+			},
+			true,
+			func(err error, t *testing.T) {
+				wanted := "error 422 (a3s): Validation Error: '\nleading=space' must not contain any leading or trailing spaces"
+				if err.Error() != wanted {
+					t.Logf("wanted %s but got %s", wanted, err.Error())
+					t.Fail()
+				}
+			},
+		},
+		{
+			"tag with trailing CR",
+			func(*testing.T) args {
+				return args{
+					"subject",
+					[][]string{
+						{"trailing=space\r"},
+					},
+				}
+			},
+			true,
+			func(err error, t *testing.T) {
+				wanted := "error 422 (a3s): Validation Error: 'trailing=space\r' must not contain any leading or trailing spaces"
+				if err.Error() != wanted {
+					t.Logf("wanted %s but got %s", wanted, err.Error())
+					t.Fail()
+				}
+			},
+		},
 	}
 
 	for _, tt := range tests {
@@ -402,162 +659,6 @@ func TestValidateTagsExpression(t *testing.T) {
 
 			if tt.inspectErr != nil {
 				tt.inspectErr(err, t)
-			}
-		})
-	}
-}
-
-func TestValidateAuthorizationSubject(t *testing.T) {
-	type args struct {
-		attribute string
-		subject   [][]string
-	}
-	tests := []struct {
-		name          string
-		args          args
-		wantErr       bool
-		wantErrString string
-	}{
-		{
-			"valid subject",
-			args{
-				"subject",
-				[][]string{
-					{"@auth:realm=certificate", "@auth:claim=a"},
-					{"@auth:realm=vince", "@auth:claim=a", "@auth:claim=b"},
-				},
-			},
-			false,
-			"",
-		},
-		// {
-		// 	"missing realm claim",
-		// 	args{
-		// 		"subject",
-		// 		[][]string{
-		// 			{"@auth:realm=certificate", "@auth:claim=a"},
-		// 			{"@auth:claim=a", "@auth:claim=b"},
-		// 		},
-		// 	},
-		// 	true,
-		// 	"error 422 (a3s): Validation Error: Subject line 2 must contain the '@auth:realm' key",
-		// },
-		// {
-		// 	"2 realm claims",
-		// 	args{
-		// 		"subject",
-		// 		[][]string{
-		// 			{"@auth:realm=certificate", "@auth:claim=a", "@auth:realm=vince"},
-		// 			{"@auth:claim=a", "@auth:claim=b"},
-		// 		},
-		// 	},
-		// 	true,
-		// 	"error 422 (a3s): Validation Error: Subject line 1 must contain only one '@auth:realm' key",
-		// },
-		// {
-		// 	"single claim line",
-		// 	args{
-		// 		"subject",
-		// 		[][]string{
-		// 			{"@auth:realm=certificate", "@auth:claim=a"},
-		// 			{"@auth:realm=certificate"},
-		// 		},
-		// 	},
-		// 	true,
-		// 	"error 422 (a3s): Validation Error: Subject and line should contain at least 2 claims",
-		// },
-		// {
-		// 	"missing auth prefix claim",
-		// 	args{
-		// 		"subject",
-		// 		[][]string{
-		// 			{"@auth:realm=certificate", "@auth:claim=a"},
-		// 			{"@auth:claim=a", "@auth:claim=b", "not:good"},
-		// 		},
-		// 	},
-		// 	true,
-		// 	"error 422 (a3s): Validation Error: Subject claims 'not:good' on line 2 must be prefixed by '@auth:'",
-		// },
-		// {
-		// 	"oidc correct",
-		// 	args{
-		// 		"subject",
-		// 		[][]string{
-		// 			{"@auth:realm=oidc", "@auth:claim=a", "@auth:namespace=/a/b"},
-		// 			{"@auth:realm=vince", "@auth:claim=a", "@auth:claim=b"},
-		// 		},
-		// 	},
-		// 	false,
-		// 	"",
-		// },
-		// {
-		// 	"oidc missing namespace",
-		// 	args{
-		// 		"subject",
-		// 		[][]string{
-		// 			{"@auth:realm=oidc", "@auth:claim=a"},
-		// 			{"@auth:realm=vince", "@auth:claim=a", "@auth:claim=b"},
-		// 		},
-		// 	},
-		// 	true,
-		// 	"error 422 (a3s): Validation Error: The realm OIDC mandates to add the '@auth:namespace' key to prevent potential security side effects",
-		// },
-		// {
-		// 	"saml correct",
-		// 	args{
-		// 		"subject",
-		// 		[][]string{
-		// 			{"@auth:realm=saml", "@auth:claim=a", "@auth:namespace=/a/b"},
-		// 			{"@auth:realm=vince", "@auth:claim=a", "@auth:claim=b"},
-		// 		},
-		// 	},
-		// 	false,
-		// 	"",
-		// },
-		// {
-		// 	"saml missing namespace",
-		// 	args{
-		// 		"subject",
-		// 		[][]string{
-		// 			{"@auth:realm=saml", "@auth:claim=a"},
-		// 			{"@auth:realm=vince", "@auth:claim=a", "@auth:claim=b"},
-		// 		},
-		// 	},
-		// 	true,
-		// 	"error 422 (a3s): Validation Error: The realm SAML mandates to add the '@auth:namespace' key to prevent potential security side effects",
-		// },
-		{
-			"broken tag with no equal",
-			args{
-				"subject",
-				[][]string{
-					{"@auth:realm=saml", "@auth:claim"},
-				},
-			},
-			true,
-			"error 422 (a3s): Validation Error: Subject claims '@auth:claim' on line 1 is an invalid tag",
-		},
-		{
-			"broken tag with no value",
-			args{
-				"subject",
-				[][]string{
-					{"@auth:realm=saml", "@auth:claim="},
-				},
-			},
-			true,
-			"error 422 (a3s): Validation Error: Subject claims '@auth:claim=' on line 1 has no value",
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			err := ValidateAuthorizationSubject(tt.args.attribute, tt.args.subject)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("ValidateAPIAuthorizationPolicySubject() error = %v, wantErr %v", err, tt.wantErr)
-			}
-
-			if err != nil && err.Error() != tt.wantErrString {
-				t.Errorf("ValidateAPIAuthorizationPolicySubject() error = '%v', wantErrString = '%v'", err, tt.wantErrString)
 			}
 		})
 	}

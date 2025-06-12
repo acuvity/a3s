@@ -130,7 +130,6 @@ attributes:
     orderable: true
     validations:
     - $tags_expression
-    - $authorization_subject
 
   - name: subnets
     friendly_name: Subnets

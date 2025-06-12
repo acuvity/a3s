@@ -63,7 +63,6 @@ attributes:
     orderable: true
     validations:
     - $tags_expression
-    - $authorization_subject
 
   - name: tokenID
     friendly_name: TokenID

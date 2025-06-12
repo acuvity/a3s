@@ -442,9 +442,6 @@ func (o *Revocation) Validate() error {
 	errors := elemental.Errors{}
 	requiredErrors := elemental.Errors{}
 
-	if err := ValidateAuthorizationSubject("subject", o.Subject); err != nil {
-		errors = errors.Append(err)
-	}
 	if err := ValidateTagsExpression("subject", o.Subject); err != nil {
 		errors = errors.Append(err)
 	}

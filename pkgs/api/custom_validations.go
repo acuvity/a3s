@@ -70,8 +70,6 @@ func ValidateCIDRListOptional(attribute string, networks []string) error {
 	return nil
 }
 
-var tagRegex = regexp.MustCompile(`^[^= ]+=.+`)
-
 // ValidateTagsExpression validates an [][]string is a valid tag expression.
 func ValidateTagsExpression(attribute string, expression [][]string) error {
 
@@ -79,34 +77,30 @@ func ValidateTagsExpression(attribute string, expression [][]string) error {
 
 		for _, tag := range tags {
 
-			if len([]byte(tag)) >= 1024 {
-				return makeErr(attribute, fmt.Sprintf("'%s' must be less than 1024 bytes", tag))
+			if err := ValidateTag(attribute, tag); err != nil {
+				return err
 			}
-			if !tagRegex.MatchString(tag) {
-				return makeErr(attribute, fmt.Sprintf("'%s' must contain at least one '=' symbol separating two valid words", tag))
-			}
-
 		}
 	}
 
 	return nil
 }
 
-// ValidateAuthorizationSubject makes sure api authorization subject is at least secured a bit.
-func ValidateAuthorizationSubject(attribute string, subject [][]string) error {
+var tagRegex = regexp.MustCompile(`^[^= ]+=.+`)
 
-	for i, ands := range subject {
+// ValidateTag validates a single tag.
+func ValidateTag(attribute string, tag string) error {
 
-		for _, claim := range ands {
+	if strings.TrimSpace(tag) != tag {
+		return makeErr(attribute, fmt.Sprintf("'%s' must not contain any leading or trailing spaces", tag))
+	}
 
-			parts := strings.SplitN(claim, "=", 2)
-			if len(parts) != 2 {
-				return makeErr(attribute, fmt.Sprintf("Subject claims '%s' on line %d is an invalid tag", claim, i+1))
-			}
-			if parts[1] == "" {
-				return makeErr(attribute, fmt.Sprintf("Subject claims '%s' on line %d has no value", claim, i+1))
-			}
-		}
+	if len([]byte(tag)) >= 1024 {
+		return makeErr(attribute, fmt.Sprintf("'%s' must be less than 1024 bytes", tag))
+	}
+
+	if !tagRegex.MatchString(tag) {
+		return makeErr(attribute, fmt.Sprintf("'%s' must contain at least one '=' symbol separating two valid words", tag))
 	}
 
 	return nil
