@@ -24,9 +24,14 @@ var keyTranslation map[string]string
 
 func init() {
 	keyTranslation = map[string]string{
-		"http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name":     "ad:name",
-		"http://schemas.microsoft.com/identity/claims/displayname":       "ad:displayname",
-		"http://schemas.microsoft.com/ws/2008/06/identity/claims/groups": "ad:group",
+		"http://schemas.microsoft.com/identity/claims/displayname":        "ad:displayname",
+		"http://schemas.microsoft.com/identity/claims/objectidentifier":   "ad:oid",
+		"http://schemas.microsoft.com/identity/claims/tenantid":           "ad:tenantid",
+		"http://schemas.microsoft.com/ws/2008/06/identity/claims/groups":  "ad:group",
+		"http://schemas.microsoft.com/ws/2008/06/identity/claims/role":    "ad:role",
+		"http://schemas.xmlsoap.org/ws/2005/05/identity/claims/givenname": "ad:givenname",
+		"http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name":      "ad:name",
+		"http://schemas.xmlsoap.org/ws/2005/05/identity/claims/surname":   "ad:surname",
 	}
 }
 
