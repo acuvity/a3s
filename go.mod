@@ -48,7 +48,7 @@ require (
 	github.com/uber/jaeger-client-go v2.30.0+incompatible
 	github.com/ugorji/go/codec v1.2.12
 	go.uber.org/automaxprocs v1.6.0
-	golang.org/x/oauth2 v0.24.0
+	golang.org/x/oauth2 v0.30.0
 	golang.org/x/term v0.31.0
 )
 
