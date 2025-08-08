@@ -1,5 +1,5 @@
 MAKEFLAGS += --warn-undefined-variables
-SHELL := /bin/bash -o pipefail
+eHELL := /bin/bash -o pipefail
 CONTAINER_ENGINE ?= docker
 CONTAINER_REPO ?= "a3s"
 CONTAINER_IMAGE ?= "a3s"
@@ -107,3 +107,13 @@ package_ca_certs:
 	mkdir -p docker/in
 	extract-nss-root-certs > docker/in/ca-certificates.pem
 	rm -f certdata.txt
+
+
+remod:
+	go get go.acuvity.ai/tg@master
+	go get go.acuvity.ai/wsc@master
+	go get go.acuvity.ai/regolithe@master
+	go get go.acuvity.ai/elemental@master
+	go get go.acuvity.ai/manipulate@master
+	go get go.acuvity.ai/bahamut@master
+	go mod tidy
