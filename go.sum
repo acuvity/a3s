@@ -471,12 +471,12 @@ github.com/yuin/goldmark v1.2.1/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9dec
 github.com/yuin/goldmark v1.4.13/go.mod h1:6yULJ656Px+3vBD8DxQVa3kxgyrAnzto9xy5taEt/CY=
 github.com/yusufpapurcu/wmi v1.2.4 h1:zFUKzehAFReQwLys1b/iSMl+JQGSCSjtVqQn9bBrPo0=
 github.com/yusufpapurcu/wmi v1.2.4/go.mod h1:SBZ9tNy3G9/m5Oi98Zks0QjeHVDvuK0qfxQmPyzfmi0=
-go.acuvity.ai/bahamut v0.0.0-20250612155938-4ce8f1289829 h1:jGINh8/MbDOvmo3Rpn4oAYjNRLysY+B0lhiPi0+4Nmk=
-go.acuvity.ai/bahamut v0.0.0-20250612155938-4ce8f1289829/go.mod h1:auqVreSpEWJEdFF/+pRevXA77u/ckfJRjVT7Xa1e9RQ=
+go.acuvity.ai/bahamut v0.0.0-20250808153812-dd6cf8a5d981 h1:dcBC/XBINhWtg/akszdvNe3wMS7KUIkGLpwfoav6UEI=
+go.acuvity.ai/bahamut v0.0.0-20250808153812-dd6cf8a5d981/go.mod h1:8i+CtVgYmuyxUU2FpRfFvCeTEgnhB5kKshkTpn6iR6w=
 go.acuvity.ai/elemental v0.0.0-20250807214443-b82b04f4607c h1:d1CPkMTNBpMzrgaYS+VcUkXIeMuvgjMwDAOFd8xYTL8=
 go.acuvity.ai/elemental v0.0.0-20250807214443-b82b04f4607c/go.mod h1:JjSV7qKgKqMgcdRvJ7NnpSZvWe+XutOXQowkFyQm8wY=
-go.acuvity.ai/manipulate v0.0.0-20250611202351-fbab695c2392 h1:CDutsHivbLOE7U+fSRpEVFLcTyZIXDriTrJ5ERfUACY=
-go.acuvity.ai/manipulate v0.0.0-20250611202351-fbab695c2392/go.mod h1:TkNTg56YimjMF9jFOBNQLpQPO7CkZEQLMwx8P/+pav4=
+go.acuvity.ai/manipulate v0.0.0-20250808154031-2b415b067425 h1:u5otxh8PCoSvGs5IxRLvbgPhNSEBVzZ9HVam4ww9YP8=
+go.acuvity.ai/manipulate v0.0.0-20250808154031-2b415b067425/go.mod h1:TLgyyspLmjlEKEhTNBNhamu6+HvUaeiqcXYjYSZ5DWM=
 go.acuvity.ai/regolithe v0.0.0-20250718005833-3569c82da647 h1:1EZp19OpDrG/lA3GbqQBYaecwksTc3GHqcZvuGd6oJA=
 go.acuvity.ai/regolithe v0.0.0-20250718005833-3569c82da647/go.mod h1:hYoJkZRbNRpHKMNtNiugQDu6emXrhHP/Es5xAX35O2Y=
 go.acuvity.ai/tg v0.0.0-20250220234315-d9494083aa3a h1:oqIMPF2BTBRgjiUQCFcmulceL9MjrVnjmd0F9v9VDz0=

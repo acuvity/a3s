@@ -5,9 +5,9 @@ go 1.24
 toolchain go1.24.2
 
 require (
-	go.acuvity.ai/bahamut v0.0.0-20250612155938-4ce8f1289829
+	go.acuvity.ai/bahamut v0.0.0-20250808153812-dd6cf8a5d981
 	go.acuvity.ai/elemental v0.0.0-20250807214443-b82b04f4607c
-	go.acuvity.ai/manipulate v0.0.0-20250611202351-fbab695c2392
+	go.acuvity.ai/manipulate v0.0.0-20250808154031-2b415b067425
 	go.acuvity.ai/regolithe v0.0.0-20250718005833-3569c82da647 // indirect
 	go.acuvity.ai/tg v0.0.0-20250220234315-d9494083aa3a
 	go.acuvity.ai/wsc v0.0.0-20250506232542-8de7ff436ec0 // indirect
