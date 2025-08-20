@@ -205,6 +205,8 @@ func MakeA3SManipulator(ctx context.Context, a3sConfig conf.A3SClientConf) (mani
 // MakeA3SRemoteAuth is a convenience function that will return
 // ready to user Authenticator and Authorizers for a bahamut server.
 // It uses the given manipulator to talk to the instance of a3s.
+//
+// Deprecated: Please use MakeA3SRemoteAuthX.
 func MakeA3SRemoteAuth(
 	ctx context.Context,
 	m manipulate.Manipulator,
@@ -213,10 +215,27 @@ func MakeA3SRemoteAuth(
 	publicResources ...string,
 ) (*authenticator.Authenticator, authorizer.Authorizer, error) {
 
+	slog.Warn("bootstrap.MakeA3SRemoteAuth is deprecated. Please use bootstrap.MakeA3SRemoteAuthX")
+
+	return MakeA3SRemoteAuthX(ctx, m, requiredIssuer, requiredAudience, publicResources, nil)
+}
+
+// MakeA3SRemoteAuthX is a convenience function that will return
+// ready to user Authenticator and Authorizers for a bahamut server.
+// It uses the given manipulator to talk to the instance of a3s.
+func MakeA3SRemoteAuthX(
+	ctx context.Context,
+	m manipulate.Manipulator,
+	requiredIssuer string,
+	requiredAudience string,
+	publicResources []string,
+	trustedRemoteIssuers []authenticator.RemoteIssuer,
+) (*authenticator.Authenticator, authorizer.Authorizer, error) {
+
 	var jwks *token.JWKS
 	var err error
 
-	for i := 0; i < 5; i++ {
+	for range 5 {
 		jwks, err = token.NewRemoteJWKS(
 			ctx,
 			maniphttp.ExtractClient(m),
@@ -236,6 +255,7 @@ func MakeA3SRemoteAuth(
 			requiredIssuer,
 			requiredAudience,
 			authenticator.OptionIgnoredResources(publicResources...),
+			authenticator.OptionExternalTrustedIssuers(trustedRemoteIssuers...),
 		),
 		authorizer.NewRemote(
 			ctx,
