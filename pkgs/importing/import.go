@@ -80,7 +80,11 @@ func Import(
 				if !strings.HasPrefix(localns, "./") {
 					return fmt.Errorf("object '%s[%d] has a non relative namespace set: %s", obj.Identity(), i, localns)
 				}
-				imp.SetNamespace(namespace + "/" + strings.Replace(localns, "./", "", 1))
+				if namespace == "/" {
+					imp.SetNamespace("/" + strings.Replace(localns, "./", "", 1))
+				} else {
+					imp.SetNamespace(namespace + "/" + strings.Replace(localns, "./", "", 1))
+				}
 			}
 
 			h, err := Hash(imp, manager)
@@ -162,7 +166,11 @@ func Import(
 
 		ns := namespace
 		if localns := o.GetNamespace(); localns != "" {
-			ns = ns + "/" + strings.Replace(localns, "./", "", 1)
+			if ns == "/" {
+				ns = "/" + strings.Replace(localns, "./", "", 1)
+			} else {
+				ns = ns + "/" + strings.Replace(localns, "./", "", 1)
+			}
 			o.SetNamespace("")
 		}
 

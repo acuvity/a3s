@@ -518,8 +518,8 @@ func TestImport(t *testing.T) {
 					Description: "new",
 				},
 				&api.Authorization{
-					Namespace: "./subns",
 					Name:      "2",
+					Namespace: "./subns",
 				},
 			}
 
@@ -534,5 +534,62 @@ func TestImport(t *testing.T) {
 			So(createNamespaces, ShouldContain, "/ns")
 			So(createNamespaces, ShouldContain, "/ns/subns")
 		})
+
+		Convey("When I import a list of objects using subnamespace relative to /", func() {
+
+			m.MockRetrieveMany(t, func(mctx manipulate.Context, dest elemental.Identifiables) error {
+				*dest.(*api.AuthorizationsList) = append(
+					*dest.(*api.AuthorizationsList),
+					&api.Authorization{
+						ID:          "1",
+						Name:        "1",
+						ImportHash:  "3132303033343839333331383835343436343834e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+						ImportLabel: "label",
+					},
+					&api.Authorization{
+						ID:          "2",
+						Name:        "2",
+						ImportHash:  "3132303033343839333331383835343436343834e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+						ImportLabel: "label",
+					},
+				)
+				return nil
+			})
+
+			var deleteNamespaces []string
+			m.MockDelete(t, func(mctx manipulate.Context, object elemental.Identifiable) error {
+				deleteNamespaces = append(deleteNamespaces, mctx.Namespace())
+				return nil
+			})
+
+			var createNamespaces []string
+			m.MockCreate(t, func(mctx manipulate.Context, object elemental.Identifiable) error {
+				createNamespaces = append(createNamespaces, mctx.Namespace())
+				return nil
+			})
+
+			objs := api.AuthorizationsList{
+				&api.Authorization{
+					Name:        "1",
+					Description: "new",
+				},
+				&api.Authorization{
+					Name:      "2",
+					Namespace: "./subns",
+				},
+			}
+
+			slices.Sort(deleteNamespaces)
+			slices.Sort(createNamespaces)
+
+			err := Import(context.Background(), api.Manager(), m, "/", "label", objs, false)
+			So(err, ShouldBeNil)
+			So(objs[1].Namespace, ShouldEqual, "")
+			So(deleteNamespaces, ShouldResemble, []string{"", ""}) // empty means default manip namespace.
+			So(len(createNamespaces), ShouldEqual, 2)
+			So(createNamespaces, ShouldContain, "/")
+			So(createNamespaces, ShouldContain, "/subns")
+		})
 	})
+
 }
