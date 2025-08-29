@@ -32,9 +32,10 @@ func (p *SAMLSourcesProcessor) ProcessCreate(bctx bahamut.Context) error {
 			err.Error(),
 			"a3s",
 			http.StatusUnprocessableEntity,
-			map[string]interface{}{"attribute": "IDPMetadata"},
+			map[string]any{"attribute": "IDPMetadata"},
 		)
 	}
+
 	return crud.Create(bctx, p.manipulator, bctx.InputData().(*api.SAMLSource))
 }
 
@@ -57,9 +58,10 @@ func (p *SAMLSourcesProcessor) ProcessUpdate(bctx bahamut.Context) error {
 			err.Error(),
 			"a3s",
 			http.StatusUnprocessableEntity,
-			map[string]interface{}{"attribute": "IDPMetadata"},
+			map[string]any{"attribute": "IDPMetadata"},
 		)
 	}
+
 	return crud.Update(bctx, p.manipulator, bctx.InputData().(*api.SAMLSource))
 }
 

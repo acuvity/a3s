@@ -274,7 +274,6 @@ func (p *IssueProcessor) ProcessCreate(bctx bahamut.Context) (err error) {
 		if issuer == nil && err == nil {
 			return nil
 		}
-
 	}
 
 	if err != nil {
@@ -343,6 +342,7 @@ func (p *IssueProcessor) ProcessCreate(bctx bahamut.Context) (err error) {
 	req.InputA3S = nil
 	req.InputRemoteA3S = nil
 	req.InputOAuth2 = nil
+	req.InputSAML = nil
 
 	if req.Cookie {
 		domain := req.CookieDomain
@@ -694,6 +694,7 @@ func (p *IssueProcessor) handleSAMLIssue(bctx bahamut.Context, source elemental.
 	input := req.InputSAML
 
 	src := source.(*api.SAMLSource)
+
 	rerr := samlceremony.MakeRedirectError(bctx, input.RedirectErrorURL)
 
 	serviceProviderIssuer := src.ServiceProviderIssuer

@@ -68,65 +68,76 @@ func (c *mtlsIssuer) fromCertificate(ctx context.Context, cert *x509.Certificate
 		}
 	}
 
-	if v := cert.Subject.CommonName; v != "" {
-		c.token.Identity = append(c.token.Identity, fmt.Sprintf("commonname=%s", v))
-	}
+	switch c.source.ClaimsRetrievalMode {
 
-	if v := cert.SerialNumber; v != nil {
-		c.token.Identity = append(c.token.Identity, fmt.Sprintf("serialnumber=%s", v))
-	}
+	case api.MTLSSourceClaimsRetrievalModeEntra:
 
-	if vs := cert.Subject.Country; len(vs) != 0 {
-		for _, v := range vs {
-			c.token.Identity = append(c.token.Identity, fmt.Sprintf("country=%s", v))
+		if err := handleEntraAutologin(c, cert); err != nil {
+			return fmt.Errorf("unable to perform additional claims retrieval: %w", err)
 		}
-	}
 
-	if vs := cert.Subject.Locality; len(vs) != 0 {
-		for _, v := range vs {
-			c.token.Identity = append(c.token.Identity, fmt.Sprintf("locality=%s", v))
+	case api.MTLSSourceClaimsRetrievalModeX509:
+
+		if v := cert.Subject.CommonName; v != "" {
+			c.token.Identity = append(c.token.Identity, fmt.Sprintf("commonname=%s", v))
 		}
-	}
 
-	if vs := cert.Subject.Organization; len(vs) != 0 {
-		for _, v := range vs {
-			c.token.Identity = append(c.token.Identity, fmt.Sprintf("organization=%s", v))
+		if v := cert.SerialNumber; v != nil {
+			c.token.Identity = append(c.token.Identity, fmt.Sprintf("serialnumber=%s", v))
 		}
-	}
 
-	if vs := cert.Subject.OrganizationalUnit; len(vs) != 0 {
-		for _, v := range vs {
-			c.token.Identity = append(c.token.Identity, fmt.Sprintf("organizationalunit=%s", v))
+		if vs := cert.Subject.Country; len(vs) != 0 {
+			for _, v := range vs {
+				c.token.Identity = append(c.token.Identity, fmt.Sprintf("country=%s", v))
+			}
 		}
-	}
 
-	if vs := cert.Subject.PostalCode; len(vs) != 0 {
-		for _, v := range vs {
-			c.token.Identity = append(c.token.Identity, fmt.Sprintf("postalcode=%s", v))
+		if vs := cert.Subject.Locality; len(vs) != 0 {
+			for _, v := range vs {
+				c.token.Identity = append(c.token.Identity, fmt.Sprintf("locality=%s", v))
+			}
 		}
-	}
 
-	if vs := cert.Subject.Province; len(vs) != 0 {
-		for _, v := range vs {
-			c.token.Identity = append(c.token.Identity, fmt.Sprintf("province=%s", v))
+		if vs := cert.Subject.Organization; len(vs) != 0 {
+			for _, v := range vs {
+				c.token.Identity = append(c.token.Identity, fmt.Sprintf("organization=%s", v))
+			}
 		}
-	}
 
-	if vs := cert.Subject.StreetAddress; len(vs) != 0 {
-		for _, v := range vs {
-			c.token.Identity = append(c.token.Identity, fmt.Sprintf("streetaddress=%s", v))
+		if vs := cert.Subject.OrganizationalUnit; len(vs) != 0 {
+			for _, v := range vs {
+				c.token.Identity = append(c.token.Identity, fmt.Sprintf("organizationalunit=%s", v))
+			}
 		}
-	}
 
-	if vs := cert.EmailAddresses; len(vs) != 0 {
-		for _, v := range vs {
-			c.token.Identity = append(c.token.Identity, fmt.Sprintf("email=%s", v))
+		if vs := cert.Subject.PostalCode; len(vs) != 0 {
+			for _, v := range vs {
+				c.token.Identity = append(c.token.Identity, fmt.Sprintf("postalcode=%s", v))
+			}
 		}
-	}
 
-	if vs := cert.DNSNames; len(vs) != 0 {
-		for _, v := range vs {
-			c.token.Identity = append(c.token.Identity, fmt.Sprintf("dnsname=%s", v))
+		if vs := cert.Subject.Province; len(vs) != 0 {
+			for _, v := range vs {
+				c.token.Identity = append(c.token.Identity, fmt.Sprintf("province=%s", v))
+			}
+		}
+
+		if vs := cert.Subject.StreetAddress; len(vs) != 0 {
+			for _, v := range vs {
+				c.token.Identity = append(c.token.Identity, fmt.Sprintf("streetaddress=%s", v))
+			}
+		}
+
+		if vs := cert.EmailAddresses; len(vs) != 0 {
+			for _, v := range vs {
+				c.token.Identity = append(c.token.Identity, fmt.Sprintf("email=%s", v))
+			}
+		}
+
+		if vs := cert.DNSNames; len(vs) != 0 {
+			for _, v := range vs {
+				c.token.Identity = append(c.token.Identity, fmt.Sprintf("dnsname=%s", v))
+			}
 		}
 	}
 
