@@ -32,6 +32,41 @@
         "null"
       ]
     },
+    "claimsRetrievalMode": {
+      "$defaultValue": "X509",
+      "$friendlyName": "Claims Retrieval Mode",
+      "description": "Defines if and how you want to enable auto login with client certificates.  For Entra, you will need to set clientTenantID, clientID and clientSecret.  You will also need an Entra application that has the following permissions:  - Directory.Read.All - User.Read  For now, only Entra is supported.",
+      "enum": [
+        "Entra",
+        "X509"
+      ],
+      "title": "claimsRetrievalMode"
+    },
+    "clientID": {
+      "$friendlyName": "Client ID",
+      "description": "The oauth clientID if any. This may be required for autologin, depending on the mode.",
+      "title": "clientID",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "clientSecret": {
+      "$friendlyName": "Client Secret",
+      "$required": true,
+      "description": "Client secret associated with the client ID. This may be required for autologin, depending on the mode.",
+      "title": "clientSecret",
+      "type": "string"
+    },
+    "clientTenantID": {
+      "$friendlyName": "Client Tenant ID",
+      "description": "ID of the tenant for the identity provider, if any. This may be required for autologin, depending on the mode.",
+      "title": "clientTenantID",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
     "createTime": {
       "$friendlyName": "CreateTime",
       "$readOnly": true,
@@ -131,6 +166,16 @@
         "null"
       ]
     },
+    "principalUserX509Field": {
+      "$defaultValue": "Email",
+      "$friendlyName": "Principal User X.509 Field",
+      "description": "The X.509 field to look for to extract the user principal name.",
+      "enum": [
+        "CommonName",
+        "Email"
+      ],
+      "title": "principalUserX509Field"
+    },
     "subjectKeyIDs": {
       "$friendlyName": "SubjectKeyIDs",
       "$readOnly": true,
@@ -157,6 +202,7 @@
   },
   "required": [
     "CA",
+    "clientSecret",
     "name"
   ],
   "title": "MTLSSource",

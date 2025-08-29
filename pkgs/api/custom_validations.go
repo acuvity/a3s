@@ -198,6 +198,28 @@ func ValidateURL(attribute string, u string) error {
 	return nil
 }
 
+// ValidateMTLSSource validates the given MTLSSource.
+func ValidateMTLSSource(source *MTLSSource) error {
+
+	switch source.ClaimsRetrievalMode {
+	case MTLSSourceClaimsRetrievalModeEntra:
+		if source.CA == "" {
+			return makeErr("CA", "CA must be set when claims retrieval mode is set to 'Entra'")
+		}
+		if source.ClientTenantID == "" {
+			return makeErr("clientTenantID", "clientTenantID must be set when claims retrieval mode is set to 'Entra'")
+		}
+		if source.ClientID == "" {
+			return makeErr("clientID", "clientID must be set when claims retrieval mode is set to 'Entra'")
+		}
+		if source.ClientSecret == "" {
+			return makeErr("clientSecret", "clientSecret must be set when claims retrieval mode is set to 'Entra'")
+		}
+	}
+
+	return nil
+}
+
 // ValidateSAMLSource validates the given SAMLSource.
 func ValidateSAMLSource(source *SAMLSource) error {
 

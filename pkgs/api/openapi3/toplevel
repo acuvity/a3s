@@ -1031,6 +1031,29 @@
             "readOnly": true,
             "type": "string"
           },
+          "claimsRetrievalMode": {
+            "default": "X509",
+            "description": "Defines if and how you want to enable auto login with client certificates.\n\nFor Entra, you will need to set clientTenantID, clientID and\nclientSecret.\n\nYou will also need an Entra application that has the following permissions:\n\n- Directory.Read.All\n- User.Read\n\nFor now, only Entra is supported.",
+            "enum": [
+              "Entra",
+              "X509"
+            ]
+          },
+          "clientID": {
+            "description": "The oauth clientID if any. This may be required for autologin, depending on the\nmode.",
+            "example": "a83e57d8-24af-4aec-bc8f-822db8d165b0",
+            "type": "string"
+          },
+          "clientSecret": {
+            "description": "Client secret associated with the client ID. This may be required for autologin,\ndepending on the mode.",
+            "example": "Ytgbfjtj4652jHDFGls99jF",
+            "type": "string"
+          },
+          "clientTenantID": {
+            "description": "ID of the tenant for the identity provider, if any. This may be required for\nautologin, depending on the mode.",
+            "example": "a83e57d8-24af-4aec-bc8f-822db8d165b0",
+            "type": "string"
+          },
           "createTime": {
             "description": "Creation date of the object.",
             "format": "date-time",
@@ -1084,6 +1107,14 @@
             "readOnly": true,
             "type": "string"
           },
+          "principalUserX509Field": {
+            "default": "Email",
+            "description": "The X.509 field to look for to extract the user principal name.",
+            "enum": [
+              "CommonName",
+              "Email"
+            ]
+          },
           "subjectKeyIDs": {
             "description": "Value of the CAs X.509 SubjectKeyIDs in the chain.",
             "items": {
@@ -1101,6 +1132,7 @@
         },
         "required": [
           "CA",
+          "clientSecret",
           "name"
         ],
         "type": "object"
@@ -1637,17 +1669,6 @@
           "skipResponseSignatureCheck": {
             "description": "If true, the issue request won't check the ResponseSignatureValidated.",
             "type": "boolean"
-          },
-          "subjects": {
-            "description": "List of claims that will provide the subject.",
-            "example": [
-              "email",
-              "profile"
-            ],
-            "items": {
-              "type": "string"
-            },
-            "type": "array"
           },
           "updateTime": {
             "description": "Last update date of the object.",

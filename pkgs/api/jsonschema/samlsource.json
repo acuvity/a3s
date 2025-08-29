@@ -192,18 +192,6 @@
         "null"
       ]
     },
-    "subjects": {
-      "$friendlyName": "Subjects",
-      "description": "List of claims that will provide the subject.",
-      "items": {
-        "type": [
-          "string",
-          "null"
-        ]
-      },
-      "title": "subjects",
-      "type": "array"
-    },
     "updateTime": {
       "$friendlyName": "UpdateTime",
       "$readOnly": true,

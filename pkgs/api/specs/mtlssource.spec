@@ -19,6 +19,8 @@ model:
   - '@importable'
   - '@timed'
   - '@claimfilter'
+  validations:
+  - $mtlssource
 
 # Indexes
 indexes:
@@ -51,6 +53,65 @@ attributes:
       -----END CERTIFICATE-----
     validations:
     - $pem
+
+  - name: claimsRetrievalMode
+    friendly_name: Claims Retrieval Mode
+    description: |-
+      Defines if and how you want to enable auto login with client certificates.
+
+      For Entra, you will need to set clientTenantID, clientID and
+      clientSecret.
+
+      You will also need an Entra application that has the following permissions:
+
+      - Directory.Read.All
+      - User.Read
+
+      For now, only Entra is supported.
+    type: enum
+    exposed: true
+    stored: true
+    allowed_choices:
+    - Entra
+    - X509
+    default_value: X509
+    omit_empty: true
+
+  - name: clientID
+    friendly_name: Client ID
+    description: |-
+      The oauth clientID if any. This may be required for autologin, depending on the
+      mode.
+    type: string
+    exposed: true
+    stored: true
+    example_value: a83e57d8-24af-4aec-bc8f-822db8d165b0
+    omit_empty: true
+
+  - name: clientSecret
+    friendly_name: Client Secret
+    description: |-
+      Client secret associated with the client ID. This may be required for autologin,
+      depending on the mode.
+    type: string
+    exposed: true
+    stored: true
+    required: true
+    example_value: Ytgbfjtj4652jHDFGls99jF
+    secret: true
+    transient: true
+    encrypted: true
+
+  - name: clientTenantID
+    friendly_name: Client Tenant ID
+    description: |-
+      ID of the tenant for the identity provider, if any. This may be required for
+      autologin, depending on the mode.
+    type: string
+    exposed: true
+    stored: true
+    example_value: a83e57d8-24af-4aec-bc8f-822db8d165b0
+    omit_empty: true
 
   - name: description
     friendly_name: Description
@@ -91,6 +152,17 @@ attributes:
     stored: true
     required: true
     example_value: mypki
+
+  - name: principalUserX509Field
+    friendly_name: Principal User X.509 Field
+    description: The X.509 field to look for to extract the user principal name.
+    type: enum
+    exposed: true
+    stored: true
+    allowed_choices:
+    - CommonName
+    - Email
+    default_value: Email
 
   - name: subjectKeyIDs
     friendly_name: SubjectKeyIDs

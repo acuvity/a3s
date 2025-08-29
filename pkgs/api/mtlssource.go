@@ -13,6 +13,28 @@ import (
 	"go.acuvity.ai/elemental"
 )
 
+// MTLSSourceClaimsRetrievalModeValue represents the possible values for attribute "claimsRetrievalMode".
+type MTLSSourceClaimsRetrievalModeValue string
+
+const (
+	// MTLSSourceClaimsRetrievalModeEntra represents the value Entra.
+	MTLSSourceClaimsRetrievalModeEntra MTLSSourceClaimsRetrievalModeValue = "Entra"
+
+	// MTLSSourceClaimsRetrievalModeX509 represents the value X509.
+	MTLSSourceClaimsRetrievalModeX509 MTLSSourceClaimsRetrievalModeValue = "X509"
+)
+
+// MTLSSourcePrincipalUserX509FieldValue represents the possible values for attribute "principalUserX509Field".
+type MTLSSourcePrincipalUserX509FieldValue string
+
+const (
+	// MTLSSourcePrincipalUserX509FieldCommonName represents the value CommonName.
+	MTLSSourcePrincipalUserX509FieldCommonName MTLSSourcePrincipalUserX509FieldValue = "CommonName"
+
+	// MTLSSourcePrincipalUserX509FieldEmail represents the value Email.
+	MTLSSourcePrincipalUserX509FieldEmail MTLSSourcePrincipalUserX509FieldValue = "Email"
+)
+
 // MTLSSourceIdentity represents the Identity of the object.
 var MTLSSourceIdentity = elemental.Identity{
 	Name:     "mtlssource",
@@ -91,6 +113,31 @@ type MTLSSource struct {
 	// ID is the identifier of the object.
 	ID string `json:"ID" msgpack:"ID" bson:"-" mapstructure:"ID,omitempty"`
 
+	// Defines if and how you want to enable auto login with client certificates.
+	//
+	// For Entra, you will need to set clientTenantID, clientID and
+	// clientSecret.
+	//
+	// You will also need an Entra application that has the following permissions:
+	//
+	// - Directory.Read.All
+	// - User.Read
+	//
+	// For now, only Entra is supported.
+	ClaimsRetrievalMode MTLSSourceClaimsRetrievalModeValue `json:"claimsRetrievalMode,omitempty" msgpack:"claimsRetrievalMode,omitempty" bson:"claimsretrievalmode,omitempty" mapstructure:"claimsRetrievalMode,omitempty"`
+
+	// The oauth clientID if any. This may be required for autologin, depending on the
+	// mode.
+	ClientID string `json:"clientID,omitempty" msgpack:"clientID,omitempty" bson:"clientid,omitempty" mapstructure:"clientID,omitempty"`
+
+	// Client secret associated with the client ID. This may be required for autologin,
+	// depending on the mode.
+	ClientSecret string `json:"clientSecret" msgpack:"clientSecret" bson:"clientsecret" mapstructure:"clientSecret,omitempty"`
+
+	// ID of the tenant for the identity provider, if any. This may be required for
+	// autologin, depending on the mode.
+	ClientTenantID string `json:"clientTenantID,omitempty" msgpack:"clientTenantID,omitempty" bson:"clienttenantid,omitempty" mapstructure:"clientTenantID,omitempty"`
+
 	// Creation date of the object.
 	CreateTime time.Time `json:"createTime" msgpack:"createTime" bson:"createtime" mapstructure:"createTime,omitempty"`
 
@@ -127,6 +174,9 @@ type MTLSSource struct {
 	// The namespace of the object.
 	Namespace string `json:"namespace" msgpack:"namespace" bson:"namespace" mapstructure:"namespace,omitempty"`
 
+	// The X.509 field to look for to extract the user principal name.
+	PrincipalUserX509Field MTLSSourcePrincipalUserX509FieldValue `json:"principalUserX509Field" msgpack:"principalUserX509Field" bson:"principaluserx509field" mapstructure:"principalUserX509Field,omitempty"`
+
 	// Value of the CAs X.509 SubjectKeyIDs in the chain.
 	SubjectKeyIDs []string `json:"subjectKeyIDs" msgpack:"subjectKeyIDs" bson:"subjectkeyids" mapstructure:"subjectKeyIDs,omitempty"`
 
@@ -146,11 +196,13 @@ type MTLSSource struct {
 func NewMTLSSource() *MTLSSource {
 
 	return &MTLSSource{
-		ModelVersion:  1,
-		Fingerprints:  []string{},
-		IgnoredKeys:   []string{},
-		IncludedKeys:  []string{},
-		SubjectKeyIDs: []string{},
+		ModelVersion:           1,
+		ClaimsRetrievalMode:    MTLSSourceClaimsRetrievalModeX509,
+		Fingerprints:           []string{},
+		IgnoredKeys:            []string{},
+		IncludedKeys:           []string{},
+		PrincipalUserX509Field: MTLSSourcePrincipalUserX509FieldEmail,
+		SubjectKeyIDs:          []string{},
 	}
 }
 
@@ -186,6 +238,10 @@ func (o *MTLSSource) GetBSON() (any, error) {
 	if o.ID != "" {
 		s.ID = bson.ObjectIdHex(o.ID)
 	}
+	s.ClaimsRetrievalMode = o.ClaimsRetrievalMode
+	s.ClientID = o.ClientID
+	s.ClientSecret = o.ClientSecret
+	s.ClientTenantID = o.ClientTenantID
 	s.CreateTime = o.CreateTime
 	s.Description = o.Description
 	s.Fingerprints = o.Fingerprints
@@ -196,6 +252,7 @@ func (o *MTLSSource) GetBSON() (any, error) {
 	s.Modifier = o.Modifier
 	s.Name = o.Name
 	s.Namespace = o.Namespace
+	s.PrincipalUserX509Field = o.PrincipalUserX509Field
 	s.SubjectKeyIDs = o.SubjectKeyIDs
 	s.UpdateTime = o.UpdateTime
 	s.ZHash = o.ZHash
@@ -219,6 +276,10 @@ func (o *MTLSSource) SetBSON(raw bson.Raw) error {
 
 	o.CA = s.CA
 	o.ID = s.ID.Hex()
+	o.ClaimsRetrievalMode = s.ClaimsRetrievalMode
+	o.ClientID = s.ClientID
+	o.ClientSecret = s.ClientSecret
+	o.ClientTenantID = s.ClientTenantID
 	o.CreateTime = s.CreateTime
 	o.Description = s.Description
 	o.Fingerprints = s.Fingerprints
@@ -229,6 +290,7 @@ func (o *MTLSSource) SetBSON(raw bson.Raw) error {
 	o.Modifier = s.Modifier
 	o.Name = s.Name
 	o.Namespace = s.Namespace
+	o.PrincipalUserX509Field = s.PrincipalUserX509Field
 	o.SubjectKeyIDs = s.SubjectKeyIDs
 	o.UpdateTime = s.UpdateTime
 	o.ZHash = s.ZHash
@@ -381,22 +443,27 @@ func (o *MTLSSource) ToSparse(fields ...string) elemental.SparseIdentifiable {
 	if len(fields) == 0 {
 		// nolint: goimports
 		return &SparseMTLSSource{
-			CA:            &o.CA,
-			ID:            &o.ID,
-			CreateTime:    &o.CreateTime,
-			Description:   &o.Description,
-			Fingerprints:  &o.Fingerprints,
-			IgnoredKeys:   &o.IgnoredKeys,
-			ImportHash:    &o.ImportHash,
-			ImportLabel:   &o.ImportLabel,
-			IncludedKeys:  &o.IncludedKeys,
-			Modifier:      o.Modifier,
-			Name:          &o.Name,
-			Namespace:     &o.Namespace,
-			SubjectKeyIDs: &o.SubjectKeyIDs,
-			UpdateTime:    &o.UpdateTime,
-			ZHash:         &o.ZHash,
-			Zone:          &o.Zone,
+			CA:                     &o.CA,
+			ID:                     &o.ID,
+			ClaimsRetrievalMode:    &o.ClaimsRetrievalMode,
+			ClientID:               &o.ClientID,
+			ClientSecret:           &o.ClientSecret,
+			ClientTenantID:         &o.ClientTenantID,
+			CreateTime:             &o.CreateTime,
+			Description:            &o.Description,
+			Fingerprints:           &o.Fingerprints,
+			IgnoredKeys:            &o.IgnoredKeys,
+			ImportHash:             &o.ImportHash,
+			ImportLabel:            &o.ImportLabel,
+			IncludedKeys:           &o.IncludedKeys,
+			Modifier:               o.Modifier,
+			Name:                   &o.Name,
+			Namespace:              &o.Namespace,
+			PrincipalUserX509Field: &o.PrincipalUserX509Field,
+			SubjectKeyIDs:          &o.SubjectKeyIDs,
+			UpdateTime:             &o.UpdateTime,
+			ZHash:                  &o.ZHash,
+			Zone:                   &o.Zone,
 		}
 	}
 
@@ -407,6 +474,14 @@ func (o *MTLSSource) ToSparse(fields ...string) elemental.SparseIdentifiable {
 			sp.CA = &(o.CA)
 		case "ID":
 			sp.ID = &(o.ID)
+		case "claimsRetrievalMode":
+			sp.ClaimsRetrievalMode = &(o.ClaimsRetrievalMode)
+		case "clientID":
+			sp.ClientID = &(o.ClientID)
+		case "clientSecret":
+			sp.ClientSecret = &(o.ClientSecret)
+		case "clientTenantID":
+			sp.ClientTenantID = &(o.ClientTenantID)
 		case "createTime":
 			sp.CreateTime = &(o.CreateTime)
 		case "description":
@@ -427,6 +502,8 @@ func (o *MTLSSource) ToSparse(fields ...string) elemental.SparseIdentifiable {
 			sp.Name = &(o.Name)
 		case "namespace":
 			sp.Namespace = &(o.Namespace)
+		case "principalUserX509Field":
+			sp.PrincipalUserX509Field = &(o.PrincipalUserX509Field)
 		case "subjectKeyIDs":
 			sp.SubjectKeyIDs = &(o.SubjectKeyIDs)
 		case "updateTime":
@@ -441,6 +518,26 @@ func (o *MTLSSource) ToSparse(fields ...string) elemental.SparseIdentifiable {
 	return sp
 }
 
+// EncryptAttributes encrypts the attributes marked as `encrypted` using the given encrypter.
+func (o *MTLSSource) EncryptAttributes(encrypter elemental.AttributeEncrypter) (err error) {
+
+	if o.ClientSecret, err = encrypter.EncryptString(o.ClientSecret); err != nil {
+		return fmt.Errorf("unable to encrypt attribute 'ClientSecret' for 'MTLSSource' (%s): %s", o.Identifier(), err)
+	}
+
+	return nil
+}
+
+// DecryptAttributes decrypts the attributes marked as `encrypted` using the given decrypter.
+func (o *MTLSSource) DecryptAttributes(encrypter elemental.AttributeEncrypter) (err error) {
+
+	if o.ClientSecret, err = encrypter.DecryptString(o.ClientSecret); err != nil {
+		return fmt.Errorf("unable to decrypt attribute 'ClientSecret' for 'MTLSSource' (%s): %s", o.Identifier(), err)
+	}
+
+	return nil
+}
+
 // Patch apply the non nil value of a *SparseMTLSSource to the object.
 func (o *MTLSSource) Patch(sparse elemental.SparseIdentifiable) {
 	if !sparse.Identity().IsEqual(o.Identity()) {
@@ -453,6 +550,18 @@ func (o *MTLSSource) Patch(sparse elemental.SparseIdentifiable) {
 	}
 	if so.ID != nil {
 		o.ID = *so.ID
+	}
+	if so.ClaimsRetrievalMode != nil {
+		o.ClaimsRetrievalMode = *so.ClaimsRetrievalMode
+	}
+	if so.ClientID != nil {
+		o.ClientID = *so.ClientID
+	}
+	if so.ClientSecret != nil {
+		o.ClientSecret = *so.ClientSecret
+	}
+	if so.ClientTenantID != nil {
+		o.ClientTenantID = *so.ClientTenantID
 	}
 	if so.CreateTime != nil {
 		o.CreateTime = *so.CreateTime
@@ -483,6 +592,9 @@ func (o *MTLSSource) Patch(sparse elemental.SparseIdentifiable) {
 	}
 	if so.Namespace != nil {
 		o.Namespace = *so.Namespace
+	}
+	if so.PrincipalUserX509Field != nil {
+		o.PrincipalUserX509Field = *so.PrincipalUserX509Field
 	}
 	if so.SubjectKeyIDs != nil {
 		o.SubjectKeyIDs = *so.SubjectKeyIDs
@@ -536,6 +648,10 @@ func (o *MTLSSource) Validate() error {
 		errors = errors.Append(err)
 	}
 
+	if err := elemental.ValidateStringInList("claimsRetrievalMode", string(o.ClaimsRetrievalMode), []string{"Entra", "X509"}, false); err != nil {
+		errors = errors.Append(err)
+	}
+
 	if err := ValidateKeys("ignoredKeys", o.IgnoredKeys); err != nil {
 		errors = errors.Append(err)
 	}
@@ -553,6 +669,15 @@ func (o *MTLSSource) Validate() error {
 
 	if err := elemental.ValidateRequiredString("name", o.Name); err != nil {
 		requiredErrors = requiredErrors.Append(err)
+	}
+
+	if err := elemental.ValidateStringInList("principalUserX509Field", string(o.PrincipalUserX509Field), []string{"CommonName", "Email"}, false); err != nil {
+		errors = errors.Append(err)
+	}
+
+	// Custom object validation.
+	if err := ValidateMTLSSource(o); err != nil {
+		errors = errors.Append(err)
 	}
 
 	if len(requiredErrors) > 0 {
@@ -593,6 +718,14 @@ func (o *MTLSSource) ValueForAttribute(name string) any {
 		return o.CA
 	case "ID":
 		return o.ID
+	case "claimsRetrievalMode":
+		return o.ClaimsRetrievalMode
+	case "clientID":
+		return o.ClientID
+	case "clientSecret":
+		return o.ClientSecret
+	case "clientTenantID":
+		return o.ClientTenantID
 	case "createTime":
 		return o.CreateTime
 	case "description":
@@ -613,6 +746,8 @@ func (o *MTLSSource) ValueForAttribute(name string) any {
 		return o.Name
 	case "namespace":
 		return o.Namespace
+	case "principalUserX509Field":
+		return o.PrincipalUserX509Field
 	case "subjectKeyIDs":
 		return o.SubjectKeyIDs
 	case "updateTime":
@@ -654,6 +789,64 @@ var MTLSSourceAttributesMap = map[string]elemental.AttributeSpecification{
 		Setter:         true,
 		Stored:         true,
 		Type:           "string",
+	},
+	"ClaimsRetrievalMode": {
+		AllowedChoices: []string{"Entra", "X509"},
+		BSONFieldName:  "claimsretrievalmode",
+		ConvertedName:  "ClaimsRetrievalMode",
+		DefaultValue:   MTLSSourceClaimsRetrievalModeX509,
+		Description: `Defines if and how you want to enable auto login with client certificates.
+
+For Entra, you will need to set clientTenantID, clientID and
+clientSecret.
+
+You will also need an Entra application that has the following permissions:
+
+- Directory.Read.All
+- User.Read
+
+For now, only Entra is supported.`,
+		Exposed: true,
+		Name:    "claimsRetrievalMode",
+		Stored:  true,
+		Type:    "enum",
+	},
+	"ClientID": {
+		AllowedChoices: []string{},
+		BSONFieldName:  "clientid",
+		ConvertedName:  "ClientID",
+		Description: `The oauth clientID if any. This may be required for autologin, depending on the
+mode.`,
+		Exposed: true,
+		Name:    "clientID",
+		Stored:  true,
+		Type:    "string",
+	},
+	"ClientSecret": {
+		AllowedChoices: []string{},
+		BSONFieldName:  "clientsecret",
+		ConvertedName:  "ClientSecret",
+		Description: `Client secret associated with the client ID. This may be required for autologin,
+depending on the mode.`,
+		Encrypted: true,
+		Exposed:   true,
+		Name:      "clientSecret",
+		Required:  true,
+		Secret:    true,
+		Stored:    true,
+		Transient: true,
+		Type:      "string",
+	},
+	"ClientTenantID": {
+		AllowedChoices: []string{},
+		BSONFieldName:  "clienttenantid",
+		ConvertedName:  "ClientTenantID",
+		Description: `ID of the tenant for the identity provider, if any. This may be required for
+autologin, depending on the mode.`,
+		Exposed: true,
+		Name:    "clientTenantID",
+		Stored:  true,
+		Type:    "string",
 	},
 	"CreateTime": {
 		AllowedChoices: []string{},
@@ -787,6 +980,17 @@ the claims that are about to be delivered using this authentication source.`,
 		Stored:         true,
 		Type:           "string",
 	},
+	"PrincipalUserX509Field": {
+		AllowedChoices: []string{"CommonName", "Email"},
+		BSONFieldName:  "principaluserx509field",
+		ConvertedName:  "PrincipalUserX509Field",
+		DefaultValue:   MTLSSourcePrincipalUserX509FieldEmail,
+		Description:    `The X.509 field to look for to extract the user principal name.`,
+		Exposed:        true,
+		Name:           "principalUserX509Field",
+		Stored:         true,
+		Type:           "enum",
+	},
 	"SubjectKeyIDs": {
 		AllowedChoices: []string{},
 		Autogenerated:  true,
@@ -872,6 +1076,64 @@ var MTLSSourceLowerCaseAttributesMap = map[string]elemental.AttributeSpecificati
 		Setter:         true,
 		Stored:         true,
 		Type:           "string",
+	},
+	"claimsretrievalmode": {
+		AllowedChoices: []string{"Entra", "X509"},
+		BSONFieldName:  "claimsretrievalmode",
+		ConvertedName:  "ClaimsRetrievalMode",
+		DefaultValue:   MTLSSourceClaimsRetrievalModeX509,
+		Description: `Defines if and how you want to enable auto login with client certificates.
+
+For Entra, you will need to set clientTenantID, clientID and
+clientSecret.
+
+You will also need an Entra application that has the following permissions:
+
+- Directory.Read.All
+- User.Read
+
+For now, only Entra is supported.`,
+		Exposed: true,
+		Name:    "claimsRetrievalMode",
+		Stored:  true,
+		Type:    "enum",
+	},
+	"clientid": {
+		AllowedChoices: []string{},
+		BSONFieldName:  "clientid",
+		ConvertedName:  "ClientID",
+		Description: `The oauth clientID if any. This may be required for autologin, depending on the
+mode.`,
+		Exposed: true,
+		Name:    "clientID",
+		Stored:  true,
+		Type:    "string",
+	},
+	"clientsecret": {
+		AllowedChoices: []string{},
+		BSONFieldName:  "clientsecret",
+		ConvertedName:  "ClientSecret",
+		Description: `Client secret associated with the client ID. This may be required for autologin,
+depending on the mode.`,
+		Encrypted: true,
+		Exposed:   true,
+		Name:      "clientSecret",
+		Required:  true,
+		Secret:    true,
+		Stored:    true,
+		Transient: true,
+		Type:      "string",
+	},
+	"clienttenantid": {
+		AllowedChoices: []string{},
+		BSONFieldName:  "clienttenantid",
+		ConvertedName:  "ClientTenantID",
+		Description: `ID of the tenant for the identity provider, if any. This may be required for
+autologin, depending on the mode.`,
+		Exposed: true,
+		Name:    "clientTenantID",
+		Stored:  true,
+		Type:    "string",
 	},
 	"createtime": {
 		AllowedChoices: []string{},
@@ -1005,6 +1267,17 @@ the claims that are about to be delivered using this authentication source.`,
 		Stored:         true,
 		Type:           "string",
 	},
+	"principaluserx509field": {
+		AllowedChoices: []string{"CommonName", "Email"},
+		BSONFieldName:  "principaluserx509field",
+		ConvertedName:  "PrincipalUserX509Field",
+		DefaultValue:   MTLSSourcePrincipalUserX509FieldEmail,
+		Description:    `The X.509 field to look for to extract the user principal name.`,
+		Exposed:        true,
+		Name:           "principalUserX509Field",
+		Stored:         true,
+		Type:           "enum",
+	},
 	"subjectkeyids": {
 		AllowedChoices: []string{},
 		Autogenerated:  true,
@@ -1131,6 +1404,31 @@ type SparseMTLSSource struct {
 	// ID is the identifier of the object.
 	ID *string `json:"ID,omitempty" msgpack:"ID,omitempty" bson:"-" mapstructure:"ID,omitempty"`
 
+	// Defines if and how you want to enable auto login with client certificates.
+	//
+	// For Entra, you will need to set clientTenantID, clientID and
+	// clientSecret.
+	//
+	// You will also need an Entra application that has the following permissions:
+	//
+	// - Directory.Read.All
+	// - User.Read
+	//
+	// For now, only Entra is supported.
+	ClaimsRetrievalMode *MTLSSourceClaimsRetrievalModeValue `json:"claimsRetrievalMode,omitempty" msgpack:"claimsRetrievalMode,omitempty" bson:"claimsretrievalmode,omitempty" mapstructure:"claimsRetrievalMode,omitempty"`
+
+	// The oauth clientID if any. This may be required for autologin, depending on the
+	// mode.
+	ClientID *string `json:"clientID,omitempty" msgpack:"clientID,omitempty" bson:"clientid,omitempty" mapstructure:"clientID,omitempty"`
+
+	// Client secret associated with the client ID. This may be required for autologin,
+	// depending on the mode.
+	ClientSecret *string `json:"clientSecret,omitempty" msgpack:"clientSecret,omitempty" bson:"clientsecret,omitempty" mapstructure:"clientSecret,omitempty"`
+
+	// ID of the tenant for the identity provider, if any. This may be required for
+	// autologin, depending on the mode.
+	ClientTenantID *string `json:"clientTenantID,omitempty" msgpack:"clientTenantID,omitempty" bson:"clienttenantid,omitempty" mapstructure:"clientTenantID,omitempty"`
+
 	// Creation date of the object.
 	CreateTime *time.Time `json:"createTime,omitempty" msgpack:"createTime,omitempty" bson:"createtime,omitempty" mapstructure:"createTime,omitempty"`
 
@@ -1166,6 +1464,9 @@ type SparseMTLSSource struct {
 
 	// The namespace of the object.
 	Namespace *string `json:"namespace,omitempty" msgpack:"namespace,omitempty" bson:"namespace,omitempty" mapstructure:"namespace,omitempty"`
+
+	// The X.509 field to look for to extract the user principal name.
+	PrincipalUserX509Field *MTLSSourcePrincipalUserX509FieldValue `json:"principalUserX509Field,omitempty" msgpack:"principalUserX509Field,omitempty" bson:"principaluserx509field,omitempty" mapstructure:"principalUserX509Field,omitempty"`
 
 	// Value of the CAs X.509 SubjectKeyIDs in the chain.
 	SubjectKeyIDs *[]string `json:"subjectKeyIDs,omitempty" msgpack:"subjectKeyIDs,omitempty" bson:"subjectkeyids,omitempty" mapstructure:"subjectKeyIDs,omitempty"`
@@ -1228,6 +1529,18 @@ func (o *SparseMTLSSource) GetBSON() (any, error) {
 	if o.ID != nil {
 		s.ID = bson.ObjectIdHex(*o.ID)
 	}
+	if o.ClaimsRetrievalMode != nil {
+		s.ClaimsRetrievalMode = o.ClaimsRetrievalMode
+	}
+	if o.ClientID != nil {
+		s.ClientID = o.ClientID
+	}
+	if o.ClientSecret != nil {
+		s.ClientSecret = o.ClientSecret
+	}
+	if o.ClientTenantID != nil {
+		s.ClientTenantID = o.ClientTenantID
+	}
 	if o.CreateTime != nil {
 		s.CreateTime = o.CreateTime
 	}
@@ -1257,6 +1570,9 @@ func (o *SparseMTLSSource) GetBSON() (any, error) {
 	}
 	if o.Namespace != nil {
 		s.Namespace = o.Namespace
+	}
+	if o.PrincipalUserX509Field != nil {
+		s.PrincipalUserX509Field = o.PrincipalUserX509Field
 	}
 	if o.SubjectKeyIDs != nil {
 		s.SubjectKeyIDs = o.SubjectKeyIDs
@@ -1292,6 +1608,18 @@ func (o *SparseMTLSSource) SetBSON(raw bson.Raw) error {
 	}
 	id := s.ID.Hex()
 	o.ID = &id
+	if s.ClaimsRetrievalMode != nil {
+		o.ClaimsRetrievalMode = s.ClaimsRetrievalMode
+	}
+	if s.ClientID != nil {
+		o.ClientID = s.ClientID
+	}
+	if s.ClientSecret != nil {
+		o.ClientSecret = s.ClientSecret
+	}
+	if s.ClientTenantID != nil {
+		o.ClientTenantID = s.ClientTenantID
+	}
 	if s.CreateTime != nil {
 		o.CreateTime = s.CreateTime
 	}
@@ -1321,6 +1649,9 @@ func (o *SparseMTLSSource) SetBSON(raw bson.Raw) error {
 	}
 	if s.Namespace != nil {
 		o.Namespace = s.Namespace
+	}
+	if s.PrincipalUserX509Field != nil {
+		o.PrincipalUserX509Field = s.PrincipalUserX509Field
 	}
 	if s.SubjectKeyIDs != nil {
 		o.SubjectKeyIDs = s.SubjectKeyIDs
@@ -1354,6 +1685,18 @@ func (o *SparseMTLSSource) ToPlain() elemental.PlainIdentifiable {
 	if o.ID != nil {
 		out.ID = *o.ID
 	}
+	if o.ClaimsRetrievalMode != nil {
+		out.ClaimsRetrievalMode = *o.ClaimsRetrievalMode
+	}
+	if o.ClientID != nil {
+		out.ClientID = *o.ClientID
+	}
+	if o.ClientSecret != nil {
+		out.ClientSecret = *o.ClientSecret
+	}
+	if o.ClientTenantID != nil {
+		out.ClientTenantID = *o.ClientTenantID
+	}
 	if o.CreateTime != nil {
 		out.CreateTime = *o.CreateTime
 	}
@@ -1384,6 +1727,9 @@ func (o *SparseMTLSSource) ToPlain() elemental.PlainIdentifiable {
 	if o.Namespace != nil {
 		out.Namespace = *o.Namespace
 	}
+	if o.PrincipalUserX509Field != nil {
+		out.PrincipalUserX509Field = *o.PrincipalUserX509Field
+	}
 	if o.SubjectKeyIDs != nil {
 		out.SubjectKeyIDs = *o.SubjectKeyIDs
 	}
@@ -1398,6 +1744,26 @@ func (o *SparseMTLSSource) ToPlain() elemental.PlainIdentifiable {
 	}
 
 	return out
+}
+
+// EncryptAttributes encrypts the attributes marked as `encrypted` using the given encrypter.
+func (o *SparseMTLSSource) EncryptAttributes(encrypter elemental.AttributeEncrypter) (err error) {
+
+	if *o.ClientSecret, err = encrypter.EncryptString(*o.ClientSecret); err != nil {
+		return fmt.Errorf("unable to encrypt attribute 'ClientSecret' for 'SparseMTLSSource' (%s): %s", o.Identifier(), err)
+	}
+
+	return nil
+}
+
+// DecryptAttributes decrypts the attributes marked as `encrypted` using the given decrypter.
+func (o *SparseMTLSSource) DecryptAttributes(encrypter elemental.AttributeEncrypter) (err error) {
+
+	if *o.ClientSecret, err = encrypter.DecryptString(*o.ClientSecret); err != nil {
+		return fmt.Errorf("unable to decrypt attribute 'ClientSecret' for 'SparseMTLSSource' (%s): %s", o.Identifier(), err)
+	}
+
+	return nil
 }
 
 // GetID returns the ID of the receiver.
@@ -1573,38 +1939,48 @@ func (o *SparseMTLSSource) DeepCopyInto(out *SparseMTLSSource) {
 }
 
 type mongoAttributesMTLSSource struct {
-	CA            string            `bson:"ca"`
-	ID            bson.ObjectId     `bson:"_id,omitempty"`
-	CreateTime    time.Time         `bson:"createtime"`
-	Description   string            `bson:"description"`
-	Fingerprints  []string          `bson:"fingerprints"`
-	IgnoredKeys   []string          `bson:"ignoredkeys"`
-	ImportHash    string            `bson:"importhash,omitempty"`
-	ImportLabel   string            `bson:"importlabel,omitempty"`
-	IncludedKeys  []string          `bson:"includedkeys"`
-	Modifier      *IdentityModifier `bson:"modifier,omitempty"`
-	Name          string            `bson:"name"`
-	Namespace     string            `bson:"namespace"`
-	SubjectKeyIDs []string          `bson:"subjectkeyids"`
-	UpdateTime    time.Time         `bson:"updatetime"`
-	ZHash         int               `bson:"zhash"`
-	Zone          int               `bson:"zone"`
+	CA                     string                                `bson:"ca"`
+	ID                     bson.ObjectId                         `bson:"_id,omitempty"`
+	ClaimsRetrievalMode    MTLSSourceClaimsRetrievalModeValue    `bson:"claimsretrievalmode,omitempty"`
+	ClientID               string                                `bson:"clientid,omitempty"`
+	ClientSecret           string                                `bson:"clientsecret"`
+	ClientTenantID         string                                `bson:"clienttenantid,omitempty"`
+	CreateTime             time.Time                             `bson:"createtime"`
+	Description            string                                `bson:"description"`
+	Fingerprints           []string                              `bson:"fingerprints"`
+	IgnoredKeys            []string                              `bson:"ignoredkeys"`
+	ImportHash             string                                `bson:"importhash,omitempty"`
+	ImportLabel            string                                `bson:"importlabel,omitempty"`
+	IncludedKeys           []string                              `bson:"includedkeys"`
+	Modifier               *IdentityModifier                     `bson:"modifier,omitempty"`
+	Name                   string                                `bson:"name"`
+	Namespace              string                                `bson:"namespace"`
+	PrincipalUserX509Field MTLSSourcePrincipalUserX509FieldValue `bson:"principaluserx509field"`
+	SubjectKeyIDs          []string                              `bson:"subjectkeyids"`
+	UpdateTime             time.Time                             `bson:"updatetime"`
+	ZHash                  int                                   `bson:"zhash"`
+	Zone                   int                                   `bson:"zone"`
 }
 type mongoAttributesSparseMTLSSource struct {
-	CA            *string           `bson:"ca,omitempty"`
-	ID            bson.ObjectId     `bson:"_id,omitempty"`
-	CreateTime    *time.Time        `bson:"createtime,omitempty"`
-	Description   *string           `bson:"description,omitempty"`
-	Fingerprints  *[]string         `bson:"fingerprints,omitempty"`
-	IgnoredKeys   *[]string         `bson:"ignoredkeys,omitempty"`
-	ImportHash    *string           `bson:"importhash,omitempty"`
-	ImportLabel   *string           `bson:"importlabel,omitempty"`
-	IncludedKeys  *[]string         `bson:"includedkeys,omitempty"`
-	Modifier      *IdentityModifier `bson:"modifier,omitempty"`
-	Name          *string           `bson:"name,omitempty"`
-	Namespace     *string           `bson:"namespace,omitempty"`
-	SubjectKeyIDs *[]string         `bson:"subjectkeyids,omitempty"`
-	UpdateTime    *time.Time        `bson:"updatetime,omitempty"`
-	ZHash         *int              `bson:"zhash,omitempty"`
-	Zone          *int              `bson:"zone,omitempty"`
+	CA                     *string                                `bson:"ca,omitempty"`
+	ID                     bson.ObjectId                          `bson:"_id,omitempty"`
+	ClaimsRetrievalMode    *MTLSSourceClaimsRetrievalModeValue    `bson:"claimsretrievalmode,omitempty"`
+	ClientID               *string                                `bson:"clientid,omitempty"`
+	ClientSecret           *string                                `bson:"clientsecret,omitempty"`
+	ClientTenantID         *string                                `bson:"clienttenantid,omitempty"`
+	CreateTime             *time.Time                             `bson:"createtime,omitempty"`
+	Description            *string                                `bson:"description,omitempty"`
+	Fingerprints           *[]string                              `bson:"fingerprints,omitempty"`
+	IgnoredKeys            *[]string                              `bson:"ignoredkeys,omitempty"`
+	ImportHash             *string                                `bson:"importhash,omitempty"`
+	ImportLabel            *string                                `bson:"importlabel,omitempty"`
+	IncludedKeys           *[]string                              `bson:"includedkeys,omitempty"`
+	Modifier               *IdentityModifier                      `bson:"modifier,omitempty"`
+	Name                   *string                                `bson:"name,omitempty"`
+	Namespace              *string                                `bson:"namespace,omitempty"`
+	PrincipalUserX509Field *MTLSSourcePrincipalUserX509FieldValue `bson:"principaluserx509field,omitempty"`
+	SubjectKeyIDs          *[]string                              `bson:"subjectkeyids,omitempty"`
+	UpdateTime             *time.Time                             `bson:"updatetime,omitempty"`
+	ZHash                  *int                                   `bson:"zhash,omitempty"`
+	Zone                   *int                                   `bson:"zone,omitempty"`
 }

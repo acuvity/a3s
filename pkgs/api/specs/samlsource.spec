@@ -146,14 +146,3 @@ attributes:
     type: boolean
     exposed: true
     stored: true
-
-  - name: subjects
-    friendly_name: Subjects
-    description: List of claims that will provide the subject.
-    type: list
-    exposed: true
-    subtype: string
-    stored: true
-    example_value:
-    - email
-    - profile

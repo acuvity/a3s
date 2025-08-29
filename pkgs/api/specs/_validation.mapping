@@ -22,6 +22,10 @@ $keyValidation:
   elemental:
     name: ValidateKeys
 
+$mtlssource:
+  elemental:
+    name: ValidateMTLSSource
+
 $pem:
   elemental:
     name: ValidatePEM
