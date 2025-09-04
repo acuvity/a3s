@@ -398,7 +398,7 @@ func TestIntersect(t *testing.T) {
 		},
 
 		{
-			"intersection of a1:get,put a2:delete to *:get and a1:post and a2:delete",
+			"intersection of a1:get,put a2:get,post to *:get and a1:put and a2:post",
 			args{
 				PermissionMap{
 					"a1": {"get": true, "put": true},

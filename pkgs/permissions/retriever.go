@@ -299,8 +299,8 @@ func makeAPIAuthorizationPolicyRetrieveFilter(claims []string, label string) *el
 	for _, tag := range claims {
 		if set.Add(tag) {
 			itags = append(itags, tag)
-			if strings.HasPrefix(tag, "@issuer=") {
-				issuer = strings.TrimPrefix(tag, "@issuer=")
+			if after, found := strings.CutPrefix(tag, "@issuer="); found {
+				issuer = after
 			}
 		}
 	}
