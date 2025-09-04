@@ -30,6 +30,10 @@ $pem:
   elemental:
     name: ValidatePEM
 
+$revocation:
+  elemental:
+    name: ValidateRevocation
+
 $samlsource:
   elemental:
     name: ValidateSAMLSource

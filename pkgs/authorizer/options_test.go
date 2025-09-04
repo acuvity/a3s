@@ -5,6 +5,7 @@ import (
 
 	. "github.com/smartystreets/goconvey/convey"
 	"go.acuvity.ai/a3s/pkgs/permissions"
+	"go.acuvity.ai/a3s/pkgs/token"
 )
 
 func TestOption(t *testing.T) {
@@ -50,10 +51,11 @@ func TestOptionCheck(t *testing.T) {
 		So(cfg.restrictions, ShouldResemble, r)
 	})
 
-	Convey("OptionCheckTokenID should work", t, func() {
+	Convey("OptionCheckToken should work", t, func() {
 		cfg := &checkConfig{}
-		OptionCheckTokenID("abc")(cfg)
-		So(cfg.tokenID, ShouldEqual, "abc")
+		t := &token.IdentityToken{}
+		OptionCheckToken(t)(cfg)
+		So(cfg.token, ShouldEqual, t)
 	})
 
 	Convey("OptionCollectAccessibleNamespaces should work", t, func() {

@@ -143,7 +143,7 @@ func (a *authorizer) IsAuthorized(bctx bahamut.Context) (bahamut.AuthAction, err
 
 	collectedNamespaces := []string{}
 	opts := []OptionCheck{
-		OptionCheckTokenID(idt.ID),
+		OptionCheckToken(idt),
 		OptionCheckID(req.ObjectID),
 		OptionCheckSourceIP(req.ClientIP),
 		OptionCollectAccessibleNamespaces(&collectedNamespaces),
@@ -194,14 +194,20 @@ func (a *authorizer) CheckAuthorization(ctx context.Context, claims []string, op
 
 	exp := time.Hour + time.Duration(rand.Int63n(60*30))*time.Second
 
-	key := cfg.tokenID
-	if key == "" {
-		key = hash(claims, cfg.sourceIP, cfg.id, cfg.restrictions)
+	var key, tokenID string
+	var tokenIAT time.Time
+	if cfg.token != nil {
+		tokenID = cfg.token.ID
+		tokenIAT = cfg.token.IssuedAt.Time
+		key = tokenID
+		if key == "" {
+			key = hash(claims, cfg.sourceIP, cfg.id, cfg.restrictions)
+		}
 	}
 
 	// Handle token revocation
 	if r := a.revocationCache.Get(ns, key); r == nil || r.Expired() {
-		revoked, err := a.retriever.Revoked(ctx, ns, cfg.tokenID, claims)
+		revoked, err := a.retriever.Revoked(ctx, ns, key, claims, tokenIAT)
 		if err != nil {
 			return false, err
 		}
@@ -249,15 +255,13 @@ func (a *authorizer) CheckAuthorization(ctx context.Context, claims []string, op
 func hash(claims []string, remoteaddr string, id string, restrictions permissions.Restrictions) string {
 	return fmt.Sprintf("%d",
 		murmur3.Sum64(
-			[]byte(
-				fmt.Sprintf("%s:%s:%s:%s:%s:%s",
-					claims,
-					remoteaddr,
-					id,
-					restrictions.Namespace,
-					restrictions.Networks,
-					restrictions.Permissions,
-				),
+			fmt.Appendf([]byte{}, "%s:%s:%s:%s:%s:%s",
+				claims,
+				remoteaddr,
+				id,
+				restrictions.Namespace,
+				restrictions.Networks,
+				restrictions.Permissions,
 			),
 		),
 	)

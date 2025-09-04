@@ -15,6 +15,8 @@ model:
   - '@sharded'
   - '@identifiable'
   - '@timed'
+  validations:
+  - $revocation
 
 # Indexes
 indexes:
@@ -42,6 +44,27 @@ attributes:
     type: list
     subtype: string
     stored: true
+
+  - name: issuedBefore
+    friendly_name: Issued Before
+    description: |-
+      Only apply the revocation if the token has been issued before the given date, if
+      non zero. Cannot be set if issuedBeforeRel is set.
+    type: time
+    exposed: true
+    stored: true
+    omit_empty: true
+
+  - name: issuedBeforeRel
+    friendly_name: Issued Before Relative
+    description: |-
+      Only apply the revocation if the token has been issued before the given relative
+      date, if non zero. Cannot be set if issuedBefore is set.
+    type: string
+    exposed: true
+    omit_empty: true
+    validations:
+    - $duration
 
   - name: propagate
     friendly_name: Propagate

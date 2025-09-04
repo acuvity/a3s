@@ -3,13 +3,14 @@ package permissions
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"go.acuvity.ai/a3s/pkgs/api"
 	"go.acuvity.ai/elemental"
 	"go.acuvity.ai/manipulate"
 )
 
-func checkRevocation(ctx context.Context, m manipulate.Manipulator, namespace string, tokenID string, claims []string) (bool, error) {
+func checkRevocation(ctx context.Context, m manipulate.Manipulator, namespace string, tokenID string, claims []string, iat time.Time) (bool, error) {
 
 	var itags = make([]any, len(claims))
 	for i, c := range claims {
@@ -43,7 +44,7 @@ func checkRevocation(ctx context.Context, m manipulate.Manipulator, namespace st
 			ctx,
 			manipulate.ContextOptionNamespace(namespace),
 			manipulate.ContextOptionPropagated(true),
-			manipulate.ContextOptionFields([]string{"tokenID", "subject"}),
+			manipulate.ContextOptionFields([]string{"tokenID", "subject", "issuedBefore"}),
 			manipulate.ContextOptionFilter(elemental.NewFilterComposer().Or(filters...).Done()),
 		),
 		&revs,
@@ -52,13 +53,18 @@ func checkRevocation(ctx context.Context, m manipulate.Manipulator, namespace st
 	}
 
 	for _, rev := range revs {
+
+		isRevoked := func() bool {
+			return rev.IssuedBefore == nil || rev.IssuedBefore.IsZero() || iat.Before(*rev.IssuedBefore)
+		}
+
 		if rev.TokenID != nil && *rev.TokenID != "" && *rev.TokenID == tokenID {
-			return true, nil
+			return isRevoked(), nil
 		}
 
 		if rev.Subject != nil && len(*rev.Subject) >= 0 {
 			if Match(*rev.Subject, claims) {
-				return true, nil
+				return isRevoked(), nil
 			}
 		}
 	}

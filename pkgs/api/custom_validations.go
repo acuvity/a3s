@@ -271,6 +271,15 @@ func ValidateKeys(attribute string, keys []string) error {
 	return nil
 }
 
+// ValidateRevocation validates the goven given revocation.
+func ValidateRevocation(rev *Revocation) error {
+	if !rev.IssuedBefore.IsZero() && rev.IssuedBeforeRel != "" {
+		return makeErr("issuedBefore", "issuedBeforeRel cannot be set if issuedBefore is also set.")
+	}
+
+	return nil
+}
+
 func makeErr(attribute string, message string) elemental.Error {
 
 	err := elemental.NewError(

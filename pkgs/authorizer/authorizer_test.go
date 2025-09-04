@@ -262,7 +262,7 @@ func TestCheckPermissions(t *testing.T) {
 
 		Convey("Calling with a revoked token should fail", func() {
 
-			r.MockRevoked(t, func(context.Context, string, string, []string) (bool, error) {
+			r.MockRevoked(t, func(context.Context, string, string, []string, time.Time) (bool, error) {
 				return true, nil
 			})
 
@@ -274,7 +274,7 @@ func TestCheckPermissions(t *testing.T) {
 
 			Convey("Calling one more time should use the cache and work", func() {
 
-				r.MockRevoked(t, func(context.Context, string, string, []string) (bool, error) {
+				r.MockRevoked(t, func(context.Context, string, string, []string, time.Time) (bool, error) {
 					return false, nil // this simulates a changes that was not pushed, so cache will be used.
 				})
 
