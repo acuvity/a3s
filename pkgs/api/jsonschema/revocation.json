@@ -42,6 +42,24 @@
         "null"
       ]
     },
+    "issuedBefore": {
+      "$friendlyName": "Issued Before",
+      "description": "Only apply the revocation if the token has been issued before the given date, if non zero. Cannot be set if issuedBeforeRel is set.",
+      "title": "issuedBefore",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "issuedBeforeRel": {
+      "$friendlyName": "Issued Before Relative",
+      "description": "Only apply the revocation if the token has been issued before the given relative date, if non zero. Cannot be set if issuedBefore is set.",
+      "title": "issuedBeforeRel",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
     "namespace": {
       "$friendlyName": "Namespace",
       "$readOnly": true,

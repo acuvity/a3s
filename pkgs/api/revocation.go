@@ -97,6 +97,14 @@ type Revocation struct {
 	// This is a set of all subject tags for matching in the DB.
 	FlattenedSubject []string `json:"-" msgpack:"-" bson:"flattenedsubject" mapstructure:"-,omitempty"`
 
+	// Only apply the revocation if the token has been issued before the given date, if
+	// non zero. Cannot be set if issuedBeforeRel is set.
+	IssuedBefore time.Time `json:"issuedBefore,omitempty" msgpack:"issuedBefore,omitempty" bson:"issuedbefore,omitempty" mapstructure:"issuedBefore,omitempty"`
+
+	// Only apply the revocation if the token has been issued before the given relative
+	// date, if non zero. Cannot be set if issuedBefore is set.
+	IssuedBeforeRel string `json:"issuedBeforeRel,omitempty" msgpack:"issuedBeforeRel,omitempty" bson:"-" mapstructure:"issuedBeforeRel,omitempty"`
+
 	// The namespace of the object.
 	Namespace string `json:"namespace" msgpack:"namespace" bson:"namespace" mapstructure:"namespace,omitempty"`
 
@@ -166,6 +174,7 @@ func (o *Revocation) GetBSON() (any, error) {
 	s.CreateTime = o.CreateTime
 	s.Expiration = o.Expiration
 	s.FlattenedSubject = o.FlattenedSubject
+	s.IssuedBefore = o.IssuedBefore
 	s.Namespace = o.Namespace
 	s.Propagate = o.Propagate
 	s.Subject = o.Subject
@@ -194,6 +203,7 @@ func (o *Revocation) SetBSON(raw bson.Raw) error {
 	o.CreateTime = s.CreateTime
 	o.Expiration = s.Expiration
 	o.FlattenedSubject = s.FlattenedSubject
+	o.IssuedBefore = s.IssuedBefore
 	o.Namespace = s.Namespace
 	o.Propagate = s.Propagate
 	o.Subject = s.Subject
@@ -329,6 +339,8 @@ func (o *Revocation) ToSparse(fields ...string) elemental.SparseIdentifiable {
 			CreateTime:       &o.CreateTime,
 			Expiration:       &o.Expiration,
 			FlattenedSubject: &o.FlattenedSubject,
+			IssuedBefore:     &o.IssuedBefore,
+			IssuedBeforeRel:  &o.IssuedBeforeRel,
 			Namespace:        &o.Namespace,
 			Propagate:        &o.Propagate,
 			Subject:          &o.Subject,
@@ -350,6 +362,10 @@ func (o *Revocation) ToSparse(fields ...string) elemental.SparseIdentifiable {
 			sp.Expiration = &(o.Expiration)
 		case "flattenedSubject":
 			sp.FlattenedSubject = &(o.FlattenedSubject)
+		case "issuedBefore":
+			sp.IssuedBefore = &(o.IssuedBefore)
+		case "issuedBeforeRel":
+			sp.IssuedBeforeRel = &(o.IssuedBeforeRel)
 		case "namespace":
 			sp.Namespace = &(o.Namespace)
 		case "propagate":
@@ -388,6 +404,12 @@ func (o *Revocation) Patch(sparse elemental.SparseIdentifiable) {
 	}
 	if so.FlattenedSubject != nil {
 		o.FlattenedSubject = *so.FlattenedSubject
+	}
+	if so.IssuedBefore != nil {
+		o.IssuedBefore = *so.IssuedBefore
+	}
+	if so.IssuedBeforeRel != nil {
+		o.IssuedBeforeRel = *so.IssuedBeforeRel
 	}
 	if so.Namespace != nil {
 		o.Namespace = *so.Namespace
@@ -442,7 +464,16 @@ func (o *Revocation) Validate() error {
 	errors := elemental.Errors{}
 	requiredErrors := elemental.Errors{}
 
+	if err := ValidateDuration("issuedBeforeRel", o.IssuedBeforeRel); err != nil {
+		errors = errors.Append(err)
+	}
+
 	if err := ValidateTagsExpression("subject", o.Subject); err != nil {
+		errors = errors.Append(err)
+	}
+
+	// Custom object validation.
+	if err := ValidateRevocation(o); err != nil {
 		errors = errors.Append(err)
 	}
 
@@ -488,6 +519,10 @@ func (o *Revocation) ValueForAttribute(name string) any {
 		return o.Expiration
 	case "flattenedSubject":
 		return o.FlattenedSubject
+	case "issuedBefore":
+		return o.IssuedBefore
+	case "issuedBeforeRel":
+		return o.IssuedBeforeRel
 	case "namespace":
 		return o.Namespace
 	case "propagate":
@@ -559,6 +594,26 @@ var RevocationAttributesMap = map[string]elemental.AttributeSpecification{
 		Stored:         true,
 		SubType:        "string",
 		Type:           "list",
+	},
+	"IssuedBefore": {
+		AllowedChoices: []string{},
+		BSONFieldName:  "issuedbefore",
+		ConvertedName:  "IssuedBefore",
+		Description: `Only apply the revocation if the token has been issued before the given date, if
+non zero. Cannot be set if issuedBeforeRel is set.`,
+		Exposed: true,
+		Name:    "issuedBefore",
+		Stored:  true,
+		Type:    "time",
+	},
+	"IssuedBeforeRel": {
+		AllowedChoices: []string{},
+		ConvertedName:  "IssuedBeforeRel",
+		Description: `Only apply the revocation if the token has been issued before the given relative
+date, if non zero. Cannot be set if issuedBefore is set.`,
+		Exposed: true,
+		Name:    "issuedBeforeRel",
+		Type:    "string",
 	},
 	"Namespace": {
 		AllowedChoices: []string{},
@@ -705,6 +760,26 @@ var RevocationLowerCaseAttributesMap = map[string]elemental.AttributeSpecificati
 		Stored:         true,
 		SubType:        "string",
 		Type:           "list",
+	},
+	"issuedbefore": {
+		AllowedChoices: []string{},
+		BSONFieldName:  "issuedbefore",
+		ConvertedName:  "IssuedBefore",
+		Description: `Only apply the revocation if the token has been issued before the given date, if
+non zero. Cannot be set if issuedBeforeRel is set.`,
+		Exposed: true,
+		Name:    "issuedBefore",
+		Stored:  true,
+		Type:    "time",
+	},
+	"issuedbeforerel": {
+		AllowedChoices: []string{},
+		ConvertedName:  "IssuedBeforeRel",
+		Description: `Only apply the revocation if the token has been issued before the given relative
+date, if non zero. Cannot be set if issuedBefore is set.`,
+		Exposed: true,
+		Name:    "issuedBeforeRel",
+		Type:    "string",
 	},
 	"namespace": {
 		AllowedChoices: []string{},
@@ -874,6 +949,14 @@ type SparseRevocation struct {
 	// This is a set of all subject tags for matching in the DB.
 	FlattenedSubject *[]string `json:"-" msgpack:"-" bson:"flattenedsubject,omitempty" mapstructure:"-,omitempty"`
 
+	// Only apply the revocation if the token has been issued before the given date, if
+	// non zero. Cannot be set if issuedBeforeRel is set.
+	IssuedBefore *time.Time `json:"issuedBefore,omitempty" msgpack:"issuedBefore,omitempty" bson:"issuedbefore,omitempty" mapstructure:"issuedBefore,omitempty"`
+
+	// Only apply the revocation if the token has been issued before the given relative
+	// date, if non zero. Cannot be set if issuedBefore is set.
+	IssuedBeforeRel *string `json:"issuedBeforeRel,omitempty" msgpack:"issuedBeforeRel,omitempty" bson:"-" mapstructure:"issuedBeforeRel,omitempty"`
+
 	// The namespace of the object.
 	Namespace *string `json:"namespace,omitempty" msgpack:"namespace,omitempty" bson:"namespace,omitempty" mapstructure:"namespace,omitempty"`
 
@@ -950,6 +1033,9 @@ func (o *SparseRevocation) GetBSON() (any, error) {
 	if o.FlattenedSubject != nil {
 		s.FlattenedSubject = o.FlattenedSubject
 	}
+	if o.IssuedBefore != nil {
+		s.IssuedBefore = o.IssuedBefore
+	}
 	if o.Namespace != nil {
 		s.Namespace = o.Namespace
 	}
@@ -999,6 +1085,9 @@ func (o *SparseRevocation) SetBSON(raw bson.Raw) error {
 	if s.FlattenedSubject != nil {
 		o.FlattenedSubject = s.FlattenedSubject
 	}
+	if s.IssuedBefore != nil {
+		o.IssuedBefore = s.IssuedBefore
+	}
 	if s.Namespace != nil {
 		o.Namespace = s.Namespace
 	}
@@ -1045,6 +1134,12 @@ func (o *SparseRevocation) ToPlain() elemental.PlainIdentifiable {
 	}
 	if o.FlattenedSubject != nil {
 		out.FlattenedSubject = *o.FlattenedSubject
+	}
+	if o.IssuedBefore != nil {
+		out.IssuedBefore = *o.IssuedBefore
+	}
+	if o.IssuedBeforeRel != nil {
+		out.IssuedBeforeRel = *o.IssuedBeforeRel
 	}
 	if o.Namespace != nil {
 		out.Namespace = *o.Namespace
@@ -1212,6 +1307,7 @@ type mongoAttributesRevocation struct {
 	CreateTime       time.Time     `bson:"createtime"`
 	Expiration       time.Time     `bson:"expiration"`
 	FlattenedSubject []string      `bson:"flattenedsubject"`
+	IssuedBefore     time.Time     `bson:"issuedbefore,omitempty"`
 	Namespace        string        `bson:"namespace"`
 	Propagate        bool          `bson:"propagate"`
 	Subject          [][]string    `bson:"subject"`
@@ -1225,6 +1321,7 @@ type mongoAttributesSparseRevocation struct {
 	CreateTime       *time.Time    `bson:"createtime,omitempty"`
 	Expiration       *time.Time    `bson:"expiration,omitempty"`
 	FlattenedSubject *[]string     `bson:"flattenedsubject,omitempty"`
+	IssuedBefore     *time.Time    `bson:"issuedbefore,omitempty"`
 	Namespace        *string       `bson:"namespace,omitempty"`
 	Propagate        *bool         `bson:"propagate,omitempty"`
 	Subject          *[][]string   `bson:"subject,omitempty"`

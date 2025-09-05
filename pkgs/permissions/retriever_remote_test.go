@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"testing"
+	"time"
 
 	. "github.com/smartystreets/goconvey/convey"
 	"go.acuvity.ai/a3s/pkgs/api"
@@ -222,7 +223,7 @@ func TestRevoked(t *testing.T) {
 				return nil
 			})
 
-			revoked, err := r.Revoked(context.Background(), "/ns", "abcdef", []string{"a"})
+			revoked, err := r.Revoked(context.Background(), "/ns", "abcdef", []string{"a"}, time.Now())
 
 			So(err, ShouldBeNil)
 			So(expectedIdentity.IsEqual(api.RevocationIdentity), ShouldBeTrue)
@@ -251,7 +252,7 @@ func TestRevoked(t *testing.T) {
 				return nil
 			})
 
-			revoked, err := r.Revoked(context.Background(), "/ns", "abcdef", []string{"a"})
+			revoked, err := r.Revoked(context.Background(), "/ns", "abcdef", []string{"a"}, time.Now())
 
 			So(err, ShouldBeNil)
 			So(expectedIdentity.IsEqual(api.RevocationIdentity), ShouldBeTrue)
@@ -280,7 +281,67 @@ func TestRevoked(t *testing.T) {
 				return nil
 			})
 
-			revoked, err := r.Revoked(context.Background(), "/ns", "abcdef", []string{"a"})
+			revoked, err := r.Revoked(context.Background(), "/ns", "abcdef", []string{"a"}, time.Now())
+
+			So(err, ShouldBeNil)
+			So(expectedIdentity.IsEqual(api.RevocationIdentity), ShouldBeTrue)
+			So(expectedNamespace, ShouldEqual, "/ns")
+			So(expectedFilter.String(), ShouldEqual, `((tokenID == "abcdef") or (flattenedsubject in ["a"]))`)
+			So(revoked, ShouldBeTrue)
+		})
+
+		Convey("When retrieving revocations is OK and is revoked by subject iat is set and is after: not revoked", func() {
+
+			var expectedIdentity elemental.Identity
+			var expectedFilter *elemental.Filter
+			var expectedNamespace string
+			m.MockRetrieveMany(t, func(mctx manipulate.Context, dest elemental.Identifiables) error {
+				expectedIdentity = dest.Identity()
+				expectedFilter = mctx.Filter()
+				expectedNamespace = mctx.Namespace()
+
+				*dest.(*api.SparseRevocationsList) = append(
+					*dest.(*api.SparseRevocationsList),
+					&api.SparseRevocation{
+						TokenID:      func() *string { s := "not-abcdef"; return &s }(),
+						Subject:      func() *[][]string { s := [][]string{{"a"}}; return &s }(),
+						IssuedBefore: func() *time.Time { t := time.Now().Add(-24 * time.Hour); return &t }(),
+					},
+				)
+				return nil
+			})
+
+			revoked, err := r.Revoked(context.Background(), "/ns", "abcdef", []string{"a"}, time.Now().Add(-1*time.Hour))
+
+			So(err, ShouldBeNil)
+			So(expectedIdentity.IsEqual(api.RevocationIdentity), ShouldBeTrue)
+			So(expectedNamespace, ShouldEqual, "/ns")
+			So(expectedFilter.String(), ShouldEqual, `((tokenID == "abcdef") or (flattenedsubject in ["a"]))`)
+			So(revoked, ShouldBeFalse)
+		})
+
+		Convey("When retrieving revocations is OK and is revoked by subject iat is set but is before: revoked", func() {
+
+			var expectedIdentity elemental.Identity
+			var expectedFilter *elemental.Filter
+			var expectedNamespace string
+			m.MockRetrieveMany(t, func(mctx manipulate.Context, dest elemental.Identifiables) error {
+				expectedIdentity = dest.Identity()
+				expectedFilter = mctx.Filter()
+				expectedNamespace = mctx.Namespace()
+
+				*dest.(*api.SparseRevocationsList) = append(
+					*dest.(*api.SparseRevocationsList),
+					&api.SparseRevocation{
+						TokenID:      func() *string { s := "not-abcdef"; return &s }(),
+						Subject:      func() *[][]string { s := [][]string{{"a"}}; return &s }(),
+						IssuedBefore: func() *time.Time { t := time.Now().Add(24 * time.Hour); return &t }(),
+					},
+				)
+				return nil
+			})
+
+			revoked, err := r.Revoked(context.Background(), "/ns", "abcdef", []string{"a"}, time.Now().Add(-1*time.Hour))
 
 			So(err, ShouldBeNil)
 			So(expectedIdentity.IsEqual(api.RevocationIdentity), ShouldBeTrue)
@@ -295,7 +356,7 @@ func TestRevoked(t *testing.T) {
 				return fmt.Errorf("boom")
 			})
 
-			revoked, err := r.Revoked(context.Background(), "/", "abcdef", []string{"a"})
+			revoked, err := r.Revoked(context.Background(), "/", "abcdef", []string{"a"}, time.Now())
 
 			So(err, ShouldNotBeNil)
 			So(err.Error(), ShouldEqual, "unable to retrieve revocations: boom")

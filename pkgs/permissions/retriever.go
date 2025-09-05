@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net"
 	"strings"
+	"time"
 
 	mapset "github.com/deckarep/golang-set"
 	"go.acuvity.ai/a3s/pkgs/api"
@@ -22,7 +23,7 @@ type Retriever interface {
 	Permissions(ctx context.Context, claims []string, ns string, opts ...RetrieverOption) (PermissionMap, error)
 
 	// Revoked returns true if the given token ID is in a revocation list.
-	Revoked(ctx context.Context, namespace string, tokenID string, claim []string) (bool, error)
+	Revoked(ctx context.Context, namespace string, tokenID string, claim []string, iat time.Time) (bool, error)
 }
 
 type retriever struct {
@@ -195,9 +196,9 @@ func (a *retriever) Permissions(ctx context.Context, claims []string, ns string,
 	return out, nil
 }
 
-func (a *retriever) Revoked(ctx context.Context, namespace string, tokenID string, claims []string) (bool, error) {
+func (a *retriever) Revoked(ctx context.Context, namespace string, tokenID string, claims []string, iat time.Time) (bool, error) {
 
-	return checkRevocation(ctx, a.manipulator, namespace, tokenID, claims)
+	return checkRevocation(ctx, a.manipulator, namespace, tokenID, claims, iat)
 }
 
 func (a *retriever) resolvePoliciesMatchingClaims(ctx context.Context, claims []string, ns string, label string) (api.AuthorizationsList, error) {

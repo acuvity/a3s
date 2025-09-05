@@ -2,6 +2,7 @@ package permissions
 
 import (
 	"context"
+	"time"
 
 	"go.acuvity.ai/a3s/pkgs/api"
 	"go.acuvity.ai/manipulate"
@@ -85,7 +86,7 @@ func (a *remoteRetriever) Permissions(ctx context.Context, claims []string, ns s
 	return out, nil
 }
 
-func (a *remoteRetriever) Revoked(ctx context.Context, namespace string, tokenID string, claims []string) (bool, error) {
+func (a *remoteRetriever) Revoked(ctx context.Context, namespace string, tokenID string, claims []string, iat time.Time) (bool, error) {
 
-	return checkRevocation(ctx, a.manipulator, namespace, tokenID, claims)
+	return checkRevocation(ctx, a.manipulator, namespace, tokenID, claims, iat)
 }

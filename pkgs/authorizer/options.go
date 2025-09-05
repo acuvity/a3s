@@ -1,6 +1,9 @@
 package authorizer
 
-import "go.acuvity.ai/a3s/pkgs/permissions"
+import (
+	"go.acuvity.ai/a3s/pkgs/permissions"
+	"go.acuvity.ai/a3s/pkgs/token"
+)
 
 type config struct {
 	operationTransformer OperationTransformer
@@ -40,7 +43,7 @@ type checkConfig struct {
 	singleGroupMode      bool
 	sourceIP             string
 	id                   string
-	tokenID              string
+	token                *token.IdentityToken
 	restrictions         permissions.Restrictions
 	label                string
 }
@@ -69,10 +72,10 @@ func OptionCheckRestrictions(r permissions.Restrictions) OptionCheck {
 	}
 }
 
-// OptionCheckTokenID sets token ID to check if it got revoked.
-func OptionCheckTokenID(id string) OptionCheck {
+// OptionCheckToken sets token to check if it got revoked.
+func OptionCheckToken(idt *token.IdentityToken) OptionCheck {
 	return func(cfg *checkConfig) {
-		cfg.tokenID = id
+		cfg.token = idt
 	}
 }
 

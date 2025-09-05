@@ -1547,6 +1547,15 @@
             "format": "date-time",
             "type": "string"
           },
+          "issuedBefore": {
+            "description": "Only apply the revocation if the token has been issued before the given date, if\nnon zero. Cannot be set if issuedBeforeRel is set.",
+            "format": "date-time",
+            "type": "string"
+          },
+          "issuedBeforeRel": {
+            "description": "Only apply the revocation if the token has been issued before the given relative\ndate, if non zero. Cannot be set if issuedBefore is set.",
+            "type": "string"
+          },
           "namespace": {
             "description": "The namespace of the object.",
             "readOnly": true,

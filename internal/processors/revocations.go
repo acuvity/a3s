@@ -34,6 +34,11 @@ func (p *RevocationProcessor) ProcessCreate(bctx bahamut.Context) error {
 		revocation.Expiration = time.Now().Add(8765 * time.Hour)
 	}
 
+	if revocation.IssuedBeforeRel != "" {
+		d, _ := time.ParseDuration(revocation.IssuedBeforeRel) // cannot fail, checked by specs.
+		revocation.IssuedBefore = time.Now().Add(d)
+	}
+
 	return crud.Create(
 		bctx,
 		p.manipulator,
