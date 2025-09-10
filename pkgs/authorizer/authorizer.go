@@ -200,9 +200,9 @@ func (a *authorizer) CheckAuthorization(ctx context.Context, claims []string, op
 		tokenID = cfg.token.ID
 		tokenIAT = cfg.token.IssuedAt.Time
 		key = tokenID
-		if key == "" {
-			key = hash(claims, cfg.sourceIP, cfg.id, cfg.restrictions)
-		}
+	}
+	if key == "" {
+		key = hash(claims, cfg.sourceIP, cfg.id, cfg.restrictions)
 	}
 
 	// Handle token revocation
