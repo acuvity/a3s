@@ -92,6 +92,8 @@ func (o *IssueLDAP) DeepCopyInto(out *IssueLDAP) {
 // Validate valides the current information stored into the structure.
 func (o *IssueLDAP) Validate() error {
 
+	elemental.ResetDefaultForZeroValues(o)
+
 	errors := elemental.Errors{}
 	requiredErrors := elemental.Errors{}
 

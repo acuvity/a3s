@@ -461,6 +461,8 @@ func (o *Revocation) DeepCopyInto(out *Revocation) {
 // Validate valides the current information stored into the structure.
 func (o *Revocation) Validate() error {
 
+	elemental.ResetDefaultForZeroValues(o)
+
 	errors := elemental.Errors{}
 	requiredErrors := elemental.Errors{}
 

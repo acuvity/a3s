@@ -105,6 +105,8 @@ func (o *IssueSAML) DeepCopyInto(out *IssueSAML) {
 // Validate valides the current information stored into the structure.
 func (o *IssueSAML) Validate() error {
 
+	elemental.ResetDefaultForZeroValues(o)
+
 	errors := elemental.Errors{}
 	requiredErrors := elemental.Errors{}
 

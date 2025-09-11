@@ -92,6 +92,8 @@ func (o *IssueGCP) DeepCopyInto(out *IssueGCP) {
 // Validate valides the current information stored into the structure.
 func (o *IssueGCP) Validate() error {
 
+	elemental.ResetDefaultForZeroValues(o)
+
 	errors := elemental.Errors{}
 	requiredErrors := elemental.Errors{}
 

@@ -474,6 +474,8 @@ func (o *Namespace) DeepCopyInto(out *Namespace) {
 // Validate valides the current information stored into the structure.
 func (o *Namespace) Validate() error {
 
+	elemental.ResetDefaultForZeroValues(o)
+
 	errors := elemental.Errors{}
 	requiredErrors := elemental.Errors{}
 

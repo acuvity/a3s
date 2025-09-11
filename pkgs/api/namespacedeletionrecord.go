@@ -323,6 +323,8 @@ func (o *NamespaceDeletionRecord) DeepCopyInto(out *NamespaceDeletionRecord) {
 // Validate valides the current information stored into the structure.
 func (o *NamespaceDeletionRecord) Validate() error {
 
+	elemental.ResetDefaultForZeroValues(o)
+
 	errors := elemental.Errors{}
 	requiredErrors := elemental.Errors{}
 

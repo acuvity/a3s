@@ -586,6 +586,8 @@ func (o *OAuth2Source) DeepCopyInto(out *OAuth2Source) {
 // Validate valides the current information stored into the structure.
 func (o *OAuth2Source) Validate() error {
 
+	elemental.ResetDefaultForZeroValues(o)
+
 	errors := elemental.Errors{}
 	requiredErrors := elemental.Errors{}
 
@@ -606,7 +608,6 @@ func (o *OAuth2Source) Validate() error {
 	}
 
 	if o.Modifier != nil {
-		elemental.ResetDefaultForZeroValues(o.Modifier)
 		if err := o.Modifier.Validate(); err != nil {
 			errors = errors.Append(err)
 		}

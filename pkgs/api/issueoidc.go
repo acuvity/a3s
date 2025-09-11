@@ -105,6 +105,8 @@ func (o *IssueOIDC) DeepCopyInto(out *IssueOIDC) {
 // Validate valides the current information stored into the structure.
 func (o *IssueOIDC) Validate() error {
 
+	elemental.ResetDefaultForZeroValues(o)
+
 	errors := elemental.Errors{}
 	requiredErrors := elemental.Errors{}
 

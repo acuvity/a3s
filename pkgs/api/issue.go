@@ -557,74 +557,66 @@ func (o *Issue) DeepCopyInto(out *Issue) {
 // Validate valides the current information stored into the structure.
 func (o *Issue) Validate() error {
 
+	elemental.ResetDefaultForZeroValues(o)
+
 	errors := elemental.Errors{}
 	requiredErrors := elemental.Errors{}
 
 	if o.InputA3S != nil {
-		elemental.ResetDefaultForZeroValues(o.InputA3S)
 		if err := o.InputA3S.Validate(); err != nil {
 			errors = errors.Append(err)
 		}
 	}
 
 	if o.InputAWS != nil {
-		elemental.ResetDefaultForZeroValues(o.InputAWS)
 		if err := o.InputAWS.Validate(); err != nil {
 			errors = errors.Append(err)
 		}
 	}
 
 	if o.InputAzure != nil {
-		elemental.ResetDefaultForZeroValues(o.InputAzure)
 		if err := o.InputAzure.Validate(); err != nil {
 			errors = errors.Append(err)
 		}
 	}
 
 	if o.InputGCP != nil {
-		elemental.ResetDefaultForZeroValues(o.InputGCP)
 		if err := o.InputGCP.Validate(); err != nil {
 			errors = errors.Append(err)
 		}
 	}
 
 	if o.InputHTTP != nil {
-		elemental.ResetDefaultForZeroValues(o.InputHTTP)
 		if err := o.InputHTTP.Validate(); err != nil {
 			errors = errors.Append(err)
 		}
 	}
 
 	if o.InputLDAP != nil {
-		elemental.ResetDefaultForZeroValues(o.InputLDAP)
 		if err := o.InputLDAP.Validate(); err != nil {
 			errors = errors.Append(err)
 		}
 	}
 
 	if o.InputOAuth2 != nil {
-		elemental.ResetDefaultForZeroValues(o.InputOAuth2)
 		if err := o.InputOAuth2.Validate(); err != nil {
 			errors = errors.Append(err)
 		}
 	}
 
 	if o.InputOIDC != nil {
-		elemental.ResetDefaultForZeroValues(o.InputOIDC)
 		if err := o.InputOIDC.Validate(); err != nil {
 			errors = errors.Append(err)
 		}
 	}
 
 	if o.InputRemoteA3S != nil {
-		elemental.ResetDefaultForZeroValues(o.InputRemoteA3S)
 		if err := o.InputRemoteA3S.Validate(); err != nil {
 			errors = errors.Append(err)
 		}
 	}
 
 	if o.InputSAML != nil {
-		elemental.ResetDefaultForZeroValues(o.InputSAML)
 		if err := o.InputSAML.Validate(); err != nil {
 			errors = errors.Append(err)
 		}

@@ -105,6 +105,8 @@ func (o *IssueOAuth2) DeepCopyInto(out *IssueOAuth2) {
 // Validate valides the current information stored into the structure.
 func (o *IssueOAuth2) Validate() error {
 
+	elemental.ResetDefaultForZeroValues(o)
+
 	errors := elemental.Errors{}
 	requiredErrors := elemental.Errors{}
 

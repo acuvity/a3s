@@ -315,6 +315,8 @@ func (o *Import) DeepCopyInto(out *Import) {
 // Validate valides the current information stored into the structure.
 func (o *Import) Validate() error {
 
+	elemental.ResetDefaultForZeroValues(o)
+
 	errors := elemental.Errors{}
 	requiredErrors := elemental.Errors{}
 
@@ -322,7 +324,6 @@ func (o *Import) Validate() error {
 		if sub == nil {
 			continue
 		}
-		elemental.ResetDefaultForZeroValues(sub)
 		if err := sub.Validate(); err != nil {
 			errors = errors.Append(err)
 		}
@@ -332,7 +333,6 @@ func (o *Import) Validate() error {
 		if sub == nil {
 			continue
 		}
-		elemental.ResetDefaultForZeroValues(sub)
 		if err := sub.Validate(); err != nil {
 			errors = errors.Append(err)
 		}
@@ -342,7 +342,6 @@ func (o *Import) Validate() error {
 		if sub == nil {
 			continue
 		}
-		elemental.ResetDefaultForZeroValues(sub)
 		if err := sub.Validate(); err != nil {
 			errors = errors.Append(err)
 		}
@@ -352,7 +351,6 @@ func (o *Import) Validate() error {
 		if sub == nil {
 			continue
 		}
-		elemental.ResetDefaultForZeroValues(sub)
 		if err := sub.Validate(); err != nil {
 			errors = errors.Append(err)
 		}
@@ -362,7 +360,6 @@ func (o *Import) Validate() error {
 		if sub == nil {
 			continue
 		}
-		elemental.ResetDefaultForZeroValues(sub)
 		if err := sub.Validate(); err != nil {
 			errors = errors.Append(err)
 		}
@@ -372,7 +369,6 @@ func (o *Import) Validate() error {
 		if sub == nil {
 			continue
 		}
-		elemental.ResetDefaultForZeroValues(sub)
 		if err := sub.Validate(); err != nil {
 			errors = errors.Append(err)
 		}
@@ -382,7 +378,6 @@ func (o *Import) Validate() error {
 		if sub == nil {
 			continue
 		}
-		elemental.ResetDefaultForZeroValues(sub)
 		if err := sub.Validate(); err != nil {
 			errors = errors.Append(err)
 		}
@@ -392,7 +387,6 @@ func (o *Import) Validate() error {
 		if sub == nil {
 			continue
 		}
-		elemental.ResetDefaultForZeroValues(sub)
 		if err := sub.Validate(); err != nil {
 			errors = errors.Append(err)
 		}

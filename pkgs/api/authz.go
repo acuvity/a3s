@@ -288,6 +288,8 @@ func (o *Authz) DeepCopyInto(out *Authz) {
 // Validate valides the current information stored into the structure.
 func (o *Authz) Validate() error {
 
+	elemental.ResetDefaultForZeroValues(o)
+
 	errors := elemental.Errors{}
 	requiredErrors := elemental.Errors{}
 

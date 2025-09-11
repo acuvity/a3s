@@ -89,6 +89,8 @@ func (o *IssueRemoteA3S) DeepCopyInto(out *IssueRemoteA3S) {
 // Validate valides the current information stored into the structure.
 func (o *IssueRemoteA3S) Validate() error {
 
+	elemental.ResetDefaultForZeroValues(o)
+
 	errors := elemental.Errors{}
 	requiredErrors := elemental.Errors{}
 

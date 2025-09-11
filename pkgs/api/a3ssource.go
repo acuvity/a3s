@@ -536,6 +536,8 @@ func (o *A3SSource) DeepCopyInto(out *A3SSource) {
 // Validate valides the current information stored into the structure.
 func (o *A3SSource) Validate() error {
 
+	elemental.ResetDefaultForZeroValues(o)
+
 	errors := elemental.Errors{}
 	requiredErrors := elemental.Errors{}
 
@@ -556,7 +558,6 @@ func (o *A3SSource) Validate() error {
 	}
 
 	if o.Modifier != nil {
-		elemental.ResetDefaultForZeroValues(o.Modifier)
 		if err := o.Modifier.Validate(); err != nil {
 			errors = errors.Append(err)
 		}

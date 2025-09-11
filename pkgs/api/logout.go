@@ -220,6 +220,8 @@ func (o *Logout) DeepCopyInto(out *Logout) {
 // Validate valides the current information stored into the structure.
 func (o *Logout) Validate() error {
 
+	elemental.ResetDefaultForZeroValues(o)
+
 	errors := elemental.Errors{}
 	requiredErrors := elemental.Errors{}
 

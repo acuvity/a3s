@@ -89,6 +89,8 @@ func (o *IssueAzure) DeepCopyInto(out *IssueAzure) {
 // Validate valides the current information stored into the structure.
 func (o *IssueAzure) Validate() error {
 
+	elemental.ResetDefaultForZeroValues(o)
+
 	errors := elemental.Errors{}
 	requiredErrors := elemental.Errors{}
 

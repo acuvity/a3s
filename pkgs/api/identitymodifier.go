@@ -307,6 +307,8 @@ func (o *IdentityModifier) DeepCopyInto(out *IdentityModifier) {
 // Validate valides the current information stored into the structure.
 func (o *IdentityModifier) Validate() error {
 
+	elemental.ResetDefaultForZeroValues(o)
+
 	errors := elemental.Errors{}
 	requiredErrors := elemental.Errors{}
 
