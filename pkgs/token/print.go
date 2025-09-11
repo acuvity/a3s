@@ -97,11 +97,12 @@ func printDecoded(w io.Writer, token string) error {
 	fmt.Fprintln(w, "alg:", t.Method.Alg())  // nolint: errcheck
 	fmt.Fprintln(w, "kid:", t.Header["kid"]) // nolint: errcheck
 	if exp, ok := claims["exp"].(float64); ok {
-		remaining := time.Until(time.Unix(int64(exp), 0))
+		expt := time.Unix(int64(exp), 0)
+		remaining := time.Until(expt)
 		if remaining <= 0 {
 			fmt.Fprintln(w, "exp: the token has expired", -remaining.Truncate(time.Second), "ago") // nolint: errcheck
 		} else {
-			fmt.Fprintln(w, "exp:", remaining.Truncate(time.Second)) // nolint: errcheck
+			fmt.Fprintf(w, "exp: %s (%s)\n", remaining.Truncate(time.Second), expt.Format(time.RFC3339)) // nolint: errcheck
 		}
 	}
 	fmt.Fprintln(w, string(data)) // nolint: errcheck
