@@ -212,9 +212,6 @@ func ValidateMTLSSource(source *MTLSSource) error {
 		if source.ClientID == "" {
 			return makeErr("clientID", "clientID must be set when claims retrieval mode is set to 'Entra'")
 		}
-		if source.ClientSecret == "" {
-			return makeErr("clientSecret", "clientSecret must be set when claims retrieval mode is set to 'Entra'")
-		}
 	}
 
 	return nil
