@@ -31,7 +31,7 @@ attributes:
       -----END CERTIFICATE-----
     omit_empty: true
     validations:
-    - $pem
+    - $cert
 
   - name: URL
     friendly_name: URL
@@ -68,7 +68,7 @@ attributes:
       /AIgQIKjBBpiyQNZZWso5H04qke9QYMVPegiQQufFFBj32c=
       -----END CERTIFICATE-----
     validations:
-    - $pem
+    - $cert
 
   - name: key
     friendly_name: Key

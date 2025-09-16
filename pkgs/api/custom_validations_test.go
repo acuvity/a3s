@@ -1453,3 +1453,98 @@ func TestValidateKeys(t *testing.T) {
 		})
 	}
 }
+
+func TestValidateCert(t *testing.T) {
+	type args struct {
+		attribute string
+		pemdata   string
+	}
+	tests := []struct {
+		name string
+		args func(t *testing.T) args
+
+		wantErr    bool
+		inspectErr func(err error, t *testing.T) //use for more precise error evaluation after test
+	}{
+		{
+			"valid pem, valid data",
+			func(*testing.T) args {
+				return args{
+					"attr",
+					`-----BEGIN CERTIFICATE-----
+MIIBgjCCASmgAwIBAgIRAJtyXGjAVE1VvavbIKrYhD8wCgYIKoZIzj0EAwIwITEf
+MB0GA1UEAxMWQWN1bXV4OiBBUEkgQ2xpZW50cyBDQTAeFw0yNDEwMzExODE2MzVa
+Fw0zNDA5MDkxODE2MzVaMCExHzAdBgNVBAMTFkFjdW11eDogQVBJIENsaWVudHMg
+Q0EwWTATBgcqhkjOPQIBBggqhkjOPQMBBwNCAAS5ruDOr+PUcHRXo8sOR2EVlFQ4
+SMwaGIVzO2PGg9rxPI8LMYx6xEqSs914GFrWwInRM+EW0e3jOthB8S/QcohLo0Iw
+QDAOBgNVHQ8BAf8EBAMCAQYwDwYDVR0TAQH/BAUwAwEB/zAdBgNVHQ4EFgQUt46G
+s8WrA9pqnfcfN4rj8pEz1dwwCgYIKoZIzj0EAwIDRwAwRAIgSJX5AstXwXIq1xz0
++0JCZXwzt5y3/2/zhBa/dDxT5yoCIBzZJ8lFhx/HGwzxCz0TcWGvrPp+CDrtMrwU
+dyoZtyhx
+-----END CERTIFICATE-----`,
+				}
+			},
+			false,
+			nil,
+		},
+		{
+			"valid pem, invalid data",
+			func(*testing.T) args {
+				return args{
+					"attr",
+					`-----BEGIN CERTIFICATE-----
+MIIDdTCCAl2gAwIBAgIUFyFe3Ymt07s9Rp8U4OzFOKrQKyQwDQYJKoZIhvcNAQEL
+BQAwTDEgMB4GA1UEAwwXRXhhbXBsZSBDQSBSb290IENlcnRpZmljYXRlMRQwEgYD
+VQQKDAtFeGFtcGxlIEx0ZDEQMA4GA1UEBwwHQW55dG93bjELMAkGA1UEBhMCVVMw
+HhcNMjQwMTAxMDAwMDAwWhcNMzQwMTAxMDAwMDAwWjBMMSAwHgYDVQQDDBdFeGFt
+cGxlIENBIFJvb3QgQ2VydGlmaWNhdGUxFDASBgNVBAoMC0V4YW1wbGUgTHRkMRAw
+DgYDVQQHDAdBbnl0b3duMQswCQYDVQQGEwJVUzCCASIwDQYJKoZIhvcNAQEBBQAD
+ggEPADCCAQoCggEBALqgdoTu8Xz5hpi5N0S3BqgO3mxWZbWlB6x1EmXc+P04SkZ6
+yK2eBnNHR4dFlc6nJ+0mHix2Ap4oSbGJwuMve3SFi75WgK4M9LQvUJ9Y+VDrfA7X
+NN6kT5x6YbctRzu3He8KkYJzHbI8G6dIvgyAjZ56SWWbEwrvRZCrvK9crR6JQ20G
+M8wJ7fXX7HTPQaTIcAiGh5zti6d3wnmvK+6dVfPyCEQacIV7eqIp3N2Lz2SuCTh1
+O8C8RmCYO8AdxlJ6KScAGhf4tNzA2u2Cg1TT8t6nJDcNWGX3lN2aZC4V2KM2sfvL
+d3HhZAIuQ87lqgrsAqZiwlWkZw4U8JZYt4T+ab8CAwEAAaNTMFEwHQYDVR0OBBYE
+FFfX0fK6frXhN2uLADyD9a8Z2FZgMB8GA1UdIwQYMBaAFFfX0fK6frXhN2uLADyD
+9a8Z2FZgMA8GA1UdEwEB/wQFMAMBAf8wDQYJKoZIhvcNAQELBQADggEBAGe4DpaE
+Wrq9cWOnN6D4zJ8aNrx1xjhrIlDZ80oYfx3mC3RjMGVY9w8P7HUBk8dcNz0/X+tg
+ys7LBx04wX0/dz8tfh0d1WBxQ2km7rV7OG0n6v2J2bK2d9Wj4HMG5kxU5asxehR0
+aU9f3o0Ep4AxxhLqZnzdEq72Jg3u05T0dVxMeTf5vdtSAmvKHzmS2Dw/fx2PQ8Yr
+pxduKktq6+UilnE/0Xl0VrKcUhQ6KjRFWtk1YxNqD2hx8q05A/0X8xiqKxtXwKhw
+Psk8AtmHD8Tg/6jZgkKxv7s3Id9pG7FO0ZSyZ3x3km8Y8D6wqBNgqF5Y7Q4ONRnv
+6aF1HPn1o8Q=
+-----END CERTIFICATE-----`,
+				}
+			},
+			true,
+			nil,
+		},
+		{
+			"invalid pem",
+			func(*testing.T) args {
+				return args{
+					"attr",
+					`oh noes!`,
+				}
+			},
+			true,
+			nil,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tArgs := tt.args(t)
+
+			err := ValidateCert(tArgs.attribute, tArgs.pemdata)
+
+			if (err != nil) != tt.wantErr {
+				t.Fatalf("ValidateCert error = %v, wantErr: %t", err, tt.wantErr)
+			}
+
+			if tt.inspectErr != nil {
+				tt.inspectErr(err, t)
+			}
+		})
+	}
+}

@@ -2,6 +2,10 @@ $authorization_subject:
   elemental:
     name: ValidateAuthorizationSubject
 
+$cert:
+  elemental:
+    name: ValidateCert
+
 $cidr_list_optional:
   elemental:
     name: ValidateCIDRListOptional

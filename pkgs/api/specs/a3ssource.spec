@@ -37,7 +37,7 @@ attributes:
     exposed: true
     stored: true
     validations:
-    - $pem
+    - $cert
 
   - name: audience
     friendly_name: Audience

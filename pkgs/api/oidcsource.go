@@ -574,7 +574,7 @@ func (o *OIDCSource) Validate() error {
 	errors := elemental.Errors{}
 	requiredErrors := elemental.Errors{}
 
-	if err := ValidatePEM("CA", o.CA); err != nil {
+	if err := ValidateCert("CA", o.CA); err != nil {
 		errors = errors.Append(err)
 	}
 

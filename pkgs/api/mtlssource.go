@@ -646,7 +646,7 @@ func (o *MTLSSource) Validate() error {
 		requiredErrors = requiredErrors.Append(err)
 	}
 
-	if err := ValidatePEM("CA", o.CA); err != nil {
+	if err := ValidateCert("CA", o.CA); err != nil {
 		errors = errors.Append(err)
 	}
 

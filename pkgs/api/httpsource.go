@@ -567,7 +567,7 @@ func (o *HTTPSource) Validate() error {
 		requiredErrors = requiredErrors.Append(err)
 	}
 
-	if err := ValidatePEM("CA", o.CA); err != nil {
+	if err := ValidateCert("CA", o.CA); err != nil {
 		errors = errors.Append(err)
 	}
 
@@ -583,7 +583,7 @@ func (o *HTTPSource) Validate() error {
 		requiredErrors = requiredErrors.Append(err)
 	}
 
-	if err := ValidatePEM("certificate", o.Certificate); err != nil {
+	if err := ValidateCert("certificate", o.Certificate); err != nil {
 		errors = errors.Append(err)
 	}
 

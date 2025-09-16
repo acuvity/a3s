@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"go.acuvity.ai/elemental"
+	"go.acuvity.ai/tg/tglib"
 )
 
 // ValidateDuration valides the given string is a parseable Go duration.
@@ -129,6 +130,20 @@ func ValidatePEM(attribute string, pemdata string) error {
 		}
 		i++
 	}
+}
+
+// ValidateCert validates the given PEM bytes contain a valid X.509 certificate.
+func ValidateCert(attribute string, pemdata string) error {
+
+	if pemdata == "" {
+		return nil
+	}
+
+	if _, err := tglib.ParseCertificates([]byte(pemdata)); err != nil {
+		return makeErr(attribute, "The given pem does not contain a valid X.509 certificate.")
+	}
+
+	return nil
 }
 
 // ValidateIssue validates a whole issue object.

@@ -40,7 +40,7 @@ attributes:
     exposed: true
     stored: true
     validations:
-    - $pem
+    - $cert
 
   - name: clientID
     friendly_name: Client ID

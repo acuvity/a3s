@@ -52,7 +52,7 @@ attributes:
       bOmROq+EsxO4L/GzJx7MBbeJ6x142VKSBQ==
       -----END CERTIFICATE-----
     validations:
-    - $pem
+    - $cert
 
   - name: claimsRetrievalMode
     friendly_name: Claims Retrieval Mode

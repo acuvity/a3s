@@ -47,7 +47,7 @@ attributes:
       bOmROq+EsxO4L/GzJx7MBbeJ6x142VKSBQ==
       -----END CERTIFICATE-----
     validations:
-    - $pem
+    - $cert
 
   - name: URL
     friendly_name: URL
@@ -84,7 +84,7 @@ attributes:
       /AIgQIKjBBpiyQNZZWso5H04qke9QYMVPegiQQufFFBj32c=
       -----END CERTIFICATE-----
     validations:
-    - $pem
+    - $cert
 
   - name: description
     friendly_name: Description
