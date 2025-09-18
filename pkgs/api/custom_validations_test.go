@@ -3,6 +3,7 @@ package api
 import (
 	"fmt"
 	"testing"
+	"time"
 )
 
 func TestValidateCIDR(t *testing.T) {
@@ -1540,6 +1541,110 @@ Psk8AtmHD8Tg/6jZgkKxv7s3Id9pG7FO0ZSyZ3x3km8Y8D6wqBNgqF5Y7Q4ONRnv
 
 			if (err != nil) != tt.wantErr {
 				t.Fatalf("ValidateCert error = %v, wantErr: %t", err, tt.wantErr)
+			}
+
+			if tt.inspectErr != nil {
+				tt.inspectErr(err, t)
+			}
+		})
+	}
+}
+
+func TestValidateRevocation(t *testing.T) {
+	type args struct {
+		rev *Revocation
+	}
+	tests := []struct {
+		name string
+		args func(t *testing.T) args
+
+		wantErr    bool
+		inspectErr func(err error, t *testing.T) //use for more precise error evaluation after test
+	}{
+		{
+			"empty revovation",
+			func(*testing.T) args {
+				return args{
+					rev: &Revocation{},
+				}
+			},
+			true,
+			nil,
+		},
+		{
+			"tokenid set",
+			func(*testing.T) args {
+				return args{
+					rev: &Revocation{
+						TokenID: "set",
+					},
+				}
+			},
+			false,
+			nil,
+		},
+		{
+			"subject set",
+			func(*testing.T) args {
+				return args{
+					rev: &Revocation{
+						Subject: [][]string{{"a"}},
+					},
+				}
+			},
+			false,
+			nil,
+		},
+		{
+			"subject and tokenid set",
+			func(*testing.T) args {
+				return args{
+					rev: &Revocation{
+						TokenID: "set",
+						Subject: [][]string{{"a"}},
+					},
+				}
+			},
+			true,
+			nil,
+		},
+		{
+			"subject and tokenid set",
+			func(*testing.T) args {
+				return args{
+					rev: &Revocation{
+						TokenID: "set",
+						Subject: [][]string{{"a"}},
+					},
+				}
+			},
+			true,
+			nil,
+		},
+		{
+			"both issuedBefore and issuedBeforeRel set ",
+			func(*testing.T) args {
+				return args{
+					rev: &Revocation{
+						TokenID:         "set",
+						IssuedBefore:    time.Now(),
+						IssuedBeforeRel: "30s",
+					},
+				}
+			},
+			true,
+			nil,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tArgs := tt.args(t)
+
+			err := ValidateRevocation(tArgs.rev)
+
+			if (err != nil) != tt.wantErr {
+				t.Fatalf("ValidateRevocation error = %v, wantErr: %t", err, tt.wantErr)
 			}
 
 			if tt.inspectErr != nil {

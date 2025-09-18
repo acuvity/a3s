@@ -289,6 +289,13 @@ func ValidateRevocation(rev *Revocation) error {
 		return makeErr("issuedBefore", "issuedBeforeRel cannot be set if issuedBefore is also set.")
 	}
 
+	if len(rev.Subject) == 0 && rev.TokenID == "" {
+		return makeErr("tokenID", "If subject is empty, tokenID must be set")
+	}
+
+	if len(rev.Subject) != 0 && rev.TokenID != "" {
+		return makeErr("tokenID", "If tokenID is empty, subject must be empty")
+	}
 	return nil
 }
 
