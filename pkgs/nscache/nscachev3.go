@@ -5,7 +5,7 @@ import (
 	"log/slog"
 	"time"
 
-	"github.com/karlseguin/ccache/v2"
+	ccache3 "github.com/karlseguin/ccache/v3"
 	"go.acuvity.ai/a3s/pkgs/notification"
 	"go.acuvity.ai/bahamut"
 )
@@ -13,23 +13,23 @@ import (
 // A NamespacedCache is used to cache namespaced information.
 // The cache will invalidate all items when their namespace is
 // deleted or updated.
-type NamespacedCache struct {
+type NamespacedCacheV3[T any] struct {
 	pubsub           bahamut.PubSubClient
-	cache            *ccache.Cache
+	cache            *ccache3.Cache[T]
 	notificationName string
 }
 
 // New returns a new namespace cache.
-func New(pubsub bahamut.PubSubClient, maxSize int64, options ...Option) *NamespacedCache {
+func NewV3[T any](pubsub bahamut.PubSubClient, maxSize int64, options ...Option) *NamespacedCacheV3[T] {
 
 	cfg := newConfig()
 	for _, o := range options {
 		o(&cfg)
 	}
 
-	return &NamespacedCache{
+	return &NamespacedCacheV3[T]{
 		pubsub:           pubsub,
-		cache:            ccache.New(ccache.Configure().MaxSize(maxSize)),
+		cache:            ccache3.New(ccache3.Configure[T]().MaxSize(maxSize)),
 		notificationName: cfg.notificationName,
 	}
 }
@@ -37,25 +37,25 @@ func New(pubsub bahamut.PubSubClient, maxSize int64, options ...Option) *Namespa
 // Set sets a new namespaced key with the given value, with given expiration.
 // namespace must be set. key is optional. It can be empty if you wish to only associate
 // one value to one namespace.
-func (c *NamespacedCache) Set(namespace string, key string, value any, duration time.Duration) {
+func (c *NamespacedCacheV3[T]) Set(namespace string, key string, value T, duration time.Duration) {
 
 	c.cache.Set(namespace+":"+key, value, duration)
 }
 
 // Get returns the cached item for the provided namespaced key.
-func (c *NamespacedCache) Get(namespace string, key string) *ccache.Item {
+func (c *NamespacedCacheV3[T]) Get(namespace string, key string) *ccache3.Item[T] {
 
 	return c.cache.Get(namespace + ":" + key)
 }
 
 // Delete attempts to delete an item from the cache using the given namespace and key.
-func (c *NamespacedCache) Delete(namespace string, key string) bool {
+func (c *NamespacedCacheV3[T]) Delete(namespace string, key string) bool {
 
 	return c.cache.Delete(namespace + ":" + key)
 }
 
 // Start starts listening to notifications for automatic invalidation
-func (c *NamespacedCache) Start(ctx context.Context) {
+func (c *NamespacedCacheV3[T]) Start(ctx context.Context) {
 
 	notification.Subscribe(
 		ctx,
@@ -71,7 +71,7 @@ func (c *NamespacedCache) Start(ctx context.Context) {
 	)
 }
 
-func (c *NamespacedCache) cleanupCacheForNamespace(ns string) {
+func (c *NamespacedCacheV3[T]) cleanupCacheForNamespace(ns string) {
 
 	suffix := "/"
 	if ns == "/" {
