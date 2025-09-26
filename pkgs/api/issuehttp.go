@@ -32,6 +32,17 @@ func NewIssueHTTP() *IssueHTTP {
 		ModelVersion: 1,
 	}
 }
+func (o *IssueHTTP) Identity() elemental.Identity {
+
+	return elemental.Identity{}
+}
+func (o *IssueHTTP) Identifier() string {
+
+	return ""
+}
+func (o *IssueHTTP) SetIdentifier(id string) {
+	panic("you cannot set identifier on a detached object")
+}
 
 // GetBSON implements the bson marshaling interface.
 // This is used to transparently convert ID to MongoDBID as ObectID.
@@ -62,10 +73,22 @@ func (o *IssueHTTP) SetBSON(raw bson.Raw) error {
 	return nil
 }
 
+// Version returns the hardcoded version of the model.
+func (o *IssueHTTP) Version() int {
+
+	return 1
+}
+
 // BleveType implements the bleve.Classifier Interface.
 func (o *IssueHTTP) BleveType() string {
 
 	return "issuehttp"
+}
+
+// Doc returns the documentation for the object
+func (o *IssueHTTP) Doc() string {
+
+	return `Additional issuing information for the HTTP source.`
 }
 
 // DeepCopy returns a deep copy if the IssueHTTP.

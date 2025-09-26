@@ -120,6 +120,18 @@
       },
       "type": "array"
     },
+    "mtlssourceentra": {
+      "items": {
+        "$ref": "mtlssourceentra.json"
+      },
+      "type": "array"
+    },
+    "mtlssourceokta": {
+      "items": {
+        "$ref": "mtlssourceokta.json"
+      },
+      "type": "array"
+    },
     "mtlssources": {
       "items": {
         "$ref": "mtlssource.json"

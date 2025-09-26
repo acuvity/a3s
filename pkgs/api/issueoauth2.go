@@ -42,6 +42,17 @@ func NewIssueOAuth2() *IssueOAuth2 {
 		ModelVersion: 1,
 	}
 }
+func (o *IssueOAuth2) Identity() elemental.Identity {
+
+	return elemental.Identity{}
+}
+func (o *IssueOAuth2) Identifier() string {
+
+	return ""
+}
+func (o *IssueOAuth2) SetIdentifier(id string) {
+	panic("you cannot set identifier on a detached object")
+}
 
 // GetBSON implements the bson marshaling interface.
 // This is used to transparently convert ID to MongoDBID as ObectID.
@@ -72,10 +83,22 @@ func (o *IssueOAuth2) SetBSON(raw bson.Raw) error {
 	return nil
 }
 
+// Version returns the hardcoded version of the model.
+func (o *IssueOAuth2) Version() int {
+
+	return 1
+}
+
 // BleveType implements the bleve.Classifier Interface.
 func (o *IssueOAuth2) BleveType() string {
 
 	return "issueoauth2"
+}
+
+// Doc returns the documentation for the object
+func (o *IssueOAuth2) Doc() string {
+
+	return `Additional issuing information for the OAuth2 source.`
 }
 
 // DeepCopy returns a deep copy if the IssueOAuth2.

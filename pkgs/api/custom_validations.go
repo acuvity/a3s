@@ -218,14 +218,19 @@ func ValidateMTLSSource(source *MTLSSource) error {
 
 	switch source.ClaimsRetrievalMode {
 	case MTLSSourceClaimsRetrievalModeEntra:
-		if source.CA == "" {
-			return makeErr("CA", "CA must be set when claims retrieval mode is set to 'Entra'")
+		if source.EntraApplicationCredentials == nil {
+			return makeErr("entraApplicationCredentials", "entraApplicationCredentials must be set when retrieval mode is 'Entra'")
 		}
-		if source.ClientTenantID == "" {
-			return makeErr("clientTenantID", "clientTenantID must be set when claims retrieval mode is set to 'Entra'")
+	case MTLSSourceClaimsRetrievalModeOkta:
+		if source.EntraApplicationCredentials == nil {
+			return makeErr("oktaApplicationCredentials", "oktaApplicationCredentials must be set when retrieval mode is 'Okta'")
 		}
-		if source.ClientID == "" {
-			return makeErr("clientID", "clientID must be set when claims retrieval mode is set to 'Entra'")
+	default:
+		if source.EntraApplicationCredentials != nil {
+			return makeErr("entraApplicationCredentials", "entraApplicationCredentials must not be set when retrieval mode is 'X509'")
+		}
+		if source.OktaApplicationCredentials != nil {
+			return makeErr("oktaApplicationCredentials", "oktaApplicationCredentials must not be set when retrieval mode is 'X509'")
 		}
 	}
 

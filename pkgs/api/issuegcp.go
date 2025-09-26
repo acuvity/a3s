@@ -29,6 +29,17 @@ func NewIssueGCP() *IssueGCP {
 		ModelVersion: 1,
 	}
 }
+func (o *IssueGCP) Identity() elemental.Identity {
+
+	return elemental.Identity{}
+}
+func (o *IssueGCP) Identifier() string {
+
+	return ""
+}
+func (o *IssueGCP) SetIdentifier(id string) {
+	panic("you cannot set identifier on a detached object")
+}
 
 // GetBSON implements the bson marshaling interface.
 // This is used to transparently convert ID to MongoDBID as ObectID.
@@ -59,10 +70,22 @@ func (o *IssueGCP) SetBSON(raw bson.Raw) error {
 	return nil
 }
 
+// Version returns the hardcoded version of the model.
+func (o *IssueGCP) Version() int {
+
+	return 1
+}
+
 // BleveType implements the bleve.Classifier Interface.
 func (o *IssueGCP) BleveType() string {
 
 	return "issuegcp"
+}
+
+// Doc returns the documentation for the object
+func (o *IssueGCP) Doc() string {
+
+	return `Additional issuing information for GCP identity token source.`
 }
 
 // DeepCopy returns a deep copy if the IssueGCP.
