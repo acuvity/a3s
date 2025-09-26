@@ -11,7 +11,6 @@ import (
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/karlseguin/ccache/v3"
-	"go.acuvity.ai/a3s/pkgs/api"
 )
 
 var entraAccessTokenCache *ccache.Cache[string]
@@ -22,6 +21,11 @@ func init() {
 
 func handleEntraAutologin(iss *mtlsIssuer, cert *x509.Certificate) error {
 
+	creds := iss.source.EntraApplicationCredentials
+	if creds == nil {
+		return fmt.Errorf("invalid mtls source: no entraApplicationCredentials set")
+	}
+
 	client := &http.Client{
 		Timeout: 5 * time.Second,
 	}
@@ -31,7 +35,12 @@ func handleEntraAutologin(iss *mtlsIssuer, cert *x509.Certificate) error {
 	}{}
 
 	// Step 1: get a client access token (client here is us), from net or cache
-	ckey := fmt.Sprintf("%s:%s:%s", iss.source.ClientID, iss.source.ClientSecret, iss.source.ClientTenantID)
+	ckey := fmt.Sprintf(
+		"%s:%s:%s",
+		creds.ClientID,
+		creds.ClientSecret,
+		creds.ClientTenantID,
+	)
 	if item := entraAccessTokenCache.Get(ckey); item != nil && !item.Expired() {
 
 		rtoken.AccessToken = item.Value()
@@ -39,13 +48,13 @@ func handleEntraAutologin(iss *mtlsIssuer, cert *x509.Certificate) error {
 	} else {
 
 		form := url.Values{
-			"client_id":     {iss.source.ClientID},
-			"client_secret": {iss.source.ClientSecret},
+			"client_id":     {creds.ClientID},
+			"client_secret": {creds.ClientSecret},
 			"scope":         {"https://graph.microsoft.com/.default"},
 			"grant_type":    {"client_credentials"},
 		}
 
-		r, err := http.NewRequest(http.MethodPost, fmt.Sprintf("https://login.microsoftonline.com/%s/oauth2/v2.0/token", iss.source.ClientTenantID), strings.NewReader(form.Encode()))
+		r, err := http.NewRequest(http.MethodPost, fmt.Sprintf("https://login.microsoftonline.com/%s/oauth2/v2.0/token", creds.ClientTenantID), strings.NewReader(form.Encode()))
 		if err != nil {
 			return fmt.Errorf("unable to create oauth2 client token request: %w", err)
 		}
@@ -79,19 +88,9 @@ func handleEntraAutologin(iss *mtlsIssuer, cert *x509.Certificate) error {
 	appID := cls["oid"]
 
 	// Step 2: now we have a client token, we will query the user info
-	principalName := ""
-
-	switch iss.source.PrincipalUserX509Field {
-
-	case api.MTLSSourcePrincipalUserX509FieldCommonName:
-		principalName = cert.Subject.CommonName
-
-	case api.MTLSSourcePrincipalUserX509FieldEmail:
-		if len(cert.EmailAddresses) > 0 {
-			principalName = cert.EmailAddresses[0]
-		} else {
-			return fmt.Errorf("unable to find any email addresses in the user certificate")
-		}
+	principalName, err := getPrincipalName(iss, cert)
+	if err != nil {
+		return fmt.Errorf("unable to retrieve principal name from certificate: %w", err)
 	}
 
 	r, err := http.NewRequest(http.MethodGet, fmt.Sprintf("https://graph.microsoft.com/v1.0/users/%s", principalName), nil)
@@ -158,7 +157,7 @@ func handleEntraAutologin(iss *mtlsIssuer, cert *x509.Certificate) error {
 	}
 
 	// Step 4: Retrieve all roles for the app and mapp them
-	if r, err = http.NewRequest(http.MethodGet, fmt.Sprintf("https://graph.microsoft.com/v1.0/servicePrincipals(appId='%s')?$select=id,displayName,appRoles", iss.source.ClientID), nil); err != nil {
+	if r, err = http.NewRequest(http.MethodGet, fmt.Sprintf("https://graph.microsoft.com/v1.0/servicePrincipals(appId='%s')?$select=id,displayName,appRoles", creds.ClientID), nil); err != nil {
 		return fmt.Errorf("unable to create request to retrieve app roles: %w", err)
 	}
 	r.Header = http.Header{
@@ -225,7 +224,7 @@ func handleEntraAutologin(iss *mtlsIssuer, cert *x509.Certificate) error {
 	// Final Step: populate the claims
 	iss.token.Identity = append(iss.token.Identity, fmt.Sprintf("displayname=%s", ruser.DisplayName))
 	iss.token.Identity = append(iss.token.Identity, fmt.Sprintf("oid=%s", ruser.ID))
-	iss.token.Identity = append(iss.token.Identity, fmt.Sprintf("tenantid=%s", iss.source.ClientTenantID))
+	iss.token.Identity = append(iss.token.Identity, fmt.Sprintf("tenantid=%s", creds.ClientTenantID))
 	iss.token.Identity = append(iss.token.Identity, fmt.Sprintf("givenname=%s", ruser.GivenName))
 	iss.token.Identity = append(iss.token.Identity, fmt.Sprintf("email=%s", ruser.EMail))
 	iss.token.Identity = append(iss.token.Identity, fmt.Sprintf("name=%s", ruser.UserPrincipalName))
