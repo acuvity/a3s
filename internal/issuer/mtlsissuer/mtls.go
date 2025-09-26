@@ -73,7 +73,13 @@ func (c *mtlsIssuer) fromCertificate(ctx context.Context, cert *x509.Certificate
 	case api.MTLSSourceClaimsRetrievalModeEntra:
 
 		if err := handleEntraAutologin(c, cert); err != nil {
-			return fmt.Errorf("unable to perform additional claims retrieval: %w", err)
+			return fmt.Errorf("unable to perform entra additional claims retrieval: %w", err)
+		}
+
+	case api.MTLSSourceClaimsRetrievalModeOkta:
+
+		if err := handleOktaAutologin(c, cert); err != nil {
+			return fmt.Errorf("unable to perform okta additional claims retrieval: %w", err)
 		}
 
 	case api.MTLSSourceClaimsRetrievalModeX509:
