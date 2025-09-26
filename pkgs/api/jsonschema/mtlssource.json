@@ -35,37 +35,13 @@
     "claimsRetrievalMode": {
       "$defaultValue": "X509",
       "$friendlyName": "Claims Retrieval Mode",
-      "description": "Defines if and how you want to enable auto login with client certificates.  For Entra, you will need to set clientTenantID, clientID and clientSecret.  You will also need an Entra application that has the following permissions:  - Directory.Read.All - User.Read  For now, only Entra is supported.",
+      "description": "Defines if and how you want to enable auto login with client certificates.",
       "enum": [
         "Entra",
+        "Okta",
         "X509"
       ],
       "title": "claimsRetrievalMode"
-    },
-    "clientID": {
-      "$friendlyName": "Client ID",
-      "description": "The oauth clientID if any. This may be required for autologin, depending on the mode.",
-      "title": "clientID",
-      "type": [
-        "string",
-        "null"
-      ]
-    },
-    "clientSecret": {
-      "$friendlyName": "Client Secret",
-      "$required": true,
-      "description": "Client secret associated with the client ID. This may be required for autologin, depending on the mode.",
-      "title": "clientSecret",
-      "type": "string"
-    },
-    "clientTenantID": {
-      "$friendlyName": "Client Tenant ID",
-      "description": "ID of the tenant for the identity provider, if any. This may be required for autologin, depending on the mode.",
-      "title": "clientTenantID",
-      "type": [
-        "string",
-        "null"
-      ]
     },
     "createTime": {
       "$friendlyName": "CreateTime",
@@ -85,6 +61,12 @@
         "string",
         "null"
       ]
+    },
+    "entraApplicationCredentials": {
+      "$friendlyName": "Entra Application Credentials",
+      "$ref": "mtlssourceentra.json",
+      "description": "Additional information required when claims retrieval mode is set to Entra.",
+      "title": "entraApplicationCredentials"
     },
     "fingerprints": {
       "$friendlyName": "Fingerprints",
@@ -166,6 +148,12 @@
         "null"
       ]
     },
+    "oktaApplicationCredentials": {
+      "$friendlyName": "OKTA Application Credentials",
+      "$ref": "mtlssourceokta.json",
+      "description": "Additional information required when claims retrieval mode is set to Okta.",
+      "title": "oktaApplicationCredentials"
+    },
     "principalUserX509Field": {
       "$defaultValue": "Email",
       "$friendlyName": "Principal User X.509 Field",
@@ -202,7 +190,6 @@
   },
   "required": [
     "CA",
-    "clientSecret",
     "name"
   ],
   "title": "MTLSSource",

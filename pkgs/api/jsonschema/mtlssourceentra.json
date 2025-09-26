@@ -1,0 +1,43 @@
+{
+  "$extends": [],
+  "$friendlyName": "MTLS Source Entra",
+  "$friendlyNamePlural": "MTLS Source Entras",
+  "$modelName": "MTLSSourceEntra",
+  "$modelPackage": "a3s",
+  "$modelResourceName": "mtlssourceentra",
+  "$modelRestName": "mtlssourceentra",
+  "additionalProperties": false,
+  "description": "Additional authentication information for MTLS source getting information from Entra.  You will need to set clientTenantID, clientID and clientSecret.  You will also need an Entra application that has the following permissions: Directory.Read.All and User.Read.",
+  "properties": {
+    "clientID": {
+      "$friendlyName": "Client ID",
+      "description": "The oauth clientID if any. This may be required for autologin, depending on the mode.",
+      "title": "clientID",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "clientSecret": {
+      "$friendlyName": "Client Secret",
+      "$required": true,
+      "description": "Client secret associated with the client ID. This may be required for autologin, depending on the mode.",
+      "title": "clientSecret",
+      "type": "string"
+    },
+    "clientTenantID": {
+      "$friendlyName": "Client Tenant ID",
+      "description": "ID of the tenant for the identity provider, if any. This may be required for autologin, depending on the mode.",
+      "title": "clientTenantID",
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  },
+  "required": [
+    "clientSecret"
+  ],
+  "title": "MTLSSourceEntra",
+  "type": "object"
+}

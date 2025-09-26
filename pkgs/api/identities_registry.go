@@ -16,9 +16,10 @@ var (
 		"import":           ImportIdentity,
 		"issue":            IssueIdentity,
 
-		"ldapsource":              LDAPSourceIdentity,
-		"logout":                  LogoutIdentity,
-		"mtlssource":              MTLSSourceIdentity,
+		"ldapsource": LDAPSourceIdentity,
+		"logout":     LogoutIdentity,
+		"mtlssource": MTLSSourceIdentity,
+
 		"namespace":               NamespaceIdentity,
 		"namespacedeletionrecord": NamespaceDeletionRecordIdentity,
 		"oauth2source":            OAuth2SourceIdentity,
@@ -39,9 +40,10 @@ var (
 		"import":           ImportIdentity,
 		"issue":            IssueIdentity,
 
-		"ldapsources":              LDAPSourceIdentity,
-		"logout":                   LogoutIdentity,
-		"mtlssources":              MTLSSourceIdentity,
+		"ldapsources": LDAPSourceIdentity,
+		"logout":      LogoutIdentity,
+		"mtlssources": MTLSSourceIdentity,
+
 		"namespaces":               NamespaceIdentity,
 		"namespacedeletionrecords": NamespaceDeletionRecordIdentity,
 		"oauth2sources":            OAuth2SourceIdentity,
@@ -421,6 +423,10 @@ func (f modelManager) DetachedFromString(name string) any {
 		return NewIssueRemoteA3S()
 	case "issuesaml", "IssueSAML":
 		return NewIssueSAML()
+	case "mtlssourceentra", "MTLSSourceEntra":
+		return NewMTLSSourceEntra()
+	case "mtlssourceokta", "MTLSSourceOkta":
+		return NewMTLSSourceOkta()
 	default:
 		return nil
 	}

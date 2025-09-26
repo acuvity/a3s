@@ -1,0 +1,49 @@
+{
+  "$extends": [],
+  "$friendlyName": "MTLS Source Okta",
+  "$friendlyNamePlural": "MTLS Source Oktas",
+  "$modelName": "MTLSSourceOkta",
+  "$modelPackage": "a3s",
+  "$modelResourceName": "mtlssourceokta",
+  "$modelRestName": "mtlssourceokta",
+  "additionalProperties": false,
+  "description": "Additional authentication information for MTLS source getting information from Okta.",
+  "properties": {
+    "KID": {
+      "$friendlyName": "KID",
+      "$required": true,
+      "description": "The Key ID associated to the private key.",
+      "title": "KID",
+      "type": "string"
+    },
+    "clientID": {
+      "$friendlyName": "Client ID",
+      "$required": true,
+      "description": "The application client id.",
+      "title": "clientID",
+      "type": "string"
+    },
+    "domain": {
+      "$friendlyName": "Domain",
+      "$required": true,
+      "description": "Your custom okta domain.",
+      "title": "domain",
+      "type": "string"
+    },
+    "privateKey": {
+      "$friendlyName": "PrivateKey",
+      "$required": true,
+      "description": "The Application private key.",
+      "title": "privateKey",
+      "type": "string"
+    }
+  },
+  "required": [
+    "KID",
+    "clientID",
+    "domain",
+    "privateKey"
+  ],
+  "title": "MTLSSourceOkta",
+  "type": "object"
+}
