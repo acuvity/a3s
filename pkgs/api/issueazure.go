@@ -26,6 +26,17 @@ func NewIssueAzure() *IssueAzure {
 		ModelVersion: 1,
 	}
 }
+func (o *IssueAzure) Identity() elemental.Identity {
+
+	return elemental.Identity{}
+}
+func (o *IssueAzure) Identifier() string {
+
+	return ""
+}
+func (o *IssueAzure) SetIdentifier(id string) {
+	panic("you cannot set identifier on a detached object")
+}
 
 // GetBSON implements the bson marshaling interface.
 // This is used to transparently convert ID to MongoDBID as ObectID.
@@ -56,10 +67,22 @@ func (o *IssueAzure) SetBSON(raw bson.Raw) error {
 	return nil
 }
 
+// Version returns the hardcoded version of the model.
+func (o *IssueAzure) Version() int {
+
+	return 1
+}
+
 // BleveType implements the bleve.Classifier Interface.
 func (o *IssueAzure) BleveType() string {
 
 	return "issueazure"
+}
+
+// Doc returns the documentation for the object
+func (o *IssueAzure) Doc() string {
+
+	return `Additional issuing information for Azure identity token source.`
 }
 
 // DeepCopy returns a deep copy if the IssueAzure.

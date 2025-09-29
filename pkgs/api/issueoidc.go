@@ -42,6 +42,17 @@ func NewIssueOIDC() *IssueOIDC {
 		ModelVersion: 1,
 	}
 }
+func (o *IssueOIDC) Identity() elemental.Identity {
+
+	return elemental.Identity{}
+}
+func (o *IssueOIDC) Identifier() string {
+
+	return ""
+}
+func (o *IssueOIDC) SetIdentifier(id string) {
+	panic("you cannot set identifier on a detached object")
+}
 
 // GetBSON implements the bson marshaling interface.
 // This is used to transparently convert ID to MongoDBID as ObectID.
@@ -72,10 +83,22 @@ func (o *IssueOIDC) SetBSON(raw bson.Raw) error {
 	return nil
 }
 
+// Version returns the hardcoded version of the model.
+func (o *IssueOIDC) Version() int {
+
+	return 1
+}
+
 // BleveType implements the bleve.Classifier Interface.
 func (o *IssueOIDC) BleveType() string {
 
 	return "issueoidc"
+}
+
+// Doc returns the documentation for the object
+func (o *IssueOIDC) Doc() string {
+
+	return `Additional issuing information for the OIDC source.`
 }
 
 // DeepCopy returns a deep copy if the IssueOIDC.

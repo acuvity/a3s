@@ -42,6 +42,17 @@ func NewIssueSAML() *IssueSAML {
 		ModelVersion: 1,
 	}
 }
+func (o *IssueSAML) Identity() elemental.Identity {
+
+	return elemental.Identity{}
+}
+func (o *IssueSAML) Identifier() string {
+
+	return ""
+}
+func (o *IssueSAML) SetIdentifier(id string) {
+	panic("you cannot set identifier on a detached object")
+}
 
 // GetBSON implements the bson marshaling interface.
 // This is used to transparently convert ID to MongoDBID as ObectID.
@@ -72,10 +83,22 @@ func (o *IssueSAML) SetBSON(raw bson.Raw) error {
 	return nil
 }
 
+// Version returns the hardcoded version of the model.
+func (o *IssueSAML) Version() int {
+
+	return 1
+}
+
 // BleveType implements the bleve.Classifier Interface.
 func (o *IssueSAML) BleveType() string {
 
 	return "issuesaml"
+}
+
+// Doc returns the documentation for the object
+func (o *IssueSAML) Doc() string {
+
+	return `Additional issuing information for the SAML source.`
 }
 
 // DeepCopy returns a deep copy if the IssueSAML.
