@@ -42,7 +42,7 @@ func Subscribe(ctx context.Context, pubsub bahamut.PubSubClient, topic string, h
 				}(pub)
 
 			case err := <-errors:
-				slog.Error("Received error from notification pubsub", err)
+				slog.Debug("Received error from notification pubsub", err)
 
 			case <-ctx.Done():
 				d()
