@@ -514,7 +514,7 @@ func (o *A3SSource) EncryptAttributes(encrypter elemental.AttributeEncrypter) (e
 
 	if o.Modifier != nil {
 		if err := o.Modifier.EncryptAttributes(encrypter); err != nil {
-			return fmt.Errorf("unable to encrypt ref attribute 'Modifier' for 'A3SSource' (%s): %s", o.Identifier(), err)
+			return fmt.Errorf("unable to encrypt ref attribute 'Modifier' for 'A3SSource' (%s): %w", o.Identifier(), err)
 		}
 	}
 
@@ -526,7 +526,7 @@ func (o *A3SSource) DecryptAttributes(encrypter elemental.AttributeEncrypter) (e
 
 	if o.Modifier != nil {
 		if err := o.Modifier.DecryptAttributes(encrypter); err != nil {
-			return fmt.Errorf("unable to decrypt ref attribute 'Modifier' for 'A3SSource' (%s): %s", o.Identifier(), err)
+			return fmt.Errorf("unable to decrypt ref attribute 'Modifier' for 'A3SSource' (%s): %w", o.Identifier(), err)
 		}
 	}
 
@@ -1469,7 +1469,7 @@ func (o *SparseA3SSource) EncryptAttributes(encrypter elemental.AttributeEncrypt
 
 	if o.Modifier != nil {
 		if err := o.Modifier.EncryptAttributes(encrypter); err != nil {
-			return fmt.Errorf("unable to encrypt ref attribute 'Modifier' for 'A3SSource' (%s): %s", o.Identifier(), err)
+			return fmt.Errorf("unable to encrypt ref attribute 'Modifier' for 'A3SSource' (%s): %w", o.Identifier(), err)
 		}
 	}
 
@@ -1481,7 +1481,7 @@ func (o *SparseA3SSource) DecryptAttributes(encrypter elemental.AttributeEncrypt
 
 	if o.Modifier != nil {
 		if err := o.Modifier.DecryptAttributes(encrypter); err != nil {
-			return fmt.Errorf("unable to decrypt ref attribute 'Modifier' for 'A3SSource' (%s): %s", o.Identifier(), err)
+			return fmt.Errorf("unable to decrypt ref attribute 'Modifier' for 'A3SSource' (%s): %w", o.Identifier(), err)
 		}
 	}
 

@@ -573,7 +573,7 @@ func (o *SAMLSource) EncryptAttributes(encrypter elemental.AttributeEncrypter) (
 
 	if o.Modifier != nil {
 		if err := o.Modifier.EncryptAttributes(encrypter); err != nil {
-			return fmt.Errorf("unable to encrypt ref attribute 'Modifier' for 'SAMLSource' (%s): %s", o.Identifier(), err)
+			return fmt.Errorf("unable to encrypt ref attribute 'Modifier' for 'SAMLSource' (%s): %w", o.Identifier(), err)
 		}
 	}
 
@@ -585,7 +585,7 @@ func (o *SAMLSource) DecryptAttributes(encrypter elemental.AttributeEncrypter) (
 
 	if o.Modifier != nil {
 		if err := o.Modifier.DecryptAttributes(encrypter); err != nil {
-			return fmt.Errorf("unable to decrypt ref attribute 'Modifier' for 'SAMLSource' (%s): %s", o.Identifier(), err)
+			return fmt.Errorf("unable to decrypt ref attribute 'Modifier' for 'SAMLSource' (%s): %w", o.Identifier(), err)
 		}
 	}
 
@@ -1701,7 +1701,7 @@ func (o *SparseSAMLSource) EncryptAttributes(encrypter elemental.AttributeEncryp
 
 	if o.Modifier != nil {
 		if err := o.Modifier.EncryptAttributes(encrypter); err != nil {
-			return fmt.Errorf("unable to encrypt ref attribute 'Modifier' for 'SAMLSource' (%s): %s", o.Identifier(), err)
+			return fmt.Errorf("unable to encrypt ref attribute 'Modifier' for 'SAMLSource' (%s): %w", o.Identifier(), err)
 		}
 	}
 
@@ -1713,7 +1713,7 @@ func (o *SparseSAMLSource) DecryptAttributes(encrypter elemental.AttributeEncryp
 
 	if o.Modifier != nil {
 		if err := o.Modifier.DecryptAttributes(encrypter); err != nil {
-			return fmt.Errorf("unable to decrypt ref attribute 'Modifier' for 'SAMLSource' (%s): %s", o.Identifier(), err)
+			return fmt.Errorf("unable to decrypt ref attribute 'Modifier' for 'SAMLSource' (%s): %w", o.Identifier(), err)
 		}
 	}
 

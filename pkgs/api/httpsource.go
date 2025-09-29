@@ -515,12 +515,12 @@ func (o *HTTPSource) Patch(sparse elemental.SparseIdentifiable) {
 func (o *HTTPSource) EncryptAttributes(encrypter elemental.AttributeEncrypter) (err error) {
 
 	if o.Key, err = encrypter.EncryptString(o.Key); err != nil {
-		return fmt.Errorf("unable to encrypt attribute 'Key' for 'HTTPSource' (%s): %s", o.Identifier(), err)
+		return fmt.Errorf("unable to encrypt attribute 'Key' for 'HTTPSource' (%s): %w", o.Identifier(), err)
 	}
 
 	if o.Modifier != nil {
 		if err := o.Modifier.EncryptAttributes(encrypter); err != nil {
-			return fmt.Errorf("unable to encrypt ref attribute 'Modifier' for 'HTTPSource' (%s): %s", o.Identifier(), err)
+			return fmt.Errorf("unable to encrypt ref attribute 'Modifier' for 'HTTPSource' (%s): %w", o.Identifier(), err)
 		}
 	}
 
@@ -531,12 +531,12 @@ func (o *HTTPSource) EncryptAttributes(encrypter elemental.AttributeEncrypter) (
 func (o *HTTPSource) DecryptAttributes(encrypter elemental.AttributeEncrypter) (err error) {
 
 	if o.Key, err = encrypter.DecryptString(o.Key); err != nil {
-		return fmt.Errorf("unable to decrypt attribute 'Key' for 'HTTPSource' (%s): %s", o.Identifier(), err)
+		return fmt.Errorf("unable to decrypt attribute 'Key' for 'HTTPSource' (%s): %w", o.Identifier(), err)
 	}
 
 	if o.Modifier != nil {
 		if err := o.Modifier.DecryptAttributes(encrypter); err != nil {
-			return fmt.Errorf("unable to decrypt ref attribute 'Modifier' for 'HTTPSource' (%s): %s", o.Identifier(), err)
+			return fmt.Errorf("unable to decrypt ref attribute 'Modifier' for 'HTTPSource' (%s): %w", o.Identifier(), err)
 		}
 	}
 
@@ -1512,12 +1512,12 @@ func (o *SparseHTTPSource) ToPlain() elemental.PlainIdentifiable {
 func (o *SparseHTTPSource) EncryptAttributes(encrypter elemental.AttributeEncrypter) (err error) {
 
 	if *o.Key, err = encrypter.EncryptString(*o.Key); err != nil {
-		return fmt.Errorf("unable to encrypt attribute 'Key' for 'SparseHTTPSource' (%s): %s", o.Identifier(), err)
+		return fmt.Errorf("unable to encrypt attribute 'Key' for 'SparseHTTPSource' (%s): %w", o.Identifier(), err)
 	}
 
 	if o.Modifier != nil {
 		if err := o.Modifier.EncryptAttributes(encrypter); err != nil {
-			return fmt.Errorf("unable to encrypt ref attribute 'Modifier' for 'HTTPSource' (%s): %s", o.Identifier(), err)
+			return fmt.Errorf("unable to encrypt ref attribute 'Modifier' for 'HTTPSource' (%s): %w", o.Identifier(), err)
 		}
 	}
 
@@ -1528,12 +1528,12 @@ func (o *SparseHTTPSource) EncryptAttributes(encrypter elemental.AttributeEncryp
 func (o *SparseHTTPSource) DecryptAttributes(encrypter elemental.AttributeEncrypter) (err error) {
 
 	if *o.Key, err = encrypter.DecryptString(*o.Key); err != nil {
-		return fmt.Errorf("unable to decrypt attribute 'Key' for 'SparseHTTPSource' (%s): %s", o.Identifier(), err)
+		return fmt.Errorf("unable to decrypt attribute 'Key' for 'SparseHTTPSource' (%s): %w", o.Identifier(), err)
 	}
 
 	if o.Modifier != nil {
 		if err := o.Modifier.DecryptAttributes(encrypter); err != nil {
-			return fmt.Errorf("unable to decrypt ref attribute 'Modifier' for 'HTTPSource' (%s): %s", o.Identifier(), err)
+			return fmt.Errorf("unable to decrypt ref attribute 'Modifier' for 'HTTPSource' (%s): %w", o.Identifier(), err)
 		}
 	}
 

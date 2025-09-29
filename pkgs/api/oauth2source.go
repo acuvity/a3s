@@ -543,12 +543,12 @@ func (o *OAuth2Source) Patch(sparse elemental.SparseIdentifiable) {
 func (o *OAuth2Source) EncryptAttributes(encrypter elemental.AttributeEncrypter) (err error) {
 
 	if o.ClientSecret, err = encrypter.EncryptString(o.ClientSecret); err != nil {
-		return fmt.Errorf("unable to encrypt attribute 'ClientSecret' for 'OAuth2Source' (%s): %s", o.Identifier(), err)
+		return fmt.Errorf("unable to encrypt attribute 'ClientSecret' for 'OAuth2Source' (%s): %w", o.Identifier(), err)
 	}
 
 	if o.Modifier != nil {
 		if err := o.Modifier.EncryptAttributes(encrypter); err != nil {
-			return fmt.Errorf("unable to encrypt ref attribute 'Modifier' for 'OAuth2Source' (%s): %s", o.Identifier(), err)
+			return fmt.Errorf("unable to encrypt ref attribute 'Modifier' for 'OAuth2Source' (%s): %w", o.Identifier(), err)
 		}
 	}
 
@@ -559,12 +559,12 @@ func (o *OAuth2Source) EncryptAttributes(encrypter elemental.AttributeEncrypter)
 func (o *OAuth2Source) DecryptAttributes(encrypter elemental.AttributeEncrypter) (err error) {
 
 	if o.ClientSecret, err = encrypter.DecryptString(o.ClientSecret); err != nil {
-		return fmt.Errorf("unable to decrypt attribute 'ClientSecret' for 'OAuth2Source' (%s): %s", o.Identifier(), err)
+		return fmt.Errorf("unable to decrypt attribute 'ClientSecret' for 'OAuth2Source' (%s): %w", o.Identifier(), err)
 	}
 
 	if o.Modifier != nil {
 		if err := o.Modifier.DecryptAttributes(encrypter); err != nil {
-			return fmt.Errorf("unable to decrypt ref attribute 'Modifier' for 'OAuth2Source' (%s): %s", o.Identifier(), err)
+			return fmt.Errorf("unable to decrypt ref attribute 'Modifier' for 'OAuth2Source' (%s): %w", o.Identifier(), err)
 		}
 	}
 
@@ -1560,12 +1560,12 @@ func (o *SparseOAuth2Source) ToPlain() elemental.PlainIdentifiable {
 func (o *SparseOAuth2Source) EncryptAttributes(encrypter elemental.AttributeEncrypter) (err error) {
 
 	if *o.ClientSecret, err = encrypter.EncryptString(*o.ClientSecret); err != nil {
-		return fmt.Errorf("unable to encrypt attribute 'ClientSecret' for 'SparseOAuth2Source' (%s): %s", o.Identifier(), err)
+		return fmt.Errorf("unable to encrypt attribute 'ClientSecret' for 'SparseOAuth2Source' (%s): %w", o.Identifier(), err)
 	}
 
 	if o.Modifier != nil {
 		if err := o.Modifier.EncryptAttributes(encrypter); err != nil {
-			return fmt.Errorf("unable to encrypt ref attribute 'Modifier' for 'OAuth2Source' (%s): %s", o.Identifier(), err)
+			return fmt.Errorf("unable to encrypt ref attribute 'Modifier' for 'OAuth2Source' (%s): %w", o.Identifier(), err)
 		}
 	}
 
@@ -1576,12 +1576,12 @@ func (o *SparseOAuth2Source) EncryptAttributes(encrypter elemental.AttributeEncr
 func (o *SparseOAuth2Source) DecryptAttributes(encrypter elemental.AttributeEncrypter) (err error) {
 
 	if *o.ClientSecret, err = encrypter.DecryptString(*o.ClientSecret); err != nil {
-		return fmt.Errorf("unable to decrypt attribute 'ClientSecret' for 'SparseOAuth2Source' (%s): %s", o.Identifier(), err)
+		return fmt.Errorf("unable to decrypt attribute 'ClientSecret' for 'SparseOAuth2Source' (%s): %w", o.Identifier(), err)
 	}
 
 	if o.Modifier != nil {
 		if err := o.Modifier.DecryptAttributes(encrypter); err != nil {
-			return fmt.Errorf("unable to decrypt ref attribute 'Modifier' for 'OAuth2Source' (%s): %s", o.Identifier(), err)
+			return fmt.Errorf("unable to decrypt ref attribute 'Modifier' for 'OAuth2Source' (%s): %w", o.Identifier(), err)
 		}
 	}
 

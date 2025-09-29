@@ -374,7 +374,7 @@ func (o *Import) DecryptAttributes(encrypter elemental.AttributeEncrypter) (err 
 			continue
 		}
 		if err := sub.DecryptAttributes(encrypter); err != nil {
-			return fmt.Errorf("unable to decrypt refList/refMap attribute 'A3SSources' for 'Import' (%s): %s", o.Identifier(), err)
+			return fmt.Errorf("unable to decrypt refList/refMap attribute 'A3SSources' for 'Import' (%s): %w", o.Identifier(), err)
 		}
 	}
 
@@ -383,7 +383,7 @@ func (o *Import) DecryptAttributes(encrypter elemental.AttributeEncrypter) (err 
 			continue
 		}
 		if err := sub.DecryptAttributes(encrypter); err != nil {
-			return fmt.Errorf("unable to decrypt refList/refMap attribute 'HTTPSources' for 'Import' (%s): %s", o.Identifier(), err)
+			return fmt.Errorf("unable to decrypt refList/refMap attribute 'HTTPSources' for 'Import' (%s): %w", o.Identifier(), err)
 		}
 	}
 
@@ -392,7 +392,7 @@ func (o *Import) DecryptAttributes(encrypter elemental.AttributeEncrypter) (err 
 			continue
 		}
 		if err := sub.DecryptAttributes(encrypter); err != nil {
-			return fmt.Errorf("unable to decrypt refList/refMap attribute 'LDAPSources' for 'Import' (%s): %s", o.Identifier(), err)
+			return fmt.Errorf("unable to decrypt refList/refMap attribute 'LDAPSources' for 'Import' (%s): %w", o.Identifier(), err)
 		}
 	}
 
@@ -401,7 +401,7 @@ func (o *Import) DecryptAttributes(encrypter elemental.AttributeEncrypter) (err 
 			continue
 		}
 		if err := sub.DecryptAttributes(encrypter); err != nil {
-			return fmt.Errorf("unable to decrypt refList/refMap attribute 'MTLSSources' for 'Import' (%s): %s", o.Identifier(), err)
+			return fmt.Errorf("unable to decrypt refList/refMap attribute 'MTLSSources' for 'Import' (%s): %w", o.Identifier(), err)
 		}
 	}
 
@@ -410,7 +410,7 @@ func (o *Import) DecryptAttributes(encrypter elemental.AttributeEncrypter) (err 
 			continue
 		}
 		if err := sub.DecryptAttributes(encrypter); err != nil {
-			return fmt.Errorf("unable to decrypt refList/refMap attribute 'OAuth2Sources' for 'Import' (%s): %s", o.Identifier(), err)
+			return fmt.Errorf("unable to decrypt refList/refMap attribute 'OAuth2Sources' for 'Import' (%s): %w", o.Identifier(), err)
 		}
 	}
 
@@ -419,7 +419,7 @@ func (o *Import) DecryptAttributes(encrypter elemental.AttributeEncrypter) (err 
 			continue
 		}
 		if err := sub.DecryptAttributes(encrypter); err != nil {
-			return fmt.Errorf("unable to decrypt refList/refMap attribute 'OIDCSources' for 'Import' (%s): %s", o.Identifier(), err)
+			return fmt.Errorf("unable to decrypt refList/refMap attribute 'OIDCSources' for 'Import' (%s): %w", o.Identifier(), err)
 		}
 	}
 
@@ -428,7 +428,7 @@ func (o *Import) DecryptAttributes(encrypter elemental.AttributeEncrypter) (err 
 			continue
 		}
 		if err := sub.DecryptAttributes(encrypter); err != nil {
-			return fmt.Errorf("unable to decrypt refList/refMap attribute 'SAMLSources' for 'Import' (%s): %s", o.Identifier(), err)
+			return fmt.Errorf("unable to decrypt refList/refMap attribute 'SAMLSources' for 'Import' (%s): %w", o.Identifier(), err)
 		}
 	}
 
@@ -437,7 +437,7 @@ func (o *Import) DecryptAttributes(encrypter elemental.AttributeEncrypter) (err 
 			continue
 		}
 		if err := sub.DecryptAttributes(encrypter); err != nil {
-			return fmt.Errorf("unable to decrypt refList/refMap attribute 'Authorizations' for 'Import' (%s): %s", o.Identifier(), err)
+			return fmt.Errorf("unable to decrypt refList/refMap attribute 'Authorizations' for 'Import' (%s): %w", o.Identifier(), err)
 		}
 	}
 
@@ -976,7 +976,7 @@ func (o *SparseImport) EncryptAttributes(encrypter elemental.AttributeEncrypter)
 				continue
 			}
 			if err := sub.EncryptAttributes(encrypter); err != nil {
-				return fmt.Errorf("unable to encrypt refList/refMap attribute 'A3SSources' for 'Import' (%s): %s", o.Identifier(), err)
+				return fmt.Errorf("unable to encrypt refList/refMap attribute 'A3SSources' for 'Import' (%s): %w", o.Identifier(), err)
 			}
 		}
 	}
@@ -987,7 +987,7 @@ func (o *SparseImport) EncryptAttributes(encrypter elemental.AttributeEncrypter)
 				continue
 			}
 			if err := sub.EncryptAttributes(encrypter); err != nil {
-				return fmt.Errorf("unable to encrypt refList/refMap attribute 'HTTPSources' for 'Import' (%s): %s", o.Identifier(), err)
+				return fmt.Errorf("unable to encrypt refList/refMap attribute 'HTTPSources' for 'Import' (%s): %w", o.Identifier(), err)
 			}
 		}
 	}
@@ -998,7 +998,7 @@ func (o *SparseImport) EncryptAttributes(encrypter elemental.AttributeEncrypter)
 				continue
 			}
 			if err := sub.EncryptAttributes(encrypter); err != nil {
-				return fmt.Errorf("unable to encrypt refList/refMap attribute 'LDAPSources' for 'Import' (%s): %s", o.Identifier(), err)
+				return fmt.Errorf("unable to encrypt refList/refMap attribute 'LDAPSources' for 'Import' (%s): %w", o.Identifier(), err)
 			}
 		}
 	}
@@ -1009,7 +1009,7 @@ func (o *SparseImport) EncryptAttributes(encrypter elemental.AttributeEncrypter)
 				continue
 			}
 			if err := sub.EncryptAttributes(encrypter); err != nil {
-				return fmt.Errorf("unable to encrypt refList/refMap attribute 'MTLSSources' for 'Import' (%s): %s", o.Identifier(), err)
+				return fmt.Errorf("unable to encrypt refList/refMap attribute 'MTLSSources' for 'Import' (%s): %w", o.Identifier(), err)
 			}
 		}
 	}
@@ -1020,7 +1020,7 @@ func (o *SparseImport) EncryptAttributes(encrypter elemental.AttributeEncrypter)
 				continue
 			}
 			if err := sub.EncryptAttributes(encrypter); err != nil {
-				return fmt.Errorf("unable to encrypt refList/refMap attribute 'OAuth2Sources' for 'Import' (%s): %s", o.Identifier(), err)
+				return fmt.Errorf("unable to encrypt refList/refMap attribute 'OAuth2Sources' for 'Import' (%s): %w", o.Identifier(), err)
 			}
 		}
 	}
@@ -1031,7 +1031,7 @@ func (o *SparseImport) EncryptAttributes(encrypter elemental.AttributeEncrypter)
 				continue
 			}
 			if err := sub.EncryptAttributes(encrypter); err != nil {
-				return fmt.Errorf("unable to encrypt refList/refMap attribute 'OIDCSources' for 'Import' (%s): %s", o.Identifier(), err)
+				return fmt.Errorf("unable to encrypt refList/refMap attribute 'OIDCSources' for 'Import' (%s): %w", o.Identifier(), err)
 			}
 		}
 	}
@@ -1042,7 +1042,7 @@ func (o *SparseImport) EncryptAttributes(encrypter elemental.AttributeEncrypter)
 				continue
 			}
 			if err := sub.EncryptAttributes(encrypter); err != nil {
-				return fmt.Errorf("unable to encrypt refList/refMap attribute 'SAMLSources' for 'Import' (%s): %s", o.Identifier(), err)
+				return fmt.Errorf("unable to encrypt refList/refMap attribute 'SAMLSources' for 'Import' (%s): %w", o.Identifier(), err)
 			}
 		}
 	}
@@ -1053,7 +1053,7 @@ func (o *SparseImport) EncryptAttributes(encrypter elemental.AttributeEncrypter)
 				continue
 			}
 			if err := sub.EncryptAttributes(encrypter); err != nil {
-				return fmt.Errorf("unable to encrypt refList/refMap attribute 'Authorizations' for 'Import' (%s): %s", o.Identifier(), err)
+				return fmt.Errorf("unable to encrypt refList/refMap attribute 'Authorizations' for 'Import' (%s): %w", o.Identifier(), err)
 			}
 		}
 	}
@@ -1070,7 +1070,7 @@ func (o *SparseImport) DecryptAttributes(encrypter elemental.AttributeEncrypter)
 				continue
 			}
 			if err := sub.DecryptAttributes(encrypter); err != nil {
-				return fmt.Errorf("unable to decrypt refList/refMap attribute 'A3SSources' for 'Import' (%s): %s", o.Identifier(), err)
+				return fmt.Errorf("unable to decrypt refList/refMap attribute 'A3SSources' for 'Import' (%s): %w", o.Identifier(), err)
 			}
 		}
 	}
@@ -1081,7 +1081,7 @@ func (o *SparseImport) DecryptAttributes(encrypter elemental.AttributeEncrypter)
 				continue
 			}
 			if err := sub.DecryptAttributes(encrypter); err != nil {
-				return fmt.Errorf("unable to decrypt refList/refMap attribute 'HTTPSources' for 'Import' (%s): %s", o.Identifier(), err)
+				return fmt.Errorf("unable to decrypt refList/refMap attribute 'HTTPSources' for 'Import' (%s): %w", o.Identifier(), err)
 			}
 		}
 	}
@@ -1092,7 +1092,7 @@ func (o *SparseImport) DecryptAttributes(encrypter elemental.AttributeEncrypter)
 				continue
 			}
 			if err := sub.DecryptAttributes(encrypter); err != nil {
-				return fmt.Errorf("unable to decrypt refList/refMap attribute 'LDAPSources' for 'Import' (%s): %s", o.Identifier(), err)
+				return fmt.Errorf("unable to decrypt refList/refMap attribute 'LDAPSources' for 'Import' (%s): %w", o.Identifier(), err)
 			}
 		}
 	}
@@ -1103,7 +1103,7 @@ func (o *SparseImport) DecryptAttributes(encrypter elemental.AttributeEncrypter)
 				continue
 			}
 			if err := sub.DecryptAttributes(encrypter); err != nil {
-				return fmt.Errorf("unable to decrypt refList/refMap attribute 'MTLSSources' for 'Import' (%s): %s", o.Identifier(), err)
+				return fmt.Errorf("unable to decrypt refList/refMap attribute 'MTLSSources' for 'Import' (%s): %w", o.Identifier(), err)
 			}
 		}
 	}
@@ -1114,7 +1114,7 @@ func (o *SparseImport) DecryptAttributes(encrypter elemental.AttributeEncrypter)
 				continue
 			}
 			if err := sub.DecryptAttributes(encrypter); err != nil {
-				return fmt.Errorf("unable to decrypt refList/refMap attribute 'OAuth2Sources' for 'Import' (%s): %s", o.Identifier(), err)
+				return fmt.Errorf("unable to decrypt refList/refMap attribute 'OAuth2Sources' for 'Import' (%s): %w", o.Identifier(), err)
 			}
 		}
 	}
@@ -1125,7 +1125,7 @@ func (o *SparseImport) DecryptAttributes(encrypter elemental.AttributeEncrypter)
 				continue
 			}
 			if err := sub.DecryptAttributes(encrypter); err != nil {
-				return fmt.Errorf("unable to decrypt refList/refMap attribute 'OIDCSources' for 'Import' (%s): %s", o.Identifier(), err)
+				return fmt.Errorf("unable to decrypt refList/refMap attribute 'OIDCSources' for 'Import' (%s): %w", o.Identifier(), err)
 			}
 		}
 	}
@@ -1136,7 +1136,7 @@ func (o *SparseImport) DecryptAttributes(encrypter elemental.AttributeEncrypter)
 				continue
 			}
 			if err := sub.DecryptAttributes(encrypter); err != nil {
-				return fmt.Errorf("unable to decrypt refList/refMap attribute 'SAMLSources' for 'Import' (%s): %s", o.Identifier(), err)
+				return fmt.Errorf("unable to decrypt refList/refMap attribute 'SAMLSources' for 'Import' (%s): %w", o.Identifier(), err)
 			}
 		}
 	}
@@ -1147,7 +1147,7 @@ func (o *SparseImport) DecryptAttributes(encrypter elemental.AttributeEncrypter)
 				continue
 			}
 			if err := sub.DecryptAttributes(encrypter); err != nil {
-				return fmt.Errorf("unable to decrypt refList/refMap attribute 'Authorizations' for 'Import' (%s): %s", o.Identifier(), err)
+				return fmt.Errorf("unable to decrypt refList/refMap attribute 'Authorizations' for 'Import' (%s): %w", o.Identifier(), err)
 			}
 		}
 	}
