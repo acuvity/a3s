@@ -518,26 +518,6 @@ func (o *MTLSSource) ToSparse(fields ...string) elemental.SparseIdentifiable {
 	return sp
 }
 
-// EncryptAttributes encrypts the attributes marked as `encrypted` using the given encrypter.
-func (o *MTLSSource) EncryptAttributes(encrypter elemental.AttributeEncrypter) (err error) {
-
-	if o.ClientSecret, err = encrypter.EncryptString(o.ClientSecret); err != nil {
-		return fmt.Errorf("unable to encrypt attribute 'ClientSecret' for 'MTLSSource' (%s): %s", o.Identifier(), err)
-	}
-
-	return nil
-}
-
-// DecryptAttributes decrypts the attributes marked as `encrypted` using the given decrypter.
-func (o *MTLSSource) DecryptAttributes(encrypter elemental.AttributeEncrypter) (err error) {
-
-	if o.ClientSecret, err = encrypter.DecryptString(o.ClientSecret); err != nil {
-		return fmt.Errorf("unable to decrypt attribute 'ClientSecret' for 'MTLSSource' (%s): %s", o.Identifier(), err)
-	}
-
-	return nil
-}
-
 // Patch apply the non nil value of a *SparseMTLSSource to the object.
 func (o *MTLSSource) Patch(sparse elemental.SparseIdentifiable) {
 	if !sparse.Identity().IsEqual(o.Identity()) {
@@ -608,6 +588,38 @@ func (o *MTLSSource) Patch(sparse elemental.SparseIdentifiable) {
 	if so.Zone != nil {
 		o.Zone = *so.Zone
 	}
+}
+
+// EncryptAttributes encrypts the attributes marked as `encrypted` using the given encrypter.
+func (o *MTLSSource) EncryptAttributes(encrypter elemental.AttributeEncrypter) (err error) {
+
+	if o.ClientSecret, err = encrypter.EncryptString(o.ClientSecret); err != nil {
+		return fmt.Errorf("unable to encrypt attribute 'ClientSecret' for 'MTLSSource' (%s): %s", o.Identifier(), err)
+	}
+
+	if o.Modifier != nil {
+		if err := o.Modifier.EncryptAttributes(encrypter); err != nil {
+			return fmt.Errorf("unable to encrypt ref attribute 'Modifier' for 'MTLSSource' (%s): %s", o.Identifier(), err)
+		}
+	}
+
+	return nil
+}
+
+// DecryptAttributes decrypts the attributes marked as `encrypted` using the given decrypter.
+func (o *MTLSSource) DecryptAttributes(encrypter elemental.AttributeEncrypter) (err error) {
+
+	if o.ClientSecret, err = encrypter.DecryptString(o.ClientSecret); err != nil {
+		return fmt.Errorf("unable to decrypt attribute 'ClientSecret' for 'MTLSSource' (%s): %s", o.Identifier(), err)
+	}
+
+	if o.Modifier != nil {
+		if err := o.Modifier.DecryptAttributes(encrypter); err != nil {
+			return fmt.Errorf("unable to decrypt ref attribute 'Modifier' for 'MTLSSource' (%s): %s", o.Identifier(), err)
+		}
+	}
+
+	return nil
 }
 
 // DeepCopy returns a deep copy if the MTLSSource.
@@ -1754,6 +1766,12 @@ func (o *SparseMTLSSource) EncryptAttributes(encrypter elemental.AttributeEncryp
 		return fmt.Errorf("unable to encrypt attribute 'ClientSecret' for 'SparseMTLSSource' (%s): %s", o.Identifier(), err)
 	}
 
+	if o.Modifier != nil {
+		if err := o.Modifier.EncryptAttributes(encrypter); err != nil {
+			return fmt.Errorf("unable to encrypt ref attribute 'Modifier' for 'MTLSSource' (%s): %s", o.Identifier(), err)
+		}
+	}
+
 	return nil
 }
 
@@ -1762,6 +1780,12 @@ func (o *SparseMTLSSource) DecryptAttributes(encrypter elemental.AttributeEncryp
 
 	if *o.ClientSecret, err = encrypter.DecryptString(*o.ClientSecret); err != nil {
 		return fmt.Errorf("unable to decrypt attribute 'ClientSecret' for 'SparseMTLSSource' (%s): %s", o.Identifier(), err)
+	}
+
+	if o.Modifier != nil {
+		if err := o.Modifier.DecryptAttributes(encrypter); err != nil {
+			return fmt.Errorf("unable to decrypt ref attribute 'Modifier' for 'MTLSSource' (%s): %s", o.Identifier(), err)
+		}
 	}
 
 	return nil

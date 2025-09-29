@@ -344,6 +344,18 @@ func (o *Permissions) Patch(sparse elemental.SparseIdentifiable) {
 	}
 }
 
+// EncryptAttributes encrypts the attributes marked as `encrypted` using the given encrypter.
+func (o *Permissions) EncryptAttributes(encrypter elemental.AttributeEncrypter) (err error) {
+
+	return nil
+}
+
+// DecryptAttributes decrypts the attributes marked as `encrypted` using the given decrypter.
+func (o *Permissions) DecryptAttributes(encrypter elemental.AttributeEncrypter) (err error) {
+
+	return nil
+}
+
 // DeepCopy returns a deep copy if the Permissions.
 func (o *Permissions) DeepCopy() *Permissions {
 
@@ -963,6 +975,18 @@ func (o *SparsePermissions) ToPlain() elemental.PlainIdentifiable {
 	}
 
 	return out
+}
+
+// EncryptAttributes encrypts the attributes marked as `encrypted` using the given encrypter.
+func (o *SparsePermissions) EncryptAttributes(encrypter elemental.AttributeEncrypter) (err error) {
+
+	return nil
+}
+
+// DecryptAttributes decrypts the attributes marked as `encrypted` using the given decrypter.
+func (o *SparsePermissions) DecryptAttributes(encrypter elemental.AttributeEncrypter) (err error) {
+
+	return nil
 }
 
 // DeepCopy returns a deep copy if the SparsePermissions.

@@ -101,6 +101,18 @@ func (o *IssueSAML) Doc() string {
 	return `Additional issuing information for the SAML source.`
 }
 
+// EncryptAttributes encrypts the attributes marked as `encrypted` using the given encrypter.
+func (o *IssueSAML) EncryptAttributes(encrypter elemental.AttributeEncrypter) (err error) {
+
+	return nil
+}
+
+// DecryptAttributes decrypts the attributes marked as `encrypted` using the given decrypter.
+func (o *IssueSAML) DecryptAttributes(encrypter elemental.AttributeEncrypter) (err error) {
+
+	return nil
+}
+
 // DeepCopy returns a deep copy if the IssueSAML.
 func (o *IssueSAML) DeepCopy() *IssueSAML {
 

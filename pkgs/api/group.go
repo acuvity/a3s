@@ -505,6 +505,18 @@ func (o *Group) Patch(sparse elemental.SparseIdentifiable) {
 	}
 }
 
+// EncryptAttributes encrypts the attributes marked as `encrypted` using the given encrypter.
+func (o *Group) EncryptAttributes(encrypter elemental.AttributeEncrypter) (err error) {
+
+	return nil
+}
+
+// DecryptAttributes decrypts the attributes marked as `encrypted` using the given decrypter.
+func (o *Group) DecryptAttributes(encrypter elemental.AttributeEncrypter) (err error) {
+
+	return nil
+}
+
 // DeepCopy returns a deep copy if the Group.
 func (o *Group) DeepCopy() *Group {
 
@@ -1403,6 +1415,18 @@ func (o *SparseGroup) ToPlain() elemental.PlainIdentifiable {
 	}
 
 	return out
+}
+
+// EncryptAttributes encrypts the attributes marked as `encrypted` using the given encrypter.
+func (o *SparseGroup) EncryptAttributes(encrypter elemental.AttributeEncrypter) (err error) {
+
+	return nil
+}
+
+// DecryptAttributes decrypts the attributes marked as `encrypted` using the given decrypter.
+func (o *SparseGroup) DecryptAttributes(encrypter elemental.AttributeEncrypter) (err error) {
+
+	return nil
 }
 
 // GetID returns the ID of the receiver.

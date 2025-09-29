@@ -107,6 +107,18 @@ func (o *Root) String() string {
 	return fmt.Sprintf("<%s:%s>", o.Identity().Name, o.Identifier())
 }
 
+// EncryptAttributes encrypts the attributes marked as `encrypted` using the given encrypter.
+func (o *Root) EncryptAttributes(encrypter elemental.AttributeEncrypter) (err error) {
+
+	return nil
+}
+
+// DecryptAttributes decrypts the attributes marked as `encrypted` using the given decrypter.
+func (o *Root) DecryptAttributes(encrypter elemental.AttributeEncrypter) (err error) {
+
+	return nil
+}
+
 // DeepCopy returns a deep copy if the Root.
 func (o *Root) DeepCopy() *Root {
 

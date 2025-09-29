@@ -91,6 +91,18 @@ func (o *IssueAWS) Doc() string {
 	return `Additional issuing information for AWS STS token source.`
 }
 
+// EncryptAttributes encrypts the attributes marked as `encrypted` using the given encrypter.
+func (o *IssueAWS) EncryptAttributes(encrypter elemental.AttributeEncrypter) (err error) {
+
+	return nil
+}
+
+// DecryptAttributes decrypts the attributes marked as `encrypted` using the given decrypter.
+func (o *IssueAWS) DecryptAttributes(encrypter elemental.AttributeEncrypter) (err error) {
+
+	return nil
+}
+
 // DeepCopy returns a deep copy if the IssueAWS.
 func (o *IssueAWS) DeepCopy() *IssueAWS {
 

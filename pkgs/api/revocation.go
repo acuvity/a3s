@@ -434,6 +434,18 @@ func (o *Revocation) Patch(sparse elemental.SparseIdentifiable) {
 	}
 }
 
+// EncryptAttributes encrypts the attributes marked as `encrypted` using the given encrypter.
+func (o *Revocation) EncryptAttributes(encrypter elemental.AttributeEncrypter) (err error) {
+
+	return nil
+}
+
+// DecryptAttributes decrypts the attributes marked as `encrypted` using the given decrypter.
+func (o *Revocation) DecryptAttributes(encrypter elemental.AttributeEncrypter) (err error) {
+
+	return nil
+}
+
 // DeepCopy returns a deep copy if the Revocation.
 func (o *Revocation) DeepCopy() *Revocation {
 
@@ -1166,6 +1178,18 @@ func (o *SparseRevocation) ToPlain() elemental.PlainIdentifiable {
 	}
 
 	return out
+}
+
+// EncryptAttributes encrypts the attributes marked as `encrypted` using the given encrypter.
+func (o *SparseRevocation) EncryptAttributes(encrypter elemental.AttributeEncrypter) (err error) {
+
+	return nil
+}
+
+// DecryptAttributes decrypts the attributes marked as `encrypted` using the given decrypter.
+func (o *SparseRevocation) DecryptAttributes(encrypter elemental.AttributeEncrypter) (err error) {
+
+	return nil
 }
 
 // GetID returns the ID of the receiver.

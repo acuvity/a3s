@@ -280,6 +280,18 @@ func (o *IdentityModifier) Patch(sparse elemental.SparseIdentifiable) {
 	}
 }
 
+// EncryptAttributes encrypts the attributes marked as `encrypted` using the given encrypter.
+func (o *IdentityModifier) EncryptAttributes(encrypter elemental.AttributeEncrypter) (err error) {
+
+	return nil
+}
+
+// DecryptAttributes decrypts the attributes marked as `encrypted` using the given decrypter.
+func (o *IdentityModifier) DecryptAttributes(encrypter elemental.AttributeEncrypter) (err error) {
+
+	return nil
+}
+
 // DeepCopy returns a deep copy if the IdentityModifier.
 func (o *IdentityModifier) DeepCopy() *IdentityModifier {
 
@@ -724,6 +736,18 @@ func (o *SparseIdentityModifier) ToPlain() elemental.PlainIdentifiable {
 	}
 
 	return out
+}
+
+// EncryptAttributes encrypts the attributes marked as `encrypted` using the given encrypter.
+func (o *SparseIdentityModifier) EncryptAttributes(encrypter elemental.AttributeEncrypter) (err error) {
+
+	return nil
+}
+
+// DecryptAttributes decrypts the attributes marked as `encrypted` using the given decrypter.
+func (o *SparseIdentityModifier) DecryptAttributes(encrypter elemental.AttributeEncrypter) (err error) {
+
+	return nil
 }
 
 // DeepCopy returns a deep copy if the SparseIdentityModifier.

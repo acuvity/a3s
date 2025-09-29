@@ -85,6 +85,18 @@ func (o *IssueA3S) Doc() string {
 	return `Additional issuing information for A3S token source.`
 }
 
+// EncryptAttributes encrypts the attributes marked as `encrypted` using the given encrypter.
+func (o *IssueA3S) EncryptAttributes(encrypter elemental.AttributeEncrypter) (err error) {
+
+	return nil
+}
+
+// DecryptAttributes decrypts the attributes marked as `encrypted` using the given decrypter.
+func (o *IssueA3S) DecryptAttributes(encrypter elemental.AttributeEncrypter) (err error) {
+
+	return nil
+}
+
 // DeepCopy returns a deep copy if the IssueA3S.
 func (o *IssueA3S) DeepCopy() *IssueA3S {
 

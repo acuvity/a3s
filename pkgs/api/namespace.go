@@ -447,6 +447,18 @@ func (o *Namespace) Patch(sparse elemental.SparseIdentifiable) {
 	}
 }
 
+// EncryptAttributes encrypts the attributes marked as `encrypted` using the given encrypter.
+func (o *Namespace) EncryptAttributes(encrypter elemental.AttributeEncrypter) (err error) {
+
+	return nil
+}
+
+// DecryptAttributes decrypts the attributes marked as `encrypted` using the given decrypter.
+func (o *Namespace) DecryptAttributes(encrypter elemental.AttributeEncrypter) (err error) {
+
+	return nil
+}
+
 // DeepCopy returns a deep copy if the Namespace.
 func (o *Namespace) DeepCopy() *Namespace {
 
@@ -1170,6 +1182,18 @@ func (o *SparseNamespace) ToPlain() elemental.PlainIdentifiable {
 	}
 
 	return out
+}
+
+// EncryptAttributes encrypts the attributes marked as `encrypted` using the given encrypter.
+func (o *SparseNamespace) EncryptAttributes(encrypter elemental.AttributeEncrypter) (err error) {
+
+	return nil
+}
+
+// DecryptAttributes decrypts the attributes marked as `encrypted` using the given decrypter.
+func (o *SparseNamespace) DecryptAttributes(encrypter elemental.AttributeEncrypter) (err error) {
+
+	return nil
 }
 
 // GetID returns the ID of the receiver.

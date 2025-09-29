@@ -85,6 +85,18 @@ func (o *IssueAzure) Doc() string {
 	return `Additional issuing information for Azure identity token source.`
 }
 
+// EncryptAttributes encrypts the attributes marked as `encrypted` using the given encrypter.
+func (o *IssueAzure) EncryptAttributes(encrypter elemental.AttributeEncrypter) (err error) {
+
+	return nil
+}
+
+// DecryptAttributes decrypts the attributes marked as `encrypted` using the given decrypter.
+func (o *IssueAzure) DecryptAttributes(encrypter elemental.AttributeEncrypter) (err error) {
+
+	return nil
+}
+
 // DeepCopy returns a deep copy if the IssueAzure.
 func (o *IssueAzure) DeepCopy() *IssueAzure {
 

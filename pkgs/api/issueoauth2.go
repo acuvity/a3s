@@ -101,6 +101,18 @@ func (o *IssueOAuth2) Doc() string {
 	return `Additional issuing information for the OAuth2 source.`
 }
 
+// EncryptAttributes encrypts the attributes marked as `encrypted` using the given encrypter.
+func (o *IssueOAuth2) EncryptAttributes(encrypter elemental.AttributeEncrypter) (err error) {
+
+	return nil
+}
+
+// DecryptAttributes decrypts the attributes marked as `encrypted` using the given decrypter.
+func (o *IssueOAuth2) DecryptAttributes(encrypter elemental.AttributeEncrypter) (err error) {
+
+	return nil
+}
+
 // DeepCopy returns a deep copy if the IssueOAuth2.
 func (o *IssueOAuth2) DeepCopy() *IssueOAuth2 {
 

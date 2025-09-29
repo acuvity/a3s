@@ -101,6 +101,18 @@ func (o *IssueOIDC) Doc() string {
 	return `Additional issuing information for the OIDC source.`
 }
 
+// EncryptAttributes encrypts the attributes marked as `encrypted` using the given encrypter.
+func (o *IssueOIDC) EncryptAttributes(encrypter elemental.AttributeEncrypter) (err error) {
+
+	return nil
+}
+
+// DecryptAttributes decrypts the attributes marked as `encrypted` using the given decrypter.
+func (o *IssueOIDC) DecryptAttributes(encrypter elemental.AttributeEncrypter) (err error) {
+
+	return nil
+}
+
 // DeepCopy returns a deep copy if the IssueOIDC.
 func (o *IssueOIDC) DeepCopy() *IssueOIDC {
 

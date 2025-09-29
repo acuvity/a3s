@@ -193,6 +193,18 @@ func (o *Logout) ToSparse(fields ...string) elemental.SparseIdentifiable {
 func (o *Logout) Patch(sparse elemental.SparseIdentifiable) {
 }
 
+// EncryptAttributes encrypts the attributes marked as `encrypted` using the given encrypter.
+func (o *Logout) EncryptAttributes(encrypter elemental.AttributeEncrypter) (err error) {
+
+	return nil
+}
+
+// DecryptAttributes decrypts the attributes marked as `encrypted` using the given decrypter.
+func (o *Logout) DecryptAttributes(encrypter elemental.AttributeEncrypter) (err error) {
+
+	return nil
+}
+
 // DeepCopy returns a deep copy if the Logout.
 func (o *Logout) DeepCopy() *Logout {
 
@@ -399,6 +411,18 @@ func (o *SparseLogout) ToPlain() elemental.PlainIdentifiable {
 	out := NewLogout()
 
 	return out
+}
+
+// EncryptAttributes encrypts the attributes marked as `encrypted` using the given encrypter.
+func (o *SparseLogout) EncryptAttributes(encrypter elemental.AttributeEncrypter) (err error) {
+
+	return nil
+}
+
+// DecryptAttributes decrypts the attributes marked as `encrypted` using the given decrypter.
+func (o *SparseLogout) DecryptAttributes(encrypter elemental.AttributeEncrypter) (err error) {
+
+	return nil
 }
 
 // DeepCopy returns a deep copy if the SparseLogout.

@@ -459,26 +459,6 @@ func (o *OIDCSource) ToSparse(fields ...string) elemental.SparseIdentifiable {
 	return sp
 }
 
-// EncryptAttributes encrypts the attributes marked as `encrypted` using the given encrypter.
-func (o *OIDCSource) EncryptAttributes(encrypter elemental.AttributeEncrypter) (err error) {
-
-	if o.ClientSecret, err = encrypter.EncryptString(o.ClientSecret); err != nil {
-		return fmt.Errorf("unable to encrypt attribute 'ClientSecret' for 'OIDCSource' (%s): %s", o.Identifier(), err)
-	}
-
-	return nil
-}
-
-// DecryptAttributes decrypts the attributes marked as `encrypted` using the given decrypter.
-func (o *OIDCSource) DecryptAttributes(encrypter elemental.AttributeEncrypter) (err error) {
-
-	if o.ClientSecret, err = encrypter.DecryptString(o.ClientSecret); err != nil {
-		return fmt.Errorf("unable to decrypt attribute 'ClientSecret' for 'OIDCSource' (%s): %s", o.Identifier(), err)
-	}
-
-	return nil
-}
-
 // Patch apply the non nil value of a *SparseOIDCSource to the object.
 func (o *OIDCSource) Patch(sparse elemental.SparseIdentifiable) {
 	if !sparse.Identity().IsEqual(o.Identity()) {
@@ -540,6 +520,38 @@ func (o *OIDCSource) Patch(sparse elemental.SparseIdentifiable) {
 	if so.Zone != nil {
 		o.Zone = *so.Zone
 	}
+}
+
+// EncryptAttributes encrypts the attributes marked as `encrypted` using the given encrypter.
+func (o *OIDCSource) EncryptAttributes(encrypter elemental.AttributeEncrypter) (err error) {
+
+	if o.ClientSecret, err = encrypter.EncryptString(o.ClientSecret); err != nil {
+		return fmt.Errorf("unable to encrypt attribute 'ClientSecret' for 'OIDCSource' (%s): %s", o.Identifier(), err)
+	}
+
+	if o.Modifier != nil {
+		if err := o.Modifier.EncryptAttributes(encrypter); err != nil {
+			return fmt.Errorf("unable to encrypt ref attribute 'Modifier' for 'OIDCSource' (%s): %s", o.Identifier(), err)
+		}
+	}
+
+	return nil
+}
+
+// DecryptAttributes decrypts the attributes marked as `encrypted` using the given decrypter.
+func (o *OIDCSource) DecryptAttributes(encrypter elemental.AttributeEncrypter) (err error) {
+
+	if o.ClientSecret, err = encrypter.DecryptString(o.ClientSecret); err != nil {
+		return fmt.Errorf("unable to decrypt attribute 'ClientSecret' for 'OIDCSource' (%s): %s", o.Identifier(), err)
+	}
+
+	if o.Modifier != nil {
+		if err := o.Modifier.DecryptAttributes(encrypter); err != nil {
+			return fmt.Errorf("unable to decrypt ref attribute 'Modifier' for 'OIDCSource' (%s): %s", o.Identifier(), err)
+		}
+	}
+
+	return nil
 }
 
 // DeepCopy returns a deep copy if the OIDCSource.
@@ -1533,6 +1545,12 @@ func (o *SparseOIDCSource) EncryptAttributes(encrypter elemental.AttributeEncryp
 		return fmt.Errorf("unable to encrypt attribute 'ClientSecret' for 'SparseOIDCSource' (%s): %s", o.Identifier(), err)
 	}
 
+	if o.Modifier != nil {
+		if err := o.Modifier.EncryptAttributes(encrypter); err != nil {
+			return fmt.Errorf("unable to encrypt ref attribute 'Modifier' for 'OIDCSource' (%s): %s", o.Identifier(), err)
+		}
+	}
+
 	return nil
 }
 
@@ -1541,6 +1559,12 @@ func (o *SparseOIDCSource) DecryptAttributes(encrypter elemental.AttributeEncryp
 
 	if *o.ClientSecret, err = encrypter.DecryptString(*o.ClientSecret); err != nil {
 		return fmt.Errorf("unable to decrypt attribute 'ClientSecret' for 'SparseOIDCSource' (%s): %s", o.Identifier(), err)
+	}
+
+	if o.Modifier != nil {
+		if err := o.Modifier.DecryptAttributes(encrypter); err != nil {
+			return fmt.Errorf("unable to decrypt ref attribute 'Modifier' for 'OIDCSource' (%s): %s", o.Identifier(), err)
+		}
 	}
 
 	return nil

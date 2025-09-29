@@ -85,6 +85,18 @@ func (o *IssueRemoteA3S) Doc() string {
 	return `Additional issuing information for a remote A3S token source.`
 }
 
+// EncryptAttributes encrypts the attributes marked as `encrypted` using the given encrypter.
+func (o *IssueRemoteA3S) EncryptAttributes(encrypter elemental.AttributeEncrypter) (err error) {
+
+	return nil
+}
+
+// DecryptAttributes decrypts the attributes marked as `encrypted` using the given decrypter.
+func (o *IssueRemoteA3S) DecryptAttributes(encrypter elemental.AttributeEncrypter) (err error) {
+
+	return nil
+}
+
 // DeepCopy returns a deep copy if the IssueRemoteA3S.
 func (o *IssueRemoteA3S) DeepCopy() *IssueRemoteA3S {
 

@@ -88,6 +88,18 @@ func (o *IssueGCP) Doc() string {
 	return `Additional issuing information for GCP identity token source.`
 }
 
+// EncryptAttributes encrypts the attributes marked as `encrypted` using the given encrypter.
+func (o *IssueGCP) EncryptAttributes(encrypter elemental.AttributeEncrypter) (err error) {
+
+	return nil
+}
+
+// DecryptAttributes decrypts the attributes marked as `encrypted` using the given decrypter.
+func (o *IssueGCP) DecryptAttributes(encrypter elemental.AttributeEncrypter) (err error) {
+
+	return nil
+}
+
 // DeepCopy returns a deep copy if the IssueGCP.
 func (o *IssueGCP) DeepCopy() *IssueGCP {
 

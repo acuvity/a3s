@@ -491,26 +491,6 @@ func (o *LDAPSource) ToSparse(fields ...string) elemental.SparseIdentifiable {
 	return sp
 }
 
-// EncryptAttributes encrypts the attributes marked as `encrypted` using the given encrypter.
-func (o *LDAPSource) EncryptAttributes(encrypter elemental.AttributeEncrypter) (err error) {
-
-	if o.BindPassword, err = encrypter.EncryptString(o.BindPassword); err != nil {
-		return fmt.Errorf("unable to encrypt attribute 'BindPassword' for 'LDAPSource' (%s): %s", o.Identifier(), err)
-	}
-
-	return nil
-}
-
-// DecryptAttributes decrypts the attributes marked as `encrypted` using the given decrypter.
-func (o *LDAPSource) DecryptAttributes(encrypter elemental.AttributeEncrypter) (err error) {
-
-	if o.BindPassword, err = encrypter.DecryptString(o.BindPassword); err != nil {
-		return fmt.Errorf("unable to decrypt attribute 'BindPassword' for 'LDAPSource' (%s): %s", o.Identifier(), err)
-	}
-
-	return nil
-}
-
 // Patch apply the non nil value of a *SparseLDAPSource to the object.
 func (o *LDAPSource) Patch(sparse elemental.SparseIdentifiable) {
 	if !sparse.Identity().IsEqual(o.Identity()) {
@@ -578,6 +558,38 @@ func (o *LDAPSource) Patch(sparse elemental.SparseIdentifiable) {
 	if so.Zone != nil {
 		o.Zone = *so.Zone
 	}
+}
+
+// EncryptAttributes encrypts the attributes marked as `encrypted` using the given encrypter.
+func (o *LDAPSource) EncryptAttributes(encrypter elemental.AttributeEncrypter) (err error) {
+
+	if o.BindPassword, err = encrypter.EncryptString(o.BindPassword); err != nil {
+		return fmt.Errorf("unable to encrypt attribute 'BindPassword' for 'LDAPSource' (%s): %s", o.Identifier(), err)
+	}
+
+	if o.Modifier != nil {
+		if err := o.Modifier.EncryptAttributes(encrypter); err != nil {
+			return fmt.Errorf("unable to encrypt ref attribute 'Modifier' for 'LDAPSource' (%s): %s", o.Identifier(), err)
+		}
+	}
+
+	return nil
+}
+
+// DecryptAttributes decrypts the attributes marked as `encrypted` using the given decrypter.
+func (o *LDAPSource) DecryptAttributes(encrypter elemental.AttributeEncrypter) (err error) {
+
+	if o.BindPassword, err = encrypter.DecryptString(o.BindPassword); err != nil {
+		return fmt.Errorf("unable to decrypt attribute 'BindPassword' for 'LDAPSource' (%s): %s", o.Identifier(), err)
+	}
+
+	if o.Modifier != nil {
+		if err := o.Modifier.DecryptAttributes(encrypter); err != nil {
+			return fmt.Errorf("unable to decrypt ref attribute 'Modifier' for 'LDAPSource' (%s): %s", o.Identifier(), err)
+		}
+	}
+
+	return nil
 }
 
 // DeepCopy returns a deep copy if the LDAPSource.
@@ -1652,6 +1664,12 @@ func (o *SparseLDAPSource) EncryptAttributes(encrypter elemental.AttributeEncryp
 		return fmt.Errorf("unable to encrypt attribute 'BindPassword' for 'SparseLDAPSource' (%s): %s", o.Identifier(), err)
 	}
 
+	if o.Modifier != nil {
+		if err := o.Modifier.EncryptAttributes(encrypter); err != nil {
+			return fmt.Errorf("unable to encrypt ref attribute 'Modifier' for 'LDAPSource' (%s): %s", o.Identifier(), err)
+		}
+	}
+
 	return nil
 }
 
@@ -1660,6 +1678,12 @@ func (o *SparseLDAPSource) DecryptAttributes(encrypter elemental.AttributeEncryp
 
 	if *o.BindPassword, err = encrypter.DecryptString(*o.BindPassword); err != nil {
 		return fmt.Errorf("unable to decrypt attribute 'BindPassword' for 'SparseLDAPSource' (%s): %s", o.Identifier(), err)
+	}
+
+	if o.Modifier != nil {
+		if err := o.Modifier.DecryptAttributes(encrypter); err != nil {
+			return fmt.Errorf("unable to decrypt ref attribute 'Modifier' for 'LDAPSource' (%s): %s", o.Identifier(), err)
+		}
 	}
 
 	return nil

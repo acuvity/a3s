@@ -530,6 +530,138 @@ func (o *Issue) Patch(sparse elemental.SparseIdentifiable) {
 	}
 }
 
+// EncryptAttributes encrypts the attributes marked as `encrypted` using the given encrypter.
+func (o *Issue) EncryptAttributes(encrypter elemental.AttributeEncrypter) (err error) {
+
+	if o.InputA3S != nil {
+		if err := o.InputA3S.EncryptAttributes(encrypter); err != nil {
+			return fmt.Errorf("unable to encrypt ref attribute 'InputA3S' for 'Issue' (%s): %s", o.Identifier(), err)
+		}
+	}
+
+	if o.InputAWS != nil {
+		if err := o.InputAWS.EncryptAttributes(encrypter); err != nil {
+			return fmt.Errorf("unable to encrypt ref attribute 'InputAWS' for 'Issue' (%s): %s", o.Identifier(), err)
+		}
+	}
+
+	if o.InputAzure != nil {
+		if err := o.InputAzure.EncryptAttributes(encrypter); err != nil {
+			return fmt.Errorf("unable to encrypt ref attribute 'InputAzure' for 'Issue' (%s): %s", o.Identifier(), err)
+		}
+	}
+
+	if o.InputGCP != nil {
+		if err := o.InputGCP.EncryptAttributes(encrypter); err != nil {
+			return fmt.Errorf("unable to encrypt ref attribute 'InputGCP' for 'Issue' (%s): %s", o.Identifier(), err)
+		}
+	}
+
+	if o.InputHTTP != nil {
+		if err := o.InputHTTP.EncryptAttributes(encrypter); err != nil {
+			return fmt.Errorf("unable to encrypt ref attribute 'InputHTTP' for 'Issue' (%s): %s", o.Identifier(), err)
+		}
+	}
+
+	if o.InputLDAP != nil {
+		if err := o.InputLDAP.EncryptAttributes(encrypter); err != nil {
+			return fmt.Errorf("unable to encrypt ref attribute 'InputLDAP' for 'Issue' (%s): %s", o.Identifier(), err)
+		}
+	}
+
+	if o.InputOAuth2 != nil {
+		if err := o.InputOAuth2.EncryptAttributes(encrypter); err != nil {
+			return fmt.Errorf("unable to encrypt ref attribute 'InputOAuth2' for 'Issue' (%s): %s", o.Identifier(), err)
+		}
+	}
+
+	if o.InputOIDC != nil {
+		if err := o.InputOIDC.EncryptAttributes(encrypter); err != nil {
+			return fmt.Errorf("unable to encrypt ref attribute 'InputOIDC' for 'Issue' (%s): %s", o.Identifier(), err)
+		}
+	}
+
+	if o.InputRemoteA3S != nil {
+		if err := o.InputRemoteA3S.EncryptAttributes(encrypter); err != nil {
+			return fmt.Errorf("unable to encrypt ref attribute 'InputRemoteA3S' for 'Issue' (%s): %s", o.Identifier(), err)
+		}
+	}
+
+	if o.InputSAML != nil {
+		if err := o.InputSAML.EncryptAttributes(encrypter); err != nil {
+			return fmt.Errorf("unable to encrypt ref attribute 'InputSAML' for 'Issue' (%s): %s", o.Identifier(), err)
+		}
+	}
+
+	return nil
+}
+
+// DecryptAttributes decrypts the attributes marked as `encrypted` using the given decrypter.
+func (o *Issue) DecryptAttributes(encrypter elemental.AttributeEncrypter) (err error) {
+
+	if o.InputA3S != nil {
+		if err := o.InputA3S.DecryptAttributes(encrypter); err != nil {
+			return fmt.Errorf("unable to decrypt ref attribute 'InputA3S' for 'Issue' (%s): %s", o.Identifier(), err)
+		}
+	}
+
+	if o.InputAWS != nil {
+		if err := o.InputAWS.DecryptAttributes(encrypter); err != nil {
+			return fmt.Errorf("unable to decrypt ref attribute 'InputAWS' for 'Issue' (%s): %s", o.Identifier(), err)
+		}
+	}
+
+	if o.InputAzure != nil {
+		if err := o.InputAzure.DecryptAttributes(encrypter); err != nil {
+			return fmt.Errorf("unable to decrypt ref attribute 'InputAzure' for 'Issue' (%s): %s", o.Identifier(), err)
+		}
+	}
+
+	if o.InputGCP != nil {
+		if err := o.InputGCP.DecryptAttributes(encrypter); err != nil {
+			return fmt.Errorf("unable to decrypt ref attribute 'InputGCP' for 'Issue' (%s): %s", o.Identifier(), err)
+		}
+	}
+
+	if o.InputHTTP != nil {
+		if err := o.InputHTTP.DecryptAttributes(encrypter); err != nil {
+			return fmt.Errorf("unable to decrypt ref attribute 'InputHTTP' for 'Issue' (%s): %s", o.Identifier(), err)
+		}
+	}
+
+	if o.InputLDAP != nil {
+		if err := o.InputLDAP.DecryptAttributes(encrypter); err != nil {
+			return fmt.Errorf("unable to decrypt ref attribute 'InputLDAP' for 'Issue' (%s): %s", o.Identifier(), err)
+		}
+	}
+
+	if o.InputOAuth2 != nil {
+		if err := o.InputOAuth2.DecryptAttributes(encrypter); err != nil {
+			return fmt.Errorf("unable to decrypt ref attribute 'InputOAuth2' for 'Issue' (%s): %s", o.Identifier(), err)
+		}
+	}
+
+	if o.InputOIDC != nil {
+		if err := o.InputOIDC.DecryptAttributes(encrypter); err != nil {
+			return fmt.Errorf("unable to decrypt ref attribute 'InputOIDC' for 'Issue' (%s): %s", o.Identifier(), err)
+		}
+	}
+
+	if o.InputRemoteA3S != nil {
+		if err := o.InputRemoteA3S.DecryptAttributes(encrypter); err != nil {
+			return fmt.Errorf("unable to decrypt ref attribute 'InputRemoteA3S' for 'Issue' (%s): %s", o.Identifier(), err)
+		}
+	}
+
+	if o.InputSAML != nil {
+		if err := o.InputSAML.DecryptAttributes(encrypter); err != nil {
+			return fmt.Errorf("unable to decrypt ref attribute 'InputSAML' for 'Issue' (%s): %s", o.Identifier(), err)
+		}
+	}
+
+	return nil
+}
+
 // DeepCopy returns a deep copy if the Issue.
 func (o *Issue) DeepCopy() *Issue {
 
@@ -1617,6 +1749,138 @@ func (o *SparseIssue) ToPlain() elemental.PlainIdentifiable {
 	}
 
 	return out
+}
+
+// EncryptAttributes encrypts the attributes marked as `encrypted` using the given encrypter.
+func (o *SparseIssue) EncryptAttributes(encrypter elemental.AttributeEncrypter) (err error) {
+
+	if o.InputA3S != nil {
+		if err := o.InputA3S.EncryptAttributes(encrypter); err != nil {
+			return fmt.Errorf("unable to encrypt ref attribute 'InputA3S' for 'Issue' (%s): %s", o.Identifier(), err)
+		}
+	}
+
+	if o.InputAWS != nil {
+		if err := o.InputAWS.EncryptAttributes(encrypter); err != nil {
+			return fmt.Errorf("unable to encrypt ref attribute 'InputAWS' for 'Issue' (%s): %s", o.Identifier(), err)
+		}
+	}
+
+	if o.InputAzure != nil {
+		if err := o.InputAzure.EncryptAttributes(encrypter); err != nil {
+			return fmt.Errorf("unable to encrypt ref attribute 'InputAzure' for 'Issue' (%s): %s", o.Identifier(), err)
+		}
+	}
+
+	if o.InputGCP != nil {
+		if err := o.InputGCP.EncryptAttributes(encrypter); err != nil {
+			return fmt.Errorf("unable to encrypt ref attribute 'InputGCP' for 'Issue' (%s): %s", o.Identifier(), err)
+		}
+	}
+
+	if o.InputHTTP != nil {
+		if err := o.InputHTTP.EncryptAttributes(encrypter); err != nil {
+			return fmt.Errorf("unable to encrypt ref attribute 'InputHTTP' for 'Issue' (%s): %s", o.Identifier(), err)
+		}
+	}
+
+	if o.InputLDAP != nil {
+		if err := o.InputLDAP.EncryptAttributes(encrypter); err != nil {
+			return fmt.Errorf("unable to encrypt ref attribute 'InputLDAP' for 'Issue' (%s): %s", o.Identifier(), err)
+		}
+	}
+
+	if o.InputOAuth2 != nil {
+		if err := o.InputOAuth2.EncryptAttributes(encrypter); err != nil {
+			return fmt.Errorf("unable to encrypt ref attribute 'InputOAuth2' for 'Issue' (%s): %s", o.Identifier(), err)
+		}
+	}
+
+	if o.InputOIDC != nil {
+		if err := o.InputOIDC.EncryptAttributes(encrypter); err != nil {
+			return fmt.Errorf("unable to encrypt ref attribute 'InputOIDC' for 'Issue' (%s): %s", o.Identifier(), err)
+		}
+	}
+
+	if o.InputRemoteA3S != nil {
+		if err := o.InputRemoteA3S.EncryptAttributes(encrypter); err != nil {
+			return fmt.Errorf("unable to encrypt ref attribute 'InputRemoteA3S' for 'Issue' (%s): %s", o.Identifier(), err)
+		}
+	}
+
+	if o.InputSAML != nil {
+		if err := o.InputSAML.EncryptAttributes(encrypter); err != nil {
+			return fmt.Errorf("unable to encrypt ref attribute 'InputSAML' for 'Issue' (%s): %s", o.Identifier(), err)
+		}
+	}
+
+	return nil
+}
+
+// DecryptAttributes decrypts the attributes marked as `encrypted` using the given decrypter.
+func (o *SparseIssue) DecryptAttributes(encrypter elemental.AttributeEncrypter) (err error) {
+
+	if o.InputA3S != nil {
+		if err := o.InputA3S.DecryptAttributes(encrypter); err != nil {
+			return fmt.Errorf("unable to decrypt ref attribute 'InputA3S' for 'Issue' (%s): %s", o.Identifier(), err)
+		}
+	}
+
+	if o.InputAWS != nil {
+		if err := o.InputAWS.DecryptAttributes(encrypter); err != nil {
+			return fmt.Errorf("unable to decrypt ref attribute 'InputAWS' for 'Issue' (%s): %s", o.Identifier(), err)
+		}
+	}
+
+	if o.InputAzure != nil {
+		if err := o.InputAzure.DecryptAttributes(encrypter); err != nil {
+			return fmt.Errorf("unable to decrypt ref attribute 'InputAzure' for 'Issue' (%s): %s", o.Identifier(), err)
+		}
+	}
+
+	if o.InputGCP != nil {
+		if err := o.InputGCP.DecryptAttributes(encrypter); err != nil {
+			return fmt.Errorf("unable to decrypt ref attribute 'InputGCP' for 'Issue' (%s): %s", o.Identifier(), err)
+		}
+	}
+
+	if o.InputHTTP != nil {
+		if err := o.InputHTTP.DecryptAttributes(encrypter); err != nil {
+			return fmt.Errorf("unable to decrypt ref attribute 'InputHTTP' for 'Issue' (%s): %s", o.Identifier(), err)
+		}
+	}
+
+	if o.InputLDAP != nil {
+		if err := o.InputLDAP.DecryptAttributes(encrypter); err != nil {
+			return fmt.Errorf("unable to decrypt ref attribute 'InputLDAP' for 'Issue' (%s): %s", o.Identifier(), err)
+		}
+	}
+
+	if o.InputOAuth2 != nil {
+		if err := o.InputOAuth2.DecryptAttributes(encrypter); err != nil {
+			return fmt.Errorf("unable to decrypt ref attribute 'InputOAuth2' for 'Issue' (%s): %s", o.Identifier(), err)
+		}
+	}
+
+	if o.InputOIDC != nil {
+		if err := o.InputOIDC.DecryptAttributes(encrypter); err != nil {
+			return fmt.Errorf("unable to decrypt ref attribute 'InputOIDC' for 'Issue' (%s): %s", o.Identifier(), err)
+		}
+	}
+
+	if o.InputRemoteA3S != nil {
+		if err := o.InputRemoteA3S.DecryptAttributes(encrypter); err != nil {
+			return fmt.Errorf("unable to decrypt ref attribute 'InputRemoteA3S' for 'Issue' (%s): %s", o.Identifier(), err)
+		}
+	}
+
+	if o.InputSAML != nil {
+		if err := o.InputSAML.DecryptAttributes(encrypter); err != nil {
+			return fmt.Errorf("unable to decrypt ref attribute 'InputSAML' for 'Issue' (%s): %s", o.Identifier(), err)
+		}
+	}
+
+	return nil
 }
 
 // DeepCopy returns a deep copy if the SparseIssue.

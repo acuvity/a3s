@@ -288,6 +288,162 @@ func (o *Import) Patch(sparse elemental.SparseIdentifiable) {
 	}
 }
 
+// EncryptAttributes encrypts the attributes marked as `encrypted` using the given encrypter.
+func (o *Import) EncryptAttributes(encrypter elemental.AttributeEncrypter) (err error) {
+
+	for _, sub := range o.A3SSources {
+		if sub == nil {
+			continue
+		}
+		if err := sub.EncryptAttributes(encrypter); err != nil {
+			return fmt.Errorf("unable to encrypt refList/refMap attribute 'A3SSources' for 'Import' (%s): %s", o.Identifier(), err)
+		}
+	}
+
+	for _, sub := range o.HTTPSources {
+		if sub == nil {
+			continue
+		}
+		if err := sub.EncryptAttributes(encrypter); err != nil {
+			return fmt.Errorf("unable to encrypt refList/refMap attribute 'HTTPSources' for 'Import' (%s): %s", o.Identifier(), err)
+		}
+	}
+
+	for _, sub := range o.LDAPSources {
+		if sub == nil {
+			continue
+		}
+		if err := sub.EncryptAttributes(encrypter); err != nil {
+			return fmt.Errorf("unable to encrypt refList/refMap attribute 'LDAPSources' for 'Import' (%s): %s", o.Identifier(), err)
+		}
+	}
+
+	for _, sub := range o.MTLSSources {
+		if sub == nil {
+			continue
+		}
+		if err := sub.EncryptAttributes(encrypter); err != nil {
+			return fmt.Errorf("unable to encrypt refList/refMap attribute 'MTLSSources' for 'Import' (%s): %s", o.Identifier(), err)
+		}
+	}
+
+	for _, sub := range o.OAuth2Sources {
+		if sub == nil {
+			continue
+		}
+		if err := sub.EncryptAttributes(encrypter); err != nil {
+			return fmt.Errorf("unable to encrypt refList/refMap attribute 'OAuth2Sources' for 'Import' (%s): %s", o.Identifier(), err)
+		}
+	}
+
+	for _, sub := range o.OIDCSources {
+		if sub == nil {
+			continue
+		}
+		if err := sub.EncryptAttributes(encrypter); err != nil {
+			return fmt.Errorf("unable to encrypt refList/refMap attribute 'OIDCSources' for 'Import' (%s): %s", o.Identifier(), err)
+		}
+	}
+
+	for _, sub := range o.SAMLSources {
+		if sub == nil {
+			continue
+		}
+		if err := sub.EncryptAttributes(encrypter); err != nil {
+			return fmt.Errorf("unable to encrypt refList/refMap attribute 'SAMLSources' for 'Import' (%s): %s", o.Identifier(), err)
+		}
+	}
+
+	for _, sub := range o.Authorizations {
+		if sub == nil {
+			continue
+		}
+		if err := sub.EncryptAttributes(encrypter); err != nil {
+			return fmt.Errorf("unable to encrypt refList/refMap attribute 'Authorizations' for 'Import' (%s): %s", o.Identifier(), err)
+		}
+	}
+
+	return nil
+}
+
+// DecryptAttributes decrypts the attributes marked as `encrypted` using the given decrypter.
+func (o *Import) DecryptAttributes(encrypter elemental.AttributeEncrypter) (err error) {
+
+	for _, sub := range o.A3SSources {
+		if sub == nil {
+			continue
+		}
+		if err := sub.DecryptAttributes(encrypter); err != nil {
+			return fmt.Errorf("unable to decrypt refList/refMap attribute 'A3SSources' for 'Import' (%s): %s", o.Identifier(), err)
+		}
+	}
+
+	for _, sub := range o.HTTPSources {
+		if sub == nil {
+			continue
+		}
+		if err := sub.DecryptAttributes(encrypter); err != nil {
+			return fmt.Errorf("unable to decrypt refList/refMap attribute 'HTTPSources' for 'Import' (%s): %s", o.Identifier(), err)
+		}
+	}
+
+	for _, sub := range o.LDAPSources {
+		if sub == nil {
+			continue
+		}
+		if err := sub.DecryptAttributes(encrypter); err != nil {
+			return fmt.Errorf("unable to decrypt refList/refMap attribute 'LDAPSources' for 'Import' (%s): %s", o.Identifier(), err)
+		}
+	}
+
+	for _, sub := range o.MTLSSources {
+		if sub == nil {
+			continue
+		}
+		if err := sub.DecryptAttributes(encrypter); err != nil {
+			return fmt.Errorf("unable to decrypt refList/refMap attribute 'MTLSSources' for 'Import' (%s): %s", o.Identifier(), err)
+		}
+	}
+
+	for _, sub := range o.OAuth2Sources {
+		if sub == nil {
+			continue
+		}
+		if err := sub.DecryptAttributes(encrypter); err != nil {
+			return fmt.Errorf("unable to decrypt refList/refMap attribute 'OAuth2Sources' for 'Import' (%s): %s", o.Identifier(), err)
+		}
+	}
+
+	for _, sub := range o.OIDCSources {
+		if sub == nil {
+			continue
+		}
+		if err := sub.DecryptAttributes(encrypter); err != nil {
+			return fmt.Errorf("unable to decrypt refList/refMap attribute 'OIDCSources' for 'Import' (%s): %s", o.Identifier(), err)
+		}
+	}
+
+	for _, sub := range o.SAMLSources {
+		if sub == nil {
+			continue
+		}
+		if err := sub.DecryptAttributes(encrypter); err != nil {
+			return fmt.Errorf("unable to decrypt refList/refMap attribute 'SAMLSources' for 'Import' (%s): %s", o.Identifier(), err)
+		}
+	}
+
+	for _, sub := range o.Authorizations {
+		if sub == nil {
+			continue
+		}
+		if err := sub.DecryptAttributes(encrypter); err != nil {
+			return fmt.Errorf("unable to decrypt refList/refMap attribute 'Authorizations' for 'Import' (%s): %s", o.Identifier(), err)
+		}
+	}
+
+	return nil
+}
+
 // DeepCopy returns a deep copy if the Import.
 func (o *Import) DeepCopy() *Import {
 
@@ -809,6 +965,194 @@ func (o *SparseImport) ToPlain() elemental.PlainIdentifiable {
 	}
 
 	return out
+}
+
+// EncryptAttributes encrypts the attributes marked as `encrypted` using the given encrypter.
+func (o *SparseImport) EncryptAttributes(encrypter elemental.AttributeEncrypter) (err error) {
+
+	if o.A3SSources != nil {
+		for _, sub := range *o.A3SSources {
+			if sub == nil {
+				continue
+			}
+			if err := sub.EncryptAttributes(encrypter); err != nil {
+				return fmt.Errorf("unable to encrypt refList/refMap attribute 'A3SSources' for 'Import' (%s): %s", o.Identifier(), err)
+			}
+		}
+	}
+
+	if o.HTTPSources != nil {
+		for _, sub := range *o.HTTPSources {
+			if sub == nil {
+				continue
+			}
+			if err := sub.EncryptAttributes(encrypter); err != nil {
+				return fmt.Errorf("unable to encrypt refList/refMap attribute 'HTTPSources' for 'Import' (%s): %s", o.Identifier(), err)
+			}
+		}
+	}
+
+	if o.LDAPSources != nil {
+		for _, sub := range *o.LDAPSources {
+			if sub == nil {
+				continue
+			}
+			if err := sub.EncryptAttributes(encrypter); err != nil {
+				return fmt.Errorf("unable to encrypt refList/refMap attribute 'LDAPSources' for 'Import' (%s): %s", o.Identifier(), err)
+			}
+		}
+	}
+
+	if o.MTLSSources != nil {
+		for _, sub := range *o.MTLSSources {
+			if sub == nil {
+				continue
+			}
+			if err := sub.EncryptAttributes(encrypter); err != nil {
+				return fmt.Errorf("unable to encrypt refList/refMap attribute 'MTLSSources' for 'Import' (%s): %s", o.Identifier(), err)
+			}
+		}
+	}
+
+	if o.OAuth2Sources != nil {
+		for _, sub := range *o.OAuth2Sources {
+			if sub == nil {
+				continue
+			}
+			if err := sub.EncryptAttributes(encrypter); err != nil {
+				return fmt.Errorf("unable to encrypt refList/refMap attribute 'OAuth2Sources' for 'Import' (%s): %s", o.Identifier(), err)
+			}
+		}
+	}
+
+	if o.OIDCSources != nil {
+		for _, sub := range *o.OIDCSources {
+			if sub == nil {
+				continue
+			}
+			if err := sub.EncryptAttributes(encrypter); err != nil {
+				return fmt.Errorf("unable to encrypt refList/refMap attribute 'OIDCSources' for 'Import' (%s): %s", o.Identifier(), err)
+			}
+		}
+	}
+
+	if o.SAMLSources != nil {
+		for _, sub := range *o.SAMLSources {
+			if sub == nil {
+				continue
+			}
+			if err := sub.EncryptAttributes(encrypter); err != nil {
+				return fmt.Errorf("unable to encrypt refList/refMap attribute 'SAMLSources' for 'Import' (%s): %s", o.Identifier(), err)
+			}
+		}
+	}
+
+	if o.Authorizations != nil {
+		for _, sub := range *o.Authorizations {
+			if sub == nil {
+				continue
+			}
+			if err := sub.EncryptAttributes(encrypter); err != nil {
+				return fmt.Errorf("unable to encrypt refList/refMap attribute 'Authorizations' for 'Import' (%s): %s", o.Identifier(), err)
+			}
+		}
+	}
+
+	return nil
+}
+
+// DecryptAttributes decrypts the attributes marked as `encrypted` using the given decrypter.
+func (o *SparseImport) DecryptAttributes(encrypter elemental.AttributeEncrypter) (err error) {
+
+	if o.A3SSources != nil {
+		for _, sub := range *o.A3SSources {
+			if sub == nil {
+				continue
+			}
+			if err := sub.DecryptAttributes(encrypter); err != nil {
+				return fmt.Errorf("unable to decrypt refList/refMap attribute 'A3SSources' for 'Import' (%s): %s", o.Identifier(), err)
+			}
+		}
+	}
+
+	if o.HTTPSources != nil {
+		for _, sub := range *o.HTTPSources {
+			if sub == nil {
+				continue
+			}
+			if err := sub.DecryptAttributes(encrypter); err != nil {
+				return fmt.Errorf("unable to decrypt refList/refMap attribute 'HTTPSources' for 'Import' (%s): %s", o.Identifier(), err)
+			}
+		}
+	}
+
+	if o.LDAPSources != nil {
+		for _, sub := range *o.LDAPSources {
+			if sub == nil {
+				continue
+			}
+			if err := sub.DecryptAttributes(encrypter); err != nil {
+				return fmt.Errorf("unable to decrypt refList/refMap attribute 'LDAPSources' for 'Import' (%s): %s", o.Identifier(), err)
+			}
+		}
+	}
+
+	if o.MTLSSources != nil {
+		for _, sub := range *o.MTLSSources {
+			if sub == nil {
+				continue
+			}
+			if err := sub.DecryptAttributes(encrypter); err != nil {
+				return fmt.Errorf("unable to decrypt refList/refMap attribute 'MTLSSources' for 'Import' (%s): %s", o.Identifier(), err)
+			}
+		}
+	}
+
+	if o.OAuth2Sources != nil {
+		for _, sub := range *o.OAuth2Sources {
+			if sub == nil {
+				continue
+			}
+			if err := sub.DecryptAttributes(encrypter); err != nil {
+				return fmt.Errorf("unable to decrypt refList/refMap attribute 'OAuth2Sources' for 'Import' (%s): %s", o.Identifier(), err)
+			}
+		}
+	}
+
+	if o.OIDCSources != nil {
+		for _, sub := range *o.OIDCSources {
+			if sub == nil {
+				continue
+			}
+			if err := sub.DecryptAttributes(encrypter); err != nil {
+				return fmt.Errorf("unable to decrypt refList/refMap attribute 'OIDCSources' for 'Import' (%s): %s", o.Identifier(), err)
+			}
+		}
+	}
+
+	if o.SAMLSources != nil {
+		for _, sub := range *o.SAMLSources {
+			if sub == nil {
+				continue
+			}
+			if err := sub.DecryptAttributes(encrypter); err != nil {
+				return fmt.Errorf("unable to decrypt refList/refMap attribute 'SAMLSources' for 'Import' (%s): %s", o.Identifier(), err)
+			}
+		}
+	}
+
+	if o.Authorizations != nil {
+		for _, sub := range *o.Authorizations {
+			if sub == nil {
+				continue
+			}
+			if err := sub.DecryptAttributes(encrypter); err != nil {
+				return fmt.Errorf("unable to decrypt refList/refMap attribute 'Authorizations' for 'Import' (%s): %s", o.Identifier(), err)
+			}
+		}
+	}
+
+	return nil
 }
 
 // DeepCopy returns a deep copy if the SparseImport.

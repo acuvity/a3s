@@ -568,6 +568,30 @@ func (o *SAMLSource) Patch(sparse elemental.SparseIdentifiable) {
 	}
 }
 
+// EncryptAttributes encrypts the attributes marked as `encrypted` using the given encrypter.
+func (o *SAMLSource) EncryptAttributes(encrypter elemental.AttributeEncrypter) (err error) {
+
+	if o.Modifier != nil {
+		if err := o.Modifier.EncryptAttributes(encrypter); err != nil {
+			return fmt.Errorf("unable to encrypt ref attribute 'Modifier' for 'SAMLSource' (%s): %s", o.Identifier(), err)
+		}
+	}
+
+	return nil
+}
+
+// DecryptAttributes decrypts the attributes marked as `encrypted` using the given decrypter.
+func (o *SAMLSource) DecryptAttributes(encrypter elemental.AttributeEncrypter) (err error) {
+
+	if o.Modifier != nil {
+		if err := o.Modifier.DecryptAttributes(encrypter); err != nil {
+			return fmt.Errorf("unable to decrypt ref attribute 'Modifier' for 'SAMLSource' (%s): %s", o.Identifier(), err)
+		}
+	}
+
+	return nil
+}
+
 // DeepCopy returns a deep copy if the SAMLSource.
 func (o *SAMLSource) DeepCopy() *SAMLSource {
 
@@ -1670,6 +1694,30 @@ func (o *SparseSAMLSource) ToPlain() elemental.PlainIdentifiable {
 	}
 
 	return out
+}
+
+// EncryptAttributes encrypts the attributes marked as `encrypted` using the given encrypter.
+func (o *SparseSAMLSource) EncryptAttributes(encrypter elemental.AttributeEncrypter) (err error) {
+
+	if o.Modifier != nil {
+		if err := o.Modifier.EncryptAttributes(encrypter); err != nil {
+			return fmt.Errorf("unable to encrypt ref attribute 'Modifier' for 'SAMLSource' (%s): %s", o.Identifier(), err)
+		}
+	}
+
+	return nil
+}
+
+// DecryptAttributes decrypts the attributes marked as `encrypted` using the given decrypter.
+func (o *SparseSAMLSource) DecryptAttributes(encrypter elemental.AttributeEncrypter) (err error) {
+
+	if o.Modifier != nil {
+		if err := o.Modifier.DecryptAttributes(encrypter); err != nil {
+			return fmt.Errorf("unable to decrypt ref attribute 'Modifier' for 'SAMLSource' (%s): %s", o.Identifier(), err)
+		}
+	}
+
+	return nil
 }
 
 // GetID returns the ID of the receiver.
