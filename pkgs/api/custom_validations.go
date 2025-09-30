@@ -221,9 +221,15 @@ func ValidateMTLSSource(source *MTLSSource) error {
 		if source.EntraApplicationCredentials == nil {
 			return makeErr("entraApplicationCredentials", "entraApplicationCredentials must be set when retrieval mode is 'Entra'")
 		}
+		if source.OktaApplicationCredentials != nil {
+			return makeErr("oktaApplicationCredentials", "oktaApplicationCredentials must not be set when retrieval mode is 'Entra'")
+		}
 	case MTLSSourceClaimsRetrievalModeOkta:
 		if source.OktaApplicationCredentials == nil {
 			return makeErr("oktaApplicationCredentials", "oktaApplicationCredentials must be set when retrieval mode is 'Okta'")
+		}
+		if source.EntraApplicationCredentials != nil {
+			return makeErr("entraApplicationCredentials", "entraApplicationCredentials must not be set when retrieval mode is 'Okta'")
 		}
 	default:
 		if source.EntraApplicationCredentials != nil {

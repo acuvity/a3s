@@ -1653,3 +1653,191 @@ func TestValidateRevocation(t *testing.T) {
 		})
 	}
 }
+
+func TestValidateMTLSSource(t *testing.T) {
+	type args struct {
+		source *MTLSSource
+	}
+	tests := []struct {
+		name string
+		args func(t *testing.T) args
+
+		wantErr    bool
+		inspectErr func(err error, t *testing.T) //use for more precise error evaluation after test
+	}{
+		{
+			"x509 nothing set",
+			func(*testing.T) args {
+				return args{
+					source: &MTLSSource{
+						ClaimsRetrievalMode: MTLSSourceClaimsRetrievalModeX509,
+					},
+				}
+			},
+			false,
+			nil,
+		},
+		{
+			"x509 okta set",
+			func(*testing.T) args {
+				return args{
+					source: &MTLSSource{
+						ClaimsRetrievalMode:        MTLSSourceClaimsRetrievalModeX509,
+						OktaApplicationCredentials: &MTLSSourceOkta{},
+					},
+				}
+			},
+			true,
+			nil,
+		},
+		{
+			"x509 entra set",
+			func(*testing.T) args {
+				return args{
+					source: &MTLSSource{
+						ClaimsRetrievalMode:         MTLSSourceClaimsRetrievalModeX509,
+						EntraApplicationCredentials: &MTLSSourceEntra{},
+					},
+				}
+			},
+			true,
+			nil,
+		},
+		{
+			"x509 entra and okta set",
+			func(*testing.T) args {
+				return args{
+					source: &MTLSSource{
+						ClaimsRetrievalMode:         MTLSSourceClaimsRetrievalModeX509,
+						OktaApplicationCredentials:  &MTLSSourceOkta{},
+						EntraApplicationCredentials: &MTLSSourceEntra{},
+					},
+				}
+			},
+			true,
+			nil,
+		},
+
+		{
+			"Entra nothing set",
+			func(*testing.T) args {
+				return args{
+					source: &MTLSSource{
+						ClaimsRetrievalMode: MTLSSourceClaimsRetrievalModeEntra,
+					},
+				}
+			},
+			true,
+			nil,
+		},
+		{
+			"Entra okta set",
+			func(*testing.T) args {
+				return args{
+					source: &MTLSSource{
+						ClaimsRetrievalMode:        MTLSSourceClaimsRetrievalModeEntra,
+						OktaApplicationCredentials: &MTLSSourceOkta{},
+					},
+				}
+			},
+			true,
+			nil,
+		},
+		{
+			"entra entra set",
+			func(*testing.T) args {
+				return args{
+					source: &MTLSSource{
+						ClaimsRetrievalMode:         MTLSSourceClaimsRetrievalModeEntra,
+						EntraApplicationCredentials: &MTLSSourceEntra{},
+					},
+				}
+			},
+			false,
+			nil,
+		},
+		{
+			"entra entra and okta set",
+			func(*testing.T) args {
+				return args{
+					source: &MTLSSource{
+						ClaimsRetrievalMode:         MTLSSourceClaimsRetrievalModeEntra,
+						OktaApplicationCredentials:  &MTLSSourceOkta{},
+						EntraApplicationCredentials: &MTLSSourceEntra{},
+					},
+				}
+			},
+			true,
+			nil,
+		},
+
+		{
+			"Okta nothing set",
+			func(*testing.T) args {
+				return args{
+					source: &MTLSSource{
+						ClaimsRetrievalMode: MTLSSourceClaimsRetrievalModeOkta,
+					},
+				}
+			},
+			true,
+			nil,
+		},
+		{
+			"Okta okta set",
+			func(*testing.T) args {
+				return args{
+					source: &MTLSSource{
+						ClaimsRetrievalMode:        MTLSSourceClaimsRetrievalModeOkta,
+						OktaApplicationCredentials: &MTLSSourceOkta{},
+					},
+				}
+			},
+			false,
+			nil,
+		},
+		{
+			"Okta entra set",
+			func(*testing.T) args {
+				return args{
+					source: &MTLSSource{
+						ClaimsRetrievalMode:         MTLSSourceClaimsRetrievalModeOkta,
+						EntraApplicationCredentials: &MTLSSourceEntra{},
+					},
+				}
+			},
+			true,
+			nil,
+		},
+		{
+			"Okta entra and okta set",
+			func(*testing.T) args {
+				return args{
+					source: &MTLSSource{
+						ClaimsRetrievalMode:         MTLSSourceClaimsRetrievalModeOkta,
+						OktaApplicationCredentials:  &MTLSSourceOkta{},
+						EntraApplicationCredentials: &MTLSSourceEntra{},
+					},
+				}
+			},
+			true,
+			nil,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tArgs := tt.args(t)
+
+			err := ValidateMTLSSource(tArgs.source)
+
+			if (err != nil) != tt.wantErr {
+				t.Fatalf("ValidateMTLSSource error = %v, wantErr: %t", err, tt.wantErr)
+			}
+
+			if tt.inspectErr != nil {
+				tt.inspectErr(err, t)
+			}
+		})
+	}
+}
