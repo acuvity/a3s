@@ -473,8 +473,8 @@ github.com/yusufpapurcu/wmi v1.2.4 h1:zFUKzehAFReQwLys1b/iSMl+JQGSCSjtVqQn9bBrPo
 github.com/yusufpapurcu/wmi v1.2.4/go.mod h1:SBZ9tNy3G9/m5Oi98Zks0QjeHVDvuK0qfxQmPyzfmi0=
 go.acuvity.ai/bahamut v0.0.0-20250818175957-c7347bea0374 h1:O/8Lv3pPiujUbn4HAMA23okAIp3o/LFvjMKhZix2ehs=
 go.acuvity.ai/bahamut v0.0.0-20250818175957-c7347bea0374/go.mod h1:rv1SFRhWJUQdyiFto3N7AkkskeEfNi+5YwKGoc2h+6A=
-go.acuvity.ai/elemental v0.0.0-20250929183823-13d8881fe5a3 h1:xc4vymNIGpzlLAPVXJD6jN6HWbM56rv2BRr0OT4U4zA=
-go.acuvity.ai/elemental v0.0.0-20250929183823-13d8881fe5a3/go.mod h1:4MJCA39701jLOCNmfIoMHay2K0+6YXOSopGbeXAim+w=
+go.acuvity.ai/elemental v0.0.0-20251001162007-f71cb31fff99 h1:/8eooTluE4e0udj8aHeZaiAxDFe138qeuzOYwQfz63s=
+go.acuvity.ai/elemental v0.0.0-20251001162007-f71cb31fff99/go.mod h1:4MJCA39701jLOCNmfIoMHay2K0+6YXOSopGbeXAim+w=
 go.acuvity.ai/manipulate v0.0.0-20250910193832-b362468904c1 h1:JrePigT231RnWZoQtCh+1qHwnUdnNC2pVd3h/0JAv28=
 go.acuvity.ai/manipulate v0.0.0-20250910193832-b362468904c1/go.mod h1:551TisgWGfB64MFWb6wFDy5lQYumxQCKponuvRFvkfg=
 go.acuvity.ai/regolithe v0.0.0-20250821151615-e03aa119e9c8 h1:JwrwgC2uucWW3bGViRWpLYfZb+mpRz6j7Op58NMdovk=

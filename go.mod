@@ -4,7 +4,7 @@ go 1.24.6
 
 require (
 	go.acuvity.ai/bahamut v0.0.0-20250818175957-c7347bea0374
-	go.acuvity.ai/elemental v0.0.0-20250929183823-13d8881fe5a3
+	go.acuvity.ai/elemental v0.0.0-20251001162007-f71cb31fff99
 	go.acuvity.ai/manipulate v0.0.0-20250910193832-b362468904c1
 	go.acuvity.ai/regolithe v0.0.0-20250821151615-e03aa119e9c8 // indirect
 	go.acuvity.ai/tg v0.0.0-20250220234315-d9494083aa3a
