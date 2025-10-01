@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"go.acuvity.ai/a3s/pkgs/api"
+	"go.acuvity.ai/elemental"
 )
 
 func getPrincipalName(iss *mtlsIssuer, cert *x509.Certificate) (string, error) {
@@ -23,5 +24,11 @@ func getPrincipalName(iss *mtlsIssuer, cert *x509.Certificate) (string, error) {
 
 	default:
 		panic("invalid mtls source principal user field")
+	}
+}
+
+func makeErrMaker(provider string) func(title string, desc string, code int) error {
+	return func(title string, desc string, code int) error {
+		return elemental.NewError(title, desc, "a3s:mtlssource:"+provider, code)
 	}
 }

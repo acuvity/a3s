@@ -4,6 +4,7 @@ import (
 	"crypto/x509"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"net/url"
 	"strings"
@@ -21,9 +22,11 @@ func init() {
 
 func handleEntraAutologin(iss *mtlsIssuer, cert *x509.Certificate) error {
 
+	eerr := makeErrMaker("entra")
+
 	creds := iss.source.EntraApplicationCredentials
 	if creds == nil {
-		return fmt.Errorf("invalid mtls source: no entraApplicationCredentials set")
+		return eerr("Invalid mtls source", "no entraApplicationCredentials set", http.StatusInternalServerError)
 	}
 
 	client := &http.Client{
@@ -56,7 +59,7 @@ func handleEntraAutologin(iss *mtlsIssuer, cert *x509.Certificate) error {
 
 		r, err := http.NewRequest(http.MethodPost, fmt.Sprintf("https://login.microsoftonline.com/%s/oauth2/v2.0/token", creds.ClientTenantID), strings.NewReader(form.Encode()))
 		if err != nil {
-			return fmt.Errorf("unable to create oauth2 client token request: %w", err)
+			return eerr("Unable to create oauth2 client token request", err.Error(), http.StatusBadRequest)
 		}
 		r.Header = http.Header{
 			"Content-Type": {"application/x-www-form-urlencoded"},
@@ -64,17 +67,18 @@ func handleEntraAutologin(iss *mtlsIssuer, cert *x509.Certificate) error {
 
 		resp1, err := client.Do(r)
 		if err != nil {
-			return fmt.Errorf("unable to send request to retrieve client access token: %w", err)
+			return eerr("Unable to send request to retrieve client access token", err.Error(), http.StatusBadRequest)
 		}
 		defer func() { _ = resp1.Body.Close() }()
 
 		if resp1.StatusCode != http.StatusOK {
-			return fmt.Errorf("invalid status code returned from request to retrieve client access token: %s", resp1.Status)
+			d, _ := io.ReadAll(resp1.Body)
+			return eerr("Invalid status code returned from request to retrieve client access token", fmt.Sprintf("(%s) %s", resp1.Status, string(d)), http.StatusBadRequest)
 		}
 
 		dec := json.NewDecoder(resp1.Body)
 		if err := dec.Decode(&rtoken); err != nil {
-			return fmt.Errorf("unable to decode client access token:  %w", err)
+			return eerr("Unable to decode client access token", err.Error(), http.StatusBadRequest)
 		}
 
 		entraAccessTokenCache.Set(ckey, rtoken.AccessToken, 30*time.Minute)
@@ -83,19 +87,19 @@ func handleEntraAutologin(iss *mtlsIssuer, cert *x509.Certificate) error {
 	// Extract the app id from the token.
 	cls := jwt.MapClaims{}
 	if _, _, err := jwt.NewParser().ParseUnverified(rtoken.AccessToken, &cls); err != nil {
-		return fmt.Errorf("unable to extract appid (oid) from access token claims: %w", err)
+		return eerr("Unable to extract appid (oid) from access token claims", err.Error(), http.StatusBadRequest)
 	}
 	appID := cls["oid"]
 
 	// Step 2: now we have a client token, we will query the user info
 	principalName, err := getPrincipalName(iss, cert)
 	if err != nil {
-		return fmt.Errorf("unable to retrieve principal name from certificate: %w", err)
+		return eerr("Unable to retrieve principal name from certificate", err.Error(), http.StatusBadRequest)
 	}
 
 	r, err := http.NewRequest(http.MethodGet, fmt.Sprintf("https://graph.microsoft.com/v1.0/users/%s", principalName), nil)
 	if err != nil {
-		return fmt.Errorf("unable to create request to retrieve use info: %w", err)
+		return eerr("Unable to create request to retrieve use info", err.Error(), http.StatusBadRequest)
 	}
 	r.Header = http.Header{
 		"Authorization": {"Bearer " + rtoken.AccessToken},
@@ -103,12 +107,13 @@ func handleEntraAutologin(iss *mtlsIssuer, cert *x509.Certificate) error {
 
 	resp2, err := client.Do(r)
 	if err != nil {
-		return fmt.Errorf("unable to send request to retrieve user id: %w", err)
+		return eerr("Unable to send request to retrieve user id", err.Error(), http.StatusBadRequest)
 	}
 	defer func() { _ = resp2.Body.Close() }()
 
 	if resp2.StatusCode != http.StatusOK {
-		return fmt.Errorf("invalid status code returned from request to retrieve user id: %s", resp2.Status)
+		d, _ := io.ReadAll(resp2.Body)
+		return eerr("Invalid status code returned from request to retrieve user id", fmt.Sprintf("(%s) %s", resp2.Status, string(d)), http.StatusBadRequest)
 	}
 
 	ruser := struct {
@@ -122,14 +127,14 @@ func handleEntraAutologin(iss *mtlsIssuer, cert *x509.Certificate) error {
 
 	dec := json.NewDecoder(resp2.Body)
 	if err := dec.Decode(&ruser); err != nil {
-		return fmt.Errorf("unable to decode user id:  %w", err)
+		return eerr("Unable to decode user id", err.Error(), http.StatusBadRequest)
 	}
 
 	iss.token.Identity = append(iss.token.Identity, fmt.Sprintf("nameid=%s", ruser.ID))
 
 	// Step 3: finally we get the list group the user is a member of
 	if r, err = http.NewRequest(http.MethodGet, fmt.Sprintf("https://graph.microsoft.com/v1.0/users/%s/memberOf/microsoft.graph.group?$select=displayName", ruser.ID), nil); err != nil {
-		return fmt.Errorf("unable to create request to retrieve groups of user: %w", err)
+		return eerr("Unable to create request to retrieve groups of user", err.Error(), http.StatusBadRequest)
 	}
 	r.Header = http.Header{
 		"Authorization": {"Bearer " + rtoken.AccessToken},
@@ -137,12 +142,13 @@ func handleEntraAutologin(iss *mtlsIssuer, cert *x509.Certificate) error {
 
 	resp3, err := client.Do(r)
 	if err != nil {
-		return fmt.Errorf("unable to send request to retrieve user groups: %w", err)
+		return eerr("Unable to send request to retrieve user groups", err.Error(), http.StatusBadRequest)
 	}
 	defer func() { _ = resp3.Body.Close() }()
 
 	if resp3.StatusCode != http.StatusOK {
-		return fmt.Errorf("invalid status code returned from request to retrieve user groups: %s", resp3.Status)
+		d, _ := io.ReadAll(resp3.Body)
+		return eerr("Invalid status code returned from request to retrieve user groups", fmt.Sprintf("(%s) %s", resp3.Status, string(d)), http.StatusBadRequest)
 	}
 
 	rmember := struct {
@@ -153,12 +159,12 @@ func handleEntraAutologin(iss *mtlsIssuer, cert *x509.Certificate) error {
 
 	dec = json.NewDecoder(resp3.Body)
 	if err := dec.Decode(&rmember); err != nil {
-		return fmt.Errorf("unable to decode user groups:  %w", err)
+		return eerr("Unable to decode user groups", err.Error(), http.StatusBadRequest)
 	}
 
 	// Step 4: Retrieve all roles for the app and mapp them
 	if r, err = http.NewRequest(http.MethodGet, fmt.Sprintf("https://graph.microsoft.com/v1.0/servicePrincipals(appId='%s')?$select=id,displayName,appRoles", creds.ClientID), nil); err != nil {
-		return fmt.Errorf("unable to create request to retrieve app roles: %w", err)
+		return eerr("Unable to create request to retrieve app roles", err.Error(), http.StatusBadRequest)
 	}
 	r.Header = http.Header{
 		"Authorization": {"Bearer " + rtoken.AccessToken},
@@ -166,12 +172,13 @@ func handleEntraAutologin(iss *mtlsIssuer, cert *x509.Certificate) error {
 
 	resp4, err := client.Do(r)
 	if err != nil {
-		return fmt.Errorf("unable to send request to retrieve app roles: %w", err)
+		return eerr("Unable to send request to retrieve app roles", err.Error(), http.StatusBadRequest)
 	}
 	defer func() { _ = resp4.Body.Close() }()
 
 	if resp4.StatusCode != http.StatusOK {
-		return fmt.Errorf("invalid status code returned from request to retrieve app roles: %s", resp4.Status)
+		d, _ := io.ReadAll(resp4.Body)
+		return eerr("Invalid status code returned from request to retrieve app roles", fmt.Sprintf("(%s) %s", resp4.Status, string(d)), http.StatusBadRequest)
 	}
 
 	appRoles := struct {
@@ -183,7 +190,7 @@ func handleEntraAutologin(iss *mtlsIssuer, cert *x509.Certificate) error {
 
 	dec = json.NewDecoder(resp4.Body)
 	if err := dec.Decode(&appRoles); err != nil {
-		return fmt.Errorf("unable to decode app roles:  %w", err)
+		return eerr("Unable to decode app roles:  %w", err.Error(), http.StatusBadRequest)
 	}
 
 	roleMap := make(map[string]string, len(appRoles.AppRoles))
@@ -193,7 +200,7 @@ func handleEntraAutologin(iss *mtlsIssuer, cert *x509.Certificate) error {
 
 	// Step 5: Retrieve the user app role and map names
 	if r, err = http.NewRequest(http.MethodGet, fmt.Sprintf("https://graph.microsoft.com/v1.0/users/%s/appRoleAssignments?$filter=resourceId%%20eq%%20%s&$count=true", ruser.ID, appID), nil); err != nil {
-		return fmt.Errorf("unable to create request to retrieve app role assignment of user: %w", err)
+		return eerr("Unable to create request to retrieve app role assignment of user", err.Error(), http.StatusBadRequest)
 	}
 	r.Header = http.Header{
 		"Authorization": {"Bearer " + rtoken.AccessToken},
@@ -201,12 +208,13 @@ func handleEntraAutologin(iss *mtlsIssuer, cert *x509.Certificate) error {
 
 	resp5, err := client.Do(r)
 	if err != nil {
-		return fmt.Errorf("unable to send request to retrieve app role assignments: %w", err)
+		return eerr("Unable to send request to retrieve app role assignments", err.Error(), http.StatusBadRequest)
 	}
 	defer func() { _ = resp5.Body.Close() }()
 
 	if resp5.StatusCode != http.StatusOK {
-		return fmt.Errorf("invalid status code returned from request to retrieve app role assignments: %s", resp5.Status)
+		d, _ := io.ReadAll(resp5.Body)
+		return eerr("Invalid status code returned from request to retrieve app role assignments", fmt.Sprintf("(%s) %s", resp4.Status, string(d)), http.StatusBadRequest)
 	}
 
 	rmaprole := struct {
@@ -218,7 +226,7 @@ func handleEntraAutologin(iss *mtlsIssuer, cert *x509.Certificate) error {
 
 	dec = json.NewDecoder(resp5.Body)
 	if err := dec.Decode(&rmaprole); err != nil {
-		return fmt.Errorf("unable to decode app role assignments: %w", err)
+		return eerr("Unable to decode app role assignments", err.Error(), http.StatusBadRequest)
 	}
 
 	// Final Step: populate the claims

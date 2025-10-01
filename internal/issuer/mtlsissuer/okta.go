@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"encoding/pem"
 	"fmt"
+	"io"
 	"net/http"
 	"net/url"
 	"strings"
@@ -23,19 +24,21 @@ func init() {
 
 func handleOktaAutologin(iss *mtlsIssuer, cert *x509.Certificate) error {
 
+	oerr := makeErrMaker("okta")
+
 	creds := iss.source.OktaApplicationCredentials
 	if creds == nil {
-		return fmt.Errorf("invalid mtls source: no oktaApplicationCredentials set")
+		return oerr("Invalid MTLS source", "No oktaApplicationCredentials set", http.StatusInternalServerError)
 	}
 
 	block, _ := pem.Decode([]byte(creds.PrivateKey))
 	if block == nil {
-		return fmt.Errorf("unable to decode credentials private key: not a valid PEM")
+		return oerr("Invalid Okta credential private key", "Unable to decode PEM", http.StatusInternalServerError)
 	}
 
 	pk, err := tglib.PEMToKey(block)
 	if err != nil {
-		return fmt.Errorf("unable to decode source private key: %w", err)
+		return oerr("Invalid Okta credential private key", fmt.Sprintf("Unable to parse private key: %s", err), http.StatusInternalServerError)
 	}
 
 	domain := "https://" + strings.TrimRight(strings.TrimPrefix(strings.TrimSpace(creds.Domain), "https://"), "/")
@@ -51,7 +54,7 @@ func handleOktaAutologin(iss *mtlsIssuer, cert *x509.Certificate) error {
 	t.Header["kid"] = creds.KID
 	jwtString, err := t.SignedString(pk)
 	if err != nil {
-		return fmt.Errorf("unable to generate assertion jwt: %w", err)
+		return oerr("Unable to generate assertion JWT", err.Error(), http.StatusInternalServerError)
 	}
 
 	client := &http.Client{
@@ -86,7 +89,7 @@ func handleOktaAutologin(iss *mtlsIssuer, cert *x509.Certificate) error {
 
 		r, err := http.NewRequest(http.MethodPost, tokenURL, strings.NewReader(form.Encode()))
 		if err != nil {
-			return fmt.Errorf("unable to create oauth2 client token request: %w", err)
+			return oerr("Unable to create oauth2 token request", err.Error(), http.StatusInternalServerError)
 		}
 		r.Header = http.Header{
 			"Content-Type": {"application/x-www-form-urlencoded"},
@@ -94,17 +97,18 @@ func handleOktaAutologin(iss *mtlsIssuer, cert *x509.Certificate) error {
 
 		resp1, err := client.Do(r)
 		if err != nil {
-			return fmt.Errorf("unable to send request to retrieve client access token: %w", err)
+			return oerr("Unable to send request to retrieve client access token", err.Error(), http.StatusBadRequest)
 		}
 		defer func() { _ = resp1.Body.Close() }()
 
 		if resp1.StatusCode != http.StatusOK {
-			return fmt.Errorf("invalid status code returned from request to retrieve client access token: %s", resp1.Status)
+			d, _ := io.ReadAll(resp1.Body)
+			return oerr("Invalid status code returned from request to retrieve client access token", fmt.Sprintf("(%s) %s", resp1.Status, string(d)), http.StatusBadRequest)
 		}
 
 		dec := json.NewDecoder(resp1.Body)
 		if err := dec.Decode(&rtoken); err != nil {
-			return fmt.Errorf("unable to decode client access token:  %w", err)
+			return oerr("Unable to decode Okta client token", err.Error(), http.StatusBadRequest)
 		}
 
 		oktaAccessTokenCache.Set(ckey, rtoken.AccessToken, 30*time.Minute)
@@ -113,12 +117,12 @@ func handleOktaAutologin(iss *mtlsIssuer, cert *x509.Certificate) error {
 	// Step 2: now we have a client token, we will query the user info
 	principalName, err := getPrincipalName(iss, cert)
 	if err != nil {
-		return fmt.Errorf("unable to retrieve principal name from certificate: %w", err)
+		return oerr("Unable to retrieve principal name from client certificate", err.Error(), http.StatusBadRequest)
 	}
 
 	r, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s/api/v1/users/%s", domain, principalName), nil)
 	if err != nil {
-		return fmt.Errorf("unable to create request to retrieve user info: %w", err)
+		return oerr("Unable to create request to retrieve user info", err.Error(), http.StatusBadRequest)
 	}
 	r.Header = http.Header{
 		"Authorization": {"Bearer " + rtoken.AccessToken},
@@ -126,12 +130,13 @@ func handleOktaAutologin(iss *mtlsIssuer, cert *x509.Certificate) error {
 
 	resp2, err := client.Do(r)
 	if err != nil {
-		return fmt.Errorf("unable to send request to retrieve user info: %w", err)
+		return oerr("Unable to send request to retrieve user info", err.Error(), http.StatusBadRequest)
 	}
 	defer func() { _ = resp2.Body.Close() }()
 
 	if resp2.StatusCode != http.StatusOK {
-		return fmt.Errorf("invalid status code returned from request to retrieve user info: %s", resp2.Status)
+		d, _ := io.ReadAll(resp2.Body)
+		return oerr("Invalid status code returned from request to retrieve user info", fmt.Sprintf("(%s): %s", resp2.Status, string(d)), http.StatusBadRequest)
 	}
 
 	ruser := struct {
@@ -146,12 +151,17 @@ func handleOktaAutologin(iss *mtlsIssuer, cert *x509.Certificate) error {
 
 	dec := json.NewDecoder(resp2.Body)
 	if err := dec.Decode(&ruser); err != nil {
-		return fmt.Errorf("unable to decode user id:  %w", err)
+		return oerr(
+			"Unable to decode user id",
+			err.Error(),
+
+			http.StatusBadRequest,
+		)
 	}
 
 	// Step 3: finally we get the list group the user is a member of
 	if r, err = http.NewRequest(http.MethodGet, fmt.Sprintf("%s/api/v1/users/%s/groups", domain, principalName), nil); err != nil {
-		return fmt.Errorf("unable to create request to retrieve groups of user: %w", err)
+		return oerr("Unable to create request to retrieve user groups", err.Error(), http.StatusBadRequest)
 	}
 	r.Header = http.Header{
 		"Authorization": {"Bearer " + rtoken.AccessToken},
@@ -159,12 +169,13 @@ func handleOktaAutologin(iss *mtlsIssuer, cert *x509.Certificate) error {
 
 	resp3, err := client.Do(r)
 	if err != nil {
-		return fmt.Errorf("unable to send request to retrieve user groups: %w", err)
+		return oerr("Unable to send request to retrieve user groups", err.Error(), http.StatusBadRequest)
 	}
 	defer func() { _ = resp3.Body.Close() }()
 
 	if resp3.StatusCode != http.StatusOK {
-		return fmt.Errorf("invalid status code returned from request to retrieve user groups: %s", resp3.Status)
+		d, _ := io.ReadAll(resp3.Body)
+		return oerr("Invalid status code returned from request to retrieve user groups", fmt.Sprintf("(%s): %s", resp3.Status, string(d)), http.StatusBadRequest)
 	}
 
 	rmember := []struct {
@@ -176,7 +187,7 @@ func handleOktaAutologin(iss *mtlsIssuer, cert *x509.Certificate) error {
 
 	dec = json.NewDecoder(resp3.Body)
 	if err := dec.Decode(&rmember); err != nil {
-		return fmt.Errorf("unable to decode user groups:  %w", err)
+		return oerr("Unable to decode user groups", err.Error(), http.StatusBadRequest)
 	}
 
 	// Final Step: populate the claims

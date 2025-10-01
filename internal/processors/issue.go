@@ -277,6 +277,10 @@ func (p *IssueProcessor) ProcessCreate(bctx bahamut.Context) (err error) {
 	}
 
 	if err != nil {
+		eerr := elemental.Error{}
+		if errors.As(err, &eerr) {
+			return eerr
+		}
 		return elemental.NewError("Unauthorized", err.Error(), "a3s:authn", http.StatusUnauthorized)
 	}
 
