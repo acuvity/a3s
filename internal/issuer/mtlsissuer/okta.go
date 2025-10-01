@@ -30,7 +30,7 @@ func handleOktaAutologin(iss *mtlsIssuer, cert *x509.Certificate) error {
 
 	block, _ := pem.Decode([]byte(creds.PrivateKey))
 	if block == nil {
-		return fmt.Errorf("unable to decode credentials private key: not a valid PEM.")
+		return fmt.Errorf("unable to decode credentials private key: not a valid PEM")
 	}
 
 	pk, err := tglib.PEMToKey(block)
