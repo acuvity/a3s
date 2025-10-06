@@ -64,7 +64,9 @@ func checkRevocation(ctx context.Context, m manipulate.Manipulator, namespace st
 
 		if rev.Subject != nil && len(*rev.Subject) >= 0 {
 			if Match(*rev.Subject, claims) {
-				return isRevoked(), nil
+				if isRevoked() {
+					return true, nil
+				}
 			}
 		}
 	}
