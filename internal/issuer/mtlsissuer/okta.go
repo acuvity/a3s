@@ -139,8 +139,14 @@ func handleOktaAutologin(iss *mtlsIssuer, cert *x509.Certificate) error {
 		return oerr("Invalid status code returned from request to retrieve user info", fmt.Sprintf("(%s): %s", resp2.Status, string(d)), http.StatusBadRequest)
 	}
 
+	// Debug code
+	// data, _ := io.ReadAll(resp2.Body)
+	// fmt.Println(string(data))
+	// resp2.Body = io.NopCloser(bytes.NewBuffer(data))
+
 	ruser := struct {
 		ID      string `json:"id"`
+		Status  string `json:"status"`
 		Profile struct {
 			EMail     string `json:"email"`
 			FirstName string `json:"firstName"`
@@ -157,6 +163,10 @@ func handleOktaAutologin(iss *mtlsIssuer, cert *x509.Certificate) error {
 
 			http.StatusBadRequest,
 		)
+	}
+
+	if ruser.Status != "ACTIVE" {
+		return oerr("Forbidden", fmt.Sprintf("User is not marked as active (status: '%s')", ruser.Status), http.StatusForbidden)
 	}
 
 	// Step 3: finally we get the list group the user is a member of
