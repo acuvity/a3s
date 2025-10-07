@@ -6,8 +6,8 @@
     "@timed",
     "@claimfilter"
   ],
-  "$friendlyName": "MTLSSource",
-  "$friendlyNamePlural": "MTLSSources",
+  "$friendlyName": "MTLS Source",
+  "$friendlyNamePlural": "MTLS Sources",
   "$modelName": "MTLSSource",
   "$modelPackage": "a3s",
   "$modelResourceName": "mtlssources",
