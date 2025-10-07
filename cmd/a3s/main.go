@@ -12,9 +12,12 @@ import (
 	"strings"
 	"time"
 
+	"github.com/bsm/redislock"
 	"github.com/ghodss/yaml"
 	"github.com/globalsign/mgo"
 	"go.acuvity.ai/a3s/internal/hasher"
+	"go.acuvity.ai/a3s/internal/idp/entra"
+	"go.acuvity.ai/a3s/internal/idp/okta"
 	"go.acuvity.ai/a3s/internal/processors"
 	"go.acuvity.ai/a3s/internal/ui"
 	"go.acuvity.ai/a3s/pkgs/api"
@@ -503,6 +506,40 @@ func main() {
 		)
 	}
 
+	var entraNotifHook string
+	if strings.HasPrefix(cfg.EntraNotifEndpoint, "https://") {
+		entraNotifHook = cfg.EntraNotifEndpoint
+	} else {
+		entraNotifHook, err = url.JoinPath(cfg.PublicAPIURL, cfg.EntraNotifEndpoint)
+		if err != nil {
+			slog.Error("Unable to build Entra notification endpoint", "endpoint", cfg.EntraNotifEndpoint, err)
+			os.Exit(1)
+		}
+	}
+
+	oktaManager := okta.NewEntraManager(&http.Client{Timeout: 5 * time.Second})
+	entraManager := entra.NewEntraManager(&http.Client{Timeout: 5 * time.Second})
+
+	var entraSyncer *entra.Syncer
+	var redisLocker *redislock.Client
+	if cfg.RedisAddress != "" {
+		slog.Info("Redis configured", "addr", cfg.RedisAddress, "db", cfg.RedisDB, "user", cfg.RedisUser)
+
+		redisClient, err := bootstrap.MakeRedisClient(cfg.RedisConf)
+		if err != nil {
+			slog.Info("Unable to connect to redis", err)
+			os.Exit(1)
+		}
+
+		redisLocker = redislock.New(redisClient)
+
+		entraSyncer = entra.NewSyncer(m, pubsub, redisLocker, entraManager, entraNotifHook)
+		entraSyncer.Start(ctx)
+		slog.Info("Entra notification endpoint configured", "endpoint", entraNotifHook)
+	} else {
+		slog.Warn("No redis configuration. Entra syncer is disabled.")
+	}
+
 	bahamut.RegisterProcessorOrDie(server,
 		processors.NewIssueProcessor( // nolint
 			m,
@@ -524,10 +561,12 @@ func main() {
 			binaryModifier,
 			oidSourceName,
 			oidSourceNamespace,
+			entraManager,
+			oktaManager,
 		),
 		api.IssueIdentity,
 	)
-	bahamut.RegisterProcessorOrDie(server, processors.NewMTLSSourcesProcessor(m), api.MTLSSourceIdentity)
+	bahamut.RegisterProcessorOrDie(server, processors.NewMTLSSourcesProcessor(m, pubsub), api.MTLSSourceIdentity)
 	bahamut.RegisterProcessorOrDie(server, processors.NewLDAPSourcesProcessor(m), api.LDAPSourceIdentity)
 	bahamut.RegisterProcessorOrDie(server, processors.NewOIDCSourcesProcessor(m), api.OIDCSourceIdentity)
 	bahamut.RegisterProcessorOrDie(server, processors.NewSAMLSourcesProcessor(m), api.SAMLSourceIdentity)
@@ -543,6 +582,11 @@ func main() {
 	bahamut.RegisterProcessorOrDie(server, processors.NewRevocationsProcessor(m, pubsub), api.RevocationIdentity)
 	bahamut.RegisterProcessorOrDie(server, processors.NewGroupProcessor(m, pubsub), api.GroupIdentity)
 	bahamut.RegisterProcessorOrDie(server, processors.NewLogoutProcessor(m, pubsub, cookiePolicy, cookieDomain), api.LogoutIdentity)
+
+	bahamut.RegisterProcessorOrDie(server, processors.NewOktaEventsProcessor(m), api.OktaEventIdentity)
+	if redisLocker != nil {
+		bahamut.RegisterProcessorOrDie(server, processors.NewEntraEventsProcessor(m, entraManager, redisLocker), api.EntraEventIdentity)
+	}
 
 	// Object clean up
 	notification.Subscribe(

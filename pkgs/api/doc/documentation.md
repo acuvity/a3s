@@ -607,7 +607,8 @@ Directory.Read.All and User.Read.
 {
   "clientID": "a83e57d8-24af-4aec-bc8f-822db8d165b0",
   "clientSecret": "Ytgbfjtj4652jHDFGls99jF",
-  "clientTenantID": "a83e57d8-24af-4aec-bc8f-822db8d165b0"
+  "clientTenantID": "a83e57d8-24af-4aec-bc8f-822db8d165b0",
+  "graphEventsEnabled": false
 }
 ```
 
@@ -633,6 +634,14 @@ Type: `string`
 
 ID of the tenant for the identity provider, if any. This may be required for
 autologin, depending on the mode.
+
+##### `graphEventsEnabled`
+
+Type: `boolean`
+
+Enables background jobs to maintain subscriptions to Entra to be notified of
+changes in groups, users and memmber assignation. This requires A3S to be
+configured with an event hook endpoint.
 
 ### MTLSSourceOkta
 
@@ -2292,6 +2301,42 @@ The resource to check permission for.
 Type: `string`
 
 The token to check.
+
+### EntraEvent
+
+API to handle entra subscription events.
+
+#### Relations
+
+##### `POST /entraevents`
+
+Handle a new Entra Event.
+
+#### Attributes
+
+##### `payload`
+
+Type: `string`
+
+The raw content of the notification event.
+
+### OktaEvent
+
+API to handle okta event hooks.
+
+#### Relations
+
+##### `POST /oktaevents`
+
+Handle a new Okta Event.
+
+#### Attributes
+
+##### `payload`
+
+Type: `string`
+
+The raw content of the event event.
 
 ### Permissions
 

@@ -31,6 +31,10 @@ relations:
   create:
     description: Sends a authz request.
 
+- rest_name: entraevent
+  create:
+    description: Handle a new Entra Event.
+
 - rest_name: group
   get:
     description: Retrieves the list of groups.
@@ -109,6 +113,10 @@ relations:
     - $queryable
   create:
     description: Creates a new oidcsource.
+
+- rest_name: oktaevent
+  create:
+    description: Handle a new Okta Event.
 
 - rest_name: permissions
   create:

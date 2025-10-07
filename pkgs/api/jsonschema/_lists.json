@@ -18,6 +18,12 @@
       },
       "type": "array"
     },
+    "entraevents": {
+      "items": {
+        "$ref": "entraevent.json"
+      },
+      "type": "array"
+    },
     "groups": {
       "items": {
         "$ref": "group.json"
@@ -159,6 +165,12 @@
     "oidcsources": {
       "items": {
         "$ref": "oidcsource.json"
+      },
+      "type": "array"
+    },
+    "oktaevents": {
+      "items": {
+        "$ref": "oktaevent.json"
       },
       "type": "array"
     },

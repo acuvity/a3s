@@ -1,0 +1,25 @@
+{
+  "$extends": [],
+  "$friendlyName": "OKta Event",
+  "$friendlyNamePlural": "OKta Events",
+  "$modelName": "OktaEvent",
+  "$modelPackage": "a3s",
+  "$modelResourceName": "oktaevents",
+  "$modelRestName": "oktaevent",
+  "additionalProperties": false,
+  "description": "API to handle okta event hooks.",
+  "properties": {
+    "payload": {
+      "$friendlyName": "Payload",
+      "description": "The raw content of the event event.",
+      "title": "payload",
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  },
+  "required": [],
+  "title": "OktaEvent",
+  "type": "object"
+}

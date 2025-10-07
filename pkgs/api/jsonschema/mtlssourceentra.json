@@ -33,6 +33,15 @@
         "string",
         "null"
       ]
+    },
+    "graphEventsEnabled": {
+      "$friendlyName": "Enable Graph Events",
+      "description": "Enables background jobs to maintain subscriptions to Entra to be notified of changes in groups, users and memmber assignation. This requires A3S to be configured with an event hook endpoint.",
+      "title": "graphEventsEnabled",
+      "type": [
+        "boolean",
+        "null"
+      ]
     }
   },
   "required": [

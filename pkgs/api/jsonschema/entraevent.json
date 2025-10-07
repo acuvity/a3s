@@ -1,0 +1,25 @@
+{
+  "$extends": [],
+  "$friendlyName": "Entra Event",
+  "$friendlyNamePlural": "Entra Events",
+  "$modelName": "EntraEvent",
+  "$modelPackage": "a3s",
+  "$modelResourceName": "entraevents",
+  "$modelRestName": "entraevent",
+  "additionalProperties": false,
+  "description": "API to handle entra subscription events.",
+  "properties": {
+    "payload": {
+      "$friendlyName": "Payload",
+      "description": "The raw content of the notification event.",
+      "title": "payload",
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  },
+  "required": [],
+  "title": "EntraEvent",
+  "type": "object"
+}

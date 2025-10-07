@@ -16,6 +16,7 @@ require (
 	github.com/andreyvit/diff v0.0.0-20170406064948-c7f18ee00883
 	github.com/apparentlymart/go-cidr v1.1.0
 	github.com/aws/aws-sdk-go v1.44.188
+	github.com/bsm/redislock v0.9.4
 	github.com/coreos/go-oidc/v3 v3.11.0
 	github.com/deckarep/golang-set v1.8.0
 	github.com/fatih/structs v1.1.0

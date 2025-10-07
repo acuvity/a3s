@@ -10,6 +10,7 @@ var (
 		"a3ssource":        A3SSourceIdentity,
 		"authorization":    AuthorizationIdentity,
 		"authz":            AuthzIdentity,
+		"entraevent":       EntraEventIdentity,
 		"group":            GroupIdentity,
 		"httpsource":       HTTPSourceIdentity,
 		"identitymodifier": IdentityModifierIdentity,
@@ -24,6 +25,7 @@ var (
 		"namespacedeletionrecord": NamespaceDeletionRecordIdentity,
 		"oauth2source":            OAuth2SourceIdentity,
 		"oidcsource":              OIDCSourceIdentity,
+		"oktaevent":               OktaEventIdentity,
 		"permissions":             PermissionsIdentity,
 		"revocation":              RevocationIdentity,
 		"root":                    RootIdentity,
@@ -34,6 +36,7 @@ var (
 		"a3ssources":       A3SSourceIdentity,
 		"authorizations":   AuthorizationIdentity,
 		"authz":            AuthzIdentity,
+		"entraevents":      EntraEventIdentity,
 		"groups":           GroupIdentity,
 		"httpsources":      HTTPSourceIdentity,
 		"identitymodifier": IdentityModifierIdentity,
@@ -48,6 +51,7 @@ var (
 		"namespacedeletionrecords": NamespaceDeletionRecordIdentity,
 		"oauth2sources":            OAuth2SourceIdentity,
 		"oidcsources":              OIDCSourceIdentity,
+		"oktaevents":               OktaEventIdentity,
 		"permissions":              PermissionsIdentity,
 		"revocations":              RevocationIdentity,
 		"root":                     RootIdentity,
@@ -74,7 +78,8 @@ var (
 			{"namespace", "label"},
 			{"namespace", "trustedIssuers"},
 		},
-		"authz": nil,
+		"authz":      nil,
+		"entraevent": nil,
 		"group": {
 			{":shard", ":unique", "zone", "zHash"},
 			{"namespace"},
@@ -139,6 +144,7 @@ var (
 			{"namespace", "importLabel"},
 			{"namespace", "name"},
 		},
+		"oktaevent":   nil,
 		"permissions": nil,
 		"revocation": {
 			{":shard", ":unique", "zone", "zHash"},
@@ -203,6 +209,8 @@ func (f modelManager) Identifiable(identity elemental.Identity) elemental.Identi
 		return NewAuthorization()
 	case AuthzIdentity:
 		return NewAuthz()
+	case EntraEventIdentity:
+		return NewEntraEvent()
 	case GroupIdentity:
 		return NewGroup()
 	case HTTPSourceIdentity:
@@ -227,6 +235,8 @@ func (f modelManager) Identifiable(identity elemental.Identity) elemental.Identi
 		return NewOAuth2Source()
 	case OIDCSourceIdentity:
 		return NewOIDCSource()
+	case OktaEventIdentity:
+		return NewOktaEvent()
 	case PermissionsIdentity:
 		return NewPermissions()
 	case RevocationIdentity:
@@ -250,6 +260,8 @@ func (f modelManager) SparseIdentifiable(identity elemental.Identity) elemental.
 		return NewSparseAuthorization()
 	case AuthzIdentity:
 		return NewSparseAuthz()
+	case EntraEventIdentity:
+		return NewSparseEntraEvent()
 	case GroupIdentity:
 		return NewSparseGroup()
 	case HTTPSourceIdentity:
@@ -274,6 +286,8 @@ func (f modelManager) SparseIdentifiable(identity elemental.Identity) elemental.
 		return NewSparseOAuth2Source()
 	case OIDCSourceIdentity:
 		return NewSparseOIDCSource()
+	case OktaEventIdentity:
+		return NewSparseOktaEvent()
 	case PermissionsIdentity:
 		return NewSparsePermissions()
 	case RevocationIdentity:
@@ -305,6 +319,8 @@ func (f modelManager) Identifiables(identity elemental.Identity) elemental.Ident
 		return &AuthorizationsList{}
 	case AuthzIdentity:
 		return &AuthzsList{}
+	case EntraEventIdentity:
+		return &EntraEventsList{}
 	case GroupIdentity:
 		return &GroupsList{}
 	case HTTPSourceIdentity:
@@ -329,6 +345,8 @@ func (f modelManager) Identifiables(identity elemental.Identity) elemental.Ident
 		return &OAuth2SourcesList{}
 	case OIDCSourceIdentity:
 		return &OIDCSourcesList{}
+	case OktaEventIdentity:
+		return &OktaEventsList{}
 	case PermissionsIdentity:
 		return &PermissionsList{}
 	case RevocationIdentity:
@@ -350,6 +368,8 @@ func (f modelManager) SparseIdentifiables(identity elemental.Identity) elemental
 		return &SparseAuthorizationsList{}
 	case AuthzIdentity:
 		return &SparseAuthzsList{}
+	case EntraEventIdentity:
+		return &SparseEntraEventsList{}
 	case GroupIdentity:
 		return &SparseGroupsList{}
 	case HTTPSourceIdentity:
@@ -374,6 +394,8 @@ func (f modelManager) SparseIdentifiables(identity elemental.Identity) elemental
 		return &SparseOAuth2SourcesList{}
 	case OIDCSourceIdentity:
 		return &SparseOIDCSourcesList{}
+	case OktaEventIdentity:
+		return &SparseOktaEventsList{}
 	case PermissionsIdentity:
 		return &SparsePermissionsList{}
 	case RevocationIdentity:
@@ -444,6 +466,7 @@ func AllIdentities() []elemental.Identity {
 		A3SSourceIdentity,
 		AuthorizationIdentity,
 		AuthzIdentity,
+		EntraEventIdentity,
 		GroupIdentity,
 		HTTPSourceIdentity,
 		IdentityModifierIdentity,
@@ -456,6 +479,7 @@ func AllIdentities() []elemental.Identity {
 		NamespaceDeletionRecordIdentity,
 		OAuth2SourceIdentity,
 		OIDCSourceIdentity,
+		OktaEventIdentity,
 		PermissionsIdentity,
 		RevocationIdentity,
 		RootIdentity,
@@ -472,6 +496,8 @@ func AliasesForIdentity(identity elemental.Identity) []string {
 	case AuthorizationIdentity:
 		return []string{}
 	case AuthzIdentity:
+		return []string{}
+	case EntraEventIdentity:
 		return []string{}
 	case GroupIdentity:
 		return []string{}
@@ -496,6 +522,8 @@ func AliasesForIdentity(identity elemental.Identity) []string {
 	case OAuth2SourceIdentity:
 		return []string{}
 	case OIDCSourceIdentity:
+		return []string{}
+	case OktaEventIdentity:
 		return []string{}
 	case PermissionsIdentity:
 		return []string{}

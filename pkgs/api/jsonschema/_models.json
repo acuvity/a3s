@@ -9,6 +9,9 @@
     "authz": {
       "$ref": "authz.json"
     },
+    "entraevent": {
+      "$ref": "entraevent.json"
+    },
     "group": {
       "$ref": "group.json"
     },
@@ -80,6 +83,9 @@
     },
     "oidcsource": {
       "$ref": "oidcsource.json"
+    },
+    "oktaevent": {
+      "$ref": "oktaevent.json"
     },
     "permissions": {
       "$ref": "permissions.json"

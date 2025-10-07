@@ -7,15 +7,17 @@ import (
 	"strings"
 
 	"go.acuvity.ai/a3s/internal/identitymodifier"
+	"go.acuvity.ai/a3s/internal/idp/entra"
+	"go.acuvity.ai/a3s/internal/idp/okta"
 	"go.acuvity.ai/a3s/pkgs/api"
 	"go.acuvity.ai/a3s/pkgs/token"
 )
 
 // New returns a new MTLS issuer.
-func New(ctx context.Context, source *api.MTLSSource, cert *x509.Certificate) (token.Issuer, error) {
+func New(ctx context.Context, source *api.MTLSSource, cert *x509.Certificate, entraManager *entra.Manager, oktaManager *okta.Manager) (token.Issuer, error) {
 
 	c := newMTLSIssuer(source)
-	if err := c.fromCertificate(ctx, cert); err != nil {
+	if err := c.fromCertificate(ctx, cert, entraManager, oktaManager); err != nil {
 		return nil, err
 	}
 
@@ -39,7 +41,7 @@ func newMTLSIssuer(source *api.MTLSSource) *mtlsIssuer {
 	}
 }
 
-func (c *mtlsIssuer) fromCertificate(ctx context.Context, cert *x509.Certificate) error {
+func (c *mtlsIssuer) fromCertificate(ctx context.Context, cert *x509.Certificate, entraManager *entra.Manager, oktaManager *okta.Manager) error {
 
 	pool := x509.NewCertPool()
 	if !pool.AppendCertsFromPEM([]byte(c.source.CA)) {
@@ -72,13 +74,13 @@ func (c *mtlsIssuer) fromCertificate(ctx context.Context, cert *x509.Certificate
 
 	case api.MTLSSourceClaimsRetrievalModeEntra:
 
-		if err := handleEntraAutologin(c, cert); err != nil {
+		if err := handleEntraAutologin(c, cert, entraManager); err != nil {
 			return fmt.Errorf("unable to perform entra additional claims retrieval: %w", err)
 		}
 
 	case api.MTLSSourceClaimsRetrievalModeOkta:
 
-		if err := handleOktaAutologin(c, cert); err != nil {
+		if err := handleOktaAutologin(c, cert, oktaManager); err != nil {
 			return fmt.Errorf("unable to perform okta additional claims retrieval: %w", err)
 		}
 

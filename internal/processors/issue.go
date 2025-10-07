@@ -15,6 +15,8 @@ import (
 	"github.com/karlseguin/ccache/v3"
 	saml2 "github.com/russellhaering/gosaml2"
 	dsig "github.com/russellhaering/goxmldsig"
+	"go.acuvity.ai/a3s/internal/idp/entra"
+	"go.acuvity.ai/a3s/internal/idp/okta"
 	"go.acuvity.ai/a3s/internal/issuer/a3sissuer"
 	"go.acuvity.ai/a3s/internal/issuer/awsissuer"
 	"go.acuvity.ai/a3s/internal/issuer/azureissuer"
@@ -68,6 +70,8 @@ type IssueProcessor struct {
 	samlIDPMedataCache    *ccache.Cache[string]
 	oidSourceName         asn1.ObjectIdentifier
 	oidSourceNamespace    asn1.ObjectIdentifier
+	entraManager          *entra.Manager
+	oktaManager           *okta.Manager
 }
 
 // NewIssueProcessor returns a new IssueProcessor.
@@ -91,6 +95,8 @@ func NewIssueProcessor(
 	binaryModifier *binary.Modifier,
 	oidSourceName asn1.ObjectIdentifier,
 	oidSourceNamespace asn1.ObjectIdentifier,
+	entraManager *entra.Manager,
+	oktaManager *okta.Manager,
 ) *IssueProcessor {
 
 	// Make a map for fast lookups.
@@ -120,6 +126,8 @@ func NewIssueProcessor(
 		samlIDPMedataCache:    ccache.New(ccache.Configure[string]().MaxSize(2048)),
 		oidSourceName:         oidSourceName,
 		oidSourceNamespace:    oidSourceNamespace,
+		entraManager:          entraManager,
+		oktaManager:           oktaManager,
 	}
 }
 
@@ -391,7 +399,7 @@ func (p *IssueProcessor) handleCertificateIssue(ctx context.Context, source elem
 
 	src := source.(*api.MTLSSource)
 
-	iss, err := mtlsissuer.New(ctx, src, certs[0])
+	iss, err := mtlsissuer.New(ctx, src, certs[0], p.entraManager, p.oktaManager)
 	if err != nil {
 		return nil, err
 	}

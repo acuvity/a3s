@@ -21,6 +21,7 @@ type Conf struct {
 	AuditedIdentities  []string `mapstructure:"audited-identities" desc:"Identities that will be tracked for audit purposes" default:"issue"`
 	BinaryModifier     string   `mapstructure:"binary-modifier" desc:"Path to modifier binary. If set, binary-modifier-sha256 must be set"`
 	BinaryModifierHash string   `mapstructure:"binary-modifier-sha256" desc:"Sha256 hash of the binary-modifier"`
+	EntraNotifEndpoint string   `mapstructure:"entra-notification-endpoint" desc:"The hook URL to use when subscribing to MS Graph notifications" default:"/idp/entra/events"`
 	Init               bool     `mapstructure:"init" desc:"If set, initialize the root permissions using the CAs passed in --init-root-ca and --init-platform-ca"`
 	InitContinue       bool     `mapstructure:"init-continue" desc:"Continues normal boot after init."`
 	InitDB             bool     `mapstructure:"init-db" desc:"If set, initialize the database using the mongo config passed in and init-db-username"`
@@ -44,6 +45,7 @@ type Conf struct {
 	conf.NATSPublisherConf   `mapstructure:",squash"`
 	conf.ProfilingConf       `mapstructure:",squash"`
 	conf.RateLimitingConf    `mapstructure:",squash"`
+	conf.RedisConf           `mapstructure:",squash"`
 	conf.TLSAutoConf         `mapstructure:",squash"`
 	conf.TLSConf             `mapstructure:",squash"`
 }

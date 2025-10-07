@@ -97,14 +97,14 @@ func TestMTLSIssuer(t *testing.T) {
 
 			Convey("Calling FromCertificate with a source missing a CA", func() {
 				src.CA = ""
-				_, err := New(context.Background(), src, usercert2)
+				_, err := New(context.Background(), src, usercert2, nil, nil)
 				So(err, ShouldNotBeNil)
 				So(err.Error(), ShouldStartWith, "unable to prepare x509 verifier: could not append cert from source.CA")
 			})
 
 			Convey("Calling FromCertificate with a valid user cert should work", func() {
 
-				iss, err := New(context.Background(), src, usercert1)
+				iss, err := New(context.Background(), src, usercert1, nil, nil)
 				So(err, ShouldBeNil)
 
 				idt := iss.Issue()
@@ -149,7 +149,7 @@ func TestMTLSIssuer(t *testing.T) {
 				src.Modifier.Certificate = string(pem.EncodeToMemory(certb))
 				src.Modifier.Key = string(pem.EncodeToMemory(keyb))
 
-				iss, err := New(context.Background(), src, usercert1)
+				iss, err := New(context.Background(), src, usercert1, nil, nil)
 				So(err, ShouldBeNil)
 
 				idt := iss.Issue()
@@ -172,7 +172,7 @@ func TestMTLSIssuer(t *testing.T) {
 				src.Modifier.CA = string(pem.EncodeToMemory(cab))
 				src.Modifier.URL = ts.URL
 
-				err := iss.fromCertificate(context.Background(), usercert1)
+				err := iss.fromCertificate(context.Background(), usercert1, nil, nil)
 				So(err, ShouldNotBeNil)
 				So(err.Error(), ShouldEqual, `unable to prepare source modifier: unable to create certificate: could not read key data from bytes: ''`)
 			})
@@ -193,14 +193,14 @@ func TestMTLSIssuer(t *testing.T) {
 				src.Modifier.Certificate = string(pem.EncodeToMemory(certb))
 				src.Modifier.Key = string(pem.EncodeToMemory(keyb))
 
-				err := iss.fromCertificate(context.Background(), usercert1)
+				err := iss.fromCertificate(context.Background(), usercert1, nil, nil)
 				So(err, ShouldNotBeNil)
 				So(err.Error(), ShouldEqual, `unable to call modifier: service returned an error: 403 Forbidden`)
 			})
 
 			Convey("Calling FromCertificate with a invalid user cert should work", func() {
 
-				err := iss.fromCertificate(context.Background(), usercert2)
+				err := iss.fromCertificate(context.Background(), usercert2, nil, nil)
 				So(err, ShouldNotBeNil)
 				So(err.Error(), ShouldStartWith, "unable to verify certificate: x509: certificate signed by unknown authority")
 			})

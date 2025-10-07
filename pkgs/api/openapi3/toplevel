@@ -240,6 +240,16 @@
         ],
         "type": "object"
       },
+      "entraevent": {
+        "description": "API to handle entra subscription events.",
+        "properties": {
+          "payload": {
+            "description": "The raw content of the notification event.",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
       "group": {
         "description": "TODO.",
         "properties": {
@@ -1145,6 +1155,10 @@
             "description": "ID of the tenant for the identity provider, if any. This may be required for\nautologin, depending on the mode.",
             "example": "a83e57d8-24af-4aec-bc8f-822db8d165b0",
             "type": "string"
+          },
+          "graphEventsEnabled": {
+            "description": "Enables background jobs to maintain subscriptions to Entra to be notified of\nchanges in groups, users and memmber assignation. This requires A3S to be\nconfigured with an event hook endpoint.",
+            "type": "boolean"
           }
         },
         "required": [
@@ -1462,6 +1476,16 @@
           "endpoint",
           "name"
         ],
+        "type": "object"
+      },
+      "oktaevent": {
+        "description": "API to handle okta event hooks.",
+        "properties": {
+          "payload": {
+            "description": "The raw content of the event event.",
+            "type": "string"
+          }
+        },
         "type": "object"
       },
       "permissions": {
@@ -2099,6 +2123,37 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/authz"
+                }
+              }
+            },
+            "description": "n/a"
+          }
+        },
+        "tags": [
+          "authz/check"
+        ]
+      }
+    },
+    "/entraevents": {
+      "post": {
+        "description": "Handle a new Entra Event.",
+        "operationId": "create-EntraEvent",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/entraevent"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/entraevent"
                 }
               }
             },
@@ -3312,6 +3367,37 @@
         },
         "tags": [
           "authn/source"
+        ]
+      }
+    },
+    "/oktaevents": {
+      "post": {
+        "description": "Handle a new Okta Event.",
+        "operationId": "create-OktaEvent",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/oktaevent"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/oktaevent"
+                }
+              }
+            },
+            "description": "n/a"
+          }
+        },
+        "tags": [
+          "authz/check"
         ]
       }
     },
