@@ -3,11 +3,13 @@ package bootstrap
 import (
 	"context"
 	"crypto/tls"
+	"crypto/x509"
 	"fmt"
 	"log/slog"
 	"os"
 	"time"
 
+	"github.com/redis/go-redis/v9"
 	"go.acuvity.ai/a3s/pkgs/authenticator"
 	"go.acuvity.ai/a3s/pkgs/authlib"
 	"go.acuvity.ai/a3s/pkgs/authorizer"
@@ -264,4 +266,61 @@ func MakeA3SRemoteAuthX(
 			authorizer.OptionIgnoredResources(publicResources...),
 		),
 		nil
+}
+
+// MakeRedisClient returns a redis client based on the provided configuration.
+func MakeRedisClient(cfg conf.RedisConf) (redis.UniversalClient, error) {
+
+	tlsConfig := &tls.Config{
+		MinVersion: tls.VersionTLS13,
+	}
+
+	if cfg.RedisTLSCert != "" {
+		cert, key, err := tglib.ReadCertificatePEM(
+			cfg.RedisTLSCert,
+			cfg.RedisTLSKey,
+			cfg.RedisTLSKeyPass,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("unable to read certificate: %w", err)
+		}
+
+		clientCert, err := tglib.ToTLSCertificate(cert, key)
+		if err != nil {
+			return nil, fmt.Errorf("unable to convert client certificate: %w", err)
+		}
+
+		tlsConfig.Certificates = []tls.Certificate{clientCert}
+	}
+
+	if cfg.RedisTLSCA == "" {
+		pool, err := x509.SystemCertPool()
+		if err != nil {
+			return nil, fmt.Errorf("unable to load system cert pool: %w", err)
+		}
+
+		tlsConfig.RootCAs = pool
+	} else {
+		data, err := os.ReadFile(cfg.RedisTLSCA)
+		if err != nil {
+			return nil, fmt.Errorf("unable to read CA file: %w", err)
+		}
+
+		pool := x509.NewCertPool()
+		if !pool.AppendCertsFromPEM(data) {
+			return nil, fmt.Errorf("unable to append system signing ca")
+		}
+
+		tlsConfig.RootCAs = pool
+	}
+
+	return redis.NewClient(&redis.Options{
+		Addr:        cfg.RedisAddress,
+		Username:    cfg.RedisUser,
+		Password:    cfg.RedisPassword,
+		DB:          cfg.RedisDB,
+		DialTimeout: cfg.RedisDialTimeout,
+		PoolSize:    cfg.RedisPoolSize,
+		TLSConfig:   tlsConfig,
+	}), nil
 }

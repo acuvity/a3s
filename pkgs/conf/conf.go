@@ -558,3 +558,16 @@ func (c *GatewayConf) GWHiddenAPIs() map[elemental.Identity]bool {
 
 	return out
 }
+
+type RedisConf struct {
+	RedisAddress     string        `mapstructure:"redis-address"      desc:"Network address for redis."                      `
+	RedisDialTimeout time.Duration `mapstructure:"redis-dial-timeout" desc:"Dial timeout for new connections to/from redis." default:"30s"`
+	RedisDB          int           `mapstructure:"redis-db"           desc:"Databse number for redis."                       default:"0"`
+	RedisPassword    string        `mapstructure:"redis-pass"         desc:"Password for redis."                             secret:"true" file:"true"`
+	RedisPoolSize    int           `mapstructure:"redis-pool-size"    desc:"Socket pool size for redis."                     `
+	RedisTLSCA       string        `mapstructure:"redis-tls-ca"       desc:"The CA that redis is using"                      `
+	RedisTLSCert     string        `mapstructure:"redis-tls-cert"     desc:"The TLS cert to communicate with redis"          `
+	RedisTLSKey      string        `mapstructure:"redis-tls-key"      desc:"The TLS key to communicate with redis"           `
+	RedisTLSKeyPass  string        `mapstructure:"redis-tls-key-pass" desc:"The passphrase associated with the TLS key"      file:"true" secret:"true"`
+	RedisUser        string        `mapstructure:"redis-user"         desc:"User for redis."                                 default:"default"`
+}
