@@ -3,7 +3,7 @@ model:
   rest_name: mtlssource
   resource_name: mtlssources
   entity_name: MTLSSource
-  friendly_name: MTLSSource
+  friendly_name: MTLS Source
   package: a3s
   group: authn/source
   description: An MTLS Auth source can be used to issue tokens based on user certificates.
