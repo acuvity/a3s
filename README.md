@@ -1,4 +1,4 @@
-# A3S
+# A3S>>>>
 
 > NOTE: This is a work in progress.
 
@@ -45,6 +45,9 @@ particular namespace.
     * [MTLS](#mtls)
       * [Create an MTLS source](#create-an-mtls-source)
       * [Obtain a token from MTLS source](#obtain-a-token-from-mtls-source)
+      * [Configure Claims Retrieval Mode](#configure-claims-retrieval-mode)
+        * [Okta](#okta)
+        * [Entra](#entra)
     * [LDAP](#ldap)
       * [Create an LDAP source](#create-an-ldap-source)
       * [Obtain a token from LDAP source](#obtain-a-token-from-ldap-source)
@@ -338,6 +341,96 @@ If the private key is encrypted, you need to set the flag `--pass <passphrase>`.
 
 > NOTE: You can set `-` for `--pass`. In that case, a3sctl will ask for user
 > input from stdin.
+
+##### Configure Claims Retrieval Mode
+
+By default, the MTLSSource will extract the X.509 information from the client
+certificate, and will convert them into claims. You can however decide to
+retrieve claims from a remote IDP (Entra or Okta).
+
+You can configure this by setting the `claimsRetrievalMode` to either `Okta` or
+`Entra` instead of the default `X509`.
+
+When using this mode, you need to make sure the client certificate contains the
+user principalName that will be used to match them with the IDP in either
+CommonName or the first Email extensions. You can choose either by setting
+`principalUserX509Field` to either `Email` or `CommonName`.
+
+Then you need to configure the application credentials for the related IDP.
+
+###### Okta
+
+You must first configure a new Okta application with the following config:
+
+- Type: `API Service`
+- Client Authentication: `Public Key/Private Key`
+- Create a new key, note the cert in PEM, and the KID.
+- Grant API Scopes: `okta.users.read` and `okta.groups.read`
+- Admin Roles: `Read-Only Administrator` (you can create a less permissive role)
+
+Then create the source like so:
+
+    a3sctl api create mtlssource \
+      --with.name my-okta-mtls-source \
+      --with.ca "$(cat myca-cert.pem)" \
+      --with.claims-retrieval-mode Okta \
+      --with.okta-application-credentials.client-id "client-id" \
+      --with.okta-application-credentials.private-key "private-key" \
+      --with.okta-application-credentials.kid "KID" \
+      --with.okta-application-credentials.domain "my.okta.com"
+
+You can also hook on okta events to revoke tokens using claims that must be
+updated, giving a chance to the clients to renew the token to get a fresh set of
+claims. To do so, you must create an Okta Event Hook:
+
+First generate a long lived token, and create an Authorization matching that
+token claims with the permissions `oktaevents:create`.
+
+- Go to Workflow/Event Hooks
+- Create a new Event Hook
+- Set URL: `https://api.acme.com/idp/okta/events`
+- Authentication Field: `Authorization`
+- Authentication Secret: `Bearer <token>` (yes, you need Bearer)
+- Event subs:
+  - `group.user_membership.add`
+  - `group.user_membership.remove`
+  - `group.lifecycle.delete`
+  - `group.profile.update`
+  - `user.lifecycle.delete.initiated`
+  - `user.lifecycle.suspend`
+  - `user.lifecycle.deactivate`
+
+> NOTE: the URL must be publicly accessible. You can use a proxy, or the bahamut
+> gateway with an interceptor.
+
+###### Entra
+
+You must first register an Entra application with the following config:
+
+- Select `Accounts in this organizational directory only (Acuvity Inc only - Single tenant)`
+- Add a new `Client Secret` and take not of its value (not id).
+- Grant API Permissions `Directory.Read.All`
+
+Then create the source like so:
+
+    a3sctl api create mtlssource \
+      --with.name my-entra-mtls-source \
+      --with.ca "$(cat myca-cert.pem)" \
+      --with.claims-retrieval-mode Entra \
+      --with.entra-application-credentials.client-id "client-id" \
+      --with.entra-application-credentials.client-secret "client-secret" \
+      --with.entra-application-credentials.client-tenant-id "entra-tenant-id"
+
+You can also hook on MS graph api to revoke tokens using claims that must be
+updated, giving a chance to the clients to renew the token to get a fresh set of
+claims. To do so, you just need to configure a3s with
+`--entra-notification-endpoint` set to a publicly available endpoint that will
+send a `POST entraenents`.
+
+Then you simply need to enable `GraphEventsEnabled: true`. For instance:
+
+    a3sctl api update my-entra-mtls-source \
+      --with.entra-application-credentials.graph-events-enabled
 
 #### LDAP
 
