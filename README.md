@@ -1,4 +1,4 @@
-# A3S>>>>
+# A3S
 
 > NOTE: This is a work in progress.
 
