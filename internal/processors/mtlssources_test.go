@@ -27,6 +27,7 @@ func TestInsertEntraSecrets(t *testing.T) {
 	Convey("Creating a new source with graph event on", t, func() {
 
 		src := api.NewMTLSSource()
+		src.ClaimsRetrievalMode = api.MTLSSourceClaimsRetrievalModeEntra
 		src.EntraApplicationCredentials = api.NewMTLSSourceEntra()
 		src.EntraApplicationCredentials.GraphEventsEnabled = true
 
@@ -40,6 +41,7 @@ func TestInsertEntraSecrets(t *testing.T) {
 	Convey("Creating a new source with graph event off", t, func() {
 
 		src := api.NewMTLSSource()
+		src.ClaimsRetrievalMode = api.MTLSSourceClaimsRetrievalModeEntra
 		src.EntraApplicationCredentials = api.NewMTLSSourceEntra()
 		src.EntraApplicationCredentials.GraphEventsEnabled = false
 
@@ -62,10 +64,12 @@ func TestInsertEntraSecrets(t *testing.T) {
 	Convey("Turning on graphevent when orig is off", t, func() {
 
 		orig := api.NewMTLSSource()
+		orig.ClaimsRetrievalMode = api.MTLSSourceClaimsRetrievalModeEntra
 		orig.EntraApplicationCredentials = api.NewMTLSSourceEntra()
 		orig.EntraApplicationCredentials.GraphEventsEnabled = false
 
 		src := api.NewMTLSSource()
+		src.ClaimsRetrievalMode = api.MTLSSourceClaimsRetrievalModeEntra
 		src.EntraApplicationCredentials = api.NewMTLSSourceEntra()
 		src.EntraApplicationCredentials.GraphEventsEnabled = true
 
@@ -80,8 +84,10 @@ func TestInsertEntraSecrets(t *testing.T) {
 	Convey("Turning on graphevent when orig is nil", t, func() {
 
 		orig := api.NewMTLSSource()
+		orig.ClaimsRetrievalMode = api.MTLSSourceClaimsRetrievalModeEntra
 
 		src := api.NewMTLSSource()
+		src.ClaimsRetrievalMode = api.MTLSSourceClaimsRetrievalModeEntra
 		src.EntraApplicationCredentials = api.NewMTLSSourceEntra()
 		src.EntraApplicationCredentials.GraphEventsEnabled = true
 
@@ -96,6 +102,7 @@ func TestInsertEntraSecrets(t *testing.T) {
 	Convey("Turning on graphevent when orig is on", t, func() {
 
 		orig := api.NewMTLSSource()
+		orig.ClaimsRetrievalMode = api.MTLSSourceClaimsRetrievalModeEntra
 		orig.EntraApplicationCredentials = api.NewMTLSSourceEntra()
 		orig.EntraApplicationCredentials.GraphEventsEnabled = true
 		orig.EntraApplicationCredentials.GraphEventSecret = "secret"
@@ -103,6 +110,7 @@ func TestInsertEntraSecrets(t *testing.T) {
 		orig.EntraApplicationCredentials.GraphSubscriptionIDs = map[string]string{"g": "x"}
 
 		src := api.NewMTLSSource()
+		src.ClaimsRetrievalMode = api.MTLSSourceClaimsRetrievalModeEntra
 		src.EntraApplicationCredentials = api.NewMTLSSourceEntra()
 		src.EntraApplicationCredentials.GraphEventsEnabled = true
 
@@ -117,6 +125,7 @@ func TestInsertEntraSecrets(t *testing.T) {
 	Convey("Turning off graphevent when orig is on", t, func() {
 
 		orig := api.NewMTLSSource()
+		orig.ClaimsRetrievalMode = api.MTLSSourceClaimsRetrievalModeEntra
 		orig.EntraApplicationCredentials = api.NewMTLSSourceEntra()
 		orig.EntraApplicationCredentials.GraphEventsEnabled = true
 		orig.EntraApplicationCredentials.GraphEventSecret = "secret"
@@ -124,6 +133,7 @@ func TestInsertEntraSecrets(t *testing.T) {
 		orig.EntraApplicationCredentials.GraphSubscriptionIDs = map[string]string{"g": "x"}
 
 		src := api.NewMTLSSource()
+		src.ClaimsRetrievalMode = api.MTLSSourceClaimsRetrievalModeEntra
 		src.EntraApplicationCredentials = api.NewMTLSSourceEntra()
 		src.EntraApplicationCredentials.GraphEventsEnabled = false
 
@@ -155,10 +165,12 @@ func TestInsertEntraSecrets(t *testing.T) {
 	Convey("Turning off graphevent when orig is off", t, func() {
 
 		orig := api.NewMTLSSource()
+		orig.ClaimsRetrievalMode = api.MTLSSourceClaimsRetrievalModeEntra
 		orig.EntraApplicationCredentials = api.NewMTLSSourceEntra()
 		orig.EntraApplicationCredentials.GraphEventsEnabled = false
 
 		src := api.NewMTLSSource()
+		src.ClaimsRetrievalMode = api.MTLSSourceClaimsRetrievalModeEntra
 		src.EntraApplicationCredentials = api.NewMTLSSourceEntra()
 		src.EntraApplicationCredentials.GraphEventsEnabled = false
 
@@ -173,8 +185,10 @@ func TestInsertEntraSecrets(t *testing.T) {
 	Convey("Turning off graphevent when orig is nil", t, func() {
 
 		orig := api.NewMTLSSource()
+		orig.ClaimsRetrievalMode = api.MTLSSourceClaimsRetrievalModeEntra
 
 		src := api.NewMTLSSource()
+		src.ClaimsRetrievalMode = api.MTLSSourceClaimsRetrievalModeEntra
 		src.EntraApplicationCredentials = api.NewMTLSSourceEntra()
 		src.EntraApplicationCredentials.GraphEventsEnabled = false
 

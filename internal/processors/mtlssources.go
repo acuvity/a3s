@@ -134,6 +134,16 @@ func insertTLSReferences(src *api.MTLSSource) error {
 
 func insertEntraSecrets(src *api.MTLSSource, orig *api.MTLSSource) {
 
+	switch src.ClaimsRetrievalMode {
+	case api.MTLSSourceClaimsRetrievalModeEntra:
+		src.OktaApplicationCredentials = nil
+	case api.MTLSSourceClaimsRetrievalModeOkta:
+		src.EntraApplicationCredentials = nil
+	default:
+		src.OktaApplicationCredentials = nil
+		src.EntraApplicationCredentials = nil
+	}
+
 	installGraphEvents := func() {
 		b := make([]byte, 64)
 		if _, err := rand.Read(b); err != nil {
