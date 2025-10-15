@@ -82,7 +82,6 @@ attributes:
     exposed: true
     subtype: mtlssourceentra
     stored: true
-    omit_empty: true
     extensions:
       noInit: true
       refMode: pointer
@@ -128,7 +127,6 @@ attributes:
     exposed: true
     subtype: mtlssourceokta
     stored: true
-    omit_empty: true
     extensions:
       noInit: true
       refMode: pointer

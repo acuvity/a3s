@@ -126,7 +126,7 @@ type MTLSSource struct {
 	Description string `json:"description" msgpack:"description" bson:"description" mapstructure:"description,omitempty"`
 
 	// Additional information required when claims retrieval mode is set to Entra.
-	EntraApplicationCredentials *MTLSSourceEntra `json:"entraApplicationCredentials,omitempty" msgpack:"entraApplicationCredentials,omitempty" bson:"entraapplicationcredentials,omitempty" mapstructure:"entraApplicationCredentials,omitempty"`
+	EntraApplicationCredentials *MTLSSourceEntra `json:"entraApplicationCredentials" msgpack:"entraApplicationCredentials" bson:"entraapplicationcredentials" mapstructure:"entraApplicationCredentials,omitempty"`
 
 	// The fingerprint of the CAs in the chain.
 	Fingerprints []string `json:"fingerprints" msgpack:"fingerprints" bson:"fingerprints" mapstructure:"fingerprints,omitempty"`
@@ -159,7 +159,7 @@ type MTLSSource struct {
 	Namespace string `json:"namespace" msgpack:"namespace" bson:"namespace" mapstructure:"namespace,omitempty"`
 
 	// Additional information required when claims retrieval mode is set to Okta.
-	OktaApplicationCredentials *MTLSSourceOkta `json:"oktaApplicationCredentials,omitempty" msgpack:"oktaApplicationCredentials,omitempty" bson:"oktaapplicationcredentials,omitempty" mapstructure:"oktaApplicationCredentials,omitempty"`
+	OktaApplicationCredentials *MTLSSourceOkta `json:"oktaApplicationCredentials" msgpack:"oktaApplicationCredentials" bson:"oktaapplicationcredentials" mapstructure:"oktaApplicationCredentials,omitempty"`
 
 	// The X.509 field to look for to extract the user principal name.
 	PrincipalUserX509Field MTLSSourcePrincipalUserX509FieldValue `json:"principalUserX509Field" msgpack:"principalUserX509Field" bson:"principaluserx509field" mapstructure:"principalUserX509Field,omitempty"`
@@ -1915,7 +1915,7 @@ type mongoAttributesMTLSSource struct {
 	ClaimsRetrievalMode         MTLSSourceClaimsRetrievalModeValue    `bson:"claimsretrievalmode,omitempty"`
 	CreateTime                  time.Time                             `bson:"createtime"`
 	Description                 string                                `bson:"description"`
-	EntraApplicationCredentials *MTLSSourceEntra                      `bson:"entraapplicationcredentials,omitempty"`
+	EntraApplicationCredentials *MTLSSourceEntra                      `bson:"entraapplicationcredentials"`
 	Fingerprints                []string                              `bson:"fingerprints"`
 	IgnoredKeys                 []string                              `bson:"ignoredkeys"`
 	ImportHash                  string                                `bson:"importhash,omitempty"`
@@ -1924,7 +1924,7 @@ type mongoAttributesMTLSSource struct {
 	Modifier                    *IdentityModifier                     `bson:"modifier,omitempty"`
 	Name                        string                                `bson:"name"`
 	Namespace                   string                                `bson:"namespace"`
-	OktaApplicationCredentials  *MTLSSourceOkta                       `bson:"oktaapplicationcredentials,omitempty"`
+	OktaApplicationCredentials  *MTLSSourceOkta                       `bson:"oktaapplicationcredentials"`
 	PrincipalUserX509Field      MTLSSourcePrincipalUserX509FieldValue `bson:"principaluserx509field"`
 	SubjectKeyIDs               []string                              `bson:"subjectkeyids"`
 	UpdateTime                  time.Time                             `bson:"updatetime"`
