@@ -133,19 +133,30 @@ func (p *EntraEventsProcessor) invalidateTokensMacthing(ctx context.Context, log
 		fmt.Sprintf("@source:namespace=%s", src.Namespace),
 	}, claims...)
 
-	revoke := api.NewRevocation()
+	revoke := makeEventTriggeredRevocation(fclaims, src.Namespace)
 
-	revoke.IssuedBefore = time.Now()
-	revoke.Subject = [][]string{fclaims}
-	revoke.Expiration = time.Now().Add(365 * 24 * time.Hour)
-	revoke.Propagate = true
-
-	if err := p.manipulator.Create(manipulate.NewContext(ctx, manipulate.ContextOptionNamespace(src.Namespace)), revoke); err != nil {
+	if err := p.manipulator.Create(manipulate.NewContext(ctx), revoke); err != nil {
 		logger.Error("Unable to revoke entra tokens", "namespace", src.Namespace, "revoked", fclaims, err)
 		return
 	}
 
 	logger.Info("EntraEvent triggered tokens revocation", "namespace", src.Namespace, "revoked", fclaims)
+}
+
+func makeEventTriggeredRevocation(claims []string, namespace string) *api.Revocation {
+
+	revoke := api.NewRevocation()
+
+	revoke.CreateTime = time.Now()
+	revoke.UpdateTime = revoke.CreateTime
+	revoke.Namespace = namespace
+	revoke.IssuedBefore = time.Now()
+	revoke.Subject = [][]string{claims}
+	revoke.Expiration = time.Now().Add(365 * 24 * time.Hour)
+	revoke.Propagate = true
+	revoke.FlattenedSubject = flattenTags(revoke.Subject)
+
+	return revoke
 }
 
 type entraPayload struct {

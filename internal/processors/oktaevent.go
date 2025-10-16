@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
-	"time"
 
 	"go.acuvity.ai/a3s/pkgs/api"
 	"go.acuvity.ai/bahamut"
@@ -94,14 +93,11 @@ func (p *OktaEventsProcessor) invalidateTokensMacthing(ctx context.Context, name
 		"@source:type=mtls",
 	}, claims...)
 
-	revoke := api.NewRevocation()
-	revoke.IssuedBefore = time.Now()
-	revoke.Subject = [][]string{fclaims}
-	revoke.Expiration = time.Now().Add(365 * 24 * time.Hour)
-	revoke.Propagate = true
+	revoke := makeEventTriggeredRevocation(fclaims, namespace)
 
-	if err := p.manipulator.Create(manipulate.NewContext(ctx, manipulate.ContextOptionNamespace(namespace)), revoke); err != nil {
+	if err := p.manipulator.Create(manipulate.NewContext(ctx), revoke); err != nil {
 		slog.Error("Unable to revoke okta tokens", "namespace", namespace, "revoked", fclaims, err)
+		return
 	}
 
 	slog.Info("OktaEvent triggered tokens revocation", "namespace", namespace, "revoked", fclaims)
