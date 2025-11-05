@@ -140,6 +140,7 @@ attributes:
     allowed_choices:
     - CommonName
     - Email
+    - MicrosoftUPN
     default_value: Email
 
   - name: subjectKeyIDs

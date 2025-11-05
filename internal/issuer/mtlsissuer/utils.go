@@ -22,6 +22,14 @@ func getPrincipalName(iss *mtlsIssuer, cert *x509.Certificate) (string, error) {
 			return "", fmt.Errorf("unable to find any email addresses in the user certificate")
 		}
 
+	case api.MTLSSourcePrincipalUserX509FieldMicrosoftUPN:
+		upn, err := getUPNFromCert(cert)
+		if err != nil {
+			return "", fmt.Errorf("unable to find the user principal name in the subject alternative name %w", err)
+		}
+
+		return upn, nil
+
 	default:
 		panic("invalid mtls source principal user field")
 	}
