@@ -24,6 +24,10 @@ type User struct {
 	UserPrincipalName string `json:"userPrincipalName"`
 }
 
+type UserFilterResult struct {
+	Users []*User `json:"value"`
+}
+
 type Group struct {
 	ID          string `json:"id"`
 	DisplayName string `json:"displayName"`

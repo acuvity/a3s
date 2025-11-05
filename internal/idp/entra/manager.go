@@ -118,6 +118,14 @@ func (m *Manager) GetUser(rtoken *AccessToken, principalName string) (*User, err
 	}
 	defer func() { _ = resp.Body.Close() }()
 
+	if resp.StatusCode == http.StatusNotFound {
+		fmt.Println(resp.StatusCode)
+		utils.PeekBody(resp)
+
+		// Try to get the user via the email
+		return m.GetUserByMail(rtoken, principalName)
+	}
+
 	if resp.StatusCode != http.StatusOK {
 		d, _ := io.ReadAll(resp.Body)
 		return nil, elemental.NewError("Invalid status code returned from request to retrieve user", fmt.Sprintf("(%s) %s", resp.Status, string(d)), "a3s:entra", http.StatusBadRequest)
@@ -130,6 +138,49 @@ func (m *Manager) GetUser(rtoken *AccessToken, principalName string) (*User, err
 	if err := dec.Decode(ruser); err != nil {
 		return nil, elemental.NewError("Unable to decode user", err.Error(), "a3s:entra", http.StatusBadRequest)
 	}
+
+	return ruser, nil
+}
+
+// GetUserByMail applies a filter to find the user via the email instead of principal name.
+func (m *Manager) GetUserByMail(rtoken *AccessToken, principalName string) (*User, error) {
+
+	r, err := http.NewRequest(http.MethodGet, fmt.Sprintf("https://graph.microsoft.com/v1.0/users?$filter=mail%%20eq%%20'%s'", principalName), nil)
+	if err != nil {
+		return nil, elemental.NewError("Unable to create request to retrieve user info via email", err.Error(), "a3s:entra", http.StatusBadRequest)
+	}
+	r.Header = http.Header{
+		"Authorization": {"Bearer " + rtoken.Token},
+	}
+
+	resp, err := m.client.Do(r)
+	if err != nil {
+		return nil, elemental.NewError("Unable to send request to retrieve user via email", err.Error(), "a3s:entra", http.StatusBadRequest)
+	}
+	defer func() { _ = resp.Body.Close() }()
+
+	if resp.StatusCode != http.StatusOK {
+		d, _ := io.ReadAll(resp.Body)
+		return nil, elemental.NewError("Invalid status code returned from request to retrieve user via email", fmt.Sprintf("(%s) %s", resp.Status, string(d)), "a3s:entra", http.StatusBadRequest)
+	}
+
+	utils.PeekBody(resp)
+
+	res := &UserFilterResult{}
+	dec := json.NewDecoder(resp.Body)
+	if err := dec.Decode(res); err != nil {
+		return nil, elemental.NewError("Unable to decode filter user", err.Error(), "a3s:entra", http.StatusBadRequest)
+	}
+
+	if len(res.Users) == 0 {
+		return nil, elemental.NewError("Unable to find a user matching the email", fmt.Sprintf("email=%s", principalName), "a3s:entra", http.StatusBadRequest)
+	}
+
+	if len(res.Users) > 1 {
+		return nil, elemental.NewError("Multiple users matching the email", fmt.Sprintf("email=%s", principalName), "a3s:entra", http.StatusBadRequest)
+	}
+
+	ruser := res.Users[0]
 
 	return ruser, nil
 }
