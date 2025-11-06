@@ -1423,7 +1423,7 @@ Additional information required when claims retrieval mode is set to Okta.
 
 ##### `principalUserX509Field`
 
-Type: `enum(CommonName | Email)`
+Type: `enum(CommonName | Email | MicrosoftUPN)`
 
 The X.509 field to look for to extract the user principal name.
 

@@ -160,7 +160,8 @@
       "description": "The X.509 field to look for to extract the user principal name.",
       "enum": [
         "CommonName",
-        "Email"
+        "Email",
+        "MicrosoftUPN"
       ],
       "title": "principalUserX509Field"
     },

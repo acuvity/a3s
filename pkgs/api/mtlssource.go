@@ -36,6 +36,9 @@ const (
 
 	// MTLSSourcePrincipalUserX509FieldEmail represents the value Email.
 	MTLSSourcePrincipalUserX509FieldEmail MTLSSourcePrincipalUserX509FieldValue = "Email"
+
+	// MTLSSourcePrincipalUserX509FieldMicrosoftUPN represents the value MicrosoftUPN.
+	MTLSSourcePrincipalUserX509FieldMicrosoftUPN MTLSSourcePrincipalUserX509FieldValue = "MicrosoftUPN"
 )
 
 // MTLSSourceIdentity represents the Identity of the object.
@@ -691,7 +694,7 @@ func (o *MTLSSource) Validate() error {
 		}
 	}
 
-	if err := elemental.ValidateStringInList("principalUserX509Field", string(o.PrincipalUserX509Field), []string{"CommonName", "Email"}, false); err != nil {
+	if err := elemental.ValidateStringInList("principalUserX509Field", string(o.PrincipalUserX509Field), []string{"CommonName", "Email", "MicrosoftUPN"}, false); err != nil {
 		errors = errors.Append(err)
 	}
 
@@ -974,7 +977,7 @@ the claims that are about to be delivered using this authentication source.`,
 		Type:           "ref",
 	},
 	"PrincipalUserX509Field": {
-		AllowedChoices: []string{"CommonName", "Email"},
+		AllowedChoices: []string{"CommonName", "Email", "MicrosoftUPN"},
 		BSONFieldName:  "principaluserx509field",
 		ConvertedName:  "PrincipalUserX509Field",
 		DefaultValue:   MTLSSourcePrincipalUserX509FieldEmail,
@@ -1236,7 +1239,7 @@ the claims that are about to be delivered using this authentication source.`,
 		Type:           "ref",
 	},
 	"principaluserx509field": {
-		AllowedChoices: []string{"CommonName", "Email"},
+		AllowedChoices: []string{"CommonName", "Email", "MicrosoftUPN"},
 		BSONFieldName:  "principaluserx509field",
 		ConvertedName:  "PrincipalUserX509Field",
 		DefaultValue:   MTLSSourcePrincipalUserX509FieldEmail,
