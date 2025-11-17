@@ -8,6 +8,15 @@ import (
 	"go.acuvity.ai/elemental"
 )
 
+func appendClaim(lst []string, key string, val string) []string {
+
+	if val == "" {
+		return lst
+	}
+
+	return append(lst, fmt.Sprintf("%s=%s", key, val))
+}
+
 func getPrincipalName(iss *mtlsIssuer, cert *x509.Certificate) (string, error) {
 
 	switch iss.source.PrincipalUserX509Field {

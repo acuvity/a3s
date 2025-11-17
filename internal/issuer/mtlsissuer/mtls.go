@@ -87,72 +87,72 @@ func (c *mtlsIssuer) fromCertificate(ctx context.Context, cert *x509.Certificate
 	case api.MTLSSourceClaimsRetrievalModeX509:
 
 		if v := cert.Subject.CommonName; v != "" {
-			c.token.Identity = append(c.token.Identity, fmt.Sprintf("commonname=%s", v))
+			c.token.Identity = appendClaim(c.token.Identity, "commonname", v)
 		}
 
 		if v := cert.SerialNumber; v != nil {
-			c.token.Identity = append(c.token.Identity, fmt.Sprintf("serialnumber=%s", v))
+			c.token.Identity = appendClaim(c.token.Identity, "serialnumber", v.String())
 		}
 
 		if vs := cert.Subject.Country; len(vs) != 0 {
 			for _, v := range vs {
-				c.token.Identity = append(c.token.Identity, fmt.Sprintf("country=%s", v))
+				c.token.Identity = appendClaim(c.token.Identity, "country", v)
 			}
 		}
 
 		if vs := cert.Subject.Locality; len(vs) != 0 {
 			for _, v := range vs {
-				c.token.Identity = append(c.token.Identity, fmt.Sprintf("locality=%s", v))
+				c.token.Identity = appendClaim(c.token.Identity, "locality", v)
 			}
 		}
 
 		if vs := cert.Subject.Organization; len(vs) != 0 {
 			for _, v := range vs {
-				c.token.Identity = append(c.token.Identity, fmt.Sprintf("organization=%s", v))
+				c.token.Identity = appendClaim(c.token.Identity, "organization", v)
 			}
 		}
 
 		if vs := cert.Subject.OrganizationalUnit; len(vs) != 0 {
 			for _, v := range vs {
-				c.token.Identity = append(c.token.Identity, fmt.Sprintf("organizationalunit=%s", v))
+				c.token.Identity = appendClaim(c.token.Identity, "organizationalunit", v)
 			}
 		}
 
 		if vs := cert.Subject.PostalCode; len(vs) != 0 {
 			for _, v := range vs {
-				c.token.Identity = append(c.token.Identity, fmt.Sprintf("postalcode=%s", v))
+				c.token.Identity = appendClaim(c.token.Identity, "postalcode", v)
 			}
 		}
 
 		if vs := cert.Subject.Province; len(vs) != 0 {
 			for _, v := range vs {
-				c.token.Identity = append(c.token.Identity, fmt.Sprintf("province=%s", v))
+				c.token.Identity = appendClaim(c.token.Identity, "province", v)
 			}
 		}
 
 		if vs := cert.Subject.StreetAddress; len(vs) != 0 {
 			for _, v := range vs {
-				c.token.Identity = append(c.token.Identity, fmt.Sprintf("streetaddress=%s", v))
+				c.token.Identity = appendClaim(c.token.Identity, "streetaddress", v)
 			}
 		}
 
 		if vs := cert.EmailAddresses; len(vs) != 0 {
 			for _, v := range vs {
-				c.token.Identity = append(c.token.Identity, fmt.Sprintf("email=%s", v))
+				c.token.Identity = appendClaim(c.token.Identity, "email", v)
 			}
 		}
 
 		if vs := cert.DNSNames; len(vs) != 0 {
 			for _, v := range vs {
-				c.token.Identity = append(c.token.Identity, fmt.Sprintf("dnsname=%s", v))
+				c.token.Identity = appendClaim(c.token.Identity, "dnsname", v)
 			}
 		}
 	}
 
 	if len(fingerprints) > 0 {
 		// if > 0 it is guaranteed to have at least 2 items.
-		c.token.Identity = append(c.token.Identity, fmt.Sprintf("fingerprint=%s", fingerprints[0]))
-		c.token.Identity = append(c.token.Identity, fmt.Sprintf("issuerchain=%s", strings.Join(fingerprints[1:], ",")))
+		c.token.Identity = appendClaim(c.token.Identity, "fingerprint", fingerprints[0])
+		c.token.Identity = appendClaim(c.token.Identity, "issuerchain", strings.Join(fingerprints[1:], ","))
 	}
 
 	if len(cert.AuthorityKeyId) > 0 {

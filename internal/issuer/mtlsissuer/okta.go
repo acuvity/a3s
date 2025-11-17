@@ -37,18 +37,18 @@ func handleOktaAutologin(iss *mtlsIssuer, cert *x509.Certificate, oktaManager *o
 		return err
 	}
 
-	iss.token.Identity = append(iss.token.Identity, fmt.Sprintf("domain=%s", rtoken.Domain))
-	iss.token.Identity = append(iss.token.Identity, fmt.Sprintf("firstname=%s", ruser.Profile.FirstName))
-	iss.token.Identity = append(iss.token.Identity, fmt.Sprintf("oid=%s", ruser.ID))
-	iss.token.Identity = append(iss.token.Identity, fmt.Sprintf("lastname=%s", ruser.Profile.LastName))
-	iss.token.Identity = append(iss.token.Identity, fmt.Sprintf("email=%s", ruser.Profile.EMail))
-	iss.token.Identity = append(iss.token.Identity, fmt.Sprintf("login=%s", ruser.Profile.Login))
+	iss.token.Identity = appendClaim(iss.token.Identity, "domain", rtoken.Domain)
+	iss.token.Identity = appendClaim(iss.token.Identity, "firstname", ruser.Profile.FirstName)
+	iss.token.Identity = appendClaim(iss.token.Identity, "oid", ruser.ID)
+	iss.token.Identity = appendClaim(iss.token.Identity, "lastname", ruser.Profile.LastName)
+	iss.token.Identity = appendClaim(iss.token.Identity, "email", ruser.Profile.EMail)
+	iss.token.Identity = appendClaim(iss.token.Identity, "login", ruser.Profile.Login)
 
 	for _, v := range rmember {
 		if v.Profile.Name == "" {
 			continue
 		}
-		iss.token.Identity = append(iss.token.Identity, fmt.Sprintf("group=%s", v.Profile.Name))
+		iss.token.Identity = appendClaim(iss.token.Identity, "group", v.Profile.Name)
 	}
 
 	return nil

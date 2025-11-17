@@ -2,7 +2,6 @@ package mtlsissuer
 
 import (
 	"crypto/x509"
-	"fmt"
 	"net/http"
 
 	"go.acuvity.ai/a3s/internal/idp/entra"
@@ -48,26 +47,26 @@ func handleEntraAutologin(iss *mtlsIssuer, cert *x509.Certificate, entraManager 
 	}
 
 	// Final Step: populate the claims
-	iss.token.Identity = append(iss.token.Identity, fmt.Sprintf("tenantid=%s", iss.source.EntraApplicationCredentials.ClientTenantID))
-	iss.token.Identity = append(iss.token.Identity, fmt.Sprintf("nameid=%s", user.ID))
-	iss.token.Identity = append(iss.token.Identity, fmt.Sprintf("displayname=%s", user.DisplayName))
-	iss.token.Identity = append(iss.token.Identity, fmt.Sprintf("oid=%s", user.ID))
-	iss.token.Identity = append(iss.token.Identity, fmt.Sprintf("givenname=%s", user.GivenName))
-	iss.token.Identity = append(iss.token.Identity, fmt.Sprintf("email=%s", user.EMail))
-	iss.token.Identity = append(iss.token.Identity, fmt.Sprintf("name=%s", user.UserPrincipalName))
-	iss.token.Identity = append(iss.token.Identity, fmt.Sprintf("surname=%s", user.Surname))
+	iss.token.Identity = appendClaim(iss.token.Identity, "tenantid", iss.source.EntraApplicationCredentials.ClientTenantID)
+	iss.token.Identity = appendClaim(iss.token.Identity, "nameid", user.ID)
+	iss.token.Identity = appendClaim(iss.token.Identity, "displayname", user.DisplayName)
+	iss.token.Identity = appendClaim(iss.token.Identity, "oid", user.ID)
+	iss.token.Identity = appendClaim(iss.token.Identity, "givenname", user.GivenName)
+	iss.token.Identity = appendClaim(iss.token.Identity, "email", user.EMail)
+	iss.token.Identity = appendClaim(iss.token.Identity, "name", user.UserPrincipalName)
+	iss.token.Identity = appendClaim(iss.token.Identity, "surname", user.Surname)
 
 	for _, v := range membership.Values {
 		if v.DisplayName != "" {
-			iss.token.Identity = append(iss.token.Identity, fmt.Sprintf("group=%s", v.DisplayName))
-			iss.token.Identity = append(iss.token.Identity, fmt.Sprintf("group:id=%s", v.ID))
+			iss.token.Identity = appendClaim(iss.token.Identity, "group", v.DisplayName)
+			iss.token.Identity = appendClaim(iss.token.Identity, "group:id", v.ID)
 		}
 	}
 
 	for _, m := range userroles.Values {
 		if n, ok := roleMap[m.AppRoleID]; ok {
-			iss.token.Identity = append(iss.token.Identity, fmt.Sprintf("app:role=%s", n.Name))
-			iss.token.Identity = append(iss.token.Identity, fmt.Sprintf("app:role:id=%s", n.ID))
+			iss.token.Identity = appendClaim(iss.token.Identity, "app:role", n.Name)
+			iss.token.Identity = appendClaim(iss.token.Identity, "app:role:id", n.ID)
 		}
 	}
 
