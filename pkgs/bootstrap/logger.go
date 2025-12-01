@@ -10,6 +10,8 @@ import (
 	"go.acuvity.ai/a3s/pkgs/conf"
 )
 
+var loggerConfigured bool
+
 // ConfigureLogger configures the logging subsystem.
 func ConfigureLogger(serviceName string, cfg conf.LoggingConf) CloseRecorderHandler {
 
@@ -30,6 +32,20 @@ func ConfigureLogger(serviceName string, cfg conf.LoggingConf) CloseRecorderHand
 }
 
 func configureLogger(name string, level string, format string) {
+
+	if loggerConfigured {
+		panic("configureLogger called multiple times - this should only be called once during application initialization")
+	}
+
+	loggerConfigured = true
+
+	setLoggerHandler(name, level, format)
+	go handleElevationSignal(name, level, format)
+}
+
+// setLoggerHandler configures the slog handler without starting a new signal handler.
+// This is called both during initial setup and when toggling log levels.
+func setLoggerHandler(name string, level string, format string) {
 
 	lvl := stringToLevel(level)
 
@@ -71,8 +87,6 @@ func configureLogger(name string, level string, format string) {
 	}
 
 	slog.SetDefault(logger)
-
-	go handleElevationSignal(name, level, format)
 }
 
 func stringToLevel(level string) slog.Level {
