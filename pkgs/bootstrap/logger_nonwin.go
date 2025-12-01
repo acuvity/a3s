@@ -25,10 +25,10 @@ func handleElevationSignal(name string, level string, format string) {
 		elevated = !elevated
 
 		if elevated {
-			configureLogger(name, "debug", format)
+			setLoggerHandler(name, "debug", format)
 			slog.Info("Log level elevated to debug")
 		} else {
-			configureLogger(name, level, format)
+			setLoggerHandler(name, level, format)
 			slog.Info("Log level restored to original configuration", "level", level)
 		}
 	}
