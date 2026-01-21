@@ -7,6 +7,7 @@ import (
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"encoding/pem"
+	"errors"
 	"fmt"
 	"net/http"
 	"testing"
@@ -132,6 +133,7 @@ func TestMakeTLSPeerCertificateVerifier(t *testing.T) {
 
 			err := verifier([][]byte{block.Bytes}, nil)
 			So(err, ShouldNotBeNil)
+			So(errors.As(err, &ErrMTLSSource{}), ShouldBeTrue)
 			So(err.Error(), ShouldEqual, "unable to locate mtls source: no matching mtls source for the given certificate signing CA")
 		})
 
@@ -154,6 +156,7 @@ func TestMakeTLSPeerCertificateVerifier(t *testing.T) {
 
 			err := verifier([][]byte{block.Bytes}, nil)
 			So(err, ShouldNotBeNil)
+			So(errors.As(err, &ErrMTLSSource{}), ShouldBeTrue)
 			So(err.Error(), ShouldEqual, "unable to locate mtls source: more than one mtls sources hold the signing CA")
 		})
 	})

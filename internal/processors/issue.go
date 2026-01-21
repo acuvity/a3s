@@ -204,7 +204,7 @@ func (p *IssueProcessor) ProcessCreate(bctx bahamut.Context) (err error) {
 				// We now try matching the CA
 				mtlssource, err := gwutils.MTLSSourceForCertificate(bctx.Context(), p.manipulator, certs[0])
 				if err != nil {
-					if !errors.Is(err, gwutils.ErrMTLSSource{}) {
+					if !errors.As(err, &gwutils.ErrMTLSSource{}) {
 						return err
 					}
 				}
