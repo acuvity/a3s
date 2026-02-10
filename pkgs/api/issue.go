@@ -697,60 +697,70 @@ func (o *Issue) Validate() error {
 	if o.InputA3S != nil {
 		if err := o.InputA3S.Validate(); err != nil {
 			errors = errors.Append(err)
+			elemental.InjectAttributePath(errors, "inputA3S")
 		}
 	}
 
 	if o.InputAWS != nil {
 		if err := o.InputAWS.Validate(); err != nil {
 			errors = errors.Append(err)
+			elemental.InjectAttributePath(errors, "inputAWS")
 		}
 	}
 
 	if o.InputAzure != nil {
 		if err := o.InputAzure.Validate(); err != nil {
 			errors = errors.Append(err)
+			elemental.InjectAttributePath(errors, "inputAzure")
 		}
 	}
 
 	if o.InputGCP != nil {
 		if err := o.InputGCP.Validate(); err != nil {
 			errors = errors.Append(err)
+			elemental.InjectAttributePath(errors, "inputGCP")
 		}
 	}
 
 	if o.InputHTTP != nil {
 		if err := o.InputHTTP.Validate(); err != nil {
 			errors = errors.Append(err)
+			elemental.InjectAttributePath(errors, "inputHTTP")
 		}
 	}
 
 	if o.InputLDAP != nil {
 		if err := o.InputLDAP.Validate(); err != nil {
 			errors = errors.Append(err)
+			elemental.InjectAttributePath(errors, "inputLDAP")
 		}
 	}
 
 	if o.InputOAuth2 != nil {
 		if err := o.InputOAuth2.Validate(); err != nil {
 			errors = errors.Append(err)
+			elemental.InjectAttributePath(errors, "inputOAuth2")
 		}
 	}
 
 	if o.InputOIDC != nil {
 		if err := o.InputOIDC.Validate(); err != nil {
 			errors = errors.Append(err)
+			elemental.InjectAttributePath(errors, "inputOIDC")
 		}
 	}
 
 	if o.InputRemoteA3S != nil {
 		if err := o.InputRemoteA3S.Validate(); err != nil {
 			errors = errors.Append(err)
+			elemental.InjectAttributePath(errors, "inputRemoteA3S")
 		}
 	}
 
 	if o.InputSAML != nil {
 		if err := o.InputSAML.Validate(); err != nil {
 			errors = errors.Append(err)
+			elemental.InjectAttributePath(errors, "inputSAML")
 		}
 	}
 

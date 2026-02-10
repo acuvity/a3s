@@ -667,6 +667,7 @@ func (o *MTLSSource) Validate() error {
 	if o.EntraApplicationCredentials != nil {
 		if err := o.EntraApplicationCredentials.Validate(); err != nil {
 			errors = errors.Append(err)
+			elemental.InjectAttributePath(errors, "entraApplicationCredentials")
 		}
 	}
 
@@ -681,6 +682,7 @@ func (o *MTLSSource) Validate() error {
 	if o.Modifier != nil {
 		if err := o.Modifier.Validate(); err != nil {
 			errors = errors.Append(err)
+			elemental.InjectAttributePath(errors, "modifier")
 		}
 	}
 
@@ -691,6 +693,7 @@ func (o *MTLSSource) Validate() error {
 	if o.OktaApplicationCredentials != nil {
 		if err := o.OktaApplicationCredentials.Validate(); err != nil {
 			errors = errors.Append(err)
+			elemental.InjectAttributePath(errors, "oktaApplicationCredentials")
 		}
 	}
 

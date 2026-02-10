@@ -635,6 +635,7 @@ func (o *SAMLSource) Validate() error {
 	if o.Modifier != nil {
 		if err := o.Modifier.Validate(); err != nil {
 			errors = errors.Append(err)
+			elemental.InjectAttributePath(errors, "modifier")
 		}
 	}
 

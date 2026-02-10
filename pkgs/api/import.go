@@ -476,75 +476,83 @@ func (o *Import) Validate() error {
 	errors := elemental.Errors{}
 	requiredErrors := elemental.Errors{}
 
-	for _, sub := range o.A3SSources {
+	for i, sub := range o.A3SSources {
 		if sub == nil {
 			continue
 		}
 		if err := sub.Validate(); err != nil {
 			errors = errors.Append(err)
+			elemental.InjectAttributePath(errors, fmt.Sprintf("%s/%d", "A3SSources", i))
 		}
 	}
 
-	for _, sub := range o.HTTPSources {
+	for i, sub := range o.HTTPSources {
 		if sub == nil {
 			continue
 		}
 		if err := sub.Validate(); err != nil {
 			errors = errors.Append(err)
+			elemental.InjectAttributePath(errors, fmt.Sprintf("%s/%d", "HTTPSources", i))
 		}
 	}
 
-	for _, sub := range o.LDAPSources {
+	for i, sub := range o.LDAPSources {
 		if sub == nil {
 			continue
 		}
 		if err := sub.Validate(); err != nil {
 			errors = errors.Append(err)
+			elemental.InjectAttributePath(errors, fmt.Sprintf("%s/%d", "LDAPSources", i))
 		}
 	}
 
-	for _, sub := range o.MTLSSources {
+	for i, sub := range o.MTLSSources {
 		if sub == nil {
 			continue
 		}
 		if err := sub.Validate(); err != nil {
 			errors = errors.Append(err)
+			elemental.InjectAttributePath(errors, fmt.Sprintf("%s/%d", "MTLSSources", i))
 		}
 	}
 
-	for _, sub := range o.OAuth2Sources {
+	for i, sub := range o.OAuth2Sources {
 		if sub == nil {
 			continue
 		}
 		if err := sub.Validate(); err != nil {
 			errors = errors.Append(err)
+			elemental.InjectAttributePath(errors, fmt.Sprintf("%s/%d", "OAuth2Sources", i))
 		}
 	}
 
-	for _, sub := range o.OIDCSources {
+	for i, sub := range o.OIDCSources {
 		if sub == nil {
 			continue
 		}
 		if err := sub.Validate(); err != nil {
 			errors = errors.Append(err)
+			elemental.InjectAttributePath(errors, fmt.Sprintf("%s/%d", "OIDCSources", i))
 		}
 	}
 
-	for _, sub := range o.SAMLSources {
+	for i, sub := range o.SAMLSources {
 		if sub == nil {
 			continue
 		}
 		if err := sub.Validate(); err != nil {
 			errors = errors.Append(err)
+			elemental.InjectAttributePath(errors, fmt.Sprintf("%s/%d", "SAMLSources", i))
 		}
 	}
 
-	for _, sub := range o.Authorizations {
+	for i, sub := range o.Authorizations {
 		if sub == nil {
 			continue
 		}
 		if err := sub.Validate(); err != nil {
 			errors = errors.Append(err)
+			elemental.InjectAttributePath(errors, fmt.Sprintf("%s/%d", "authorizations", i))
 		}
 	}
 
