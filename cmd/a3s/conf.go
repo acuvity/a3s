@@ -18,20 +18,22 @@ import (
 
 // Conf holds the main configuration flags.
 type Conf struct {
-	AuditedIdentities  []string `mapstructure:"audited-identities" desc:"Identities that will be tracked for audit purposes" default:"issue"`
-	BinaryModifier     string   `mapstructure:"binary-modifier" desc:"Path to modifier binary. If set, binary-modifier-sha256 must be set"`
-	BinaryModifierHash string   `mapstructure:"binary-modifier-sha256" desc:"Sha256 hash of the binary-modifier"`
-	EntraNotifEndpoint string   `mapstructure:"entra-notification-endpoint" desc:"The hook URL to use when subscribing to MS Graph notifications" default:"/idp/entra/events"`
-	Init               bool     `mapstructure:"init" desc:"If set, initialize the root permissions using the CAs passed in --init-root-ca and --init-platform-ca"`
-	InitContinue       bool     `mapstructure:"init-continue" desc:"Continues normal boot after init."`
-	InitDB             bool     `mapstructure:"init-db" desc:"If set, initialize the database using the mongo config passed in and init-db-username"`
-	InitDBUsername     string   `mapstructure:"init-db-username" desc:"If init-db is set, this will define the username to use on db initialization" default:"CN=a3s,OU=root,O=system"`
-	InitData           string   `mapstructure:"init-data" desc:"Path to an import file containing initial provisionning data"`
-	InitPlatformCAPath string   `mapstructure:"init-platform-ca" desc:"Path to the platform CA to use to initialize platform permissions"`
-	InitRootUserCAPath string   `mapstructure:"init-root-ca" desc:"Path to the root CA to use to initialize root permissions"`
-	OIDSourceName      string   `mapstructure:"oid-source-name" desc:"For MTLS sources. OID to look for in the client certificate's DN to infer source name"`
-	OIDSourceNamespace string   `mapstructure:"oid-source-namespace" desc:"For MTLS sources. OID to look for in the client certificate's DN to infer source namespace"`
-	PluginModifier     string   `mapstructure:"plugin-modifier" desc:"Path to a go plugin implemeting the plugin.Modifier interface"`
+	AuditedIdentities         []string `mapstructure:"audited-identities" desc:"Identities that will be tracked for audit purposes" default:"issue"`
+	BinaryModifier            string   `mapstructure:"binary-modifier" desc:"Path to modifier binary. If set, binary-modifier-sha256 must be set"`
+	BinaryModifierHash        string   `mapstructure:"binary-modifier-sha256" desc:"Sha256 hash of the binary-modifier"`
+	EntraNotifEndpoint        string   `mapstructure:"entra-notification-endpoint" desc:"The hook URL to use when subscribing to MS Graph notifications" default:"/idp/entra/events"`
+	Init                      bool     `mapstructure:"init" desc:"If set, initialize the root permissions using the CAs passed in --init-root-ca and --init-platform-ca"`
+	InitContinue              bool     `mapstructure:"init-continue" desc:"Continues normal boot after init."`
+	InitDB                    bool     `mapstructure:"init-db" desc:"If set, initialize the database using the mongo config passed in and init-db-username"`
+	InitDBUsername            string   `mapstructure:"init-db-username" desc:"If init-db is set, this will define the username to use on db initialization" default:"CN=a3s,OU=root,O=system"`
+	InitData                  string   `mapstructure:"init-data" desc:"Path to an import file containing initial provisionning data"`
+	InitPlatformCAPath        string   `mapstructure:"init-platform-ca" desc:"Path to the platform CA to use to initialize platform permissions"`
+	InitRootUserCAPath        string   `mapstructure:"init-root-ca" desc:"Path to the root CA to use to initialize root permissions"`
+	OIDSourceName             string   `mapstructure:"oid-source-name" desc:"For MTLS sources. OID to look for in the client certificate's DN to infer source name"`
+	OIDSourceNamespace        string   `mapstructure:"oid-source-namespace" desc:"For MTLS sources. OID to look for in the client certificate's DN to infer source namespace"`
+	PluginModifier            string   `mapstructure:"plugin-modifier" desc:"Path to a go plugin implemeting the plugin.Modifier interface"`
+	RestrictedIgnoredNetworks []string `mapstructure:"restricted-cidr-ignore" desc:"list of CIDR that must be allowed, even if restricted by --restricted-cidr"`
+	RestrictedNetworks        []string `mapstructure:"restricted-cidr" desc:"list of restricted CIDR. A3S will refuse to make calls to url provider by users to any host in that network. If empty, defaults to IANA private subnets definition"`
 
 	JWT JWTConf `mapstructure:",squash"`
 

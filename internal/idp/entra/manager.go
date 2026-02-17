@@ -15,23 +15,26 @@ import (
 	"github.com/karlseguin/ccache/v3"
 	"go.acuvity.ai/a3s/internal/idp/utils"
 	"go.acuvity.ai/a3s/pkgs/api"
+	"go.acuvity.ai/a3s/pkgs/netsafe"
 	"go.acuvity.ai/elemental"
 )
 
 type Manager struct {
-	client     *http.Client
-	tokenCache *ccache.Cache[*AccessToken]
+	client       *http.Client
+	requestMaker netsafe.RequestMaker
+	tokenCache   *ccache.Cache[*AccessToken]
 }
 
-func NewEntraManager(client *http.Client) *Manager {
+func NewEntraManager(client *http.Client, requestMaker netsafe.RequestMaker) *Manager {
 
 	return &Manager{
-		tokenCache: ccache.New(ccache.Configure[*AccessToken]().MaxSize(1024)),
-		client:     client,
+		tokenCache:   ccache.New(ccache.Configure[*AccessToken]().MaxSize(1024)),
+		client:       client,
+		requestMaker: requestMaker,
 	}
 }
 
-func (m *Manager) GetAccessToken(creds *api.MTLSSourceEntra) (*AccessToken, error) {
+func (m *Manager) GetAccessToken(ctx context.Context, creds *api.MTLSSourceEntra) (*AccessToken, error) {
 
 	if creds == nil {
 		return nil, elemental.NewError("Invalid MTLS Source", "no entraApplicationCredentials set", "a3s:entra", http.StatusInternalServerError)
@@ -59,7 +62,7 @@ func (m *Manager) GetAccessToken(creds *api.MTLSSourceEntra) (*AccessToken, erro
 			"grant_type":    {"client_credentials"},
 		}
 
-		r, err := http.NewRequest(http.MethodPost, fmt.Sprintf("https://login.microsoftonline.com/%s/oauth2/v2.0/token", creds.ClientTenantID), strings.NewReader(form.Encode()))
+		r, err := m.requestMaker(ctx, http.MethodPost, fmt.Sprintf("https://login.microsoftonline.com/%s/oauth2/v2.0/token", creds.ClientTenantID), strings.NewReader(form.Encode()))
 		if err != nil {
 			return nil, elemental.NewError("Unable to create oauth2 client token request", err.Error(), "a3s:entra", http.StatusBadRequest)
 		}
@@ -102,9 +105,9 @@ func (m *Manager) GetAccessToken(creds *api.MTLSSourceEntra) (*AccessToken, erro
 	return rtoken, nil
 }
 
-func (m *Manager) GetUser(rtoken *AccessToken, principalName string) (*User, error) {
+func (m *Manager) GetUser(ctx context.Context, rtoken *AccessToken, principalName string) (*User, error) {
 
-	r, err := http.NewRequest(http.MethodGet, fmt.Sprintf("https://graph.microsoft.com/v1.0/users/%s", principalName), nil)
+	r, err := m.requestMaker(ctx, http.MethodGet, fmt.Sprintf("https://graph.microsoft.com/v1.0/users/%s", principalName), nil)
 	if err != nil {
 		return nil, elemental.NewError("Unable to create request to retrieve user info", err.Error(), "a3s:entra", http.StatusBadRequest)
 	}
@@ -134,9 +137,9 @@ func (m *Manager) GetUser(rtoken *AccessToken, principalName string) (*User, err
 	return ruser, nil
 }
 
-func (m *Manager) GetGroup(rtoken *AccessToken, principalName string) (*Group, error) {
+func (m *Manager) GetGroup(ctx context.Context, rtoken *AccessToken, principalName string) (*Group, error) {
 
-	r, err := http.NewRequest(http.MethodGet, fmt.Sprintf("https://graph.microsoft.com/v1.0/groups/%s", principalName), nil)
+	r, err := m.requestMaker(ctx, http.MethodGet, fmt.Sprintf("https://graph.microsoft.com/v1.0/groups/%s", principalName), nil)
 	if err != nil {
 		return nil, elemental.NewError("Unable to create request to retrieve group info", err.Error(), "a3s:entra", http.StatusBadRequest)
 	}
@@ -166,9 +169,9 @@ func (m *Manager) GetGroup(rtoken *AccessToken, principalName string) (*Group, e
 	return rgroup, nil
 }
 
-func (m *Manager) GetMembership(rtoken *AccessToken, ruser *User) (*Membership, error) {
+func (m *Manager) GetMembership(ctx context.Context, rtoken *AccessToken, ruser *User) (*Membership, error) {
 
-	r, err := http.NewRequest(http.MethodGet, fmt.Sprintf("https://graph.microsoft.com/v1.0/users/%s/memberOf/microsoft.graph.group?$select=displayName,id", ruser.ID), nil)
+	r, err := m.requestMaker(ctx, http.MethodGet, fmt.Sprintf("https://graph.microsoft.com/v1.0/users/%s/memberOf/microsoft.graph.group?$select=displayName,id", ruser.ID), nil)
 	if err != nil {
 		return nil, elemental.NewError("Unable to create request to retrieve groups of user", err.Error(), "a3s:entra", http.StatusBadRequest)
 	}
@@ -198,9 +201,9 @@ func (m *Manager) GetMembership(rtoken *AccessToken, ruser *User) (*Membership, 
 	return rmember, nil
 }
 
-func (m *Manager) GetAppRoles(rtoken *AccessToken, ruser *User) (*AppRoles, error) {
+func (m *Manager) GetAppRoles(ctx context.Context, rtoken *AccessToken, ruser *User) (*AppRoles, error) {
 
-	r, err := http.NewRequest(http.MethodGet, fmt.Sprintf("https://graph.microsoft.com/v1.0/servicePrincipals(appId='%s')?$select=id,displayName,appRoles", rtoken.ClientID), nil)
+	r, err := m.requestMaker(ctx, http.MethodGet, fmt.Sprintf("https://graph.microsoft.com/v1.0/servicePrincipals(appId='%s')?$select=id,displayName,appRoles", rtoken.ClientID), nil)
 	if err != nil {
 		return nil, elemental.NewError("Unable to create request to retrieve app roles", err.Error(), "a3s:entra", http.StatusBadRequest)
 	}
@@ -228,9 +231,9 @@ func (m *Manager) GetAppRoles(rtoken *AccessToken, ruser *User) (*AppRoles, erro
 	return appRoles, nil
 }
 
-func (m *Manager) GetRoles(rtoken *AccessToken, ruser *User) (*Roles, error) {
+func (m *Manager) GetRoles(ctx context.Context, rtoken *AccessToken, ruser *User) (*Roles, error) {
 
-	r, err := http.NewRequest(http.MethodGet, fmt.Sprintf("https://graph.microsoft.com/v1.0/users/%s/appRoleAssignments?$filter=resourceId%%20eq%%20%s&$count=true", ruser.ID, rtoken.Claims["oid"]), nil)
+	r, err := m.requestMaker(ctx, http.MethodGet, fmt.Sprintf("https://graph.microsoft.com/v1.0/users/%s/appRoleAssignments?$filter=resourceId%%20eq%%20%s&$count=true", ruser.ID, rtoken.Claims["oid"]), nil)
 	if err != nil {
 		return nil, elemental.NewError("Unable to create request to retrieve app role assignment of user", err.Error(), "a3s:entra", http.StatusBadRequest)
 	}
@@ -274,12 +277,12 @@ func (m *Manager) Subscribe(ctx context.Context, creds *api.MTLSSourceEntra, res
 		return nil, elemental.NewError("Unable to encode subscription request", err.Error(), "a3s:entra", http.StatusBadRequest)
 	}
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, "https://graph.microsoft.com/v1.0/subscriptions", bytes.NewBuffer(data))
+	req, err := m.requestMaker(ctx, http.MethodPost, "https://graph.microsoft.com/v1.0/subscriptions", bytes.NewBuffer(data))
 	if err != nil {
 		return nil, elemental.NewError("Unable to build ms graph subscription request", err.Error(), "a3s:entra", http.StatusBadRequest)
 	}
 
-	rtoken, err := m.GetAccessToken(creds)
+	rtoken, err := m.GetAccessToken(ctx, creds)
 	if err != nil {
 		return nil, elemental.NewError("Unable retrieve access token for subscription", err.Error(), "a3s:entra", http.StatusBadRequest)
 	}
@@ -321,12 +324,12 @@ func (m *Manager) RenewSubscription(ctx context.Context, creds *api.MTLSSourceEn
 		return nil, elemental.NewError("Unable to encode subscription renewal request", err.Error(), "a3s:entra", http.StatusBadRequest)
 	}
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodPatch, fmt.Sprintf("https://graph.microsoft.com/v1.0/subscriptions/%s", id), bytes.NewBuffer(data))
+	req, err := m.requestMaker(ctx, http.MethodPatch, fmt.Sprintf("https://graph.microsoft.com/v1.0/subscriptions/%s", id), bytes.NewBuffer(data))
 	if err != nil {
 		return nil, elemental.NewError("Unable to build ms graph subscription renewal request", err.Error(), "a3s:entra", http.StatusBadRequest)
 	}
 
-	rtoken, err := m.GetAccessToken(creds)
+	rtoken, err := m.GetAccessToken(ctx, creds)
 	if err != nil {
 		return nil, elemental.NewError("Unable retrieve access token for renewing subscription", err.Error(), "a3s:entra", http.StatusBadRequest)
 	}
@@ -362,12 +365,12 @@ func (m *Manager) RenewSubscription(ctx context.Context, creds *api.MTLSSourceEn
 
 func (m *Manager) Unsubscribe(ctx context.Context, creds *api.MTLSSourceEntra, id string) error {
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, fmt.Sprintf("https://graph.microsoft.com/v1.0/subscriptions/%s", id), nil)
+	req, err := m.requestMaker(ctx, http.MethodDelete, fmt.Sprintf("https://graph.microsoft.com/v1.0/subscriptions/%s", id), nil)
 	if err != nil {
 		return elemental.NewError("Unable to build ms graph subscription delete request", err.Error(), "a3s:entra", http.StatusBadRequest)
 	}
 
-	rtoken, err := m.GetAccessToken(creds)
+	rtoken, err := m.GetAccessToken(ctx, creds)
 	if err != nil {
 		return elemental.NewError("Unable retrieve access token for deleting subscription", err.Error(), "a3s:entra", http.StatusBadRequest)
 	}

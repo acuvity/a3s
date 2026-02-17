@@ -10,13 +10,14 @@ import (
 	"go.acuvity.ai/a3s/internal/idp/entra"
 	"go.acuvity.ai/a3s/internal/idp/okta"
 	"go.acuvity.ai/a3s/pkgs/api"
+	"go.acuvity.ai/a3s/pkgs/netsafe"
 	"go.acuvity.ai/a3s/pkgs/token"
 )
 
 // New returns a new MTLS issuer.
-func New(ctx context.Context, source *api.MTLSSource, cert *x509.Certificate, entraManager *entra.Manager, oktaManager *okta.Manager) (token.Issuer, error) {
+func New(ctx context.Context, source *api.MTLSSource, cert *x509.Certificate, entraManager *entra.Manager, oktaManager *okta.Manager, requestMaker netsafe.RequestMaker) (token.Issuer, error) {
 
-	c := newMTLSIssuer(source)
+	c := newMTLSIssuer(source, requestMaker)
 	if err := c.fromCertificate(ctx, cert, entraManager, oktaManager); err != nil {
 		return nil, err
 	}
@@ -25,14 +26,16 @@ func New(ctx context.Context, source *api.MTLSSource, cert *x509.Certificate, en
 }
 
 type mtlsIssuer struct {
-	token  *token.IdentityToken
-	source *api.MTLSSource
+	token        *token.IdentityToken
+	source       *api.MTLSSource
+	requestMaker netsafe.RequestMaker
 }
 
-func newMTLSIssuer(source *api.MTLSSource) *mtlsIssuer {
+func newMTLSIssuer(source *api.MTLSSource, requestMaker netsafe.RequestMaker) *mtlsIssuer {
 
 	return &mtlsIssuer{
-		source: source,
+		source:       source,
+		requestMaker: requestMaker,
 		token: token.NewIdentityToken(token.Source{
 			Type:      "mtls",
 			Namespace: source.Namespace,
@@ -74,13 +77,13 @@ func (c *mtlsIssuer) fromCertificate(ctx context.Context, cert *x509.Certificate
 
 	case api.MTLSSourceClaimsRetrievalModeEntra:
 
-		if err := handleEntraAutologin(c, cert, entraManager); err != nil {
+		if err := handleEntraAutologin(ctx, c, cert, entraManager); err != nil {
 			return fmt.Errorf("unable to perform entra additional claims retrieval: %w", err)
 		}
 
 	case api.MTLSSourceClaimsRetrievalModeOkta:
 
-		if err := handleOktaAutologin(c, cert, oktaManager); err != nil {
+		if err := handleOktaAutologin(ctx, c, cert, oktaManager); err != nil {
 			return fmt.Errorf("unable to perform okta additional claims retrieval: %w", err)
 		}
 
@@ -161,7 +164,7 @@ func (c *mtlsIssuer) fromCertificate(ctx context.Context, cert *x509.Certificate
 
 	if srcmod := c.source.Modifier; srcmod != nil {
 
-		m, err := identitymodifier.NewRemote(srcmod, c.token.Source)
+		m, err := identitymodifier.NewRemote(srcmod, c.token.Source, c.requestMaker)
 		if err != nil {
 			return fmt.Errorf("unable to prepare source modifier: %w", err)
 		}

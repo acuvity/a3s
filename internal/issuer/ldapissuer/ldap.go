@@ -10,13 +10,14 @@ import (
 	"github.com/go-ldap/ldap/v3"
 	"go.acuvity.ai/a3s/internal/identitymodifier"
 	"go.acuvity.ai/a3s/pkgs/api"
+	"go.acuvity.ai/a3s/pkgs/netsafe"
 	"go.acuvity.ai/a3s/pkgs/token"
 )
 
 // New returns a new LDAP issuer.
-func New(ctx context.Context, source *api.LDAPSource, username string, password string) (token.Issuer, error) {
+func New(ctx context.Context, source *api.LDAPSource, username string, password string, requestMaker netsafe.RequestMaker) (token.Issuer, error) {
 
-	c := newLDAPIssuer(source)
+	c := newLDAPIssuer(source, requestMaker)
 	if err := c.fromCredentials(ctx, username, password); err != nil {
 		return nil, err
 	}
@@ -25,14 +26,16 @@ func New(ctx context.Context, source *api.LDAPSource, username string, password 
 }
 
 type ldapIssuer struct {
-	token  *token.IdentityToken
-	source *api.LDAPSource
+	token        *token.IdentityToken
+	source       *api.LDAPSource
+	requestMaker netsafe.RequestMaker
 }
 
-func newLDAPIssuer(source *api.LDAPSource) *ldapIssuer {
+func newLDAPIssuer(source *api.LDAPSource, requestMaker netsafe.RequestMaker) *ldapIssuer {
 
 	return &ldapIssuer{
-		source: source,
+		source:       source,
+		requestMaker: requestMaker,
 		token: token.NewIdentityToken(token.Source{
 			Type:      "ldap",
 			Namespace: source.Namespace,
@@ -57,7 +60,7 @@ func (c *ldapIssuer) fromCredentials(ctx context.Context, username string, passw
 
 	if srcmod := c.source.Modifier; srcmod != nil {
 
-		m, err := identitymodifier.NewRemote(srcmod, c.token.Source)
+		m, err := identitymodifier.NewRemote(srcmod, c.token.Source, c.requestMaker)
 		if err != nil {
 			return fmt.Errorf("unable to prepare source modifier: %w", err)
 		}

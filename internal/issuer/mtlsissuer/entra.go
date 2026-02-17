@@ -1,6 +1,7 @@
 package mtlsissuer
 
 import (
+	"context"
 	"crypto/x509"
 	"net/http"
 
@@ -8,9 +9,9 @@ import (
 	"go.acuvity.ai/elemental"
 )
 
-func handleEntraAutologin(iss *mtlsIssuer, cert *x509.Certificate, entraManager *entra.Manager) error {
+func handleEntraAutologin(ctx context.Context, iss *mtlsIssuer, cert *x509.Certificate, entraManager *entra.Manager) error {
 
-	atoken, err := entraManager.GetAccessToken(iss.source.EntraApplicationCredentials)
+	atoken, err := entraManager.GetAccessToken(ctx, iss.source.EntraApplicationCredentials)
 	if err != nil {
 		return err
 	}
@@ -20,22 +21,22 @@ func handleEntraAutologin(iss *mtlsIssuer, cert *x509.Certificate, entraManager 
 		return elemental.NewError("Unable to retrieve principal name from certificate", err.Error(), "a3s:entra", http.StatusBadRequest)
 	}
 
-	user, err := entraManager.GetUser(atoken, principalName)
+	user, err := entraManager.GetUser(ctx, atoken, principalName)
 	if err != nil {
 		return err
 	}
 
-	membership, err := entraManager.GetMembership(atoken, user)
+	membership, err := entraManager.GetMembership(ctx, atoken, user)
 	if err != nil {
 		return err
 	}
 
-	approles, err := entraManager.GetAppRoles(atoken, user)
+	approles, err := entraManager.GetAppRoles(ctx, atoken, user)
 	if err != nil {
 		return err
 	}
 
-	userroles, err := entraManager.GetRoles(atoken, user)
+	userroles, err := entraManager.GetRoles(ctx, atoken, user)
 	if err != nil {
 		return err
 	}

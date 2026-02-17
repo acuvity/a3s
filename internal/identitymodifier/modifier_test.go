@@ -15,6 +15,7 @@ import (
 
 	. "github.com/smartystreets/goconvey/convey"
 	"go.acuvity.ai/a3s/pkgs/api"
+	"go.acuvity.ai/a3s/pkgs/netsafe"
 	"go.acuvity.ai/a3s/pkgs/token"
 	"go.acuvity.ai/tg/tglib"
 )
@@ -41,6 +42,9 @@ func getECCert() (*x509.Certificate, crypto.PrivateKey) {
 func TestNew(t *testing.T) {
 
 	Convey("Calling New should work", t, func() {
+
+		rm := netsafe.NewRequestMaker(nil)
+
 		xc, xk := getECCert()
 		xcb, _ := tglib.CertToPEM(xc)
 		xck, _ := tglib.KeyToPEM(xk)
@@ -54,7 +58,7 @@ func TestNew(t *testing.T) {
 				URL:         "https://toto.com",
 				Method:      api.IdentityModifierMethodGET,
 			}
-			mm, err := NewRemote(mi, token.Source{})
+			mm, err := NewRemote(mi, token.Source{}, rm)
 			So(err, ShouldBeNil)
 			m := mm.(*identityModifier)
 			So(m.clientCert, ShouldNotBeNil)
@@ -69,7 +73,7 @@ func TestNew(t *testing.T) {
 				URL:         "https://toto.com",
 				Method:      api.IdentityModifierMethodValue("invalid"),
 			}
-			_, err := NewRemote(mi, token.Source{})
+			_, err := NewRemote(mi, token.Source{}, rm)
 			So(err, ShouldNotBeNil)
 			So(err.Error(), ShouldEqual, "invalid http method: invalid")
 		})
@@ -81,7 +85,7 @@ func TestNew(t *testing.T) {
 				URL:         "https://toto.com",
 				Method:      api.IdentityModifierMethodGET,
 			}
-			_, err := NewRemote(mi, token.Source{})
+			_, err := NewRemote(mi, token.Source{}, rm)
 			So(err, ShouldNotBeNil)
 			So(err.Error(), ShouldEqual, "unable to create certificate: tls: failed to find any PEM data in certificate input")
 		})
@@ -91,6 +95,9 @@ func TestNew(t *testing.T) {
 func TestModify(t *testing.T) {
 
 	Convey("Given I have a http server", t, func() {
+
+		checker, _ := netsafe.MakeChecker([]string{"10.0.0.0/8"}, nil)
+		rm := netsafe.NewRequestMaker(checker)
 
 		var incomingBody []byte
 		var incomingQuery url.Values
@@ -124,13 +131,28 @@ func TestModify(t *testing.T) {
 				CA:          string(ca),
 				Certificate: string(cert),
 				Key:         string(key),
-				URL:         "nothttp://com",
+				URL:         "nothttp://toto.com",
 				Method:      api.IdentityModifierMethodPOST,
 			}
-			m, _ := NewRemote(mi, token.Source{Type: "type", Namespace: "/ns", Name: "name"})
+			m, _ := NewRemote(mi, token.Source{Type: "type", Namespace: "/ns", Name: "name"}, rm)
 			out, err := m.Modify(context.Background(), []string{"a=a", "b=b"})
 			So(err, ShouldNotBeNil)
-			So(err.Error(), ShouldEqual, `unable to perform request: Post "nothttp://com": unsupported protocol scheme "nothttp"`)
+			So(err.Error(), ShouldEqual, `unable to perform request: Post "nothttp://toto.com": unsupported protocol scheme "nothttp"`)
+			So(out, ShouldBeNil)
+		})
+
+		Convey("Setting a restricted URL should work", func() {
+			mi := &api.IdentityModifier{
+				CA:          string(ca),
+				Certificate: string(cert),
+				Key:         string(key),
+				URL:         "http://10.0.1.1",
+				Method:      api.IdentityModifierMethodPOST,
+			}
+			m, _ := NewRemote(mi, token.Source{Type: "type", Namespace: "/ns", Name: "name"}, rm)
+			out, err := m.Modify(context.Background(), []string{"a=a", "b=b"})
+			So(err, ShouldNotBeNil)
+			So(err.Error(), ShouldEqual, `unable to build http request: unacceptable url hostname: restricted IP: restricted IP '10.0.1.1'`)
 			So(out, ShouldBeNil)
 		})
 
@@ -142,7 +164,7 @@ func TestModify(t *testing.T) {
 				URL:         ts.URL,
 				Method:      api.IdentityModifierMethodGET,
 			}
-			m, _ := NewRemote(mi, token.Source{Type: "type", Namespace: "/ns", Name: "name"})
+			m, _ := NewRemote(mi, token.Source{Type: "type", Namespace: "/ns", Name: "name"}, rm)
 			out, err := m.Modify(nil, []string{"a=a", "b=b"}) // nolint
 			So(err, ShouldNotBeNil)
 			So(err.Error(), ShouldEqual, `unable to build http request: net/http: nil Context`)
@@ -157,7 +179,7 @@ func TestModify(t *testing.T) {
 				URL:         ts.URL,
 				Method:      api.IdentityModifierMethodPOST,
 			}
-			m, _ := NewRemote(mi, token.Source{Type: "type", Namespace: "/ns", Name: "name"})
+			m, _ := NewRemote(mi, token.Source{Type: "type", Namespace: "/ns", Name: "name"}, rm)
 			out, err := m.Modify(context.Background(), []string{"a=a", "b=b"})
 			So(err, ShouldBeNil)
 			So(out, ShouldResemble, []string{"aa=aa", "bb=bb"})
@@ -176,7 +198,7 @@ func TestModify(t *testing.T) {
 				URL:         ts.URL,
 				Method:      api.IdentityModifierMethodPUT,
 			}
-			m, _ := NewRemote(mi, token.Source{Type: "type", Namespace: "/ns", Name: "name"})
+			m, _ := NewRemote(mi, token.Source{Type: "type", Namespace: "/ns", Name: "name"}, rm)
 			out, err := m.Modify(context.Background(), []string{"a=a", "b=b"})
 			So(err, ShouldBeNil)
 			So(out, ShouldResemble, []string{"aa=aa", "bb=bb"})
@@ -195,7 +217,7 @@ func TestModify(t *testing.T) {
 				URL:         ts.URL,
 				Method:      api.IdentityModifierMethodPATCH,
 			}
-			m, _ := NewRemote(mi, token.Source{Type: "type", Namespace: "/ns", Name: "name"})
+			m, _ := NewRemote(mi, token.Source{Type: "type", Namespace: "/ns", Name: "name"}, rm)
 			out, err := m.Modify(context.Background(), []string{"a=a", "b=b"})
 			So(err, ShouldBeNil)
 			So(out, ShouldResemble, []string{"aa=aa", "bb=bb"})
@@ -214,7 +236,7 @@ func TestModify(t *testing.T) {
 				URL:         ts.URL,
 				Method:      api.IdentityModifierMethodGET,
 			}
-			m, _ := NewRemote(mi, token.Source{Type: "type", Namespace: "/ns", Name: "name"})
+			m, _ := NewRemote(mi, token.Source{Type: "type", Namespace: "/ns", Name: "name"}, rm)
 			out, err := m.Modify(context.Background(), []string{"a=a", "b=b"})
 			So(err, ShouldBeNil)
 			So(out, ShouldResemble, []string{"aa=aa", "bb=bb"})
@@ -237,7 +259,7 @@ func TestModify(t *testing.T) {
 				URL:         ts.URL,
 				Method:      api.IdentityModifierMethodPOST,
 			}
-			m, _ := NewRemote(mi, token.Source{Type: "type", Namespace: "/ns", Name: "name"})
+			m, _ := NewRemote(mi, token.Source{Type: "type", Namespace: "/ns", Name: "name"}, rm)
 			out, err := m.Modify(context.Background(), []string{"a=a", "b=b"})
 			So(err, ShouldBeNil)
 			So(out, ShouldResemble, []string{"a=a", "b=b"})
@@ -257,7 +279,7 @@ func TestModify(t *testing.T) {
 				URL:         ts.URL,
 				Method:      api.IdentityModifierMethodPOST,
 			}
-			m, _ := NewRemote(mi, token.Source{Type: "type", Namespace: "/ns", Name: "name"})
+			m, _ := NewRemote(mi, token.Source{Type: "type", Namespace: "/ns", Name: "name"}, rm)
 			out, err := m.Modify(context.Background(), []string{"a=a", "b=b"})
 			So(err, ShouldNotBeNil)
 			So(err.Error(), ShouldEqual, `service returned an error: 418 I'm a teapot`)
@@ -273,7 +295,7 @@ func TestModify(t *testing.T) {
 				URL:         ts.URL,
 				Method:      api.IdentityModifierMethodPOST,
 			}
-			m, _ := NewRemote(mi, token.Source{Type: "type", Namespace: "/ns", Name: "name"})
+			m, _ := NewRemote(mi, token.Source{Type: "type", Namespace: "/ns", Name: "name"}, rm)
 			out, err := m.Modify(context.Background(), []string{"a=a", "b=b"})
 			So(err, ShouldNotBeNil)
 			So(err.Error(), ShouldEqual, `invalid returned claim '@a=a': must not be prefixed by @`)
@@ -288,7 +310,7 @@ func TestModify(t *testing.T) {
 				URL:         ts.URL,
 				Method:      api.IdentityModifierMethodPOST,
 			}
-			m, _ := NewRemote(mi, token.Source{Type: "type", Namespace: "/ns", Name: "name"})
+			m, _ := NewRemote(mi, token.Source{Type: "type", Namespace: "/ns", Name: "name"}, rm)
 			out, err := m.Modify(context.Background(), []string{"a=a", "b=b"})
 			So(err, ShouldNotBeNil)
 			So(err.Error(), ShouldEqual, `unable to decode response: invalid character 'o' looking for beginning of value`)

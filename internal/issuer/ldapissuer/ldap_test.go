@@ -9,6 +9,7 @@ import (
 	"github.com/go-ldap/ldap/v3"
 	. "github.com/smartystreets/goconvey/convey"
 	"go.acuvity.ai/a3s/pkgs/api"
+	"go.acuvity.ai/a3s/pkgs/netsafe"
 )
 
 func TestErrLDAP(t *testing.T) {
@@ -25,7 +26,7 @@ func TestNewLDAPIssuer(t *testing.T) {
 		src := api.NewLDAPSource()
 		src.Namespace = "/my/ns"
 		src.Name = "my-src"
-		iss := newLDAPIssuer(src)
+		iss := newLDAPIssuer(src, nil)
 		So(iss.source, ShouldEqual, src)
 		So(iss.token.Source.Type, ShouldEqual, "ldap")
 		So(iss.token.Source.Namespace, ShouldEqual, "/my/ns")
@@ -36,12 +37,15 @@ func TestNewLDAPIssuer(t *testing.T) {
 
 func TestFromCredential(t *testing.T) {
 
+	checker, _ := netsafe.MakeChecker([]string{"11.0.0.1/32"}, nil)
+	rm := netsafe.NewRequestMaker(checker)
+
 	Convey("Given a LDAP Issuer and a source with no address", t, func() {
 		src := api.NewLDAPSource()
 		src.Namespace = "/my/ns"
 		src.Name = "my-src"
 		src.SecurityProtocol = api.LDAPSourceSecurityProtocolInbandTLS
-		iss := newLDAPIssuer(src)
+		iss := newLDAPIssuer(src, rm)
 		err := iss.fromCredentials(context.Background(), "", "")
 		So(err, ShouldNotBeNil)
 		So(err.Error(), ShouldEqual, `ldap error: cannot dial: LDAP Result Code 200 "Network Error": dial tcp: missing address`)
@@ -53,7 +57,7 @@ func TestFromCredential(t *testing.T) {
 		src.Name = "my-src"
 		src.CA = "a-ca"
 		src.SecurityProtocol = api.LDAPSourceSecurityProtocolInbandTLS
-		iss := newLDAPIssuer(src)
+		iss := newLDAPIssuer(src, rm)
 		err := iss.fromCredentials(context.Background(), "", "")
 		So(err, ShouldNotBeNil)
 		So(err.Error(), ShouldEqual, `ldap error: cannot dial: LDAP Result Code 200 "Network Error": dial tcp: missing address`)
@@ -64,7 +68,7 @@ func TestFromCredential(t *testing.T) {
 		src.Namespace = "/my/ns"
 		src.Name = "my-src"
 		src.SecurityProtocol = api.LDAPSourceSecurityProtocolTLS
-		iss := newLDAPIssuer(src)
+		iss := newLDAPIssuer(src, rm)
 		err := iss.fromCredentials(context.Background(), "", "")
 		So(err, ShouldNotBeNil)
 		So(err.Error(), ShouldEqual, `ldap error: cannot dial tls: LDAP Result Code 200 "Network Error": dial tcp: missing address`)

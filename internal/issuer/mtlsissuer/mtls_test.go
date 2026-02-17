@@ -15,6 +15,7 @@ import (
 
 	. "github.com/smartystreets/goconvey/convey"
 	"go.acuvity.ai/a3s/pkgs/api"
+	"go.acuvity.ai/a3s/pkgs/netsafe"
 	"go.acuvity.ai/a3s/pkgs/token"
 	"go.acuvity.ai/tg/tglib"
 )
@@ -63,6 +64,9 @@ func TestMTLSIssuer(t *testing.T) {
 
 	Convey("Given I have some certificates", t, func() {
 
+		checker, _ := netsafe.MakeChecker([]string{"11.0.0.1/32"}, nil)
+		rm := netsafe.NewRequestMaker(checker)
+
 		cacert1, cakey1 := getCA()
 		usercert1, userkey1 := getECCert(
 			pkix.Name{
@@ -91,20 +95,20 @@ func TestMTLSIssuer(t *testing.T) {
 			src.Name = "mysource"
 			src.Namespace = "/my/ns"
 			src.CA = string(pem.EncodeToMemory(block))
-			iss := newMTLSIssuer(src)
+			iss := newMTLSIssuer(src, rm)
 			So(iss.token, ShouldNotBeNil)
 			So(iss.source, ShouldEqual, src)
 
 			Convey("Calling FromCertificate with a source missing a CA", func() {
 				src.CA = ""
-				_, err := New(context.Background(), src, usercert2, nil, nil)
+				_, err := New(context.Background(), src, usercert2, nil, nil, rm)
 				So(err, ShouldNotBeNil)
 				So(err.Error(), ShouldStartWith, "unable to prepare x509 verifier: could not append cert from source.CA")
 			})
 
 			Convey("Calling FromCertificate with a valid user cert should work", func() {
 
-				iss, err := New(context.Background(), src, usercert1, nil, nil)
+				iss, err := New(context.Background(), src, usercert1, nil, nil, rm)
 				So(err, ShouldBeNil)
 
 				idt := iss.Issue()
@@ -149,7 +153,7 @@ func TestMTLSIssuer(t *testing.T) {
 				src.Modifier.Certificate = string(pem.EncodeToMemory(certb))
 				src.Modifier.Key = string(pem.EncodeToMemory(keyb))
 
-				iss, err := New(context.Background(), src, usercert1, nil, nil)
+				iss, err := New(context.Background(), src, usercert1, nil, nil, rm)
 				So(err, ShouldBeNil)
 
 				idt := iss.Issue()

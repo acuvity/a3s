@@ -8,13 +8,14 @@ import (
 
 	"go.acuvity.ai/a3s/internal/identitymodifier"
 	"go.acuvity.ai/a3s/pkgs/api"
+	"go.acuvity.ai/a3s/pkgs/netsafe"
 	"go.acuvity.ai/a3s/pkgs/token"
 )
 
 // New returns a new Azure issuer.
-func New(ctx context.Context, source *api.OIDCSource, claims map[string]any) (token.Issuer, error) {
+func New(ctx context.Context, source *api.OIDCSource, claims map[string]any, requestMaker netsafe.RequestMaker) (token.Issuer, error) {
 
-	c := newOIDCIssuer(source)
+	c := newOIDCIssuer(source, requestMaker)
 	if err := c.fromClaims(ctx, claims); err != nil {
 		return nil, err
 	}
@@ -22,13 +23,15 @@ func New(ctx context.Context, source *api.OIDCSource, claims map[string]any) (to
 }
 
 type oidcIssuer struct {
-	source *api.OIDCSource
-	token  *token.IdentityToken
+	source       *api.OIDCSource
+	token        *token.IdentityToken
+	requestMaker netsafe.RequestMaker
 }
 
-func newOIDCIssuer(source *api.OIDCSource) *oidcIssuer {
+func newOIDCIssuer(source *api.OIDCSource, requestMaker netsafe.RequestMaker) *oidcIssuer {
 	return &oidcIssuer{
-		source: source,
+		source:       source,
+		requestMaker: requestMaker,
 		token: token.NewIdentityToken(token.Source{
 			Type:      "oidc",
 			Namespace: source.Namespace,
@@ -49,7 +52,7 @@ func (c *oidcIssuer) fromClaims(ctx context.Context, claims map[string]any) (err
 
 	if srcmod := c.source.Modifier; srcmod != nil {
 
-		m, err := identitymodifier.NewRemote(srcmod, c.token.Source)
+		m, err := identitymodifier.NewRemote(srcmod, c.token.Source, c.requestMaker)
 		if err != nil {
 			return fmt.Errorf("unable to prepare source modifier: %w", err)
 		}

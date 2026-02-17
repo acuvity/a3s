@@ -15,6 +15,7 @@ import (
 
 	. "github.com/smartystreets/goconvey/convey"
 	"go.acuvity.ai/a3s/pkgs/api"
+	"go.acuvity.ai/a3s/pkgs/netsafe"
 	"go.acuvity.ai/tg/tglib"
 )
 
@@ -60,7 +61,7 @@ func TestNewHTTPIssuer(t *testing.T) {
 			Name:      "name",
 			Namespace: "/ns",
 		}
-		iss := newHTTPIssuer(source)
+		iss := newHTTPIssuer(source, nil)
 		So(iss.source, ShouldEqual, source)
 		So(iss.Issue().Source.Type, ShouldEqual, "http")
 		So(iss.Issue().Source.Name, ShouldEqual, "name")
@@ -71,6 +72,9 @@ func TestNewHTTPIssuer(t *testing.T) {
 func TestNew(t *testing.T) {
 
 	Convey("Given an http server and an HTTPSource", t, func() {
+
+		checker, _ := netsafe.MakeChecker([]string{"11.0.0.1/32"}, nil)
+		rm := netsafe.NewRequestMaker(checker)
 
 		remoteCert, remoteKey := getECCert(pkix.Name{CommonName: "local"})
 
@@ -84,7 +88,7 @@ func TestNew(t *testing.T) {
 				Key:         func() string { c, _ := tglib.KeyToPEM(remoteKey); return string(pem.EncodeToMemory(c)) }(),
 			}
 
-			_, err := New(context.Background(), source, Credentials{Username: "user", Password: "pass"})
+			_, err := New(context.Background(), source, Credentials{Username: "user", Password: "pass"}, rm)
 			So(err, ShouldNotBeNil)
 			So(err.Error(), ShouldEqual, `http error: unable to send request: Post "nothttp://coucou.com": unsupported protocol scheme "nothttp"`)
 		})
@@ -99,7 +103,7 @@ func TestNew(t *testing.T) {
 				Key:         func() string { c, _ := tglib.KeyToPEM(remoteKey); return string(pem.EncodeToMemory(c)) }(),
 			}
 
-			_, err := New(context.Background(), source, Credentials{Username: "user", Password: "pass"})
+			_, err := New(context.Background(), source, Credentials{Username: "user", Password: "pass"}, rm)
 			So(err, ShouldNotBeNil)
 			So(err.Error(), ShouldEqual, `http error: unable to read certificate: tls: failed to find any PEM data in certificate input`)
 		})
@@ -114,7 +118,7 @@ func TestNew(t *testing.T) {
 				Key:         "not-pem",
 			}
 
-			_, err := New(context.Background(), source, Credentials{Username: "user", Password: "pass"})
+			_, err := New(context.Background(), source, Credentials{Username: "user", Password: "pass"}, rm)
 			So(err, ShouldNotBeNil)
 			So(err.Error(), ShouldEqual, `http error: unable to read certificate: could not read key data from bytes: 'not-pem'`)
 		})
@@ -145,7 +149,7 @@ func TestNew(t *testing.T) {
 				Key:         func() string { c, _ := tglib.KeyToPEM(remoteKey); return string(pem.EncodeToMemory(c)) }(),
 			}
 
-			iss, err := New(context.Background(), source, Credentials{Username: "user", Password: "pass", TOTP: "1234"})
+			iss, err := New(context.Background(), source, Credentials{Username: "user", Password: "pass", TOTP: "1234"}, rm)
 			So(err, ShouldBeNil)
 			So(iss.Issue().Identity, ShouldResemble, []string{"k=v"})
 			So(expectedUser, ShouldEqual, "user")
@@ -169,7 +173,7 @@ func TestNew(t *testing.T) {
 				Key:         func() string { c, _ := tglib.KeyToPEM(remoteKey); return string(pem.EncodeToMemory(c)) }(),
 			}
 
-			_, err := New(context.Background(), source, Credentials{Username: "user", Password: "pass"})
+			_, err := New(context.Background(), source, Credentials{Username: "user", Password: "pass"}, rm)
 			So(err, ShouldNotBeNil)
 			So(err.Error(), ShouldEqual, `http response error: server responded with '403 Forbidden'`)
 		})
@@ -190,7 +194,7 @@ func TestNew(t *testing.T) {
 				Key:         func() string { c, _ := tglib.KeyToPEM(remoteKey); return string(pem.EncodeToMemory(c)) }(),
 			}
 
-			_, err := New(context.Background(), source, Credentials{Username: "user", Password: "pass"})
+			_, err := New(context.Background(), source, Credentials{Username: "user", Password: "pass"}, rm)
 			So(err, ShouldNotBeNil)
 			So(err.Error(), ShouldEqual, `http response error: unable to decode response body: invalid character 'l' looking for beginning of value`)
 		})
@@ -227,7 +231,7 @@ func TestNew(t *testing.T) {
 				},
 			}
 
-			iss, err := New(context.Background(), source, Credentials{Username: "user", Password: "pass"})
+			iss, err := New(context.Background(), source, Credentials{Username: "user", Password: "pass"}, rm)
 			So(err, ShouldBeNil)
 			So(iss.Issue().Identity, ShouldResemble, []string{"aa=aa", "bb=bb"})
 		})
@@ -260,7 +264,7 @@ func TestNew(t *testing.T) {
 				},
 			}
 
-			_, err := New(context.Background(), source, Credentials{Username: "user", Password: "pass"})
+			_, err := New(context.Background(), source, Credentials{Username: "user", Password: "pass"}, rm)
 			So(err, ShouldNotBeNil)
 			So(err.Error(), ShouldEqual, `unable to prepare source modifier: unable to create certificate: could not read key data from bytes: ''`)
 		})
@@ -295,7 +299,7 @@ func TestNew(t *testing.T) {
 				},
 			}
 
-			_, err := New(context.Background(), source, Credentials{Username: "user", Password: "pass"})
+			_, err := New(context.Background(), source, Credentials{Username: "user", Password: "pass"}, rm)
 			So(err, ShouldNotBeNil)
 			So(err.Error(), ShouldEqual, `unable to call modifier: service returned an error: 403 Forbidden`)
 		})

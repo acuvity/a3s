@@ -16,6 +16,7 @@ import (
 	"github.com/russellhaering/gosaml2/types"
 	. "github.com/smartystreets/goconvey/convey"
 	"go.acuvity.ai/a3s/pkgs/api"
+	"go.acuvity.ai/a3s/pkgs/netsafe"
 	"go.acuvity.ai/tg/tglib"
 )
 
@@ -41,11 +42,14 @@ func getECCert(subject pkix.Name, opts ...tglib.IssueOption) (*x509.Certificate,
 
 func TestNew(t *testing.T) {
 
+	checker, _ := netsafe.MakeChecker([]string{"11.0.0.1/32"}, nil)
+	rm := netsafe.NewRequestMaker(checker)
+
 	Convey("Calling New should work ", t, func() {
 		src := api.NewSAMLSource()
 		src.Name = "name"
 		src.Namespace = "/ns"
-		iss, _ := New(context.Background(), src, &saml2.AssertionInfo{})
+		iss, _ := New(context.Background(), src, &saml2.AssertionInfo{}, rm)
 		So(iss.(*samlIssuer).source, ShouldEqual, src)
 		So(iss.Issue().Source.Type, ShouldEqual, "saml")
 		So(iss.Issue().Source.Name, ShouldEqual, "name")
@@ -73,7 +77,7 @@ func TestNew(t *testing.T) {
 		src.Modifier.Key = string(pem.EncodeToMemory(keyb))
 		src.IncludedKeys = []string{"aa", "bb"}
 
-		iss, _ := New(context.Background(), src, &saml2.AssertionInfo{})
+		iss, _ := New(context.Background(), src, &saml2.AssertionInfo{}, rm)
 		So(iss.(*samlIssuer).source, ShouldEqual, src)
 		So(iss.Issue().Identity, ShouldResemble, []string{"aa=aa", "bb=bb"})
 	})
@@ -93,7 +97,7 @@ func TestNew(t *testing.T) {
 		src.Modifier.CA = string(pem.EncodeToMemory(cab))
 		src.Modifier.URL = ts.URL
 
-		_, err := New(context.Background(), src, &saml2.AssertionInfo{})
+		_, err := New(context.Background(), src, &saml2.AssertionInfo{}, rm)
 		So(err, ShouldNotBeNil)
 		So(err.Error(), ShouldEqual, `unable to prepare source modifier: unable to create certificate: could not read key data from bytes: ''`)
 	})
@@ -116,7 +120,7 @@ func TestNew(t *testing.T) {
 		src.Modifier.Certificate = string(pem.EncodeToMemory(certb))
 		src.Modifier.Key = string(pem.EncodeToMemory(keyb))
 
-		_, err := New(context.Background(), src, &saml2.AssertionInfo{})
+		_, err := New(context.Background(), src, &saml2.AssertionInfo{}, rm)
 		So(err, ShouldNotBeNil)
 		So(err.Error(), ShouldEqual, `unable to call modifier: service returned an error: 403 Forbidden`)
 	})

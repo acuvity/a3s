@@ -10,19 +10,16 @@ import (
 
 	"go.acuvity.ai/a3s/internal/identitymodifier"
 	"go.acuvity.ai/a3s/pkgs/api"
+	"go.acuvity.ai/a3s/pkgs/netsafe"
 	"go.acuvity.ai/a3s/pkgs/token"
 )
 
 const wellKnownSuffix = ".well-known/jwks.json"
 
 // New retrurns new Remote A3S issuer.
-func New(
-	ctx context.Context,
-	source *api.A3SSource,
-	tokenString string,
-) (token.Issuer, error) {
+func New(ctx context.Context, source *api.A3SSource, tokenString string, requestMaker netsafe.RequestMaker) (token.Issuer, error) {
 
-	c := newRemoteA3SIssuer(source)
+	c := newRemoteA3SIssuer(source, requestMaker)
 	if err := c.fromToken(ctx, tokenString); err != nil {
 		return nil, err
 	}
@@ -31,13 +28,15 @@ func New(
 }
 
 type remoteA3SIssuer struct {
-	token  *token.IdentityToken
-	source *api.A3SSource
+	token        *token.IdentityToken
+	source       *api.A3SSource
+	requestMaker netsafe.RequestMaker
 }
 
-func newRemoteA3SIssuer(source *api.A3SSource) *remoteA3SIssuer {
+func newRemoteA3SIssuer(source *api.A3SSource, requestMaker netsafe.RequestMaker) *remoteA3SIssuer {
 	return &remoteA3SIssuer{
-		source: source,
+		source:       source,
+		requestMaker: requestMaker,
 		token: token.NewIdentityToken(token.Source{
 			Type:      "remotea3s",
 			Namespace: source.Namespace,
@@ -91,7 +90,7 @@ func (c *remoteA3SIssuer) fromToken(ctx context.Context, tokenString string) err
 
 	if srcmod := c.source.Modifier; srcmod != nil {
 
-		m, err := identitymodifier.NewRemote(srcmod, c.token.Source)
+		m, err := identitymodifier.NewRemote(srcmod, c.token.Source, c.requestMaker)
 		if err != nil {
 			return fmt.Errorf("unable to prepare source modifier: %w", err)
 		}

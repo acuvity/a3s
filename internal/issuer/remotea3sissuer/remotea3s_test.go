@@ -15,6 +15,7 @@ import (
 
 	. "github.com/smartystreets/goconvey/convey"
 	"go.acuvity.ai/a3s/pkgs/api"
+	"go.acuvity.ai/a3s/pkgs/netsafe"
 	"go.acuvity.ai/a3s/pkgs/token"
 	"go.acuvity.ai/tg/tglib"
 )
@@ -54,7 +55,7 @@ func TestNewRemoteA3SIssuer(t *testing.T) {
 			Name:      "name",
 			Namespace: "/ns",
 		}
-		iss := newRemoteA3SIssuer(source)
+		iss := newRemoteA3SIssuer(source, nil)
 		So(iss.source, ShouldEqual, source)
 		So(iss.Issue().Source.Type, ShouldEqual, "remotea3s")
 		So(iss.Issue().Source.Namespace, ShouldEqual, "/ns")
@@ -63,6 +64,9 @@ func TestNewRemoteA3SIssuer(t *testing.T) {
 }
 
 func TestNew(t *testing.T) {
+
+	checker, _ := netsafe.MakeChecker([]string{"11.0.0.1/32"}, nil)
+	rm := netsafe.NewRequestMaker(checker)
 
 	Convey("Given an http server and a A3SSource and everything is fine", t, func() {
 
@@ -105,7 +109,7 @@ func TestNew(t *testing.T) {
 				Audience:  "local",
 			}
 
-			iss, err := New(context.Background(), source, rtokString)
+			iss, err := New(context.Background(), source, rtokString, rm)
 			So(err, ShouldBeNil)
 			So(iss.Issue().Identity, ShouldResemble, []string{"remote=claim"})
 		})
@@ -138,7 +142,7 @@ func TestNew(t *testing.T) {
 				},
 			}
 
-			iss, err := New(context.Background(), source, rtokString)
+			iss, err := New(context.Background(), source, rtokString, rm)
 			So(err, ShouldBeNil)
 			So(iss.Issue().Identity, ShouldResemble, []string{"aa=aa", "bb=bb"})
 		})
@@ -166,7 +170,7 @@ func TestNew(t *testing.T) {
 				},
 			}
 
-			_, err := New(context.Background(), source, rtokString)
+			_, err := New(context.Background(), source, rtokString, rm)
 			So(err, ShouldNotBeNil)
 			So(err.Error(), ShouldEqual, `unable to prepare source modifier: unable to create certificate: could not read key data from bytes: ''`)
 		})
@@ -197,7 +201,7 @@ func TestNew(t *testing.T) {
 				},
 			}
 
-			_, err := New(context.Background(), source, rtokString)
+			_, err := New(context.Background(), source, rtokString, rm)
 			So(err, ShouldNotBeNil)
 			So(err.Error(), ShouldEqual, `unable to call modifier: service returned an error: 403 Forbidden`)
 		})
@@ -241,7 +245,7 @@ func TestNew(t *testing.T) {
 			Audience:  "local",
 		}
 
-		iss, err := New(context.Background(), source, rtokString)
+		iss, err := New(context.Background(), source, rtokString, rm)
 		So(iss, ShouldBeNil)
 		So(err, ShouldNotBeNil)
 		So(err.Error(), ShouldStartWith, "remote a3s error: unable to parse remote a3s token: unable to parse jwt: token is unverifiable: error while executing keyfunc: unable to find kid")
@@ -256,7 +260,7 @@ func TestNew(t *testing.T) {
 			Audience:  "local",
 		}
 
-		iss, err := New(context.Background(), source, "rtokString")
+		iss, err := New(context.Background(), source, "rtokString", rm)
 		So(iss, ShouldBeNil)
 		So(err, ShouldNotBeNil)
 		So(err.Error(), ShouldContainSubstring, `remote a3s error: unable to retrieve remote jwks: remote jwks error: unable to send request: Get "toto:`)

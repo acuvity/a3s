@@ -38,6 +38,7 @@ import (
 	"go.acuvity.ai/a3s/pkgs/gwutils"
 	"go.acuvity.ai/a3s/pkgs/modifier/binary"
 	"go.acuvity.ai/a3s/pkgs/modifier/plugin"
+	"go.acuvity.ai/a3s/pkgs/netsafe"
 	"go.acuvity.ai/a3s/pkgs/permissions"
 	"go.acuvity.ai/a3s/pkgs/token"
 	"go.acuvity.ai/bahamut"
@@ -72,6 +73,7 @@ type IssueProcessor struct {
 	oidSourceNamespace    asn1.ObjectIdentifier
 	entraManager          *entra.Manager
 	oktaManager           *okta.Manager
+	requestMaker          netsafe.RequestMaker
 }
 
 // NewIssueProcessor returns a new IssueProcessor.
@@ -97,6 +99,7 @@ func NewIssueProcessor(
 	oidSourceNamespace asn1.ObjectIdentifier,
 	entraManager *entra.Manager,
 	oktaManager *okta.Manager,
+	requestMaker netsafe.RequestMaker,
 ) *IssueProcessor {
 
 	// Make a map for fast lookups.
@@ -128,6 +131,7 @@ func NewIssueProcessor(
 		oidSourceNamespace:    oidSourceNamespace,
 		entraManager:          entraManager,
 		oktaManager:           oktaManager,
+		requestMaker:          requestMaker,
 	}
 }
 
@@ -399,7 +403,7 @@ func (p *IssueProcessor) handleCertificateIssue(ctx context.Context, source elem
 
 	src := source.(*api.MTLSSource)
 
-	iss, err := mtlsissuer.New(ctx, src, certs[0], p.entraManager, p.oktaManager)
+	iss, err := mtlsissuer.New(ctx, src, certs[0], p.entraManager, p.oktaManager, p.requestMaker)
 	if err != nil {
 		return nil, err
 	}
@@ -411,7 +415,7 @@ func (p *IssueProcessor) handleLDAPIssue(ctx context.Context, source elemental.I
 
 	src := source.(*api.LDAPSource)
 
-	iss, err := ldapissuer.New(ctx, src, req.InputLDAP.Username, req.InputLDAP.Password)
+	iss, err := ldapissuer.New(ctx, src, req.InputLDAP.Username, req.InputLDAP.Password, p.requestMaker)
 	if err != nil {
 		return nil, err
 	}
@@ -427,7 +431,7 @@ func (p *IssueProcessor) handleHTTPIssue(ctx context.Context, source elemental.I
 		Username: req.InputHTTP.Username,
 		Password: req.InputHTTP.Password,
 		TOTP:     req.InputHTTP.TOTP,
-	})
+	}, p.requestMaker)
 	if err != nil {
 		return nil, err
 	}
@@ -486,7 +490,7 @@ func (p *IssueProcessor) handleRemoteA3SIssue(ctx context.Context, source elemen
 
 	src := source.(*api.A3SSource)
 
-	iss, err := remotea3sissuer.New(ctx, src, req.InputRemoteA3S.Token)
+	iss, err := remotea3sissuer.New(ctx, src, req.InputRemoteA3S.Token, p.requestMaker)
 	if err != nil {
 		return nil, err
 	}
@@ -595,7 +599,7 @@ func (p *IssueProcessor) handleOIDCIssue(bctx bahamut.Context, source elemental.
 		return nil, rerr(elemental.NewError("Claims Decoding Error", err.Error(), "a3s:authn", http.StatusNotAcceptable))
 	}
 
-	return oidcissuer.New(bctx.Context(), src, claims)
+	return oidcissuer.New(bctx.Context(), src, claims, p.requestMaker)
 }
 
 func (p *IssueProcessor) handleOAuth2Issue(bctx bahamut.Context, source elemental.Identifiable, req *api.Issue) (token.Issuer, error) {
@@ -698,7 +702,7 @@ func (p *IssueProcessor) handleOAuth2Issue(bctx bahamut.Context, source elementa
 		return nil, rerr(elemental.NewError("Unauthorized", fmt.Sprintf("oauth2: unable to retrieve claims: %s", err), "a3s:authn", http.StatusUnauthorized))
 	}
 
-	return oauth2issuer.New(bctx.Context(), src, claims)
+	return oauth2issuer.New(bctx.Context(), src, claims, p.requestMaker)
 }
 
 func (p *IssueProcessor) handleSAMLIssue(bctx bahamut.Context, source elemental.Identifiable, req *api.Issue) (token.Issuer, error) {
@@ -830,7 +834,7 @@ func (p *IssueProcessor) handleSAMLIssue(bctx bahamut.Context, source elemental.
 		return nil, rerr(elemental.NewError("Forbidden", "Invalid audience", "a3s", http.StatusForbidden))
 	}
 
-	return samlissuer.New(bctx.Context(), src, assertionInfo)
+	return samlissuer.New(bctx.Context(), src, assertionInfo, p.requestMaker)
 }
 
 func retrieveSource(

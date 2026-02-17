@@ -17,6 +17,7 @@ import (
 	types "github.com/russellhaering/gosaml2/types"
 	"go.acuvity.ai/a3s/internal/identitymodifier"
 	"go.acuvity.ai/a3s/pkgs/api"
+	"go.acuvity.ai/a3s/pkgs/netsafe"
 	"go.acuvity.ai/a3s/pkgs/token"
 )
 
@@ -36,9 +37,9 @@ func init() {
 }
 
 // New returns a new Azure issuer.
-func New(ctx context.Context, source *api.SAMLSource, assertion *saml2.AssertionInfo) (token.Issuer, error) {
+func New(ctx context.Context, source *api.SAMLSource, assertion *saml2.AssertionInfo, requestMaker netsafe.RequestMaker) (token.Issuer, error) {
 
-	c := newSAMLIssuer(source)
+	c := newSAMLIssuer(source, requestMaker)
 	if err := c.fromAssertion(ctx, assertion); err != nil {
 		return nil, err
 	}
@@ -46,13 +47,15 @@ func New(ctx context.Context, source *api.SAMLSource, assertion *saml2.Assertion
 }
 
 type samlIssuer struct {
-	source *api.SAMLSource
-	token  *token.IdentityToken
+	source       *api.SAMLSource
+	token        *token.IdentityToken
+	requestMaker netsafe.RequestMaker
 }
 
-func newSAMLIssuer(source *api.SAMLSource) *samlIssuer {
+func newSAMLIssuer(source *api.SAMLSource, requestMaker netsafe.RequestMaker) *samlIssuer {
 	return &samlIssuer{
-		source: source,
+		source:       source,
+		requestMaker: requestMaker,
 		token: token.NewIdentityToken(token.Source{
 			Type:      "saml",
 			Namespace: source.Namespace,
@@ -73,7 +76,7 @@ func (c *samlIssuer) fromAssertion(ctx context.Context, assertion *saml2.Asserti
 
 	if srcmod := c.source.Modifier; srcmod != nil {
 
-		m, err := identitymodifier.NewRemote(srcmod, c.token.Source)
+		m, err := identitymodifier.NewRemote(srcmod, c.token.Source, c.requestMaker)
 		if err != nil {
 			return fmt.Errorf("unable to prepare source modifier: %w", err)
 		}

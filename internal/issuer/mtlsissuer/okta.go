@@ -1,6 +1,7 @@
 package mtlsissuer
 
 import (
+	"context"
 	"crypto/x509"
 	"fmt"
 	"net/http"
@@ -8,11 +9,11 @@ import (
 	"go.acuvity.ai/a3s/internal/idp/okta"
 )
 
-func handleOktaAutologin(iss *mtlsIssuer, cert *x509.Certificate, oktaManager *okta.Manager) error {
+func handleOktaAutologin(ctx context.Context, iss *mtlsIssuer, cert *x509.Certificate, oktaManager *okta.Manager) error {
 
 	oerr := makeErrMaker("okta")
 
-	rtoken, err := oktaManager.GetAccessToken(iss.source.OktaApplicationCredentials)
+	rtoken, err := oktaManager.GetAccessToken(ctx, iss.source.OktaApplicationCredentials)
 	if err != nil {
 		return err
 	}
@@ -23,7 +24,7 @@ func handleOktaAutologin(iss *mtlsIssuer, cert *x509.Certificate, oktaManager *o
 		return oerr("Unable to retrieve principal name from client certificate", err.Error(), http.StatusBadRequest)
 	}
 
-	ruser, err := oktaManager.GetUser(rtoken, principalName)
+	ruser, err := oktaManager.GetUser(ctx, rtoken, principalName)
 	if err != nil {
 		return err
 	}
@@ -32,7 +33,7 @@ func handleOktaAutologin(iss *mtlsIssuer, cert *x509.Certificate, oktaManager *o
 		return oerr("Forbidden", fmt.Sprintf("User is not marked as active (status: '%s')", ruser.Status), http.StatusForbidden)
 	}
 
-	rmember, err := oktaManager.GetMembership(rtoken, ruser)
+	rmember, err := oktaManager.GetMembership(ctx, rtoken, ruser)
 	if err != nil {
 		return err
 	}

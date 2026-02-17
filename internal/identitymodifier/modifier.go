@@ -12,6 +12,7 @@ import (
 	"strings"
 
 	"go.acuvity.ai/a3s/pkgs/api"
+	"go.acuvity.ai/a3s/pkgs/netsafe"
 	"go.acuvity.ai/a3s/pkgs/token"
 	"go.acuvity.ai/tg/tglib"
 )
@@ -27,11 +28,12 @@ type IdentityModifier interface {
 }
 
 type identityModifier struct {
-	caPool     *x509.CertPool
-	url        string
-	clientCert tls.Certificate
-	method     string
-	src        token.Source
+	caPool       *x509.CertPool
+	url          string
+	clientCert   tls.Certificate
+	method       string
+	src          token.Source
+	requestMaker netsafe.RequestMaker
 }
 
 // NewRemote returns a new HTTP based IdentityModifier.
@@ -41,7 +43,7 @@ type identityModifier struct {
 // to return an error.
 // The server must return 200 if it modified the list, 204 if it did not.
 // Anything else is considered as an error.
-func NewRemote(m *api.IdentityModifier, src token.Source) (IdentityModifier, error) {
+func NewRemote(m *api.IdentityModifier, src token.Source, requestMaker netsafe.RequestMaker) (IdentityModifier, error) {
 
 	switch strings.ToUpper(string(m.Method)) {
 	case http.MethodGet, http.MethodPost, http.MethodPut, http.MethodPatch:
@@ -72,11 +74,12 @@ func NewRemote(m *api.IdentityModifier, src token.Source) (IdentityModifier, err
 	}
 
 	return &identityModifier{
-		url:        m.URL,
-		caPool:     caPool,
-		clientCert: clientCert,
-		method:     string(m.Method),
-		src:        src,
+		url:          m.URL,
+		caPool:       caPool,
+		clientCert:   clientCert,
+		method:       string(m.Method),
+		src:          src,
+		requestMaker: requestMaker,
 	}, nil
 }
 
@@ -105,7 +108,7 @@ func (m *identityModifier) Modify(ctx context.Context, in []string) (out []strin
 		buffer = bytes.NewBuffer(data)
 	}
 
-	req, err := http.NewRequestWithContext(ctx, m.method, m.url, buffer)
+	req, err := m.requestMaker(ctx, m.method, m.url, buffer)
 	if err != nil {
 		return nil, fmt.Errorf("unable to build http request: %w", err)
 	}

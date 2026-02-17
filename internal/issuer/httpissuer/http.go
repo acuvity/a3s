@@ -12,6 +12,7 @@ import (
 
 	"go.acuvity.ai/a3s/internal/identitymodifier"
 	"go.acuvity.ai/a3s/pkgs/api"
+	"go.acuvity.ai/a3s/pkgs/netsafe"
 	"go.acuvity.ai/a3s/pkgs/token"
 	"go.acuvity.ai/tg/tglib"
 )
@@ -24,13 +25,9 @@ type Credentials struct {
 }
 
 // New retrurns new Remote http issuer.
-func New(
-	ctx context.Context,
-	source *api.HTTPSource,
-	creds Credentials,
-) (token.Issuer, error) {
+func New(ctx context.Context, source *api.HTTPSource, creds Credentials, requestMaker netsafe.RequestMaker) (token.Issuer, error) {
 
-	c := newHTTPIssuer(source)
+	c := newHTTPIssuer(source, requestMaker)
 	if err := c.fromCredentials(ctx, creds); err != nil {
 		return nil, err
 	}
@@ -39,13 +36,15 @@ func New(
 }
 
 type httpIssuer struct {
-	token  *token.IdentityToken
-	source *api.HTTPSource
+	token        *token.IdentityToken
+	source       *api.HTTPSource
+	requestMaker netsafe.RequestMaker
 }
 
-func newHTTPIssuer(source *api.HTTPSource) *httpIssuer {
+func newHTTPIssuer(source *api.HTTPSource, requestMaker netsafe.RequestMaker) *httpIssuer {
 	return &httpIssuer{
-		source: source,
+		source:       source,
+		requestMaker: requestMaker,
 		token: token.NewIdentityToken(token.Source{
 			Type:      "http",
 			Namespace: source.Namespace,
@@ -83,7 +82,7 @@ func (c *httpIssuer) fromCredentials(ctx context.Context, creds Credentials) err
 		return ErrHTTP{Err: fmt.Errorf("unable to encode body: %w", err)}
 	}
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, c.source.URL, buf)
+	req, err := c.requestMaker(ctx, http.MethodPost, c.source.URL, buf)
 	if err != nil {
 		return ErrHTTP{Err: fmt.Errorf("unable to build request: %w", err)}
 	}
@@ -116,7 +115,7 @@ func (c *httpIssuer) fromCredentials(ctx context.Context, creds Credentials) err
 
 	if srcmod := c.source.Modifier; srcmod != nil {
 
-		m, err := identitymodifier.NewRemote(srcmod, c.token.Source)
+		m, err := identitymodifier.NewRemote(srcmod, c.token.Source, c.requestMaker)
 		if err != nil {
 			return fmt.Errorf("unable to prepare source modifier: %w", err)
 		}

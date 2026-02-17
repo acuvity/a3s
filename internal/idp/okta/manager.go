@@ -1,6 +1,7 @@
 package okta
 
 import (
+	"context"
 	"encoding/json"
 	"encoding/pem"
 	"fmt"
@@ -13,24 +14,27 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/karlseguin/ccache/v3"
 	"go.acuvity.ai/a3s/pkgs/api"
+	"go.acuvity.ai/a3s/pkgs/netsafe"
 	"go.acuvity.ai/elemental"
 	"go.acuvity.ai/tg/tglib"
 )
 
 type Manager struct {
-	client     *http.Client
-	tokenCache *ccache.Cache[*AccessToken]
+	client       *http.Client
+	requestMaker netsafe.RequestMaker
+	tokenCache   *ccache.Cache[*AccessToken]
 }
 
-func NewEntraManager(client *http.Client) *Manager {
+func NewEntraManager(client *http.Client, requestMaker netsafe.RequestMaker) *Manager {
 
 	return &Manager{
-		tokenCache: ccache.New(ccache.Configure[*AccessToken]().MaxSize(1024)),
-		client:     client,
+		tokenCache:   ccache.New(ccache.Configure[*AccessToken]().MaxSize(1024)),
+		client:       client,
+		requestMaker: requestMaker,
 	}
 }
 
-func (m *Manager) GetAccessToken(creds *api.MTLSSourceOkta) (*AccessToken, error) {
+func (m *Manager) GetAccessToken(ctx context.Context, creds *api.MTLSSourceOkta) (*AccessToken, error) {
 
 	if creds == nil {
 		return nil, elemental.NewError("Invalid MTLS source", "No oktaApplicationCredentials set", "a3s:okta", http.StatusInternalServerError)
@@ -85,7 +89,7 @@ func (m *Manager) GetAccessToken(creds *api.MTLSSourceOkta) (*AccessToken, error
 			"client_assertion":      {jwtString},
 		}
 
-		r, err := http.NewRequest(http.MethodPost, tokenURL, strings.NewReader(form.Encode()))
+		r, err := m.requestMaker(ctx, http.MethodPost, tokenURL, strings.NewReader(form.Encode()))
 		if err != nil {
 			return nil, elemental.NewError("Unable to create oauth2 token request", err.Error(), "a3s:okta", http.StatusInternalServerError)
 		}
@@ -119,9 +123,9 @@ func (m *Manager) GetAccessToken(creds *api.MTLSSourceOkta) (*AccessToken, error
 	return rtoken, nil
 }
 
-func (m *Manager) GetUser(rtoken *AccessToken, principalName string) (*User, error) {
+func (m *Manager) GetUser(ctx context.Context, rtoken *AccessToken, principalName string) (*User, error) {
 
-	r, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s/api/v1/users/%s", rtoken.Domain, principalName), nil)
+	r, err := m.requestMaker(ctx, http.MethodGet, fmt.Sprintf("%s/api/v1/users/%s", rtoken.Domain, principalName), nil)
 	if err != nil {
 		return nil, elemental.NewError("Unable to create request to retrieve user info", err.Error(), "a3s:okta", http.StatusBadRequest)
 	}
@@ -151,9 +155,9 @@ func (m *Manager) GetUser(rtoken *AccessToken, principalName string) (*User, err
 	return ruser, nil
 }
 
-func (m *Manager) GetMembership(rtoken *AccessToken, ruser *User) ([]Membership, error) {
+func (m *Manager) GetMembership(ctx context.Context, rtoken *AccessToken, ruser *User) ([]Membership, error) {
 
-	r, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s/api/v1/users/%s/groups", rtoken.Domain, ruser.Profile.Login), nil)
+	r, err := m.requestMaker(ctx, http.MethodGet, fmt.Sprintf("%s/api/v1/users/%s/groups", rtoken.Domain, ruser.Profile.Login), nil)
 	if err != nil {
 		return nil, elemental.NewError("Unable to create request to retrieve user groups", err.Error(), "a3s:okta", http.StatusBadRequest)
 	}

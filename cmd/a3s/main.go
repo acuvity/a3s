@@ -32,6 +32,7 @@ import (
 	"go.acuvity.ai/a3s/pkgs/jobs"
 	"go.acuvity.ai/a3s/pkgs/modifier/binary"
 	"go.acuvity.ai/a3s/pkgs/modifier/plugin"
+	"go.acuvity.ai/a3s/pkgs/netsafe"
 	"go.acuvity.ai/a3s/pkgs/notification"
 	"go.acuvity.ai/a3s/pkgs/nscache"
 	"go.acuvity.ai/a3s/pkgs/permissions"
@@ -517,8 +518,17 @@ func main() {
 		}
 	}
 
-	oktaManager := okta.NewEntraManager(&http.Client{Timeout: 5 * time.Second})
-	entraManager := entra.NewEntraManager(&http.Client{Timeout: 5 * time.Second})
+	slog.Info("Restricted CIDRs", "networks", cfg.RestrictedNetworks, "ignored", cfg.RestrictedIgnoredNetworks)
+	checker, err := netsafe.MakeChecker(cfg.RestrictedNetworks, cfg.RestrictedIgnoredNetworks)
+	if err != nil {
+		slog.Error("Unable to create network checker", err)
+		os.Exit(1)
+	}
+
+	noloRequestMaker := netsafe.NewRequestMaker(checker)
+
+	oktaManager := okta.NewEntraManager(&http.Client{Timeout: 5 * time.Second}, noloRequestMaker)
+	entraManager := entra.NewEntraManager(&http.Client{Timeout: 5 * time.Second}, noloRequestMaker)
 
 	var entraSyncer *entra.Syncer
 	var redisLocker *redislock.Client
@@ -563,6 +573,7 @@ func main() {
 			oidSourceNamespace,
 			entraManager,
 			oktaManager,
+			noloRequestMaker,
 		),
 		api.IssueIdentity,
 	)
