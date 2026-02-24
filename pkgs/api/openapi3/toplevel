@@ -605,6 +605,9 @@
           "inputSAML": {
             "$ref": "#/components/schemas/issuesaml"
           },
+          "inputTokenExchange": {
+            "$ref": "#/components/schemas/issuetokenexchange"
+          },
           "opaque": {
             "additionalProperties": {
               "type": "string"
@@ -661,7 +664,8 @@
               "OIDC",
               "RemoteA3S",
               "SAML",
-              "OAuth2"
+              "OAuth2",
+              "TokenExchange"
             ],
             "example": "OIDC"
           },
@@ -914,6 +918,20 @@
             "type": "string"
           }
         },
+        "type": "object"
+      },
+      "issuetokenexchange": {
+        "description": "Additional issuing information for DSG token exchange source.",
+        "properties": {
+          "accessToken": {
+            "description": "The access token to validate with DSG auth.",
+            "example": "valid.jwt.access.token",
+            "type": "string"
+          }
+        },
+        "required": [
+          "accessToken"
+        ],
         "type": "object"
       },
       "ldapsource": {

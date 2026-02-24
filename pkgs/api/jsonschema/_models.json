@@ -57,6 +57,9 @@
     "issuesaml": {
       "$ref": "issuesaml.json"
     },
+    "issuetokenexchange": {
+      "$ref": "issuetokenexchange.json"
+    },
     "ldapsource": {
       "$ref": "ldapsource.json"
     },

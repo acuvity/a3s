@@ -49,6 +49,9 @@ const (
 
 	// IssueSourceTypeSAML represents the value SAML.
 	IssueSourceTypeSAML IssueSourceTypeValue = "SAML"
+
+	// IssueSourceTypeTokenExchange represents the value TokenExchange.
+	IssueSourceTypeTokenExchange IssueSourceTypeValue = "TokenExchange"
 )
 
 // IssueTokenTypeValue represents the possible values for attribute "tokenType".
@@ -185,6 +188,9 @@ type Issue struct {
 
 	// Contains additional information for an SAML source.
 	InputSAML *IssueSAML `json:"inputSAML,omitempty" msgpack:"inputSAML,omitempty" bson:"-" mapstructure:"inputSAML,omitempty"`
+
+	// Contains additional information for a token exchange source.
+	InputTokenExchange *IssueTokenExchange `json:"inputTokenExchange,omitempty" msgpack:"inputTokenExchange,omitempty" bson:"-" mapstructure:"inputTokenExchange,omitempty"`
 
 	// Opaque data that will be included in the issued token.
 	Opaque map[string]string `json:"opaque,omitempty" msgpack:"opaque,omitempty" bson:"-" mapstructure:"opaque,omitempty"`
@@ -363,6 +369,7 @@ func (o *Issue) ToSparse(fields ...string) elemental.SparseIdentifiable {
 			InputOIDC:             o.InputOIDC,
 			InputRemoteA3S:        o.InputRemoteA3S,
 			InputSAML:             o.InputSAML,
+			InputTokenExchange:    o.InputTokenExchange,
 			Opaque:                &o.Opaque,
 			RestrictedNamespace:   &o.RestrictedNamespace,
 			RestrictedNetworks:    &o.RestrictedNetworks,
@@ -412,6 +419,8 @@ func (o *Issue) ToSparse(fields ...string) elemental.SparseIdentifiable {
 			sp.InputRemoteA3S = o.InputRemoteA3S
 		case "inputSAML":
 			sp.InputSAML = o.InputSAML
+		case "inputTokenExchange":
+			sp.InputTokenExchange = o.InputTokenExchange
 		case "opaque":
 			sp.Opaque = &(o.Opaque)
 		case "restrictedNamespace":
@@ -494,6 +503,9 @@ func (o *Issue) Patch(sparse elemental.SparseIdentifiable) {
 	}
 	if so.InputSAML != nil {
 		o.InputSAML = so.InputSAML
+	}
+	if so.InputTokenExchange != nil {
+		o.InputTokenExchange = so.InputTokenExchange
 	}
 	if so.Opaque != nil {
 		o.Opaque = *so.Opaque
@@ -593,6 +605,12 @@ func (o *Issue) EncryptAttributes(encrypter elemental.AttributeEncrypter) (err e
 		}
 	}
 
+	if o.InputTokenExchange != nil {
+		if err := o.InputTokenExchange.EncryptAttributes(encrypter); err != nil {
+			return fmt.Errorf("unable to encrypt ref attribute 'InputTokenExchange' for 'Issue' (%s): %w", o.Identifier(), err)
+		}
+	}
+
 	return nil
 }
 
@@ -656,6 +674,12 @@ func (o *Issue) DecryptAttributes(encrypter elemental.AttributeEncrypter) (err e
 	if o.InputSAML != nil {
 		if err := o.InputSAML.DecryptAttributes(encrypter); err != nil {
 			return fmt.Errorf("unable to decrypt ref attribute 'InputSAML' for 'Issue' (%s): %w", o.Identifier(), err)
+		}
+	}
+
+	if o.InputTokenExchange != nil {
+		if err := o.InputTokenExchange.DecryptAttributes(encrypter); err != nil {
+			return fmt.Errorf("unable to decrypt ref attribute 'InputTokenExchange' for 'Issue' (%s): %w", o.Identifier(), err)
 		}
 	}
 
@@ -764,6 +788,13 @@ func (o *Issue) Validate() error {
 		}
 	}
 
+	if o.InputTokenExchange != nil {
+		if err := o.InputTokenExchange.Validate(); err != nil {
+			errors = errors.Append(err)
+			elemental.InjectAttributePath(errors, "inputTokenExchange")
+		}
+	}
+
 	if err := ValidateCIDRListOptional("restrictedNetworks", o.RestrictedNetworks); err != nil {
 		errors = errors.Append(err)
 	}
@@ -772,7 +803,7 @@ func (o *Issue) Validate() error {
 		requiredErrors = requiredErrors.Append(err)
 	}
 
-	if err := elemental.ValidateStringInList("sourceType", string(o.SourceType), []string{"A3S", "AWS", "Azure", "GCP", "HTTP", "LDAP", "MTLS", "OIDC", "RemoteA3S", "SAML", "OAuth2"}, false); err != nil {
+	if err := elemental.ValidateStringInList("sourceType", string(o.SourceType), []string{"A3S", "AWS", "Azure", "GCP", "HTTP", "LDAP", "MTLS", "OIDC", "RemoteA3S", "SAML", "OAuth2", "TokenExchange"}, false); err != nil {
 		errors = errors.Append(err)
 	}
 
@@ -855,6 +886,8 @@ func (o *Issue) ValueForAttribute(name string) any {
 		return o.InputRemoteA3S
 	case "inputSAML":
 		return o.InputSAML
+	case "inputTokenExchange":
+		return o.InputTokenExchange
 	case "opaque":
 		return o.Opaque
 	case "restrictedNamespace":
@@ -1033,6 +1066,15 @@ know all of the claims.`,
 		SubType:        "issuesaml",
 		Type:           "ref",
 	},
+	"InputTokenExchange": {
+		AllowedChoices: []string{},
+		ConvertedName:  "InputTokenExchange",
+		Description:    `Contains additional information for a token exchange source.`,
+		Exposed:        true,
+		Name:           "inputTokenExchange",
+		SubType:        "issuetokenexchange",
+		Type:           "ref",
+	},
 	"Opaque": {
 		AllowedChoices: []string{},
 		ConvertedName:  "Opaque",
@@ -1110,7 +1152,7 @@ engine has no effect and may end up making the token unusable.`,
 		Type:           "string",
 	},
 	"SourceType": {
-		AllowedChoices: []string{"A3S", "AWS", "Azure", "GCP", "HTTP", "LDAP", "MTLS", "OIDC", "RemoteA3S", "SAML", "OAuth2"},
+		AllowedChoices: []string{"A3S", "AWS", "Azure", "GCP", "HTTP", "LDAP", "MTLS", "OIDC", "RemoteA3S", "SAML", "OAuth2", "TokenExchange"},
 		ConvertedName:  "SourceType",
 		Description: `The authentication source. This will define how to verify
 credentials from internal or external source of authentication.`,
@@ -1310,6 +1352,15 @@ know all of the claims.`,
 		SubType:        "issuesaml",
 		Type:           "ref",
 	},
+	"inputtokenexchange": {
+		AllowedChoices: []string{},
+		ConvertedName:  "InputTokenExchange",
+		Description:    `Contains additional information for a token exchange source.`,
+		Exposed:        true,
+		Name:           "inputTokenExchange",
+		SubType:        "issuetokenexchange",
+		Type:           "ref",
+	},
 	"opaque": {
 		AllowedChoices: []string{},
 		ConvertedName:  "Opaque",
@@ -1387,7 +1438,7 @@ engine has no effect and may end up making the token unusable.`,
 		Type:           "string",
 	},
 	"sourcetype": {
-		AllowedChoices: []string{"A3S", "AWS", "Azure", "GCP", "HTTP", "LDAP", "MTLS", "OIDC", "RemoteA3S", "SAML", "OAuth2"},
+		AllowedChoices: []string{"A3S", "AWS", "Azure", "GCP", "HTTP", "LDAP", "MTLS", "OIDC", "RemoteA3S", "SAML", "OAuth2", "TokenExchange"},
 		ConvertedName:  "SourceType",
 		Description: `The authentication source. This will define how to verify
 credentials from internal or external source of authentication.`,
@@ -1550,6 +1601,9 @@ type SparseIssue struct {
 
 	// Contains additional information for an SAML source.
 	InputSAML *IssueSAML `json:"inputSAML,omitempty" msgpack:"inputSAML,omitempty" bson:"-" mapstructure:"inputSAML,omitempty"`
+
+	// Contains additional information for a token exchange source.
+	InputTokenExchange *IssueTokenExchange `json:"inputTokenExchange,omitempty" msgpack:"inputTokenExchange,omitempty" bson:"-" mapstructure:"inputTokenExchange,omitempty"`
 
 	// Opaque data that will be included in the issued token.
 	Opaque *map[string]string `json:"opaque,omitempty" msgpack:"opaque,omitempty" bson:"-" mapstructure:"opaque,omitempty"`
@@ -1724,6 +1778,9 @@ func (o *SparseIssue) ToPlain() elemental.PlainIdentifiable {
 	if o.InputSAML != nil {
 		out.InputSAML = o.InputSAML
 	}
+	if o.InputTokenExchange != nil {
+		out.InputTokenExchange = o.InputTokenExchange
+	}
 	if o.Opaque != nil {
 		out.Opaque = *o.Opaque
 	}
@@ -1824,6 +1881,12 @@ func (o *SparseIssue) EncryptAttributes(encrypter elemental.AttributeEncrypter) 
 		}
 	}
 
+	if o.InputTokenExchange != nil {
+		if err := o.InputTokenExchange.EncryptAttributes(encrypter); err != nil {
+			return fmt.Errorf("unable to encrypt ref attribute 'InputTokenExchange' for 'Issue' (%s): %w", o.Identifier(), err)
+		}
+	}
+
 	return nil
 }
 
@@ -1887,6 +1950,12 @@ func (o *SparseIssue) DecryptAttributes(encrypter elemental.AttributeEncrypter) 
 	if o.InputSAML != nil {
 		if err := o.InputSAML.DecryptAttributes(encrypter); err != nil {
 			return fmt.Errorf("unable to decrypt ref attribute 'InputSAML' for 'Issue' (%s): %w", o.Identifier(), err)
+		}
+	}
+
+	if o.InputTokenExchange != nil {
+		if err := o.InputTokenExchange.DecryptAttributes(encrypter); err != nil {
+			return fmt.Errorf("unable to decrypt ref attribute 'InputTokenExchange' for 'Issue' (%s): %w", o.Identifier(), err)
 		}
 	}
 

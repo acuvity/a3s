@@ -114,6 +114,12 @@
       },
       "type": "array"
     },
+    "issuetokenexchange": {
+      "items": {
+        "$ref": "issuetokenexchange.json"
+      },
+      "type": "array"
+    },
     "ldapsources": {
       "items": {
         "$ref": "ldapsource.json"

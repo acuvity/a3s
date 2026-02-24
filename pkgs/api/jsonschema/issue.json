@@ -134,6 +134,12 @@
       "description": "Contains additional information for an SAML source.",
       "title": "inputSAML"
     },
+    "inputTokenExchange": {
+      "$friendlyName": "InputTokenExchange",
+      "$ref": "issuetokenexchange.json",
+      "description": "Contains additional information for a token exchange source.",
+      "title": "inputTokenExchange"
+    },
     "opaque": {
       "$friendlyName": "Opaque",
       "additionalProperties": {
@@ -209,7 +215,8 @@
         "OIDC",
         "RemoteA3S",
         "SAML",
-        "OAuth2"
+        "OAuth2",
+        "TokenExchange"
       ],
       "title": "sourceType"
     },

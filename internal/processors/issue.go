@@ -5,9 +5,13 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"encoding/asn1"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"math"
 	"net/http"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/coreos/go-oidc/v3/oidc"
@@ -15,6 +19,7 @@ import (
 	"github.com/karlseguin/ccache/v3"
 	saml2 "github.com/russellhaering/gosaml2"
 	dsig "github.com/russellhaering/goxmldsig"
+	"go.acuvity.ai/a3s/internal/dsgauth"
 	"go.acuvity.ai/a3s/internal/idp/entra"
 	"go.acuvity.ai/a3s/internal/idp/okta"
 	"go.acuvity.ai/a3s/internal/issuer/a3sissuer"
@@ -28,6 +33,7 @@ import (
 	"go.acuvity.ai/a3s/internal/issuer/oidcissuer"
 	"go.acuvity.ai/a3s/internal/issuer/remotea3sissuer"
 	"go.acuvity.ai/a3s/internal/issuer/samlissuer"
+	"go.acuvity.ai/a3s/internal/issuer/tokenexchangeissuer"
 	"go.acuvity.ai/a3s/internal/oauth2ceremony"
 	"go.acuvity.ai/a3s/internal/oauth2ceremony/oauth2provider"
 	"go.acuvity.ai/a3s/internal/relaystate"
@@ -74,6 +80,7 @@ type IssueProcessor struct {
 	entraManager          *entra.Manager
 	oktaManager           *okta.Manager
 	requestMaker          netsafe.RequestMaker
+	dsgTokenValidator     dsgauth.Validator
 }
 
 // NewIssueProcessor returns a new IssueProcessor.
@@ -100,6 +107,7 @@ func NewIssueProcessor(
 	entraManager *entra.Manager,
 	oktaManager *okta.Manager,
 	requestMaker netsafe.RequestMaker,
+	dsgTokenValidator dsgauth.Validator,
 ) *IssueProcessor {
 
 	// Make a map for fast lookups.
@@ -132,6 +140,7 @@ func NewIssueProcessor(
 		entraManager:          entraManager,
 		oktaManager:           oktaManager,
 		requestMaker:          requestMaker,
+		dsgTokenValidator:     dsgTokenValidator,
 	}
 }
 
@@ -212,8 +221,12 @@ func (p *IssueProcessor) ProcessCreate(bctx bahamut.Context) (err error) {
 						return err
 					}
 				}
-				req.SourceName, req.SourceNamespace = mtlssource.Name, mtlssource.Namespace
-				source = mtlssource
+				// If no source is resolved from certificate fingerprint, keep explicit source
+				// values from the request and continue to regular source retrieval.
+				if mtlssource != nil {
+					req.SourceName, req.SourceNamespace = mtlssource.Name, mtlssource.Namespace
+					source = mtlssource
+				}
 			}
 		}
 	}
@@ -286,6 +299,9 @@ func (p *IssueProcessor) ProcessCreate(bctx bahamut.Context) (err error) {
 		if issuer == nil && err == nil {
 			return nil
 		}
+
+	case api.IssueSourceTypeTokenExchange:
+		issuer, err = p.handleTokenExchangeIssue(bctx.Context(), req)
 	}
 
 	if err != nil {
@@ -359,6 +375,7 @@ func (p *IssueProcessor) ProcessCreate(bctx bahamut.Context) (err error) {
 	req.InputRemoteA3S = nil
 	req.InputOAuth2 = nil
 	req.InputSAML = nil
+	req.InputTokenExchange = nil
 
 	if req.Cookie {
 		domain := req.CookieDomain
@@ -496,6 +513,120 @@ func (p *IssueProcessor) handleRemoteA3SIssue(ctx context.Context, source elemen
 	}
 
 	return iss, nil
+}
+
+func (p *IssueProcessor) handleTokenExchangeIssue(ctx context.Context, req *api.Issue) (token.Issuer, error) {
+
+	if p.dsgTokenValidator == nil {
+		return nil, fmt.Errorf("token exchange validator is not configured")
+	}
+
+	claims, err := p.dsgTokenValidator.ValidateAccessToken(ctx, req.InputTokenExchange.AccessToken)
+	if err != nil {
+		return nil, err
+	}
+
+	cus := claimStringValue(claims["cus"])
+	if cus != "" {
+		org, err := p.resolveOrgByCTSID(ctx, cus)
+		if err != nil {
+			return nil, err
+		}
+		claims["@org"] = org
+		claims["org"] = org
+	}
+
+	iss, err := tokenexchangeissuer.NewFromClaims(claims)
+	if err != nil {
+		return nil, err
+	}
+
+	return iss, nil
+}
+
+func (p *IssueProcessor) resolveOrgByCTSID(ctx context.Context, ctsID string) (string, error) {
+	nss := api.NamespacesList{}
+	mctx := manipulate.NewContext(
+		ctx,
+		manipulate.ContextOptionNamespace("/orgs"),
+		manipulate.ContextOptionReadConsistency(manipulate.ReadConsistencyStrong),
+	)
+	if err := p.manipulator.RetrieveMany(mctx, &nss); err != nil {
+		return "", fmt.Errorf("unable to retrieve namespaces for cts_id lookup: %w", err)
+	}
+
+	matches := make([]string, 0, 1)
+	for _, ns := range nss {
+		if ns == nil || ns.Opaque == nil {
+			continue
+		}
+		if isInactiveOrgMode(claimStringValue(ns.Opaque["mode"])) {
+			continue
+		}
+		if claimStringValue(ns.Opaque["cts_id"]) != ctsID {
+			continue
+		}
+
+		if org := orgNameFromNamespacePath(ns.Name); org != "" {
+			matches = append(matches, org)
+		}
+	}
+
+	switch len(matches) {
+	case 0:
+		return "", fmt.Errorf("unable to resolve namespace from cus claim %q", ctsID)
+	case 1:
+		return matches[0], nil
+	default:
+		return "", fmt.Errorf("multiple namespaces found for cus claim %q", ctsID)
+	}
+}
+
+func isInactiveOrgMode(mode string) bool {
+	switch strings.ToLower(strings.TrimSpace(mode)) {
+	case "dead", "blocked":
+		return true
+	default:
+		return false
+	}
+}
+
+func orgNameFromNamespacePath(path string) string {
+	parts := strings.Split(path, "/")
+	if len(parts) < 3 {
+		return ""
+	}
+	if parts[1] != "orgs" {
+		return ""
+	}
+	if parts[2] == "" {
+		return ""
+	}
+	return parts[2]
+}
+
+func claimStringValue(v any) string {
+	switch t := v.(type) {
+	case nil:
+		return ""
+	case string:
+		return t
+	case json.Number:
+		return t.String()
+	case float64:
+		if !math.IsNaN(t) && !math.IsInf(t, 0) && t == math.Trunc(t) {
+			return strconv.FormatInt(int64(t), 10)
+		}
+		return strconv.FormatFloat(t, 'f', -1, 64)
+	case int:
+		return strconv.Itoa(t)
+	case int64:
+		return strconv.FormatInt(t, 10)
+	case bool:
+		return strconv.FormatBool(t)
+	default:
+		return fmt.Sprintf("%v", t)
+	}
 }
 
 func (p *IssueProcessor) handleOIDCIssue(bctx bahamut.Context, source elemental.Identifiable, req *api.Issue) (token.Issuer, error) {

@@ -183,6 +183,17 @@ attributes:
       noInit: true
       refMode: pointer
 
+  - name: inputTokenExchange
+    friendly_name: InputTokenExchange
+    description: Contains additional information for a token exchange source.
+    type: ref
+    exposed: true
+    subtype: issuetokenexchange
+    omit_empty: true
+    extensions:
+      noInit: true
+      refMode: pointer
+
   - name: opaque
     friendly_name: Opaque
     description: Opaque data that will be included in the issued token.
@@ -286,6 +297,7 @@ attributes:
     - RemoteA3S
     - SAML
     - OAuth2
+    - TokenExchange
     example_value: OIDC
 
   - name: token

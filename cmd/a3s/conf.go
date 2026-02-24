@@ -36,6 +36,7 @@ type Conf struct {
 	RestrictedNetworks        []string `mapstructure:"restricted-cidr" desc:"list of restricted CIDR. A3S will refuse to make calls to url provider by users to any host in that network. If empty, defaults to IANA private subnets definition"`
 
 	JWT JWTConf `mapstructure:",squash"`
+	DSG DSGConf `mapstructure:",squash"`
 
 	conf.APIServerConf       `mapstructure:",squash"`
 	conf.GatewayConf         `mapstructure:",squash"`
@@ -116,6 +117,15 @@ type JWTConf struct {
 	jwtKey           crypto.PrivateKey
 	jwtCert          *x509.Certificate
 	previousJWTCerts []*x509.Certificate
+}
+
+// DSGConf holds DSG auth settings used by token exchange authentication.
+type DSGConf struct {
+	DSGAuthURL      string        `mapstructure:"dsg-auth-url" desc:"Base URL of DSG auth API used for token exchange validation"`
+	DSGClientID     string        `mapstructure:"dsg-client-id" desc:"Client ID used to authenticate to DSG auth API"`
+	DSGClientSecret string        `mapstructure:"dsg-client-secret" desc:"Client secret used to authenticate to DSG auth API" secret:"true" file:"true"`
+	DSGTimeout      time.Duration `mapstructure:"dsg-timeout" desc:"HTTP timeout used to call DSG auth API" default:"30s"`
+	DSGJWTLeeway    time.Duration `mapstructure:"dsg-jwt-leeway" desc:"JWT leeway used when validating exchanged access tokens" default:"60s"`
 }
 
 // JWTCertificate returns the certificate used to verify JWTs.

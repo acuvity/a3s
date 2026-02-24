@@ -189,6 +189,10 @@ func ValidateIssue(iss *Issue) error {
 		if iss.InputSAML == nil {
 			return makeErr("inputSAML", "You must set inputSAML for the requested sourceType")
 		}
+	case IssueSourceTypeTokenExchange:
+		if iss.InputTokenExchange == nil {
+			return makeErr("inputTokenExchange", "You must set inputTokenExchange for the requested sourceType")
+		}
 	}
 
 	return nil

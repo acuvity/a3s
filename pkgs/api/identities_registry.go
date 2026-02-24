@@ -445,6 +445,8 @@ func (f modelManager) DetachedFromString(name string) any {
 		return NewIssueRemoteA3S()
 	case "issuesaml", "IssueSAML":
 		return NewIssueSAML()
+	case "issuetokenexchange", "IssueTokenExchange":
+		return NewIssueTokenExchange()
 	case "mtlssourceentra", "MTLSSourceEntra":
 		return NewMTLSSourceEntra()
 	case "mtlssourceokta", "MTLSSourceOkta":

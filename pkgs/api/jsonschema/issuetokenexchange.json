@@ -1,0 +1,25 @@
+{
+  "$extends": [],
+  "$friendlyName": "IssueTokenExchange",
+  "$friendlyNamePlural": "IssueTokenExchanges",
+  "$modelName": "IssueTokenExchange",
+  "$modelPackage": "a3s",
+  "$modelResourceName": "issuetokenexchange",
+  "$modelRestName": "issuetokenexchange",
+  "additionalProperties": false,
+  "description": "Additional issuing information for DSG token exchange source.",
+  "properties": {
+    "accessToken": {
+      "$friendlyName": "AccessToken",
+      "$required": true,
+      "description": "The access token to validate with DSG auth.",
+      "title": "accessToken",
+      "type": "string"
+    }
+  },
+  "required": [
+    "accessToken"
+  ],
+  "title": "IssueTokenExchange",
+  "type": "object"
+}

@@ -15,6 +15,7 @@ import (
 	"github.com/bsm/redislock"
 	"github.com/ghodss/yaml"
 	"github.com/globalsign/mgo"
+	"go.acuvity.ai/a3s/internal/dsgauth"
 	"go.acuvity.ai/a3s/internal/hasher"
 	"go.acuvity.ai/a3s/internal/idp/entra"
 	"go.acuvity.ai/a3s/internal/idp/okta"
@@ -530,6 +531,27 @@ func main() {
 	oktaManager := okta.NewEntraManager(&http.Client{Timeout: 5 * time.Second}, noloRequestMaker)
 	entraManager := entra.NewEntraManager(&http.Client{Timeout: 5 * time.Second}, noloRequestMaker)
 
+	var dsgTokenValidator dsgauth.Validator
+	if cfg.DSG.DSGAuthURL != "" || cfg.DSG.DSGClientID != "" || cfg.DSG.DSGClientSecret != "" {
+		if cfg.DSG.DSGAuthURL == "" || cfg.DSG.DSGClientID == "" || cfg.DSG.DSGClientSecret == "" {
+			slog.Error("Incomplete DSG auth configuration: dsg-auth-url, dsg-client-id and dsg-client-secret must all be set")
+			os.Exit(1)
+		}
+		validator, err := dsgauth.NewClient(dsgauth.Config{
+			URL:          cfg.DSG.DSGAuthURL,
+			ClientID:     cfg.DSG.DSGClientID,
+			ClientSecret: cfg.DSG.DSGClientSecret,
+			Timeout:      cfg.DSG.DSGTimeout,
+			Leeway:       cfg.DSG.DSGJWTLeeway,
+		})
+		if err != nil {
+			slog.Error("Unable to initialize DSG auth validator", err)
+			os.Exit(1)
+		}
+		dsgTokenValidator = validator
+		slog.Info("DSG auth validator configured for token exchange", "url", cfg.DSG.DSGAuthURL)
+	}
+
 	var entraSyncer *entra.Syncer
 	var redisLocker *redislock.Client
 	if cfg.RedisAddress != "" {
@@ -574,6 +596,7 @@ func main() {
 			entraManager,
 			oktaManager,
 			noloRequestMaker,
+			dsgTokenValidator,
 		),
 		api.IssueIdentity,
 	)

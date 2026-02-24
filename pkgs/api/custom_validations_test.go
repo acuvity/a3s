@@ -1051,6 +1051,32 @@ func TestValidateIssue(t *testing.T) {
 			false,
 			nil,
 		},
+		{
+			"test token exchange missing",
+			func(*testing.T) args {
+				return args{
+					&Issue{
+						SourceType:         IssueSourceTypeTokenExchange,
+						InputTokenExchange: nil,
+					},
+				}
+			},
+			true,
+			nil,
+		},
+		{
+			"test token exchange present",
+			func(*testing.T) args {
+				return args{
+					&Issue{
+						SourceType:         IssueSourceTypeTokenExchange,
+						InputTokenExchange: &IssueTokenExchange{},
+					},
+				}
+			},
+			false,
+			nil,
+		},
 	}
 
 	for _, tt := range tests {
