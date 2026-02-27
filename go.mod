@@ -3,11 +3,11 @@ module go.acuvity.ai/a3s
 go 1.24.6
 
 require (
-	go.acuvity.ai/bahamut v0.0.0-20260224191935-1a2b9bffa6ea
-	go.acuvity.ai/elemental v0.0.0-20260213193513-ee8198ac0113
-	go.acuvity.ai/manipulate v0.0.0-20251120182113-d5cda46691a0
+	go.acuvity.ai/bahamut v0.0.0-20260227164547-cf0938170648
+	go.acuvity.ai/elemental v0.0.0-20260227164056-44f2e3fd9f3b
+	go.acuvity.ai/manipulate v0.0.0-20260227164211-f481c4aa1754
 	go.acuvity.ai/regolithe v0.0.0-20260108214434-eb28e7a6e391 // indirect
-	go.acuvity.ai/tg v1.0.1-0.20260224191745-e6f4866bf177
+	go.acuvity.ai/tg v1.0.1-0.20260227164009-15f51a26c9e0
 	go.acuvity.ai/wsc v0.0.0-20250506232542-8de7ff436ec0 // indirect
 )
 
@@ -68,7 +68,7 @@ require (
 	github.com/beevik/etree v1.1.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
-	github.com/cloudflare/circl v1.6.1 // indirect
+	github.com/cloudflare/circl v1.6.3 // indirect
 	github.com/cyphar/filepath-securejoin v0.4.1 // indirect
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
 	github.com/emirpasic/gods v1.18.1 // indirect
