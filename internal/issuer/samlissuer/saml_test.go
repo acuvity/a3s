@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"reflect"
+	"slices"
 	"testing"
 
 	saml2 "github.com/russellhaering/gosaml2"
@@ -274,6 +275,11 @@ func Test_computeSAMLAssertion(t *testing.T) {
 				"ad:group=b",
 				"ad:name=jean",
 				"ad:name=michel",
+				"displayname=jean.michel@domain.com",
+				"group=a",
+				"group=b",
+				"name=jean",
+				"name=michel",
 				"nameid=coucou",
 			},
 		},
@@ -284,6 +290,9 @@ func Test_computeSAMLAssertion(t *testing.T) {
 			tArgs := tt.args(t)
 
 			got1 := computeSAMLAssertion(tArgs.claims, tArgs.translate)
+
+			slices.Sort(got1)
+			slices.Sort(tt.want1)
 
 			if !reflect.DeepEqual(got1, tt.want1) {
 				t.Errorf("computeOIDClaims got1 = %v, want1: %v", got1, tt.want1)
