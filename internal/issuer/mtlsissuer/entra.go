@@ -68,6 +68,9 @@ func handleEntraAutologin(ctx context.Context, iss *mtlsIssuer, cert *x509.Certi
 		if n, ok := roleMap[m.AppRoleID]; ok {
 			iss.token.Identity = appendClaim(iss.token.Identity, "app:role", n.Name)
 			iss.token.Identity = appendClaim(iss.token.Identity, "app:role:id", n.ID)
+
+			iss.token.Identity = appendClaim(iss.token.Identity, "role", n.Name)
+			iss.token.Identity = appendClaim(iss.token.Identity, "role:id", n.ID)
 		}
 	}
 
