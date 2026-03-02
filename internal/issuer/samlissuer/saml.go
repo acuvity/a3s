@@ -25,14 +25,14 @@ var keyTranslation map[string]string
 
 func init() {
 	keyTranslation = map[string]string{
-		"http://schemas.microsoft.com/identity/claims/displayname":        "ad:displayname",
-		"http://schemas.microsoft.com/identity/claims/objectidentifier":   "ad:oid",
-		"http://schemas.microsoft.com/identity/claims/tenantid":           "ad:tenantid",
-		"http://schemas.microsoft.com/ws/2008/06/identity/claims/groups":  "ad:group",
-		"http://schemas.microsoft.com/ws/2008/06/identity/claims/role":    "ad:role",
-		"http://schemas.xmlsoap.org/ws/2005/05/identity/claims/givenname": "ad:givenname",
-		"http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name":      "ad:name",
-		"http://schemas.xmlsoap.org/ws/2005/05/identity/claims/surname":   "ad:surname",
+		"http://schemas.microsoft.com/identity/claims/displayname":        "displayname",
+		"http://schemas.microsoft.com/identity/claims/objectidentifier":   "oid",
+		"http://schemas.microsoft.com/identity/claims/tenantid":           "tenantid",
+		"http://schemas.microsoft.com/ws/2008/06/identity/claims/groups":  "group",
+		"http://schemas.microsoft.com/ws/2008/06/identity/claims/role":    "role",
+		"http://schemas.xmlsoap.org/ws/2005/05/identity/claims/givenname": "givenname",
+		"http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name":      "name",
+		"http://schemas.xmlsoap.org/ws/2005/05/identity/claims/surname":   "surname",
 	}
 }
 
@@ -97,14 +97,20 @@ func computeSAMLAssertion(assertion *saml2.AssertionInfo, translate bool) []stri
 
 		k = strings.TrimLeft(k, "@")
 
+		hasBeenTranslated := map[string]struct{}{}
+
 		if translate {
 			if kk, ok := keyTranslation[k]; ok {
 				k = kk
+				hasBeenTranslated[k] = struct{}{}
 			}
 		}
 
 		for _, vv := range v.Values {
 			out = append(out, fmt.Sprintf("%s=%s", k, vv.Value))
+			if _, ok := hasBeenTranslated[k]; ok {
+				out = append(out, fmt.Sprintf("ad:%s=%s", k, vv.Value))
+			}
 		}
 	}
 
