@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/coreos/go-oidc/v3/oidc"
@@ -298,6 +299,13 @@ func (p *IssueProcessor) ProcessCreate(bctx bahamut.Context) (err error) {
 
 	idt := issuer.Issue()
 	idt.Opaque = req.Opaque
+
+	// we remove any quotes from the claims
+	// as this can cause issue, and frankly looks fishy.
+	for i, c := range idt.Identity {
+		idt.Identity[i] = strings.ReplaceAll(c, `"`, "")
+		idt.Identity[i] = strings.ReplaceAll(c, `'`, "")
+	}
 
 	defer func() {
 		bctx.SetMetadata(auditor.MetadataKeyAudit, idt.Identity)
