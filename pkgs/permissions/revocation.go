@@ -49,7 +49,7 @@ func checkRevocation(ctx context.Context, m manipulate.Manipulator, namespace st
 		),
 		&revs,
 	); err != nil {
-		return false, fmt.Errorf("unable to retrieve revocations: %w", err)
+		return false, fmt.Errorf("unable to retrieve revocations (claims: %s): %w", claims, err)
 	}
 
 	for _, rev := range revs {

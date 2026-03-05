@@ -359,7 +359,7 @@ func TestRevoked(t *testing.T) {
 			revoked, err := r.Revoked(context.Background(), "/", "abcdef", []string{"a"}, time.Now())
 
 			So(err, ShouldNotBeNil)
-			So(err.Error(), ShouldEqual, "unable to retrieve revocations: boom")
+			So(err.Error(), ShouldEqual, "unable to retrieve revocations (claims: [a]): boom")
 			So(revoked, ShouldBeFalse)
 		})
 	})
