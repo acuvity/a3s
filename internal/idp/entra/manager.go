@@ -171,31 +171,42 @@ func (m *Manager) GetGroup(ctx context.Context, rtoken *AccessToken, principalNa
 
 func (m *Manager) GetMembership(ctx context.Context, rtoken *AccessToken, ruser *User) (*Membership, error) {
 
-	r, err := m.requestMaker(ctx, http.MethodGet, fmt.Sprintf("https://graph.microsoft.com/v1.0/users/%s/memberOf/microsoft.graph.group?$select=displayName,id", ruser.ID), nil)
-	if err != nil {
-		return nil, elemental.NewError("Unable to create request to retrieve groups of user", err.Error(), "a3s:entra", http.StatusBadRequest)
-	}
-	r.Header = http.Header{
-		"Authorization": {"Bearer " + rtoken.Token},
-	}
-
-	resp, err := m.client.Do(r)
-	if err != nil {
-		return nil, elemental.NewError("Unable to send request to retrieve user groups", err.Error(), "a3s:entra", http.StatusBadRequest)
-	}
-	defer func() { _ = resp.Body.Close() }()
-
-	if resp.StatusCode != http.StatusOK {
-		d, _ := io.ReadAll(resp.Body)
-		return nil, elemental.NewError("Invalid status code returned from request to retrieve user groups", fmt.Sprintf("(%s) %s", resp.Status, string(d)), "a3s:entra", http.StatusBadRequest)
-	}
-
-	// utils.PeekBody(resp)
-
+	nextURL := fmt.Sprintf("https://graph.microsoft.com/v1.0/users/%s/memberOf/microsoft.graph.group?$select=displayName,id", ruser.ID)
 	rmember := &Membership{}
-	dec := json.NewDecoder(resp.Body)
-	if err := dec.Decode(rmember); err != nil {
-		return nil, elemental.NewError("Unable to decode user groups", err.Error(), "a3s:entra", http.StatusBadRequest)
+
+	for nextURL != "" {
+
+		r, err := m.requestMaker(ctx, http.MethodGet, nextURL, nil)
+		if err != nil {
+			return nil, elemental.NewError("Unable to create request to retrieve groups of user", err.Error(), "a3s:entra", http.StatusBadRequest)
+		}
+		r.Header = http.Header{
+			"Authorization": {"Bearer " + rtoken.Token},
+		}
+
+		resp, err := m.client.Do(r)
+		if err != nil {
+			return nil, elemental.NewError("Unable to send request to retrieve user groups", err.Error(), "a3s:entra", http.StatusBadRequest)
+		}
+
+		if resp.StatusCode != http.StatusOK {
+			d, _ := io.ReadAll(resp.Body)
+			_ = resp.Body.Close()
+			return nil, elemental.NewError("Invalid status code returned from request to retrieve user groups", fmt.Sprintf("(%s) %s", resp.Status, string(d)), "a3s:entra", http.StatusBadRequest)
+		}
+
+		// utils.PeekBody(resp)
+
+		page := &Membership{}
+		dec := json.NewDecoder(resp.Body)
+		if err := dec.Decode(page); err != nil {
+			_ = resp.Body.Close()
+			return nil, elemental.NewError("Unable to decode user groups", err.Error(), "a3s:entra", http.StatusBadRequest)
+		}
+
+		_ = resp.Body.Close()
+		rmember.Values = append(rmember.Values, page.Values...)
+		nextURL = page.OdataNextLink
 	}
 
 	return rmember, nil
