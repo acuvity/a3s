@@ -213,8 +213,11 @@ func (p *IssueProcessor) ProcessCreate(bctx bahamut.Context) (err error) {
 						return err
 					}
 				}
-				req.SourceName, req.SourceNamespace = mtlssource.Name, mtlssource.Namespace
-				source = mtlssource
+
+				if mtlssource != nil {
+					req.SourceName, req.SourceNamespace = mtlssource.Name, mtlssource.Namespace
+					source = mtlssource
+				}
 			}
 		}
 	}
