@@ -30,7 +30,8 @@ type Group struct {
 }
 
 type Membership struct {
-	Values []Group `json:"value"`
+	Values        []Group `json:"value"`
+	OdataNextLink string  `json:"@odata.nextLink"`
 }
 
 type Subscription struct {
