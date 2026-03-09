@@ -527,8 +527,8 @@ func main() {
 
 	noloRequestMaker := netsafe.NewRequestMaker(checker)
 
-	oktaManager := okta.NewEntraManager(&http.Client{Timeout: 5 * time.Second}, noloRequestMaker)
-	entraManager := entra.NewEntraManager(&http.Client{Timeout: 5 * time.Second}, noloRequestMaker)
+	oktaManager := okta.NewManager(&http.Client{Timeout: 5 * time.Second}, noloRequestMaker)
+	entraManager := entra.NewManager(&http.Client{Timeout: 5 * time.Second}, noloRequestMaker)
 
 	var entraSyncer *entra.Syncer
 	var redisLocker *redislock.Client

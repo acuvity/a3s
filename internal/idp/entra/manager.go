@@ -25,7 +25,7 @@ type Manager struct {
 	tokenCache   *ccache.Cache[*AccessToken]
 }
 
-func NewEntraManager(client *http.Client, requestMaker netsafe.RequestMaker) *Manager {
+func NewManager(client *http.Client, requestMaker netsafe.RequestMaker) *Manager {
 
 	return &Manager{
 		tokenCache:   ccache.New(ccache.Configure[*AccessToken]().MaxSize(1024)),
