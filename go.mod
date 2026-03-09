@@ -1,6 +1,6 @@
 module go.acuvity.ai/a3s
 
-go 1.24.6
+go 1.26.1
 
 require (
 	go.acuvity.ai/bahamut v0.0.0-20260306185746-22b016c6bf4e
