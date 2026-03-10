@@ -36,8 +36,10 @@ func Filter(claims []string, filter Filterable) []string {
 L:
 	for _, claim := range claims {
 
+		lclaim := strings.ToLower(claim)
+
 		for prefix := range exc {
-			if strings.HasPrefix(claim, prefix) {
+			if strings.HasPrefix(lclaim, prefix) {
 				continue L
 			}
 		}
@@ -45,7 +47,7 @@ L:
 		if len(inc) > 0 {
 			var found bool
 			for prefix := range inc {
-				if found = found || strings.HasPrefix(claim, prefix); found {
+				if found = found || strings.HasPrefix(lclaim, prefix); found {
 					break
 				}
 			}

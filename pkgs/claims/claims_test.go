@@ -149,6 +149,32 @@ func TestFilter(t *testing.T) {
 			},
 			[]string{"b=c", "b=d"},
 		},
+		{
+			"included with different case",
+			func(*testing.T) args {
+				return args{
+					[]string{"a=A", "b=b1", "b=B2", "b=d", "d=d"},
+					filter{
+						included: []string{"b=B", "a=a"},
+						ignored:  []string{},
+					},
+				}
+			},
+			[]string{"a=A", "b=b1", "b=B2"},
+		},
+		{
+			"excluded with different case",
+			func(*testing.T) args {
+				return args{
+					[]string{"a=A", "b=b1", "b=B2", "b=d", "d=d"},
+					filter{
+						included: []string{},
+						ignored:  []string{"b=B", "a=a"},
+					},
+				}
+			},
+			[]string{"b=d", "d=d"},
+		},
 	}
 
 	for _, tt := range tests {
