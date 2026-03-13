@@ -117,6 +117,17 @@ func (p *MTLSSourcesProcessor) makeNotify(op elemental.Operation) crud.PostWrite
 
 func insertTLSReferences(src *api.MTLSSource) error {
 
+	// This is a manual verification of the pk in okta config. Since this is a transient,
+	// elemental skips all validation. Until we find a good fix for this (running validation on transient is not
+	// obviously easy), this will prevent inserting wrong PEM.
+	if src.ClaimsRetrievalMode == api.MTLSSourceClaimsRetrievalModeOkta && src.OktaApplicationCredentials != nil {
+		if pk := src.OktaApplicationCredentials.PrivateKey; pk != "" {
+			if err := api.ValidatePEM("oktaApplicationCredentials/privateKey", pk); err != nil {
+				return err
+			}
+		}
+	}
+
 	certs, err := tglib.ParseCertificates([]byte(src.CA))
 	if err != nil {
 		return err
