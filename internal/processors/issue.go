@@ -351,6 +351,15 @@ func (p *IssueProcessor) ProcessCreate(bctx bahamut.Context) (err error) {
 	}
 	idt.Source = originalSource
 
+	// Clean any invalid claims.
+	cleaned := make([]string, 0, len(idt.Identity))
+	for _, c := range idt.Identity {
+		if !strings.HasSuffix(c, "=") {
+			cleaned = append(cleaned, c)
+		}
+	}
+	idt.Identity = cleaned
+
 	k := p.jwks.GetLastWithPrivate()
 	tkn, err := idt.JWT(k.PrivateKey(), k.KID, p.issuer, audience, exp, req.Cloak)
 	if err != nil {
