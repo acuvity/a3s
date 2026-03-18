@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	. "github.com/smartystreets/goconvey/convey"
 	"go.acuvity.ai/a3s/pkgs/api"
@@ -155,6 +156,33 @@ func TestNew(t *testing.T) {
 			So(expectedUser, ShouldEqual, "user")
 			So(expectedPass, ShouldEqual, "pass")
 			So(expectedTOTP, ShouldEqual, "1234")
+		})
+
+		Convey("When response has X-A3S-ExpiresAt header", func() {
+
+			expectedExp := time.Now().Add(30 * time.Minute).UTC().Truncate(time.Second)
+			ts := httptest.NewServer(
+				http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+					w.Header().Set(responseHeaderExpiresAt, fmt.Sprintf("%d", expectedExp.Unix()))
+					w.Write([]byte(`["k=v"]`)) // nolint
+				}),
+			)
+			defer ts.Close()
+
+			source := &api.HTTPSource{
+				Name:        "name",
+				Namespace:   "/ns",
+				URL:         ts.URL,
+				Certificate: func() string { c, _ := tglib.CertToPEM(remoteCert); return string(pem.EncodeToMemory(c)) }(),
+				Key:         func() string { c, _ := tglib.KeyToPEM(remoteKey); return string(pem.EncodeToMemory(c)) }(),
+			}
+
+			iss, err := New(context.Background(), source, Credentials{
+				Username: "user",
+				Password: "pass",
+			}, rm)
+			So(err, ShouldBeNil)
+			So(iss.Issue().ExpiresAt.Time, ShouldEqual, expectedExp)
 		})
 
 		Convey("When server returns an error", func() {

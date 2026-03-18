@@ -8,14 +8,19 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 	"strings"
+	"time"
 
+	"github.com/golang-jwt/jwt/v5"
 	"go.acuvity.ai/a3s/internal/identitymodifier"
 	"go.acuvity.ai/a3s/pkgs/api"
 	"go.acuvity.ai/a3s/pkgs/netsafe"
 	"go.acuvity.ai/a3s/pkgs/token"
 	"go.acuvity.ai/tg/tglib"
 )
+
+const responseHeaderExpiresAt = "X-A3S-ExpiresAt"
 
 // A Credentials represents user provided Credentials.
 type Credentials struct {
@@ -96,6 +101,16 @@ func (c *httpIssuer) fromCredentials(ctx context.Context, creds Credentials) err
 
 	if resp.StatusCode != http.StatusOK {
 		return ErrHTTPResponse{Err: fmt.Errorf("server responded with '%s'", resp.Status)}
+	}
+
+	if rawExp := resp.Header.Get(responseHeaderExpiresAt); rawExp != "" {
+		ut, err := strconv.ParseInt(rawExp, 10, 64)
+		if err != nil {
+			return ErrHTTPResponse{
+				Err: fmt.Errorf("invalid %s header: %w", responseHeaderExpiresAt, err),
+			}
+		}
+		c.token.ExpiresAt = jwt.NewNumericDate(time.Unix(ut, 0).UTC())
 	}
 
 	var rawClaims []string
