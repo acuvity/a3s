@@ -88,7 +88,6 @@ particular namespace.
   * [Prerequesites](#prerequesites)
   * [Initialize the environment](#initialize-the-environment)
   * [Start everything](#start-everything)
-* [Support](#support)
 * [Contributing](#contributing)
 
 <!-- vim-markdown-toc -->
@@ -1118,11 +1117,6 @@ This will launch a tmux session starting everything and giving you a working
 terminal. To exit:
 
     env-kill
-
-## Support
-
-Please read [SUPPORT.md](SUPPORT.md) for details on how to get support for this
-project.
 
 ## Contributing
 
