@@ -3,11 +3,11 @@ module go.acuvity.ai/a3s
 go 1.26.1
 
 require (
-	go.acuvity.ai/bahamut v0.0.0-20260325203657-9c3a5e4cca42
+	go.acuvity.ai/bahamut v0.0.0-20260325212314-8eee2d08d23d
 	go.acuvity.ai/elemental v0.0.0-20260306185630-ebb07ce2d401
 	go.acuvity.ai/manipulate v0.0.0-20260306185726-7ee1def9042c
 	go.acuvity.ai/regolithe v0.0.0-20260108214434-eb28e7a6e391 // indirect
-	go.acuvity.ai/tg v1.0.1-0.20260227164009-15f51a26c9e0
+	go.acuvity.ai/tg v1.0.1-0.20260325212222-747d1cb6ae5a
 	go.acuvity.ai/wsc v0.0.0-20250506232542-8de7ff436ec0 // indirect
 )
 
