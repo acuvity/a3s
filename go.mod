@@ -34,11 +34,11 @@ require (
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/mitchellh/hashstructure v1.1.0
 	github.com/mitchellh/mapstructure v1.5.0
-	github.com/nats-io/nats-server/v2 v2.11.15
+	github.com/nats-io/nats-server/v2 v2.12.6
 	github.com/opentracing/opentracing-go v1.2.0
 	github.com/pkg/browser v0.0.0-20240102092130-5ac0b6a4141c
 	github.com/redis/go-redis/v9 v9.14.0
-	github.com/russellhaering/gosaml2 v0.9.1
+	github.com/russellhaering/gosaml2 v0.11.0
 	github.com/russellhaering/goxmldsig v1.6.0
 	github.com/smartystreets/goconvey v1.7.2
 	github.com/spaolacci/murmur3 v1.1.0
