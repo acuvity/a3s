@@ -172,8 +172,6 @@ func MakeBahamutGatewayNotifier(
 	nopts ...push.NotifierOption,
 ) []bahamut.Option {
 
-	opts := []bahamut.Option{}
-
 	if gatewayTopic == "" {
 		return nil
 	}
@@ -186,10 +184,10 @@ func MakeBahamutGatewayNotifier(
 		nopts...,
 	)
 
-	opts = append(opts,
+	opts := []bahamut.Option{
 		bahamut.OptPostStartHook(nw.MakeStartHook(ctx)),
 		bahamut.OptPreStopHook(nw.MakeStopHook()),
-	)
+	}
 
 	slog.Info(
 		"Gateway topic set",
