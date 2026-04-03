@@ -4,10 +4,12 @@ import (
 	"log/slog"
 	"strings"
 
-	"github.com/globalsign/mgo"
 	"go.acuvity.ai/elemental"
 	"go.acuvity.ai/manipulate"
 	"go.acuvity.ai/manipulate/manipmongo"
+	bson "go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo"
+	mongooptions "go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
 // Ensure ensures the indexes declared in the specs are aligned.
@@ -25,11 +27,11 @@ func Ensure(m manipulate.Manipulator, model elemental.ModelManager, packageName 
 }
 
 // GetIndexes returns all the indexes for all the identity in the model
-func GetIndexes(packageName string, model elemental.ModelManager) (mIndexes map[elemental.Identity][]mgo.Index) {
+func GetIndexes(packageName string, model elemental.ModelManager) (mIndexes map[elemental.Identity][]mongo.IndexModel) {
 
 	var indexes [][]string
 
-	mIndexes = map[elemental.Identity][]mgo.Index{}
+	mIndexes = map[elemental.Identity][]mongo.IndexModel{}
 
 	for _, ident := range model.AllIdentities() {
 
@@ -46,10 +48,12 @@ func GetIndexes(packageName string, model elemental.ModelManager) (mIndexes map[
 
 		for i := range indexes {
 
-			idx := mgo.Index{}
+			keys := bson.D{}
+			opts := mongooptions.Index()
 
 			piName := iName
 			var hashedApplied bool
+			keyNames := []string{}
 
 			for _, name := range indexes[i] {
 
@@ -63,7 +67,7 @@ func GetIndexes(packageName string, model elemental.ModelManager) (mIndexes map[
 					piName = "shard_" + iName
 
 				case ":unique":
-					idx.Unique = true
+					opts.SetUnique(true)
 
 				default:
 
@@ -74,18 +78,23 @@ func GetIndexes(packageName string, model elemental.ModelManager) (mIndexes map[
 						}
 					}
 
-					idx.Key = append(idx.Key, name)
-
+					keyName := name
+					keyValue := any(int32(1))
 					if strings.HasPrefix(name, "$hashed:") {
 						hashedApplied = true
+						keyName = strings.TrimPrefix(name, "$hashed:")
+						keyValue = "hashed"
 					}
+
+					keys = append(keys, bson.E{Key: keyName, Value: keyValue})
+					keyNames = append(keyNames, keyName)
 				}
 			}
 
-			idx.Name = piName + strings.Join(idx.Key, "_")
-			idx.Background = true
+			name := piName + strings.Join(keyNames, "_")
+			opts.SetName(name)
 
-			mIndexes[ident] = append(mIndexes[ident], idx)
+			mIndexes[ident] = append(mIndexes[ident], mongo.IndexModel{Keys: keys, Options: opts})
 		}
 	}
 
