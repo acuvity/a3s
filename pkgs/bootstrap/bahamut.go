@@ -215,12 +215,8 @@ func GetPublicEndpoint(listenAddress string) (string, error) {
 	}
 
 	addrs, err := net.LookupHost(host)
-	if err != nil {
-		return "", fmt.Errorf("unable to resolve hostname: %w", err)
-	}
-
-	if len(addrs) == 0 {
-		return "", fmt.Errorf("unable to find any IP in resolved hostname: %w", err)
+	if err != nil || len(addrs) == 0 {
+		return fmt.Sprintf("127.0.0.1:%s", port), nil
 	}
 
 	var endpoint string
