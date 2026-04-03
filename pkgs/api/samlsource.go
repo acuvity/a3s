@@ -86,7 +86,7 @@ func (o SAMLSourcesList) Version() int {
 // SAMLSource represents the model of a samlsource
 type SAMLSource struct {
 	// ID is the identifier of the object.
-	ID string `json:"ID" msgpack:"ID" bson:"-" mapstructure:"ID,omitempty"`
+	ID string `json:"ID,omitempty" msgpack:"ID,omitempty" bson:"-" mapstructure:"ID,omitempty"`
 
 	// Identity Provider Certificate in PEM format.
 	IDPCertificate string `json:"IDPCertificate" msgpack:"IDPCertificate" bson:"idpcertificate" mapstructure:"IDPCertificate,omitempty"`
@@ -147,7 +147,7 @@ type SAMLSource struct {
 	Name string `json:"name" msgpack:"name" bson:"name" mapstructure:"name,omitempty"`
 
 	// The namespace of the object.
-	Namespace string `json:"namespace" msgpack:"namespace" bson:"namespace" mapstructure:"namespace,omitempty"`
+	Namespace string `json:"namespace,omitempty" msgpack:"namespace,omitempty" bson:"namespace,omitempty" mapstructure:"namespace,omitempty"`
 
 	// The Service Provider Issuer which is represented by the client ID. If not
 	// provided, Acuvity will send the issuer URL.
@@ -298,18 +298,6 @@ func (o *SAMLSource) Doc() string {
 func (o *SAMLSource) String() string {
 
 	return fmt.Sprintf("<%s:%s>", o.Identity().Name, o.Identifier())
-}
-
-// GetID returns the ID of the receiver.
-func (o *SAMLSource) GetID() string {
-
-	return o.ID
-}
-
-// SetID sets the property ID of the receiver using the given value.
-func (o *SAMLSource) SetID(ID string) {
-
-	o.ID = ID
 }
 
 // GetCreateTime returns the CreateTime of the receiver.
@@ -740,12 +728,11 @@ var SAMLSourceAttributesMap = map[string]elemental.AttributeSpecification{
 		ConvertedName:  "ID",
 		Description:    `ID is the identifier of the object.`,
 		Exposed:        true,
-		Getter:         true,
+		Filterable:     true,
 		Identifier:     true,
 		Name:           "ID",
 		Orderable:      true,
 		ReadOnly:       true,
-		Setter:         true,
 		Stored:         true,
 		Type:           "string",
 	},
@@ -1017,12 +1004,11 @@ var SAMLSourceLowerCaseAttributesMap = map[string]elemental.AttributeSpecificati
 		ConvertedName:  "ID",
 		Description:    `ID is the identifier of the object.`,
 		Exposed:        true,
-		Getter:         true,
+		Filterable:     true,
 		Identifier:     true,
 		Name:           "ID",
 		Orderable:      true,
 		ReadOnly:       true,
-		Setter:         true,
 		Stored:         true,
 		Type:           "string",
 	},
@@ -1721,22 +1707,6 @@ func (o *SparseSAMLSource) DecryptAttributes(encrypter elemental.AttributeEncryp
 	return nil
 }
 
-// GetID returns the ID of the receiver.
-func (o *SparseSAMLSource) GetID() (out string) {
-
-	if o.ID == nil {
-		return
-	}
-
-	return *o.ID
-}
-
-// SetID sets the property ID of the receiver using the address of the given value.
-func (o *SparseSAMLSource) SetID(ID string) {
-
-	o.ID = &ID
-}
-
 // GetCreateTime returns the CreateTime of the receiver.
 func (o *SparseSAMLSource) GetCreateTime() (out time.Time) {
 
@@ -1909,7 +1879,7 @@ type mongoAttributesSAMLSource struct {
 	KeysTranslationEnabled     bool              `bson:"keystranslationenabled"`
 	Modifier                   *IdentityModifier `bson:"modifier,omitempty"`
 	Name                       string            `bson:"name"`
-	Namespace                  string            `bson:"namespace"`
+	Namespace                  string            `bson:"namespace,omitempty"`
 	ServiceProviderIssuer      string            `bson:"serviceproviderissuer"`
 	SkipResponseSignatureCheck bool              `bson:"skipresponsesignaturecheck"`
 	UpdateTime                 time.Time         `bson:"updatetime"`

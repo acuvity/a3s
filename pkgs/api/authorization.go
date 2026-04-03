@@ -86,7 +86,7 @@ func (o AuthorizationsList) Version() int {
 // Authorization represents the model of a authorization
 type Authorization struct {
 	// ID is the identifier of the object.
-	ID string `json:"ID" msgpack:"ID" bson:"-" mapstructure:"ID,omitempty"`
+	ID string `json:"ID,omitempty" msgpack:"ID,omitempty" bson:"-" mapstructure:"ID,omitempty"`
 
 	// Creation date of the object.
 	CreateTime time.Time `json:"createTime" msgpack:"createTime" bson:"createtime" mapstructure:"createTime,omitempty"`
@@ -117,7 +117,7 @@ type Authorization struct {
 	Name string `json:"name" msgpack:"name" bson:"name" mapstructure:"name,omitempty"`
 
 	// The namespace of the object.
-	Namespace string `json:"namespace" msgpack:"namespace" bson:"namespace" mapstructure:"namespace,omitempty"`
+	Namespace string `json:"namespace,omitempty" msgpack:"namespace,omitempty" bson:"namespace,omitempty" mapstructure:"namespace,omitempty"`
 
 	// Opaque allows to store abitrary data into the authorization.
 	Opaque map[string]any `json:"opaque,omitempty" msgpack:"opaque,omitempty" bson:"opaque,omitempty" mapstructure:"opaque,omitempty"`
@@ -289,18 +289,6 @@ func (o *Authorization) Doc() string {
 func (o *Authorization) String() string {
 
 	return fmt.Sprintf("<%s:%s>", o.Identity().Name, o.Identifier())
-}
-
-// GetID returns the ID of the receiver.
-func (o *Authorization) GetID() string {
-
-	return o.ID
-}
-
-// SetID sets the property ID of the receiver using the given value.
-func (o *Authorization) SetID(ID string) {
-
-	o.ID = ID
 }
 
 // GetCreateTime returns the CreateTime of the receiver.
@@ -703,12 +691,11 @@ var AuthorizationAttributesMap = map[string]elemental.AttributeSpecification{
 		ConvertedName:  "ID",
 		Description:    `ID is the identifier of the object.`,
 		Exposed:        true,
-		Getter:         true,
+		Filterable:     true,
 		Identifier:     true,
 		Name:           "ID",
 		Orderable:      true,
 		ReadOnly:       true,
-		Setter:         true,
 		Stored:         true,
 		Type:           "string",
 	},
@@ -967,12 +954,11 @@ var AuthorizationLowerCaseAttributesMap = map[string]elemental.AttributeSpecific
 		ConvertedName:  "ID",
 		Description:    `ID is the identifier of the object.`,
 		Exposed:        true,
-		Getter:         true,
+		Filterable:     true,
 		Identifier:     true,
 		Name:           "ID",
 		Orderable:      true,
 		ReadOnly:       true,
-		Setter:         true,
 		Stored:         true,
 		Type:           "string",
 	},
@@ -1629,22 +1615,6 @@ func (o *SparseAuthorization) DecryptAttributes(encrypter elemental.AttributeEnc
 	return nil
 }
 
-// GetID returns the ID of the receiver.
-func (o *SparseAuthorization) GetID() (out string) {
-
-	if o.ID == nil {
-		return
-	}
-
-	return *o.ID
-}
-
-// SetID sets the property ID of the receiver using the address of the given value.
-func (o *SparseAuthorization) SetID(ID string) {
-
-	o.ID = &ID
-}
-
 // GetCreateTime returns the CreateTime of the receiver.
 func (o *SparseAuthorization) GetCreateTime() (out time.Time) {
 
@@ -1808,7 +1778,7 @@ type mongoAttributesAuthorization struct {
 	ImportLabel      string         `bson:"importlabel,omitempty"`
 	Label            string         `bson:"label"`
 	Name             string         `bson:"name"`
-	Namespace        string         `bson:"namespace"`
+	Namespace        string         `bson:"namespace,omitempty"`
 	Opaque           map[string]any `bson:"opaque,omitempty"`
 	Permissions      []string       `bson:"permissions"`
 	Propagate        bool           `bson:"propagate"`

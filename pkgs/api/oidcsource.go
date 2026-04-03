@@ -91,7 +91,7 @@ type OIDCSource struct {
 	CA string `json:"CA" msgpack:"CA" bson:"ca" mapstructure:"CA,omitempty"`
 
 	// ID is the identifier of the object.
-	ID string `json:"ID" msgpack:"ID" bson:"-" mapstructure:"ID,omitempty"`
+	ID string `json:"ID,omitempty" msgpack:"ID,omitempty" bson:"-" mapstructure:"ID,omitempty"`
 
 	// Unique client ID.
 	ClientID string `json:"clientID" msgpack:"clientID" bson:"clientid" mapstructure:"clientID,omitempty"`
@@ -134,7 +134,7 @@ type OIDCSource struct {
 	Name string `json:"name" msgpack:"name" bson:"name" mapstructure:"name,omitempty"`
 
 	// The namespace of the object.
-	Namespace string `json:"namespace" msgpack:"namespace" bson:"namespace" mapstructure:"namespace,omitempty"`
+	Namespace string `json:"namespace,omitempty" msgpack:"namespace,omitempty" bson:"namespace,omitempty" mapstructure:"namespace,omitempty"`
 
 	// List of scopes to allow.
 	Scopes []string `json:"scopes" msgpack:"scopes" bson:"scopes" mapstructure:"scopes,omitempty"`
@@ -276,18 +276,6 @@ func (o *OIDCSource) Doc() string {
 func (o *OIDCSource) String() string {
 
 	return fmt.Sprintf("<%s:%s>", o.Identity().Name, o.Identifier())
-}
-
-// GetID returns the ID of the receiver.
-func (o *OIDCSource) GetID() string {
-
-	return o.ID
-}
-
-// SetID sets the property ID of the receiver using the given value.
-func (o *OIDCSource) SetID(ID string) {
-
-	o.ID = ID
 }
 
 // GetCreateTime returns the CreateTime of the receiver.
@@ -713,12 +701,11 @@ cases, you don't need to set this.`,
 		ConvertedName:  "ID",
 		Description:    `ID is the identifier of the object.`,
 		Exposed:        true,
-		Getter:         true,
+		Filterable:     true,
 		Identifier:     true,
 		Name:           "ID",
 		Orderable:      true,
 		ReadOnly:       true,
-		Setter:         true,
 		Stored:         true,
 		Type:           "string",
 	},
@@ -954,12 +941,11 @@ cases, you don't need to set this.`,
 		ConvertedName:  "ID",
 		Description:    `ID is the identifier of the object.`,
 		Exposed:        true,
-		Getter:         true,
+		Filterable:     true,
 		Identifier:     true,
 		Name:           "ID",
 		Orderable:      true,
 		ReadOnly:       true,
-		Setter:         true,
 		Stored:         true,
 		Type:           "string",
 	},
@@ -1571,22 +1557,6 @@ func (o *SparseOIDCSource) DecryptAttributes(encrypter elemental.AttributeEncryp
 	return nil
 }
 
-// GetID returns the ID of the receiver.
-func (o *SparseOIDCSource) GetID() (out string) {
-
-	if o.ID == nil {
-		return
-	}
-
-	return *o.ID
-}
-
-// SetID sets the property ID of the receiver using the address of the given value.
-func (o *SparseOIDCSource) SetID(ID string) {
-
-	o.ID = &ID
-}
-
 // GetCreateTime returns the CreateTime of the receiver.
 func (o *SparseOIDCSource) GetCreateTime() (out time.Time) {
 
@@ -1757,7 +1727,7 @@ type mongoAttributesOIDCSource struct {
 	IncludedKeys []string          `bson:"includedkeys"`
 	Modifier     *IdentityModifier `bson:"modifier,omitempty"`
 	Name         string            `bson:"name"`
-	Namespace    string            `bson:"namespace"`
+	Namespace    string            `bson:"namespace,omitempty"`
 	Scopes       []string          `bson:"scopes"`
 	UpdateTime   time.Time         `bson:"updatetime"`
 	ZHash        int               `bson:"zhash"`

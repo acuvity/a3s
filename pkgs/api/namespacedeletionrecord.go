@@ -86,7 +86,7 @@ func (o NamespaceDeletionRecordsList) Version() int {
 // NamespaceDeletionRecord represents the model of a namespacedeletionrecord
 type NamespaceDeletionRecord struct {
 	// ID is the identifier of the object.
-	ID string `json:"ID" msgpack:"ID" bson:"-" mapstructure:"ID,omitempty"`
+	ID string `json:"ID,omitempty" msgpack:"ID,omitempty" bson:"-" mapstructure:"ID,omitempty"`
 
 	// Deletion date of the object.
 	DeleteTime time.Time `json:"deleteTime" msgpack:"deleteTime" bson:"deletetime" mapstructure:"deleteTime,omitempty"`
@@ -200,18 +200,6 @@ was deleted.`
 func (o *NamespaceDeletionRecord) String() string {
 
 	return fmt.Sprintf("<%s:%s>", o.Identity().Name, o.Identifier())
-}
-
-// GetID returns the ID of the receiver.
-func (o *NamespaceDeletionRecord) GetID() string {
-
-	return o.ID
-}
-
-// SetID sets the property ID of the receiver using the given value.
-func (o *NamespaceDeletionRecord) SetID(ID string) {
-
-	o.ID = ID
 }
 
 // GetZHash returns the ZHash of the receiver.
@@ -398,12 +386,11 @@ var NamespaceDeletionRecordAttributesMap = map[string]elemental.AttributeSpecifi
 		ConvertedName:  "ID",
 		Description:    `ID is the identifier of the object.`,
 		Exposed:        true,
-		Getter:         true,
+		Filterable:     true,
 		Identifier:     true,
 		Name:           "ID",
 		Orderable:      true,
 		ReadOnly:       true,
-		Setter:         true,
 		Stored:         true,
 		Type:           "string",
 	},
@@ -465,12 +452,11 @@ var NamespaceDeletionRecordLowerCaseAttributesMap = map[string]elemental.Attribu
 		ConvertedName:  "ID",
 		Description:    `ID is the identifier of the object.`,
 		Exposed:        true,
-		Getter:         true,
+		Filterable:     true,
 		Identifier:     true,
 		Name:           "ID",
 		Orderable:      true,
 		ReadOnly:       true,
-		Setter:         true,
 		Stored:         true,
 		Type:           "string",
 	},
@@ -733,22 +719,6 @@ func (o *SparseNamespaceDeletionRecord) EncryptAttributes(encrypter elemental.At
 func (o *SparseNamespaceDeletionRecord) DecryptAttributes(encrypter elemental.AttributeEncrypter) (err error) {
 
 	return nil
-}
-
-// GetID returns the ID of the receiver.
-func (o *SparseNamespaceDeletionRecord) GetID() (out string) {
-
-	if o.ID == nil {
-		return
-	}
-
-	return *o.ID
-}
-
-// SetID sets the property ID of the receiver using the address of the given value.
-func (o *SparseNamespaceDeletionRecord) SetID(ID string) {
-
-	o.ID = &ID
 }
 
 // GetZHash returns the ZHash of the receiver.

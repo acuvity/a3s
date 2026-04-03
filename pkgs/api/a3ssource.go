@@ -90,7 +90,7 @@ type A3SSource struct {
 	CA string `json:"CA" msgpack:"CA" bson:"ca" mapstructure:"CA,omitempty"`
 
 	// ID is the identifier of the object.
-	ID string `json:"ID" msgpack:"ID" bson:"-" mapstructure:"ID,omitempty"`
+	ID string `json:"ID,omitempty" msgpack:"ID,omitempty" bson:"-" mapstructure:"ID,omitempty"`
 
 	// The audience that must be present in the remote a3s token.
 	Audience string `json:"audience" msgpack:"audience" bson:"audience" mapstructure:"audience,omitempty"`
@@ -133,7 +133,7 @@ type A3SSource struct {
 	Name string `json:"name" msgpack:"name" bson:"name" mapstructure:"name,omitempty"`
 
 	// The namespace of the object.
-	Namespace string `json:"namespace" msgpack:"namespace" bson:"namespace" mapstructure:"namespace,omitempty"`
+	Namespace string `json:"namespace,omitempty" msgpack:"namespace,omitempty" bson:"namespace,omitempty" mapstructure:"namespace,omitempty"`
 
 	// Last update date of the object.
 	UpdateTime time.Time `json:"updateTime" msgpack:"updateTime" bson:"updatetime" mapstructure:"updateTime,omitempty"`
@@ -269,18 +269,6 @@ func (o *A3SSource) Doc() string {
 func (o *A3SSource) String() string {
 
 	return fmt.Sprintf("<%s:%s>", o.Identity().Name, o.Identifier())
-}
-
-// GetID returns the ID of the receiver.
-func (o *A3SSource) GetID() string {
-
-	return o.ID
-}
-
-// SetID sets the property ID of the receiver using the given value.
-func (o *A3SSource) SetID(ID string) {
-
-	o.ID = ID
 }
 
 // GetCreateTime returns the CreateTime of the receiver.
@@ -685,12 +673,11 @@ server. If left empty, the system trust stroe will be used.`,
 		ConvertedName:  "ID",
 		Description:    `ID is the identifier of the object.`,
 		Exposed:        true,
-		Getter:         true,
+		Filterable:     true,
 		Identifier:     true,
 		Name:           "ID",
 		Orderable:      true,
 		ReadOnly:       true,
-		Setter:         true,
 		Stored:         true,
 		Type:           "string",
 	},
@@ -909,12 +896,11 @@ server. If left empty, the system trust stroe will be used.`,
 		ConvertedName:  "ID",
 		Description:    `ID is the identifier of the object.`,
 		Exposed:        true,
-		Getter:         true,
+		Filterable:     true,
 		Identifier:     true,
 		Name:           "ID",
 		Orderable:      true,
 		ReadOnly:       true,
-		Setter:         true,
 		Stored:         true,
 		Type:           "string",
 	},
@@ -1489,22 +1475,6 @@ func (o *SparseA3SSource) DecryptAttributes(encrypter elemental.AttributeEncrypt
 	return nil
 }
 
-// GetID returns the ID of the receiver.
-func (o *SparseA3SSource) GetID() (out string) {
-
-	if o.ID == nil {
-		return
-	}
-
-	return *o.ID
-}
-
-// SetID sets the property ID of the receiver using the address of the given value.
-func (o *SparseA3SSource) SetID(ID string) {
-
-	o.ID = &ID
-}
-
 // GetCreateTime returns the CreateTime of the receiver.
 func (o *SparseA3SSource) GetCreateTime() (out time.Time) {
 
@@ -1675,7 +1645,7 @@ type mongoAttributesA3SSource struct {
 	Issuer       string            `bson:"issuer"`
 	Modifier     *IdentityModifier `bson:"modifier,omitempty"`
 	Name         string            `bson:"name"`
-	Namespace    string            `bson:"namespace"`
+	Namespace    string            `bson:"namespace,omitempty"`
 	UpdateTime   time.Time         `bson:"updatetime"`
 	ZHash        int               `bson:"zhash"`
 	Zone         int               `bson:"zone"`

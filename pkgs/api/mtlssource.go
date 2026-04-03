@@ -117,7 +117,7 @@ type MTLSSource struct {
 	CA string `json:"CA" msgpack:"CA" bson:"ca" mapstructure:"CA,omitempty"`
 
 	// ID is the identifier of the object.
-	ID string `json:"ID" msgpack:"ID" bson:"-" mapstructure:"ID,omitempty"`
+	ID string `json:"ID,omitempty" msgpack:"ID,omitempty" bson:"-" mapstructure:"ID,omitempty"`
 
 	// Defines if and how you want to enable auto login with client certificates.
 	ClaimsRetrievalMode MTLSSourceClaimsRetrievalModeValue `json:"claimsRetrievalMode,omitempty" msgpack:"claimsRetrievalMode,omitempty" bson:"claimsretrievalmode,omitempty" mapstructure:"claimsRetrievalMode,omitempty"`
@@ -159,7 +159,7 @@ type MTLSSource struct {
 	Name string `json:"name" msgpack:"name" bson:"name" mapstructure:"name,omitempty"`
 
 	// The namespace of the object.
-	Namespace string `json:"namespace" msgpack:"namespace" bson:"namespace" mapstructure:"namespace,omitempty"`
+	Namespace string `json:"namespace,omitempty" msgpack:"namespace,omitempty" bson:"namespace,omitempty" mapstructure:"namespace,omitempty"`
 
 	// Additional information required when claims retrieval mode is set to Okta.
 	OktaApplicationCredentials *MTLSSourceOkta `json:"oktaApplicationCredentials" msgpack:"oktaApplicationCredentials" bson:"oktaapplicationcredentials" mapstructure:"oktaApplicationCredentials,omitempty"`
@@ -314,18 +314,6 @@ func (o *MTLSSource) Doc() string {
 func (o *MTLSSource) String() string {
 
 	return fmt.Sprintf("<%s:%s>", o.Identity().Name, o.Identifier())
-}
-
-// GetID returns the ID of the receiver.
-func (o *MTLSSource) GetID() string {
-
-	return o.ID
-}
-
-// SetID sets the property ID of the receiver using the given value.
-func (o *MTLSSource) SetID(ID string) {
-
-	o.ID = ID
 }
 
 // GetCreateTime returns the CreateTime of the receiver.
@@ -805,12 +793,11 @@ var MTLSSourceAttributesMap = map[string]elemental.AttributeSpecification{
 		ConvertedName:  "ID",
 		Description:    `ID is the identifier of the object.`,
 		Exposed:        true,
-		Getter:         true,
+		Filterable:     true,
 		Identifier:     true,
 		Name:           "ID",
 		Orderable:      true,
 		ReadOnly:       true,
-		Setter:         true,
 		Stored:         true,
 		Type:           "string",
 	},
@@ -1067,12 +1054,11 @@ var MTLSSourceLowerCaseAttributesMap = map[string]elemental.AttributeSpecificati
 		ConvertedName:  "ID",
 		Description:    `ID is the identifier of the object.`,
 		Exposed:        true,
-		Getter:         true,
+		Filterable:     true,
 		Identifier:     true,
 		Name:           "ID",
 		Orderable:      true,
 		ReadOnly:       true,
-		Setter:         true,
 		Stored:         true,
 		Type:           "string",
 	},
@@ -1743,22 +1729,6 @@ func (o *SparseMTLSSource) DecryptAttributes(encrypter elemental.AttributeEncryp
 	return nil
 }
 
-// GetID returns the ID of the receiver.
-func (o *SparseMTLSSource) GetID() (out string) {
-
-	if o.ID == nil {
-		return
-	}
-
-	return *o.ID
-}
-
-// SetID sets the property ID of the receiver using the address of the given value.
-func (o *SparseMTLSSource) SetID(ID string) {
-
-	o.ID = &ID
-}
-
 // GetCreateTime returns the CreateTime of the receiver.
 func (o *SparseMTLSSource) GetCreateTime() (out time.Time) {
 
@@ -1929,7 +1899,7 @@ type mongoAttributesMTLSSource struct {
 	IncludedKeys                []string                              `bson:"includedkeys"`
 	Modifier                    *IdentityModifier                     `bson:"modifier,omitempty"`
 	Name                        string                                `bson:"name"`
-	Namespace                   string                                `bson:"namespace"`
+	Namespace                   string                                `bson:"namespace,omitempty"`
 	OktaApplicationCredentials  *MTLSSourceOkta                       `bson:"oktaapplicationcredentials"`
 	PrincipalUserX509Field      MTLSSourcePrincipalUserX509FieldValue `bson:"principaluserx509field"`
 	SubjectKeyIDs               []string                              `bson:"subjectkeyids"`

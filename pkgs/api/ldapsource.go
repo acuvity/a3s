@@ -105,7 +105,7 @@ type LDAPSource struct {
 	CA string `json:"CA,omitempty" msgpack:"CA,omitempty" bson:"ca,omitempty" mapstructure:"CA,omitempty"`
 
 	// ID is the identifier of the object.
-	ID string `json:"ID" msgpack:"ID" bson:"-" mapstructure:"ID,omitempty"`
+	ID string `json:"ID,omitempty" msgpack:"ID,omitempty" bson:"-" mapstructure:"ID,omitempty"`
 
 	// IP address or FQDN of the LDAP server.
 	Address string `json:"address" msgpack:"address" bson:"address" mapstructure:"address,omitempty"`
@@ -155,7 +155,7 @@ type LDAPSource struct {
 	Name string `json:"name" msgpack:"name" bson:"name" mapstructure:"name,omitempty"`
 
 	// The namespace of the object.
-	Namespace string `json:"namespace" msgpack:"namespace" bson:"namespace" mapstructure:"namespace,omitempty"`
+	Namespace string `json:"namespace,omitempty" msgpack:"namespace,omitempty" bson:"namespace,omitempty" mapstructure:"namespace,omitempty"`
 
 	// Specifies the connection type for the LDAP provider.
 	SecurityProtocol LDAPSourceSecurityProtocolValue `json:"securityProtocol" msgpack:"securityProtocol" bson:"securityprotocol" mapstructure:"securityProtocol,omitempty"`
@@ -302,18 +302,6 @@ func (o *LDAPSource) Doc() string {
 func (o *LDAPSource) String() string {
 
 	return fmt.Sprintf("<%s:%s>", o.Identity().Name, o.Identifier())
-}
-
-// GetID returns the ID of the receiver.
-func (o *LDAPSource) GetID() string {
-
-	return o.ID
-}
-
-// SetID sets the property ID of the receiver using the given value.
-func (o *LDAPSource) SetID(ID string) {
-
-	o.ID = ID
 }
 
 // GetCreateTime returns the CreateTime of the receiver.
@@ -759,12 +747,11 @@ certificate authority that signed the LDAP server's certificate.`,
 		ConvertedName:  "ID",
 		Description:    `ID is the identifier of the object.`,
 		Exposed:        true,
-		Getter:         true,
+		Filterable:     true,
 		Identifier:     true,
 		Name:           "ID",
 		Orderable:      true,
 		ReadOnly:       true,
-		Setter:         true,
 		Stored:         true,
 		Type:           "string",
 	},
@@ -1024,12 +1011,11 @@ certificate authority that signed the LDAP server's certificate.`,
 		ConvertedName:  "ID",
 		Description:    `ID is the identifier of the object.`,
 		Exposed:        true,
-		Getter:         true,
+		Filterable:     true,
 		Identifier:     true,
 		Name:           "ID",
 		Orderable:      true,
 		ReadOnly:       true,
-		Setter:         true,
 		Stored:         true,
 		Type:           "string",
 	},
@@ -1690,22 +1676,6 @@ func (o *SparseLDAPSource) DecryptAttributes(encrypter elemental.AttributeEncryp
 	return nil
 }
 
-// GetID returns the ID of the receiver.
-func (o *SparseLDAPSource) GetID() (out string) {
-
-	if o.ID == nil {
-		return
-	}
-
-	return *o.ID
-}
-
-// SetID sets the property ID of the receiver using the address of the given value.
-func (o *SparseLDAPSource) SetID(ID string) {
-
-	o.ID = &ID
-}
-
 // GetCreateTime returns the CreateTime of the receiver.
 func (o *SparseLDAPSource) GetCreateTime() (out time.Time) {
 
@@ -1878,7 +1848,7 @@ type mongoAttributesLDAPSource struct {
 	IncludedKeys     []string                        `bson:"includedkeys"`
 	Modifier         *IdentityModifier               `bson:"modifier,omitempty"`
 	Name             string                          `bson:"name"`
-	Namespace        string                          `bson:"namespace"`
+	Namespace        string                          `bson:"namespace,omitempty"`
 	SecurityProtocol LDAPSourceSecurityProtocolValue `bson:"securityprotocol"`
 	UpdateTime       time.Time                       `bson:"updatetime"`
 	ZHash            int                             `bson:"zhash"`

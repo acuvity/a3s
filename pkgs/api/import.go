@@ -482,7 +482,7 @@ func (o *Import) Validate() error {
 		}
 		if err := sub.Validate(); err != nil {
 			errors = errors.Append(err)
-			elemental.InjectAttributePath(errors, fmt.Sprintf("%s/%d", "A3SSources", i))
+			elemental.InjectAttributePath(errors, fmt.Sprintf("%s/%v", "A3SSources", i))
 		}
 	}
 
@@ -492,7 +492,7 @@ func (o *Import) Validate() error {
 		}
 		if err := sub.Validate(); err != nil {
 			errors = errors.Append(err)
-			elemental.InjectAttributePath(errors, fmt.Sprintf("%s/%d", "HTTPSources", i))
+			elemental.InjectAttributePath(errors, fmt.Sprintf("%s/%v", "HTTPSources", i))
 		}
 	}
 
@@ -502,7 +502,7 @@ func (o *Import) Validate() error {
 		}
 		if err := sub.Validate(); err != nil {
 			errors = errors.Append(err)
-			elemental.InjectAttributePath(errors, fmt.Sprintf("%s/%d", "LDAPSources", i))
+			elemental.InjectAttributePath(errors, fmt.Sprintf("%s/%v", "LDAPSources", i))
 		}
 	}
 
@@ -512,7 +512,7 @@ func (o *Import) Validate() error {
 		}
 		if err := sub.Validate(); err != nil {
 			errors = errors.Append(err)
-			elemental.InjectAttributePath(errors, fmt.Sprintf("%s/%d", "MTLSSources", i))
+			elemental.InjectAttributePath(errors, fmt.Sprintf("%s/%v", "MTLSSources", i))
 		}
 	}
 
@@ -522,7 +522,7 @@ func (o *Import) Validate() error {
 		}
 		if err := sub.Validate(); err != nil {
 			errors = errors.Append(err)
-			elemental.InjectAttributePath(errors, fmt.Sprintf("%s/%d", "OAuth2Sources", i))
+			elemental.InjectAttributePath(errors, fmt.Sprintf("%s/%v", "OAuth2Sources", i))
 		}
 	}
 
@@ -532,7 +532,7 @@ func (o *Import) Validate() error {
 		}
 		if err := sub.Validate(); err != nil {
 			errors = errors.Append(err)
-			elemental.InjectAttributePath(errors, fmt.Sprintf("%s/%d", "OIDCSources", i))
+			elemental.InjectAttributePath(errors, fmt.Sprintf("%s/%v", "OIDCSources", i))
 		}
 	}
 
@@ -542,7 +542,7 @@ func (o *Import) Validate() error {
 		}
 		if err := sub.Validate(); err != nil {
 			errors = errors.Append(err)
-			elemental.InjectAttributePath(errors, fmt.Sprintf("%s/%d", "SAMLSources", i))
+			elemental.InjectAttributePath(errors, fmt.Sprintf("%s/%v", "SAMLSources", i))
 		}
 	}
 
@@ -552,7 +552,7 @@ func (o *Import) Validate() error {
 		}
 		if err := sub.Validate(); err != nil {
 			errors = errors.Append(err)
-			elemental.InjectAttributePath(errors, fmt.Sprintf("%s/%d", "authorizations", i))
+			elemental.InjectAttributePath(errors, fmt.Sprintf("%s/%v", "authorizations", i))
 		}
 	}
 

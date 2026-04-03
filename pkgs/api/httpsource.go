@@ -89,7 +89,7 @@ type HTTPSource struct {
 	CA string `json:"CA" msgpack:"CA" bson:"ca" mapstructure:"CA,omitempty"`
 
 	// ID is the identifier of the object.
-	ID string `json:"ID" msgpack:"ID" bson:"-" mapstructure:"ID,omitempty"`
+	ID string `json:"ID,omitempty" msgpack:"ID,omitempty" bson:"-" mapstructure:"ID,omitempty"`
 
 	// URL of the remote service. This URL will receive a POST containing the
 	// credentials information that must be validated. It must reply with 200 with a
@@ -135,7 +135,7 @@ type HTTPSource struct {
 	Name string `json:"name" msgpack:"name" bson:"name" mapstructure:"name,omitempty"`
 
 	// The namespace of the object.
-	Namespace string `json:"namespace" msgpack:"namespace" bson:"namespace" mapstructure:"namespace,omitempty"`
+	Namespace string `json:"namespace,omitempty" msgpack:"namespace,omitempty" bson:"namespace,omitempty" mapstructure:"namespace,omitempty"`
 
 	// Last update date of the object.
 	UpdateTime time.Time `json:"updateTime" msgpack:"updateTime" bson:"updatetime" mapstructure:"updateTime,omitempty"`
@@ -271,18 +271,6 @@ func (o *HTTPSource) Doc() string {
 func (o *HTTPSource) String() string {
 
 	return fmt.Sprintf("<%s:%s>", o.Identity().Name, o.Identifier())
-}
-
-// GetID returns the ID of the receiver.
-func (o *HTTPSource) GetID() string {
-
-	return o.ID
-}
-
-// SetID sets the property ID of the receiver using the given value.
-func (o *HTTPSource) SetID(ID string) {
-
-	o.ID = ID
 }
 
 // GetCreateTime returns the CreateTime of the receiver.
@@ -711,12 +699,11 @@ var HTTPSourceAttributesMap = map[string]elemental.AttributeSpecification{
 		ConvertedName:  "ID",
 		Description:    `ID is the identifier of the object.`,
 		Exposed:        true,
-		Getter:         true,
+		Filterable:     true,
 		Identifier:     true,
 		Name:           "ID",
 		Orderable:      true,
 		ReadOnly:       true,
-		Setter:         true,
 		Stored:         true,
 		Type:           "string",
 	},
@@ -943,12 +930,11 @@ var HTTPSourceLowerCaseAttributesMap = map[string]elemental.AttributeSpecificati
 		ConvertedName:  "ID",
 		Description:    `ID is the identifier of the object.`,
 		Exposed:        true,
-		Getter:         true,
+		Filterable:     true,
 		Identifier:     true,
 		Name:           "ID",
 		Orderable:      true,
 		ReadOnly:       true,
-		Setter:         true,
 		Stored:         true,
 		Type:           "string",
 	},
@@ -1541,22 +1527,6 @@ func (o *SparseHTTPSource) DecryptAttributes(encrypter elemental.AttributeEncryp
 	return nil
 }
 
-// GetID returns the ID of the receiver.
-func (o *SparseHTTPSource) GetID() (out string) {
-
-	if o.ID == nil {
-		return
-	}
-
-	return *o.ID
-}
-
-// SetID sets the property ID of the receiver using the address of the given value.
-func (o *SparseHTTPSource) SetID(ID string) {
-
-	o.ID = &ID
-}
-
 // GetCreateTime returns the CreateTime of the receiver.
 func (o *SparseHTTPSource) GetCreateTime() (out time.Time) {
 
@@ -1727,7 +1697,7 @@ type mongoAttributesHTTPSource struct {
 	Key          string            `bson:"key"`
 	Modifier     *IdentityModifier `bson:"modifier,omitempty"`
 	Name         string            `bson:"name"`
-	Namespace    string            `bson:"namespace"`
+	Namespace    string            `bson:"namespace,omitempty"`
 	UpdateTime   time.Time         `bson:"updatetime"`
 	ZHash        int               `bson:"zhash"`
 	Zone         int               `bson:"zone"`
