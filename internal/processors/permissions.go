@@ -1,8 +1,13 @@
 package processors
 
 import (
+	"context"
+	"fmt"
+	"maps"
+
 	"go.acuvity.ai/a3s/pkgs/api"
 	"go.acuvity.ai/a3s/pkgs/permissions"
+	"go.acuvity.ai/a3s/pkgs/token"
 	"go.acuvity.ai/bahamut"
 )
 
@@ -18,18 +23,39 @@ func NewPermissionsProcessor(retriever permissions.Retriever) *PermissionsProces
 	}
 }
 
+func (p *PermissionsProcessor) ProcessRetrieveMany(bctx bahamut.Context) error {
+
+	idt, err := token.ParseUnverified(bctx.Request().Password)
+	if err != nil {
+		return fmt.Errorf("unable to reparse idt token: %w", err)
+	}
+
+	req := api.NewPermissions()
+	req.Namespace = bctx.Request().Namespace
+	req.Claims = bctx.Claims()
+
+	if idt.Restrictions != nil {
+		req.RestrictedNamespace = idt.Restrictions.Namespace
+		req.RestrictedNetworks = idt.Restrictions.Networks
+		req.RestrictedPermissions = idt.Restrictions.Permissions
+	}
+
+	bctx.SetOutputData(api.PermissionsList{p.check(bctx.Context(), req)})
+
+	return nil
+}
+
 // ProcessCreate handles the creates requests for Permissionss.
 func (p *PermissionsProcessor) ProcessCreate(bctx bahamut.Context) error {
 
 	req := bctx.InputData().(*api.Permissions)
 
-	if len(req.Claims) == 0 {
-		req.Claims = bctx.Claims()
-	}
+	bctx.SetOutputData(p.check(bctx.Context(), req))
 
-	if req.Namespace == "" {
-		req.Namespace = bctx.Request().Namespace
-	}
+	return nil
+}
+
+func (p *PermissionsProcessor) check(ctx context.Context, req *api.Permissions) *api.Permissions {
 
 	restrictions := permissions.Restrictions{
 		Namespace:   req.RestrictedNamespace,
@@ -48,7 +74,7 @@ func (p *PermissionsProcessor) ProcessCreate(bctx bahamut.Context) error {
 	}
 
 	perms, err := p.retriever.Permissions(
-		bctx.Context(),
+		ctx,
 		req.Claims,
 		req.Namespace,
 		permissions.OptionRetrieverID(req.ID),
@@ -75,9 +101,7 @@ func (p *PermissionsProcessor) ProcessCreate(bctx bahamut.Context) error {
 		req.CollectedGroups = collectedGroups
 	}
 
-	bctx.SetOutputData(req)
-
-	return nil
+	return req
 }
 
 func permsToMap(p permissions.PermissionMap) map[string]map[string]bool {
@@ -86,9 +110,7 @@ func permsToMap(p permissions.PermissionMap) map[string]map[string]bool {
 
 	for resource, perms := range p {
 		out[resource] = make(map[string]bool, len(perms))
-		for action, allowed := range perms {
-			out[resource][action] = allowed
-		}
+		maps.Copy(out[resource], perms)
 	}
 
 	return out
