@@ -90,7 +90,7 @@ type Permissions struct {
 	// IP of the client.
 	IP string `json:"IP" msgpack:"IP" bson:"-" mapstructure:"IP,omitempty"`
 
-	// The list of claims.
+	// The list of claims. If empty the claims of the current token will be used.
 	Claims []string `json:"claims" msgpack:"claims" bson:"-" mapstructure:"claims,omitempty"`
 
 	// If true, the property collectedAccssibleNamespaces will be filled with the list
@@ -113,7 +113,8 @@ type Permissions struct {
 	// Return an eventual error.
 	Error string `json:"error,omitempty" msgpack:"error,omitempty" bson:"-" mapstructure:"error,omitempty"`
 
-	// The namespace where to check permission from.
+	// The namespace where to check permission from. If not set, X-Namespace header
+	// will be used.
 	Namespace string `json:"namespace" msgpack:"namespace" bson:"-" mapstructure:"namespace,omitempty"`
 
 	// If true, skips computing restriction intersections.
@@ -388,14 +389,6 @@ func (o *Permissions) Validate() error {
 	errors := elemental.Errors{}
 	requiredErrors := elemental.Errors{}
 
-	if err := elemental.ValidateRequiredExternal("claims", o.Claims); err != nil {
-		requiredErrors = requiredErrors.Append(err)
-	}
-
-	if err := elemental.ValidateRequiredString("namespace", o.Namespace); err != nil {
-		requiredErrors = requiredErrors.Append(err)
-	}
-
 	if len(requiredErrors) > 0 {
 		return requiredErrors
 	}
@@ -486,10 +479,9 @@ var PermissionsAttributesMap = map[string]elemental.AttributeSpecification{
 	"Claims": {
 		AllowedChoices: []string{},
 		ConvertedName:  "Claims",
-		Description:    `The list of claims.`,
+		Description:    `The list of claims. If empty the claims of the current token will be used.`,
 		Exposed:        true,
 		Name:           "claims",
-		Required:       true,
 		SubType:        "string",
 		Type:           "list",
 	},
@@ -547,11 +539,11 @@ groups used to resolve the permissions.`,
 	"Namespace": {
 		AllowedChoices: []string{},
 		ConvertedName:  "Namespace",
-		Description:    `The namespace where to check permission from.`,
-		Exposed:        true,
-		Name:           "namespace",
-		Required:       true,
-		Type:           "string",
+		Description: `The namespace where to check permission from. If not set, X-Namespace header
+will be used.`,
+		Exposed: true,
+		Name:    "namespace",
+		Type:    "string",
 	},
 	"OffloadPermissionsRestrictions": {
 		AllowedChoices: []string{},
@@ -629,10 +621,9 @@ var PermissionsLowerCaseAttributesMap = map[string]elemental.AttributeSpecificat
 	"claims": {
 		AllowedChoices: []string{},
 		ConvertedName:  "Claims",
-		Description:    `The list of claims.`,
+		Description:    `The list of claims. If empty the claims of the current token will be used.`,
 		Exposed:        true,
 		Name:           "claims",
-		Required:       true,
 		SubType:        "string",
 		Type:           "list",
 	},
@@ -690,11 +681,11 @@ groups used to resolve the permissions.`,
 	"namespace": {
 		AllowedChoices: []string{},
 		ConvertedName:  "Namespace",
-		Description:    `The namespace where to check permission from.`,
-		Exposed:        true,
-		Name:           "namespace",
-		Required:       true,
-		Type:           "string",
+		Description: `The namespace where to check permission from. If not set, X-Namespace header
+will be used.`,
+		Exposed: true,
+		Name:    "namespace",
+		Type:    "string",
 	},
 	"offloadpermissionsrestrictions": {
 		AllowedChoices: []string{},
@@ -820,7 +811,7 @@ type SparsePermissions struct {
 	// IP of the client.
 	IP *string `json:"IP,omitempty" msgpack:"IP,omitempty" bson:"-" mapstructure:"IP,omitempty"`
 
-	// The list of claims.
+	// The list of claims. If empty the claims of the current token will be used.
 	Claims *[]string `json:"claims,omitempty" msgpack:"claims,omitempty" bson:"-" mapstructure:"claims,omitempty"`
 
 	// If true, the property collectedAccssibleNamespaces will be filled with the list
@@ -843,7 +834,8 @@ type SparsePermissions struct {
 	// Return an eventual error.
 	Error *string `json:"error,omitempty" msgpack:"error,omitempty" bson:"-" mapstructure:"error,omitempty"`
 
-	// The namespace where to check permission from.
+	// The namespace where to check permission from. If not set, X-Namespace header
+	// will be used.
 	Namespace *string `json:"namespace,omitempty" msgpack:"namespace,omitempty" bson:"-" mapstructure:"namespace,omitempty"`
 
 	// If true, skips computing restriction intersections.

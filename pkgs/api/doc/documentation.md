@@ -2388,11 +2388,11 @@ Type: `string`
 
 IP of the client.
 
-##### `claims` [`required`]
+##### `claims`
 
 Type: `[]string`
 
-The list of claims.
+The list of claims. If empty the claims of the current token will be used.
 
 ##### `collectAccessibleNamespaces`
 
@@ -2429,11 +2429,12 @@ Type: `string`
 
 Return an eventual error.
 
-##### `namespace` [`required`]
+##### `namespace`
 
 Type: `string`
 
-The namespace where to check permission from.
+The namespace where to check permission from. If not set, X-Namespace header
+will be used.
 
 ##### `offloadPermissionsRestrictions`
 

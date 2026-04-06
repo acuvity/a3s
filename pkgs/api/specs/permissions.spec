@@ -25,11 +25,11 @@ attributes:
 
   - name: claims
     friendly_name: Claims
-    description: The list of claims.
+    description: The list of claims. If empty the claims of the current token will
+      be used.
     type: list
     exposed: true
     subtype: string
-    required: true
     example_value:
     - sourcetype=mtls
     - sourcename=my-source
@@ -85,10 +85,11 @@ attributes:
 
   - name: namespace
     friendly_name: Namespace
-    description: The namespace where to check permission from.
+    description: |-
+      The namespace where to check permission from. If not set, X-Namespace header
+      will be used.
     type: string
     exposed: true
-    required: true
     example_value: /acme
 
   - name: offloadPermissionsRestrictions

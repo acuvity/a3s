@@ -1501,7 +1501,7 @@
             "type": "string"
           },
           "claims": {
-            "description": "The list of claims.",
+            "description": "The list of claims. If empty the claims of the current token will be used.",
             "example": [
               "sourcetype=mtls",
               "sourcename=my-source",
@@ -1544,7 +1544,7 @@
             "type": "string"
           },
           "namespace": {
-            "description": "The namespace where to check permission from.",
+            "description": "The namespace where to check permission from. If not set, X-Namespace header\nwill be used.",
             "example": "/acme",
             "type": "string"
           },
@@ -1593,10 +1593,6 @@
             "type": "boolean"
           }
         },
-        "required": [
-          "claims",
-          "namespace"
-        ],
         "type": "object"
       },
       "revocation": {
