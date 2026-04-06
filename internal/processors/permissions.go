@@ -23,6 +23,14 @@ func (p *PermissionsProcessor) ProcessCreate(bctx bahamut.Context) error {
 
 	req := bctx.InputData().(*api.Permissions)
 
+	if len(req.Claims) == 0 {
+		req.Claims = bctx.Claims()
+	}
+
+	if req.Namespace == "" {
+		req.Namespace = bctx.Request().Namespace
+	}
+
 	restrictions := permissions.Restrictions{
 		Namespace:   req.RestrictedNamespace,
 		Networks:    req.RestrictedNetworks,
