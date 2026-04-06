@@ -5,7 +5,7 @@ go 1.26.1
 require (
 	go.acuvity.ai/bahamut v0.0.0-20260601180028-45123d5deb0b
 	go.acuvity.ai/elemental v0.0.0-20260601175251-78f998107f34
-	go.acuvity.ai/manipulate v0.0.0-20260601175623-8df60df327b9
+	go.acuvity.ai/manipulate v0.0.0-20260404025536-218778f7999d
 	go.acuvity.ai/regolithe v0.0.0-20260601174230-81cdfce253df // indirect
 	go.acuvity.ai/tg v1.0.1-0.20260519184745-c99f6bc63fa0
 	go.acuvity.ai/wsc v1.0.0 // indirect
@@ -53,6 +53,14 @@ require (
 	golang.org/x/oauth2 v0.30.0
 	golang.org/x/term v0.42.0
 	golang.org/x/time v0.15.0
+)
+
+require (
+	github.com/xdg-go/pbkdf2 v1.0.0 // indirect
+	github.com/xdg-go/scram v1.2.0 // indirect
+	github.com/xdg-go/stringprep v1.0.4 // indirect
+	github.com/youmark/pkcs8 v0.0.0-20240726163527-a2c0da244d78 // indirect
+	golang.org/x/sync v0.20.0 // indirect
 )
 
 require (
@@ -147,6 +155,7 @@ require (
 	github.com/xeipuuv/gojsonreference v0.0.0-20180127040603-bd5ef7bd5415 // indirect
 	github.com/xeipuuv/gojsonschema v1.2.0 // indirect
 	github.com/yusufpapurcu/wmi v1.2.4 // indirect
+	go.mongodb.org/mongo-driver/v2 v2.5.0
 	go.uber.org/atomic v1.11.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/crypto v0.50.0 // indirect
