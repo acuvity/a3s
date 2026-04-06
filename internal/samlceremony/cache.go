@@ -1,11 +1,14 @@
 package samlceremony
 
 import (
+	"context"
+	"errors"
 	"time"
 
-	"github.com/globalsign/mgo/bson"
 	"go.acuvity.ai/manipulate"
 	"go.acuvity.ai/manipulate/manipmongo"
+	bson "go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
 const collection = "samlcache"
@@ -22,27 +25,35 @@ func Set(m manipulate.Manipulator, item *CacheItem) error {
 
 	item.Time = time.Now()
 
-	db, disco, err := manipmongo.GetDatabase(m)
+	db, err := manipmongo.GetDatabase(m)
 	if err != nil {
 		return err
 	}
-	defer disco()
 
-	return db.C(collection).Insert(item)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	_, err = db.Collection(collection).InsertOne(ctx, item)
+	return err
 }
 
 // Get gets the items with the given state.
 // If none is found, it will return nil.
 func Get(m manipulate.Manipulator, state string) (*CacheItem, error) {
 
-	db, disco, err := manipmongo.GetDatabase(m)
+	db, err := manipmongo.GetDatabase(m)
 	if err != nil {
 		return nil, err
 	}
-	defer disco()
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
 
 	item := &CacheItem{}
-	if err := db.C(collection).Find(bson.M{"state": state}).One(item); err != nil {
+	if err := db.Collection(collection).FindOne(ctx, bson.M{"state": state}).Decode(item); err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return nil, nil
+		}
 		return nil, err
 	}
 	return item, nil
@@ -51,11 +62,14 @@ func Get(m manipulate.Manipulator, state string) (*CacheItem, error) {
 // Delete deletes the items with the given state.
 func Delete(m manipulate.Manipulator, state string) error {
 
-	db, disco, err := manipmongo.GetDatabase(m)
+	db, err := manipmongo.GetDatabase(m)
 	if err != nil {
 		return err
 	}
-	defer disco()
 
-	return db.C(collection).Remove(bson.M{"state": state})
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	_, err = db.Collection(collection).DeleteOne(ctx, bson.M{"state": state})
+	return err
 }

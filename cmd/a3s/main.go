@@ -14,7 +14,6 @@ import (
 
 	"github.com/bsm/redislock"
 	"github.com/ghodss/yaml"
-	"github.com/globalsign/mgo"
 	"go.acuvity.ai/a3s/internal/hasher"
 	"go.acuvity.ai/a3s/internal/idp/entra"
 	"go.acuvity.ai/a3s/internal/idp/okta"
@@ -44,6 +43,9 @@ import (
 	"go.acuvity.ai/manipulate"
 	"go.acuvity.ai/manipulate/manipmongo"
 	"go.acuvity.ai/tg/tglib"
+	bson "go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo"
+	mongooptions "go.mongodb.org/mongo-driver/v2/mongo/options"
 
 	goplugin "plugin"
 
@@ -98,38 +100,22 @@ func main() {
 		os.Exit(1)
 	}
 
-	if err := manipmongo.EnsureIndex(m, elemental.MakeIdentity("oauth2cache", "oauth2cache"), mgo.Index{
-		Key:         []string{"time"},
-		ExpireAfter: 1 * time.Minute,
-		Name:        "index_expiration_exp",
-	}); err != nil {
+	if err := manipmongo.EnsureIndex(m, elemental.MakeIdentity("oauth2cache", "oauth2cache"), ttlIndexModel("time", "index_expiration_exp", time.Minute)); err != nil {
 		slog.Error("Unable to create exp expiration index for oauth2cache", err)
 		os.Exit(1)
 	}
 
-	if err := manipmongo.EnsureIndex(m, elemental.MakeIdentity("samlcache", "samlcache"), mgo.Index{
-		Key:         []string{"time"},
-		ExpireAfter: 1 * time.Minute,
-		Name:        "index_expiration_exp",
-	}); err != nil {
+	if err := manipmongo.EnsureIndex(m, elemental.MakeIdentity("samlcache", "samlcache"), ttlIndexModel("time", "index_expiration_exp", time.Minute)); err != nil {
 		slog.Error("Unable to create exp expiration index for samlcache", err)
 		os.Exit(1)
 	}
 
-	if err := manipmongo.EnsureIndex(m, api.NamespaceDeletionRecordIdentity, mgo.Index{
-		Key:         []string{"deletetime"},
-		ExpireAfter: 24 * time.Hour,
-		Name:        "index_expiration_deletetime",
-	}); err != nil {
+	if err := manipmongo.EnsureIndex(m, api.NamespaceDeletionRecordIdentity, ttlIndexModel("deletetime", "index_expiration_deletetime", 24*time.Hour)); err != nil {
 		slog.Error("Unable to create expiration index for namesapce deletion records", err)
 		os.Exit(1)
 	}
 
-	if err := manipmongo.EnsureIndex(m, api.RevocationIdentity, mgo.Index{
-		Key:         []string{"expiration"},
-		ExpireAfter: 1 * time.Minute,
-		Name:        "index_revocation_expiration",
-	}); err != nil {
+	if err := manipmongo.EnsureIndex(m, api.RevocationIdentity, ttlIndexModel("expiration", "index_revocation_expiration", time.Minute)); err != nil {
 		slog.Error("Unable to create revocation expiration index for expiration", err)
 		os.Exit(1)
 	}
@@ -621,21 +607,47 @@ func main() {
 	server.Run(ctx)
 }
 
+func ttlIndexModel(field, name string, ttl time.Duration) mongo.IndexModel {
+	opts := mongooptions.Index().SetName(name).SetExpireAfterSeconds(int32(ttl.Seconds()))
+	return mongo.IndexModel{
+		Keys:    bson.D{{Key: field, Value: 1}},
+		Options: opts,
+	}
+}
+
+func upsertMongoUser(ctx context.Context, db *mongo.Database, username string, roles bson.A) error {
+	var info struct {
+		Users []bson.M `bson:"users"`
+	}
+	if err := db.RunCommand(ctx, bson.D{{Key: "usersInfo", Value: username}}).Decode(&info); err != nil {
+		return err
+	}
+
+	command := bson.D{{Key: "createUser", Value: username}, {Key: "roles", Value: roles}}
+	if len(info.Users) > 0 {
+		command = bson.D{{Key: "updateUser", Value: username}, {Key: "roles", Value: roles}}
+	}
+
+	return db.RunCommand(ctx, command).Err()
+}
+
 func createMongoDBAccount(cfg conf.MongoConf, username string) error {
 
 	m := bootstrap.MakeMongoManipulator(cfg, &hasher.Hasher{}, api.Manager())
 
-	db, closeFunc, _ := manipmongo.GetDatabase(m)
-	defer closeFunc()
-
-	user := mgo.User{
-		Username: username,
-		OtherDBRoles: map[string][]mgo.Role{
-			"a3s": {mgo.RoleReadWrite, mgo.RoleDBAdmin},
-		},
+	db, err := manipmongo.GetDatabase(m)
+	if err != nil {
+		return fmt.Errorf("unable to access underlying database object: %w", err)
 	}
 
-	if err := db.UpsertUser(&user); err != nil {
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	roles := bson.A{
+		bson.D{{Key: "role", Value: "readWrite"}, {Key: "db", Value: "a3s"}},
+		bson.D{{Key: "role", Value: "dbAdmin"}, {Key: "db", Value: "a3s"}},
+	}
+	if err := upsertMongoUser(ctx, db, username, roles); err != nil {
 		return fmt.Errorf("unable to upsert the user: %w", err)
 	}
 
