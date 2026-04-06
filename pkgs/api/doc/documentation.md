@@ -2370,9 +2370,14 @@ API to retrieve the permissions from a user identity.
 
 #### Relations
 
+##### `GET /permissions`
+
+Retrieves the list permissions for the current user.
+
 ##### `POST /permissions`
 
-Sends a permissions request.
+Sends a permissions to check the permission of an arbitrary set of claims in an
+arbitrary namespace.
 
 #### Attributes
 
@@ -2388,11 +2393,11 @@ Type: `string`
 
 IP of the client.
 
-##### `claims`
+##### `claims` [`required`]
 
 Type: `[]string`
 
-The list of claims. If empty the claims of the current token will be used.
+The list of claims to check permissions for.
 
 ##### `collectAccessibleNamespaces`
 
@@ -2429,12 +2434,11 @@ Type: `string`
 
 Return an eventual error.
 
-##### `namespace`
+##### `namespace` [`required`]
 
 Type: `string`
 
-The namespace where to check permission from. If not set, X-Namespace header
-will be used.
+The namespace where to check permission from.
 
 ##### `offloadPermissionsRestrictions`
 

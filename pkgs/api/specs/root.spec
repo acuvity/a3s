@@ -119,8 +119,12 @@ relations:
     description: Handle a new Okta Event.
 
 - rest_name: permissions
+  get:
+    description: Retrieves the list permissions for the current user.
   create:
-    description: Sends a permissions request.
+    description: |-
+      Sends a permissions to check the permission of an arbitrary set of claims in an
+      arbitrary namespace.
 
 - rest_name: revocation
   get:

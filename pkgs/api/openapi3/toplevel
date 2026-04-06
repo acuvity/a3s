@@ -1501,7 +1501,7 @@
             "type": "string"
           },
           "claims": {
-            "description": "The list of claims. If empty the claims of the current token will be used.",
+            "description": "The list of claims to check permissions for.",
             "example": [
               "sourcetype=mtls",
               "sourcename=my-source",
@@ -1544,7 +1544,7 @@
             "type": "string"
           },
           "namespace": {
-            "description": "The namespace where to check permission from. If not set, X-Namespace header\nwill be used.",
+            "description": "The namespace where to check permission from.",
             "example": "/acme",
             "type": "string"
           },
@@ -1593,6 +1593,10 @@
             "type": "boolean"
           }
         },
+        "required": [
+          "claims",
+          "namespace"
+        ],
         "type": "object"
       },
       "revocation": {
@@ -3399,8 +3403,30 @@
       }
     },
     "/permissions": {
+      "get": {
+        "description": "Retrieves the list permissions for the current user.",
+        "operationId": "get-all-Permissions",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/permissions"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "n/a"
+          }
+        },
+        "tags": [
+          "authz/check"
+        ]
+      },
       "post": {
-        "description": "Sends a permissions request.",
+        "description": "Sends a permissions to check the permission of an arbitrary set of claims in an\narbitrary namespace.",
         "operationId": "create-Permissions",
         "requestBody": {
           "content": {

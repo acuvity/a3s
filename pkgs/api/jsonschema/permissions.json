@@ -29,12 +29,10 @@
     },
     "claims": {
       "$friendlyName": "Claims",
-      "description": "The list of claims. If empty the claims of the current token will be used.",
+      "$required": true,
+      "description": "The list of claims to check permissions for.",
       "items": {
-        "type": [
-          "string",
-          "null"
-        ]
+        "type": "string"
       },
       "title": "claims",
       "type": "array"
@@ -95,12 +93,10 @@
     },
     "namespace": {
       "$friendlyName": "Namespace",
-      "description": "The namespace where to check permission from. If not set, X-Namespace header will be used.",
+      "$required": true,
+      "description": "The namespace where to check permission from.",
       "title": "namespace",
-      "type": [
-        "string",
-        "null"
-      ]
+      "type": "string"
     },
     "offloadPermissionsRestrictions": {
       "$friendlyName": "OffloadPermissionsRestrictions",
@@ -167,7 +163,10 @@
       ]
     }
   },
-  "required": [],
+  "required": [
+    "claims",
+    "namespace"
+  ],
   "title": "Permissions",
   "type": "object"
 }
