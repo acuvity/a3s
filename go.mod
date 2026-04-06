@@ -5,7 +5,7 @@ go 1.26.1
 require (
 	go.acuvity.ai/bahamut v0.0.0-20260403154534-0e68fe475a51
 	go.acuvity.ai/elemental v0.0.0-20260403154455-893c40b4b95b
-	go.acuvity.ai/manipulate v0.0.0-20260403154606-b9e7b69d49e0
+	go.acuvity.ai/manipulate v0.0.0-20260404025536-218778f7999d
 	go.acuvity.ai/regolithe v0.0.0-20260108214434-eb28e7a6e391 // indirect
 	go.acuvity.ai/tg v1.0.1-0.20260403154206-79026a87f448
 	go.acuvity.ai/wsc v0.0.0-20250506232542-8de7ff436ec0 // indirect
@@ -47,6 +47,7 @@ require (
 	github.com/spf13/viper v1.17.0
 	github.com/uber/jaeger-client-go v2.30.0+incompatible
 	github.com/ugorji/go/codec v1.2.12
+	go.mongodb.org/mongo-driver/v2 v2.5.0
 	go.uber.org/automaxprocs v1.6.0
 	golang.org/x/oauth2 v0.30.0
 	golang.org/x/term v0.41.0
@@ -141,15 +142,20 @@ require (
 	github.com/vulcand/oxy/v2 v2.0.2 // indirect
 	github.com/vulcand/predicate v1.2.0 // indirect
 	github.com/xanzy/ssh-agent v0.3.3 // indirect
+	github.com/xdg-go/pbkdf2 v1.0.0 // indirect
+	github.com/xdg-go/scram v1.2.0 // indirect
+	github.com/xdg-go/stringprep v1.0.4 // indirect
 	github.com/xeipuuv/gojsonpointer v0.0.0-20190905194746-02993c407bfb // indirect
 	github.com/xeipuuv/gojsonreference v0.0.0-20180127040603-bd5ef7bd5415 // indirect
 	github.com/xeipuuv/gojsonschema v1.2.0 // indirect
+	github.com/youmark/pkcs8 v0.0.0-20240726163527-a2c0da244d78 // indirect
 	github.com/yusufpapurcu/wmi v1.2.4 // indirect
 	go.uber.org/atomic v1.11.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/crypto v0.49.0 // indirect
 	golang.org/x/exp v0.0.0-20240719175910-8a7402abbf56 // indirect
 	golang.org/x/net v0.51.0 // indirect
+	golang.org/x/sync v0.20.0 // indirect
 	golang.org/x/sys v0.42.0 // indirect
 	golang.org/x/text v0.35.0 // indirect
 	golang.org/x/time v0.15.0 // indirect

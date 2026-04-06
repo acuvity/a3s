@@ -2,6 +2,7 @@ package oauth2ceremony
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"go.acuvity.ai/manipulate"
@@ -51,7 +52,7 @@ func Get(m manipulate.Manipulator, state string) (*CacheItem, error) {
 
 	item := &CacheItem{}
 	if err := db.Collection(collection).FindOne(ctx, bson.M{"state": state}).Decode(item); err != nil {
-		if err == mongo.ErrNoDocuments {
+		if errors.Is(err, mongo.ErrNoDocuments) {
 			return nil, nil
 		}
 		return nil, err

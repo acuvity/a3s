@@ -214,25 +214,26 @@ func GetPublicEndpoint(listenAddress string) (string, error) {
 		return "", fmt.Errorf("unable to retrieve hostname: %w", err)
 	}
 
-	addrs, err := net.LookupHost(host)
-	if err != nil || len(addrs) == 0 {
-		return fmt.Sprintf("127.0.0.1:%s", port), nil
-	}
-
-	var endpoint string
-	for _, addr := range addrs {
-		ip := net.ParseIP(addr)
-		if len(ip.To4()) == net.IPv4len {
-			endpoint = addr
-			break
+	endpoint := fmt.Sprintf("127.0.0.1:%s", port)
+	addrs, lookupErr := net.LookupHost(host)
+	if lookupErr == nil && len(addrs) > 0 {
+		resolvedHost := ""
+		for _, addr := range addrs {
+			ip := net.ParseIP(addr)
+			if len(ip.To4()) == net.IPv4len {
+				resolvedHost = addr
+				break
+			}
 		}
+
+		if resolvedHost == "" {
+			resolvedHost = addrs[0]
+		}
+
+		endpoint = fmt.Sprintf("%s:%s", resolvedHost, port)
 	}
 
-	if endpoint == "" {
-		endpoint = addrs[0]
-	}
-
-	return fmt.Sprintf("%s:%s", endpoint, port), nil
+	return endpoint, nil
 }
 
 // MakeIdentifiableRetriever returns a bahamut.IdentifiableRetriever to handle patches as classic update.
