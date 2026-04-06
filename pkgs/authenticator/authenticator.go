@@ -72,19 +72,34 @@ func (a *Authenticator) AuthenticateSession(session bahamut.Session) (bahamut.Au
 // AuthenticateRequest authenticates the request from the given bahamut.Context.
 func (a *Authenticator) AuthenticateRequest(bctx bahamut.Context) (bahamut.AuthAction, error) {
 
+	// Convoluted order of things here: we get the token and
+	// try to validate if present, but we don't do anything.
+	// Then we check if the resource is public. If so, we say ok
+	// irrespective of any error parsing the token.
+	// Otherwise, we check for an actual error and the actual
+	// decision.
+	// This allows to set the bctx.Claims, even if the resource is
+	// public.
+
+	token := token.FromRequest(bctx.Request())
+	action, idt, err := a.CheckAuthentication(bctx.Context(), token)
+
+	if idt != nil {
+		bctx.SetClaims(idt.Identity)
+	}
+
+	// If the resource is public, action is OK, and if there was
+	// a valid token, claims have been set.
 	if _, ok := a.ignoredResources[bctx.Request().Identity.Category]; ok {
 		return bahamut.AuthActionOK, nil
 	}
 
-	token := token.FromRequest(bctx.Request())
-
-	action, idt, err := a.CheckAuthentication(bctx.Context(), token)
+	// If not public and we could not parse the token, it's KO
 	if err != nil {
 		return bahamut.AuthActionKO, err
 	}
 
-	bctx.SetClaims(idt.Identity)
-
+	// Otherwise, we return the computed action.
 	return action, nil
 }
 
