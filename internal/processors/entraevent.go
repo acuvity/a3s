@@ -22,15 +22,17 @@ type EntraEventsProcessor struct {
 	manipulator  manipulate.TransactionalManipulator
 	locker       *redislock.Client
 	entraManager *entra.Manager
+	quiteTime    time.Duration
 }
 
 // NewEntraEventsProcessor returns a new EntraEventsProcessor.
-func NewEntraEventsProcessor(manipulator manipulate.TransactionalManipulator, entraManager *entra.Manager, locker *redislock.Client) *EntraEventsProcessor {
+func NewEntraEventsProcessor(manipulator manipulate.TransactionalManipulator, entraManager *entra.Manager, locker *redislock.Client, quietTime time.Duration) *EntraEventsProcessor {
 
 	return &EntraEventsProcessor{
 		manipulator:  manipulator,
 		locker:       locker,
 		entraManager: entraManager,
+		quiteTime:    quietTime,
 	}
 }
 
@@ -56,7 +58,7 @@ func (p *EntraEventsProcessor) ProcessCreate(bctx bahamut.Context) error {
 		log := slog.With("tenantid", v.TenantID, "subid", v.SubscriptionID, "change", v.ChangeType, "resource", v.Resource)
 
 		key := fmt.Sprintf("a3s:entra:events:%s:%s:%s:%s:%s", v.ClientState, v.ChangeType, v.Resource, v.SubscriptionID, v.TenantID)
-		_, err := p.locker.Obtain(octx, key, 30*time.Second, &redislock.Options{RetryStrategy: redislock.NoRetry()})
+		_, err := p.locker.Obtain(octx, key, p.quiteTime, &redislock.Options{RetryStrategy: redislock.NoRetry()})
 		if err != nil {
 			if errors.Is(err, redislock.ErrNotObtained) {
 				return nil

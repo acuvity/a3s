@@ -545,7 +545,7 @@ func main() {
 
 		entraSyncer = entra.NewSyncer(m, pubsub, redisLocker, entraManager, entraNotifHook)
 		entraSyncer.Start(ctx)
-		slog.Info("Entra notification endpoint configured", "endpoint", entraNotifHook)
+		slog.Info("Entra notification endpoint configured", "endpoint", entraNotifHook, "quiet-time", cfg.EntraQuietTime)
 	} else {
 		slog.Warn("No redis configuration. Entra syncer is disabled.")
 	}
@@ -596,7 +596,7 @@ func main() {
 
 	bahamut.RegisterProcessorOrDie(server, processors.NewOktaEventsProcessor(m), api.OktaEventIdentity)
 	if redisLocker != nil {
-		bahamut.RegisterProcessorOrDie(server, processors.NewEntraEventsProcessor(m, entraManager, redisLocker), api.EntraEventIdentity)
+		bahamut.RegisterProcessorOrDie(server, processors.NewEntraEventsProcessor(m, entraManager, redisLocker, cfg.EntraQuietTime), api.EntraEventIdentity)
 	}
 
 	// Object clean up
