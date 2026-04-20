@@ -24,6 +24,10 @@ type Retriever interface {
 
 	// Revoked returns true if the given token ID is in a revocation list.
 	Revoked(ctx context.Context, namespace string, tokenID string, claim []string, iat time.Time) (bool, error)
+
+	// RevokedWithTTL returns true if the given token ID is in a revocation list. It also returns a TTL that can be used to cache
+	// the response.
+	RevokedWithTTL(ctx context.Context, namespace string, tokenID string, claim []string, iat time.Time) (bool, time.Time, error)
 }
 
 type retriever struct {
@@ -197,6 +201,12 @@ func (a *retriever) Permissions(ctx context.Context, claims []string, ns string,
 }
 
 func (a *retriever) Revoked(ctx context.Context, namespace string, tokenID string, claims []string, iat time.Time) (bool, error) {
+
+	revoked, _, err := a.RevokedWithTTL(ctx, namespace, tokenID, claims, iat)
+	return revoked, err
+}
+
+func (a *retriever) RevokedWithTTL(ctx context.Context, namespace string, tokenID string, claims []string, iat time.Time) (bool, time.Time, error) {
 
 	return checkRevocation(ctx, a.manipulator, namespace, tokenID, claims, iat)
 }

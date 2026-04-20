@@ -8,8 +8,9 @@ import (
 )
 
 type mockedMethods struct {
-	permissionsMock func(context.Context, []string, string, ...RetrieverOption) (PermissionMap, error)
-	revokedMock     func(context.Context, string, string, []string, time.Time) (bool, error)
+	permissionsMock    func(context.Context, []string, string, ...RetrieverOption) (PermissionMap, error)
+	revokedMock        func(context.Context, string, string, []string, time.Time) (bool, error)
+	revokedWithTTLMock func(context.Context, string, string, []string, time.Time) (bool, time.Time, error)
 }
 
 // A MockRetriever allows to mock a permissions.Retriever for unit tests.
@@ -17,6 +18,7 @@ type MockRetriever interface {
 	Retriever
 	MockPermissions(t *testing.T, impl func(context.Context, []string, string, ...RetrieverOption) (PermissionMap, error))
 	MockRevoked(t *testing.T, impl func(context.Context, string, string, []string, time.Time) (bool, error))
+	MockRevokedWithTTL(t *testing.T, impl func(context.Context, string, string, []string, time.Time) (bool, time.Time, error))
 }
 
 type mockRetriever struct {
@@ -51,6 +53,15 @@ func (r *mockRetriever) MockRevoked(t *testing.T, impl func(context.Context, str
 	r.currentMocks(t).revokedMock = impl
 }
 
+// MockRevokedWithTTL replaces the Revoked implementation with the given function.
+func (r *mockRetriever) MockRevokedWithTTL(t *testing.T, impl func(context.Context, string, string, []string, time.Time) (bool, time.Time, error)) {
+
+	r.Lock()
+	defer r.Unlock()
+
+	r.currentMocks(t).revokedWithTTLMock = impl
+}
+
 func (r *mockRetriever) Permissions(ctx context.Context, claims []string, ns string, opts ...RetrieverOption) (PermissionMap, error) {
 
 	r.Lock()
@@ -73,6 +84,18 @@ func (r *mockRetriever) Revoked(ctx context.Context, namespace string, tokenID s
 	}
 
 	return false, nil
+}
+
+func (r *mockRetriever) RevokedWithTTL(ctx context.Context, namespace string, tokenID string, claims []string, iat time.Time) (bool, time.Time, error) {
+
+	r.Lock()
+	defer r.Unlock()
+
+	if mock := r.currentMocks(r.currentTest); mock != nil && mock.revokedWithTTLMock != nil {
+		return mock.revokedWithTTLMock(ctx, namespace, tokenID, claims, iat)
+	}
+
+	return false, time.Time{}, nil
 }
 
 func (r *mockRetriever) currentMocks(t *testing.T) *mockedMethods {

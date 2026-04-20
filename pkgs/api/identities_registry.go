@@ -151,6 +151,8 @@ var (
 			{"flattenedSubject"},
 			{"namespace"},
 			{"namespace", "ID"},
+			{"namespace", "activeafter"},
+			{"namespace", "expiration"},
 			{"namespace", "flattenedSubject"},
 			{"namespace", "tokenid"},
 			{"tokenid"},

@@ -8,6 +8,7 @@ import (
 	"go.acuvity.ai/a3s/pkgs/crud"
 	"go.acuvity.ai/a3s/pkgs/notification"
 	"go.acuvity.ai/a3s/pkgs/nscache"
+	"go.acuvity.ai/a3s/pkgs/permissions"
 	"go.acuvity.ai/bahamut"
 	"go.acuvity.ai/elemental"
 	"go.acuvity.ai/manipulate"
@@ -30,14 +31,27 @@ func NewRevocationsProcessor(manipulator manipulate.Manipulator, pubsub bahamut.
 // ProcessCreate handles the creates requests for Revocation.
 func (p *RevocationProcessor) ProcessCreate(bctx bahamut.Context) error {
 
+	now := time.Now()
+
 	revocation := bctx.InputData().(*api.Revocation)
+
+	if revocation.ExpirationRel != "" {
+		d, _ := time.ParseDuration(revocation.ExpirationRel) // cannot fail, checked by specs.
+		revocation.Expiration = now.Add(d)
+	}
+
 	if revocation.Expiration.IsZero() {
-		revocation.Expiration = time.Now().Add(8765 * time.Hour)
+		revocation.Expiration = now.Add(8765 * time.Hour)
 	}
 
 	if revocation.IssuedBeforeRel != "" {
 		d, _ := time.ParseDuration(revocation.IssuedBeforeRel) // cannot fail, checked by specs.
-		revocation.IssuedBefore = time.Now().Add(d)
+		revocation.IssuedBefore = now.Add(d)
+	}
+
+	if revocation.ActiveAfterRel != "" {
+		d, _ := time.ParseDuration(revocation.ActiveAfterRel) // cannot fail, checked by specs.
+		revocation.ActiveAfter = now.Add(d)
 	}
 
 	return crud.Create(
@@ -51,7 +65,34 @@ func (p *RevocationProcessor) ProcessCreate(bctx bahamut.Context) error {
 
 // ProcessRetrieveMany handles the retrieve many requests for Revocation.
 func (p *RevocationProcessor) ProcessRetrieveMany(bctx bahamut.Context) error {
-	return crud.RetrieveMany(bctx, p.manipulator, &api.RevocationsList{})
+
+	if err := crud.RetrieveMany(bctx, p.manipulator, &api.RevocationsList{}); err != nil {
+		return err
+	}
+
+	claims := bctx.Request().Parameters.Get("claim").StringValues()
+	if len(claims) == 0 {
+		return nil
+	}
+
+	var lst api.RevocationsList
+	switch l := bctx.OutputData().(type) {
+	case *api.RevocationsList:
+		lst = *l
+	case api.RevocationsList:
+		lst = l
+	}
+
+	out := make(api.RevocationsList, 0, len(lst))
+	for _, r := range lst {
+		if permissions.Match(r.Subject, claims) {
+			out = append(out, r)
+		}
+	}
+
+	bctx.SetOutputData(out)
+
+	return nil
 }
 
 // ProcessRetrieve handles the retrieve requests for Revocation.

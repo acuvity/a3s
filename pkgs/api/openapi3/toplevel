@@ -1607,6 +1607,15 @@
             "readOnly": true,
             "type": "string"
           },
+          "activeAfter": {
+            "description": "Only apply the revocation after the given time if non zero. If zero, the\nrevocation is active immediately.",
+            "format": "date-time",
+            "type": "string"
+          },
+          "activeAfterRel": {
+            "description": "Only apply the revocation after the given relative time if non zero. If zero the\nrevocation is active immediately. Cannot be set if activeAfter is set.",
+            "type": "string"
+          },
           "createTime": {
             "description": "Creation date of the object.",
             "format": "date-time",
@@ -1617,6 +1626,10 @@
             "description": "The expiration date of the token.",
             "example": "2023-11-08T18:38:04.51Z",
             "format": "date-time",
+            "type": "string"
+          },
+          "expirationRel": {
+            "description": "The relative expiration of the revocation. Cannot be set if expiration is set.",
             "type": "string"
           },
           "issuedBefore": {
@@ -3460,6 +3473,18 @@
         "description": "Retrieves the list of revoked tokens.",
         "operationId": "get-all-Revocations",
         "parameters": [
+          {
+            "description": "Claim to use to filter down revocations.",
+            "example": [
+              "user=x",
+              "group=y"
+            ],
+            "in": "query",
+            "name": "claim",
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "description": "This is an example.",
             "example": "hello == world",

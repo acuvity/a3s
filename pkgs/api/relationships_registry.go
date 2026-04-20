@@ -531,6 +531,11 @@ func init() {
 			"root": {
 				Parameters: []elemental.ParameterDefinition{
 					{
+						Name:     "claim",
+						Type:     "string",
+						Multiple: true,
+					},
+					{
 						Name: "q",
 						Type: "string",
 					},
@@ -540,6 +545,11 @@ func init() {
 		Info: map[string]*elemental.RelationshipInfo{
 			"root": {
 				Parameters: []elemental.ParameterDefinition{
+					{
+						Name:     "claim",
+						Type:     "string",
+						Multiple: true,
+					},
 					{
 						Name: "q",
 						Type: "string",

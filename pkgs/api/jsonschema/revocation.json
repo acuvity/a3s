@@ -23,6 +23,24 @@
         "null"
       ]
     },
+    "activeAfter": {
+      "$friendlyName": "Active After",
+      "description": "Only apply the revocation after the given time if non zero. If zero, the revocation is active immediately.",
+      "title": "activeAfter",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "activeAfterRel": {
+      "$friendlyName": "Active After Relative",
+      "description": "Only apply the revocation after the given relative time if non zero. If zero the revocation is active immediately. Cannot be set if activeAfter is set.",
+      "title": "activeAfterRel",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
     "createTime": {
       "$friendlyName": "CreateTime",
       "$readOnly": true,
@@ -37,6 +55,15 @@
       "$friendlyName": "Expiration",
       "description": "The expiration date of the token.",
       "title": "expiration",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "expirationRel": {
+      "$friendlyName": "Expiration Relative",
+      "description": "The relative expiration of the revocation. Cannot be set if expiration is set.",
+      "title": "expirationRel",
       "type": [
         "string",
         "null"

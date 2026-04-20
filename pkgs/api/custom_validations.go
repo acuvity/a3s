@@ -296,8 +296,17 @@ func ValidateKeys(attribute string, keys []string) error {
 
 // ValidateRevocation validates the goven given revocation.
 func ValidateRevocation(rev *Revocation) error {
+
+	if !rev.Expiration.IsZero() && rev.ExpirationRel != "" {
+		return makeErr("expiration", "expirationRel cannot be set if expiration is also set.")
+	}
+
 	if !rev.IssuedBefore.IsZero() && rev.IssuedBeforeRel != "" {
 		return makeErr("issuedBefore", "issuedBeforeRel cannot be set if issuedBefore is also set.")
+	}
+
+	if !rev.ActiveAfter.IsZero() && rev.ActiveAfterRel != "" {
+		return makeErr("activeAfter", "activeAfterRel cannot be set if activeAfter is also set.")
 	}
 
 	if len(rev.Subject) == 0 && rev.TokenID == "" {

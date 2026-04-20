@@ -262,8 +262,8 @@ func TestCheckPermissions(t *testing.T) {
 
 		Convey("Calling with a revoked token should fail", func() {
 
-			r.MockRevoked(t, func(context.Context, string, string, []string, time.Time) (bool, error) {
-				return true, nil
+			r.MockRevokedWithTTL(t, func(context.Context, string, string, []string, time.Time) (bool, time.Time, error) {
+				return true, time.Time{}, nil
 			})
 
 			ok, err := a.CheckAuthorization(context.Background(), []string{}, "retrieve-many", "/", "r0")
@@ -274,8 +274,8 @@ func TestCheckPermissions(t *testing.T) {
 
 			Convey("Calling one more time should use the cache and work", func() {
 
-				r.MockRevoked(t, func(context.Context, string, string, []string, time.Time) (bool, error) {
-					return false, nil // this simulates a changes that was not pushed, so cache will be used.
+				r.MockRevokedWithTTL(t, func(context.Context, string, string, []string, time.Time) (bool, time.Time, error) {
+					return false, time.Time{}, nil // this simulates a changes that was not pushed, so cache will be used.
 				})
 
 				ok, err := a.CheckAuthorization(context.Background(), []string{}, "retrieve-many", "/", "r0")

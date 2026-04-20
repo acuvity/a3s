@@ -1640,6 +1640,34 @@ func TestValidateRevocation(t *testing.T) {
 			true,
 			nil,
 		},
+		{
+			"both activeAfter and activeAfterRel set ",
+			func(*testing.T) args {
+				return args{
+					rev: &Revocation{
+						TokenID:        "set",
+						ActiveAfter:    time.Now(),
+						ActiveAfterRel: "30s",
+					},
+				}
+			},
+			true,
+			nil,
+		},
+		{
+			"both expiration and expirationRel set ",
+			func(*testing.T) args {
+				return args{
+					rev: &Revocation{
+						TokenID:       "set",
+						Expiration:    time.Now(),
+						ExpirationRel: "30s",
+					},
+				}
+			},
+			true,
+			nil,
+		},
 	}
 
 	for _, tt := range tests {

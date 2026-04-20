@@ -88,11 +88,22 @@ type Revocation struct {
 	// ID is the identifier of the object.
 	ID string `json:"ID,omitempty" msgpack:"ID,omitempty" bson:"-" mapstructure:"ID,omitempty"`
 
+	// Only apply the revocation after the given time if non zero. If zero, the
+	// revocation is active immediately.
+	ActiveAfter time.Time `json:"activeAfter,omitempty" msgpack:"activeAfter,omitempty" bson:"activeafter,omitempty" mapstructure:"activeAfter,omitempty"`
+
+	// Only apply the revocation after the given relative time if non zero. If zero the
+	// revocation is active immediately. Cannot be set if activeAfter is set.
+	ActiveAfterRel string `json:"activeAfterRel,omitempty" msgpack:"activeAfterRel,omitempty" bson:"-" mapstructure:"activeAfterRel,omitempty"`
+
 	// Creation date of the object.
 	CreateTime time.Time `json:"createTime" msgpack:"createTime" bson:"createtime" mapstructure:"createTime,omitempty"`
 
 	// The expiration date of the token.
 	Expiration time.Time `json:"expiration" msgpack:"expiration" bson:"expiration" mapstructure:"expiration,omitempty"`
+
+	// The relative expiration of the revocation. Cannot be set if expiration is set.
+	ExpirationRel string `json:"expirationRel,omitempty" msgpack:"expirationRel,omitempty" bson:"-" mapstructure:"expirationRel,omitempty"`
 
 	// This is a set of all subject tags for matching in the DB.
 	FlattenedSubject []string `json:"-" msgpack:"-" bson:"flattenedsubject" mapstructure:"-,omitempty"`
@@ -171,6 +182,7 @@ func (o *Revocation) GetBSON() (any, error) {
 	if o.ID != "" {
 		s.ID = bson.ObjectIdHex(o.ID)
 	}
+	s.ActiveAfter = o.ActiveAfter
 	s.CreateTime = o.CreateTime
 	s.Expiration = o.Expiration
 	s.FlattenedSubject = o.FlattenedSubject
@@ -200,6 +212,7 @@ func (o *Revocation) SetBSON(raw bson.Raw) error {
 	}
 
 	o.ID = s.ID.Hex()
+	o.ActiveAfter = s.ActiveAfter
 	o.CreateTime = s.CreateTime
 	o.Expiration = s.Expiration
 	o.FlattenedSubject = s.FlattenedSubject
@@ -324,8 +337,11 @@ func (o *Revocation) ToSparse(fields ...string) elemental.SparseIdentifiable {
 		// nolint: goimports
 		return &SparseRevocation{
 			ID:               &o.ID,
+			ActiveAfter:      &o.ActiveAfter,
+			ActiveAfterRel:   &o.ActiveAfterRel,
 			CreateTime:       &o.CreateTime,
 			Expiration:       &o.Expiration,
+			ExpirationRel:    &o.ExpirationRel,
 			FlattenedSubject: &o.FlattenedSubject,
 			IssuedBefore:     &o.IssuedBefore,
 			IssuedBeforeRel:  &o.IssuedBeforeRel,
@@ -344,10 +360,16 @@ func (o *Revocation) ToSparse(fields ...string) elemental.SparseIdentifiable {
 		switch f {
 		case "ID":
 			sp.ID = &(o.ID)
+		case "activeAfter":
+			sp.ActiveAfter = &(o.ActiveAfter)
+		case "activeAfterRel":
+			sp.ActiveAfterRel = &(o.ActiveAfterRel)
 		case "createTime":
 			sp.CreateTime = &(o.CreateTime)
 		case "expiration":
 			sp.Expiration = &(o.Expiration)
+		case "expirationRel":
+			sp.ExpirationRel = &(o.ExpirationRel)
 		case "flattenedSubject":
 			sp.FlattenedSubject = &(o.FlattenedSubject)
 		case "issuedBefore":
@@ -384,11 +406,20 @@ func (o *Revocation) Patch(sparse elemental.SparseIdentifiable) {
 	if so.ID != nil {
 		o.ID = *so.ID
 	}
+	if so.ActiveAfter != nil {
+		o.ActiveAfter = *so.ActiveAfter
+	}
+	if so.ActiveAfterRel != nil {
+		o.ActiveAfterRel = *so.ActiveAfterRel
+	}
 	if so.CreateTime != nil {
 		o.CreateTime = *so.CreateTime
 	}
 	if so.Expiration != nil {
 		o.Expiration = *so.Expiration
+	}
+	if so.ExpirationRel != nil {
+		o.ExpirationRel = *so.ExpirationRel
 	}
 	if so.FlattenedSubject != nil {
 		o.FlattenedSubject = *so.FlattenedSubject
@@ -466,6 +497,14 @@ func (o *Revocation) Validate() error {
 	errors := elemental.Errors{}
 	requiredErrors := elemental.Errors{}
 
+	if err := ValidateDuration("activeAfterRel", o.ActiveAfterRel); err != nil {
+		errors = errors.Append(err)
+	}
+
+	if err := ValidateDuration("expirationRel", o.ExpirationRel); err != nil {
+		errors = errors.Append(err)
+	}
+
 	if err := ValidateDuration("issuedBeforeRel", o.IssuedBeforeRel); err != nil {
 		errors = errors.Append(err)
 	}
@@ -515,10 +554,16 @@ func (o *Revocation) ValueForAttribute(name string) any {
 	switch name {
 	case "ID":
 		return o.ID
+	case "activeAfter":
+		return o.ActiveAfter
+	case "activeAfterRel":
+		return o.ActiveAfterRel
 	case "createTime":
 		return o.CreateTime
 	case "expiration":
 		return o.Expiration
+	case "expirationRel":
+		return o.ExpirationRel
 	case "flattenedSubject":
 		return o.FlattenedSubject
 	case "issuedBefore":
@@ -561,6 +606,26 @@ var RevocationAttributesMap = map[string]elemental.AttributeSpecification{
 		Stored:         true,
 		Type:           "string",
 	},
+	"ActiveAfter": {
+		AllowedChoices: []string{},
+		BSONFieldName:  "activeafter",
+		ConvertedName:  "ActiveAfter",
+		Description: `Only apply the revocation after the given time if non zero. If zero, the
+revocation is active immediately.`,
+		Exposed: true,
+		Name:    "activeAfter",
+		Stored:  true,
+		Type:    "time",
+	},
+	"ActiveAfterRel": {
+		AllowedChoices: []string{},
+		ConvertedName:  "ActiveAfterRel",
+		Description: `Only apply the revocation after the given relative time if non zero. If zero the
+revocation is active immediately. Cannot be set if activeAfter is set.`,
+		Exposed: true,
+		Name:    "activeAfterRel",
+		Type:    "string",
+	},
 	"CreateTime": {
 		AllowedChoices: []string{},
 		Autogenerated:  true,
@@ -585,6 +650,14 @@ var RevocationAttributesMap = map[string]elemental.AttributeSpecification{
 		Name:           "expiration",
 		Stored:         true,
 		Type:           "time",
+	},
+	"ExpirationRel": {
+		AllowedChoices: []string{},
+		ConvertedName:  "ExpirationRel",
+		Description:    `The relative expiration of the revocation. Cannot be set if expiration is set.`,
+		Exposed:        true,
+		Name:           "expirationRel",
+		Type:           "string",
 	},
 	"FlattenedSubject": {
 		AllowedChoices: []string{},
@@ -726,6 +799,26 @@ var RevocationLowerCaseAttributesMap = map[string]elemental.AttributeSpecificati
 		Stored:         true,
 		Type:           "string",
 	},
+	"activeafter": {
+		AllowedChoices: []string{},
+		BSONFieldName:  "activeafter",
+		ConvertedName:  "ActiveAfter",
+		Description: `Only apply the revocation after the given time if non zero. If zero, the
+revocation is active immediately.`,
+		Exposed: true,
+		Name:    "activeAfter",
+		Stored:  true,
+		Type:    "time",
+	},
+	"activeafterrel": {
+		AllowedChoices: []string{},
+		ConvertedName:  "ActiveAfterRel",
+		Description: `Only apply the revocation after the given relative time if non zero. If zero the
+revocation is active immediately. Cannot be set if activeAfter is set.`,
+		Exposed: true,
+		Name:    "activeAfterRel",
+		Type:    "string",
+	},
 	"createtime": {
 		AllowedChoices: []string{},
 		Autogenerated:  true,
@@ -750,6 +843,14 @@ var RevocationLowerCaseAttributesMap = map[string]elemental.AttributeSpecificati
 		Name:           "expiration",
 		Stored:         true,
 		Type:           "time",
+	},
+	"expirationrel": {
+		AllowedChoices: []string{},
+		ConvertedName:  "ExpirationRel",
+		Description:    `The relative expiration of the revocation. Cannot be set if expiration is set.`,
+		Exposed:        true,
+		Name:           "expirationRel",
+		Type:           "string",
 	},
 	"flattenedsubject": {
 		AllowedChoices: []string{},
@@ -940,11 +1041,22 @@ type SparseRevocation struct {
 	// ID is the identifier of the object.
 	ID *string `json:"ID,omitempty" msgpack:"ID,omitempty" bson:"-" mapstructure:"ID,omitempty"`
 
+	// Only apply the revocation after the given time if non zero. If zero, the
+	// revocation is active immediately.
+	ActiveAfter *time.Time `json:"activeAfter,omitempty" msgpack:"activeAfter,omitempty" bson:"activeafter,omitempty" mapstructure:"activeAfter,omitempty"`
+
+	// Only apply the revocation after the given relative time if non zero. If zero the
+	// revocation is active immediately. Cannot be set if activeAfter is set.
+	ActiveAfterRel *string `json:"activeAfterRel,omitempty" msgpack:"activeAfterRel,omitempty" bson:"-" mapstructure:"activeAfterRel,omitempty"`
+
 	// Creation date of the object.
 	CreateTime *time.Time `json:"createTime,omitempty" msgpack:"createTime,omitempty" bson:"createtime,omitempty" mapstructure:"createTime,omitempty"`
 
 	// The expiration date of the token.
 	Expiration *time.Time `json:"expiration,omitempty" msgpack:"expiration,omitempty" bson:"expiration,omitempty" mapstructure:"expiration,omitempty"`
+
+	// The relative expiration of the revocation. Cannot be set if expiration is set.
+	ExpirationRel *string `json:"expirationRel,omitempty" msgpack:"expirationRel,omitempty" bson:"-" mapstructure:"expirationRel,omitempty"`
 
 	// This is a set of all subject tags for matching in the DB.
 	FlattenedSubject *[]string `json:"-" msgpack:"-" bson:"flattenedsubject,omitempty" mapstructure:"-,omitempty"`
@@ -1024,6 +1136,9 @@ func (o *SparseRevocation) GetBSON() (any, error) {
 	if o.ID != nil {
 		s.ID = bson.ObjectIdHex(*o.ID)
 	}
+	if o.ActiveAfter != nil {
+		s.ActiveAfter = o.ActiveAfter
+	}
 	if o.CreateTime != nil {
 		s.CreateTime = o.CreateTime
 	}
@@ -1076,6 +1191,9 @@ func (o *SparseRevocation) SetBSON(raw bson.Raw) error {
 
 	id := s.ID.Hex()
 	o.ID = &id
+	if s.ActiveAfter != nil {
+		o.ActiveAfter = s.ActiveAfter
+	}
 	if s.CreateTime != nil {
 		o.CreateTime = s.CreateTime
 	}
@@ -1126,11 +1244,20 @@ func (o *SparseRevocation) ToPlain() elemental.PlainIdentifiable {
 	if o.ID != nil {
 		out.ID = *o.ID
 	}
+	if o.ActiveAfter != nil {
+		out.ActiveAfter = *o.ActiveAfter
+	}
+	if o.ActiveAfterRel != nil {
+		out.ActiveAfterRel = *o.ActiveAfterRel
+	}
 	if o.CreateTime != nil {
 		out.CreateTime = *o.CreateTime
 	}
 	if o.Expiration != nil {
 		out.Expiration = *o.Expiration
+	}
+	if o.ExpirationRel != nil {
+		out.ExpirationRel = *o.ExpirationRel
 	}
 	if o.FlattenedSubject != nil {
 		out.FlattenedSubject = *o.FlattenedSubject
@@ -1300,6 +1427,7 @@ func (o *SparseRevocation) DeepCopyInto(out *SparseRevocation) {
 
 type mongoAttributesRevocation struct {
 	ID               bson.ObjectId `bson:"_id,omitempty"`
+	ActiveAfter      time.Time     `bson:"activeafter,omitempty"`
 	CreateTime       time.Time     `bson:"createtime"`
 	Expiration       time.Time     `bson:"expiration"`
 	FlattenedSubject []string      `bson:"flattenedsubject"`
@@ -1314,6 +1442,7 @@ type mongoAttributesRevocation struct {
 }
 type mongoAttributesSparseRevocation struct {
 	ID               bson.ObjectId `bson:"_id,omitempty"`
+	ActiveAfter      *time.Time    `bson:"activeafter,omitempty"`
 	CreateTime       *time.Time    `bson:"createtime,omitempty"`
 	Expiration       *time.Time    `bson:"expiration,omitempty"`
 	FlattenedSubject *[]string     `bson:"flattenedsubject,omitempty"`

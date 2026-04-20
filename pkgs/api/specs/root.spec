@@ -131,6 +131,15 @@ relations:
     description: Retrieves the list of revoked tokens.
     global_parameters:
     - $queryable
+    parameters:
+      entries:
+      - name: claim
+        description: Claim to use to filter down revocations.
+        type: string
+        multiple: true
+        example_value:
+        - user=x
+        - group=y
   create:
     description: Mark a token as revoked based on its ID.
 

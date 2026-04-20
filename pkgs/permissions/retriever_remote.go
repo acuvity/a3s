@@ -88,5 +88,11 @@ func (a *remoteRetriever) Permissions(ctx context.Context, claims []string, ns s
 
 func (a *remoteRetriever) Revoked(ctx context.Context, namespace string, tokenID string, claims []string, iat time.Time) (bool, error) {
 
+	revoked, _, err := a.RevokedWithTTL(ctx, namespace, tokenID, claims, iat)
+	return revoked, err
+}
+
+func (a *remoteRetriever) RevokedWithTTL(ctx context.Context, namespace string, tokenID string, claims []string, iat time.Time) (bool, time.Time, error) {
+
 	return checkRevocation(ctx, a.manipulator, namespace, tokenID, claims, iat)
 }

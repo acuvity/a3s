@@ -26,10 +26,35 @@ indexes:
 - - namespace
   - flattenedSubject
 - - flattenedSubject
+- - namespace
+  - activeafter
+- - namespace
+  - expiration
 
 # Attributes
 attributes:
   v1:
+  - name: activeAfter
+    friendly_name: Active After
+    description: |-
+      Only apply the revocation after the given time if non zero. If zero, the
+      revocation is active immediately.
+    type: time
+    exposed: true
+    stored: true
+    omit_empty: true
+
+  - name: activeAfterRel
+    friendly_name: Active After Relative
+    description: |-
+      Only apply the revocation after the given relative time if non zero. If zero the
+      revocation is active immediately. Cannot be set if activeAfter is set.
+    type: string
+    exposed: true
+    omit_empty: true
+    validations:
+    - $duration
+
   - name: expiration
     friendly_name: Expiration
     description: The expiration date of the token.
@@ -37,6 +62,16 @@ attributes:
     exposed: true
     stored: true
     example_value: "2023-11-08T18:38:04.51Z"
+
+  - name: expirationRel
+    friendly_name: Expiration Relative
+    description: The relative expiration of the revocation. Cannot be set if expiration
+      is set.
+    type: string
+    exposed: true
+    omit_empty: true
+    validations:
+    - $duration
 
   - name: flattenedSubject
     friendly_name: FlattenedSubject
