@@ -352,7 +352,7 @@ func (p *IssueProcessor) ProcessCreate(bctx bahamut.Context) (err error) {
 	idt.Source = originalSource
 
 	// tighten the requested expiry if the source provided an expiration
-	if idt.ExpiresAt != nil && !exp.IsZero() && idt.ExpiresAt.Time.Before(exp) {
+	if idt.ExpiresAt != nil && !exp.IsZero() && idt.ExpiresAt.Before(exp) {
 		exp = idt.ExpiresAt.Time
 	}
 
