@@ -671,15 +671,13 @@ func errorTransformer(err error) error {
 	}
 
 	for ierr := errors.Unwrap(err); ierr != nil; ierr = errors.Unwrap(ierr) {
-		var e elemental.Error
-		if errors.As(ierr, &e) {
+		if e, ok := errors.AsType[elemental.Error](ierr); ok {
 			e.Description = strings.SplitN(err.Error(), e.Error(), 2)[0] + e.Description
 			err = e
 			break
 		}
 
-		var ee elemental.Errors
-		if errors.As(ierr, &ee) {
+		if ee, ok := errors.AsType[elemental.Errors](ierr); ok {
 			ee[0].Description = strings.SplitN(err.Error(), ee[0].Error(), 2)[0] + ee[0].Description
 			err = ee
 			break
