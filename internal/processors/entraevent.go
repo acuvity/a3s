@@ -12,6 +12,7 @@ import (
 	"github.com/bsm/redislock"
 	"go.acuvity.ai/a3s/internal/idp/entra"
 	"go.acuvity.ai/a3s/pkgs/api"
+	"go.acuvity.ai/a3s/pkgs/authorizer"
 	"go.acuvity.ai/bahamut"
 	"go.acuvity.ai/elemental"
 	"go.acuvity.ai/manipulate"
@@ -156,7 +157,7 @@ func makeEventTriggeredRevocation(claims []string, namespace string) *api.Revoca
 	revoke.Subject = [][]string{claims}
 	revoke.Expiration = time.Now().Add(365 * 24 * time.Hour)
 	revoke.Propagate = true
-	revoke.FlattenedSubject = flattenTags(revoke.Subject)
+	revoke.FlattenedSubject = authorizer.FlattenTags(revoke.Subject)
 
 	return revoke
 }

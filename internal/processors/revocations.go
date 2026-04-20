@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"go.acuvity.ai/a3s/pkgs/api"
+	"go.acuvity.ai/a3s/pkgs/authorizer"
 	"go.acuvity.ai/a3s/pkgs/crud"
 	"go.acuvity.ai/a3s/pkgs/notification"
 	"go.acuvity.ai/a3s/pkgs/nscache"
@@ -85,7 +86,7 @@ func (p *RevocationProcessor) makeNotify() crud.PostWriteHook {
 func (p *RevocationProcessor) makePreHook() crud.PreWriteHook {
 	return func(obj elemental.Identifiable, original elemental.Identifiable) error {
 		rev := obj.(*api.Revocation)
-		rev.FlattenedSubject = flattenTags(rev.Subject)
+		rev.FlattenedSubject = authorizer.FlattenTags(rev.Subject)
 		return nil
 	}
 }

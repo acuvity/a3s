@@ -3,10 +3,10 @@ package processors
 import (
 	"fmt"
 	"net/http"
-	"sort"
 	"strings"
 
 	"go.acuvity.ai/a3s/pkgs/api"
+	"go.acuvity.ai/a3s/pkgs/authorizer"
 	"go.acuvity.ai/a3s/pkgs/crud"
 	"go.acuvity.ai/a3s/pkgs/notification"
 	"go.acuvity.ai/a3s/pkgs/nscache"
@@ -90,7 +90,7 @@ func (p *AuthorizationsProcessor) makePreHook(ctx bahamut.Context) crud.PreWrite
 	return func(obj elemental.Identifiable, original elemental.Identifiable) error {
 
 		auth := obj.(*api.Authorization)
-		auth.FlattenedSubject = flattenTags(auth.Subject)
+		auth.FlattenedSubject = authorizer.FlattenTags(auth.Subject)
 
 		for i, tns := range auth.TargetNamespaces {
 			if strings.HasPrefix(tns, "./") {
@@ -167,26 +167,4 @@ func validatePolicyTargetNamespace(targetNamespaces []string, requestNamespace s
 	}
 
 	return nil
-}
-
-func flattenTags(term [][]string) (out []string) {
-
-	set := map[string]struct{}{}
-
-	for _, rows := range term {
-		for _, r := range rows {
-			set[r] = struct{}{}
-		}
-	}
-
-	out = make([]string, len(set))
-	var i int
-	for k := range set {
-		out[i] = k
-		i++
-	}
-
-	sort.Strings(out)
-
-	return out
 }

@@ -2,6 +2,7 @@ package processors
 
 import (
 	"go.acuvity.ai/a3s/pkgs/api"
+	"go.acuvity.ai/a3s/pkgs/authorizer"
 	"go.acuvity.ai/a3s/pkgs/crud"
 	"go.acuvity.ai/a3s/pkgs/notification"
 	"go.acuvity.ai/a3s/pkgs/nscache"
@@ -80,7 +81,7 @@ func (p *GroupsProcessors) makeNotify() crud.PostWriteHook {
 func (p *GroupsProcessors) makePreHook() crud.PreWriteHook {
 	return func(obj elemental.Identifiable, original elemental.Identifiable) error {
 		group := obj.(*api.Group)
-		group.FlattenedSubject = flattenTags(group.Subject)
+		group.FlattenedSubject = authorizer.FlattenTags(group.Subject)
 		return nil
 	}
 }

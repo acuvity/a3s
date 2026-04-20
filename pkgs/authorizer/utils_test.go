@@ -1,11 +1,11 @@
-package processors
+package authorizer
 
 import (
 	"reflect"
 	"testing"
 )
 
-func Test_flattenTags(t *testing.T) {
+func Test_FlattenTags(t *testing.T) {
 	type args struct {
 		term [][]string
 	}
@@ -28,7 +28,7 @@ func Test_flattenTags(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			tArgs := tt.args(t)
 
-			got1 := flattenTags(tArgs.term)
+			got1 := FlattenTags(tArgs.term)
 
 			if !reflect.DeepEqual(got1, tt.want1) {
 				t.Errorf("flattenTags got1 = %v, want1: %v", got1, tt.want1)
