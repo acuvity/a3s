@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"time"
 
+	"go.acuvity.ai/a3s/internal/idp"
 	"go.acuvity.ai/a3s/pkgs/api"
 	"go.acuvity.ai/bahamut"
 	"go.acuvity.ai/elemental"
@@ -15,13 +17,15 @@ import (
 // A OktaEventsProcessor is a bahamut processor for OktaEvents.
 type OktaEventsProcessor struct {
 	manipulator manipulate.TransactionalManipulator
+	gracePeriod time.Duration
 }
 
 // NewOktaEventsProcessor returns a new OktaEventsProcessor.
-func NewOktaEventsProcessor(manipulator manipulate.TransactionalManipulator) *OktaEventsProcessor {
+func NewOktaEventsProcessor(manipulator manipulate.TransactionalManipulator, gracePeriod time.Duration) *OktaEventsProcessor {
 
 	return &OktaEventsProcessor{
 		manipulator: manipulator,
+		gracePeriod: gracePeriod,
 	}
 }
 
@@ -93,7 +97,7 @@ func (p *OktaEventsProcessor) invalidateTokensMacthing(ctx context.Context, name
 		"@source:type=mtls",
 	}, claims...)
 
-	revoke := makeEventTriggeredRevocation(fclaims, namespace)
+	revoke := idp.MakeEventTriggeredRevocation(fclaims, namespace, p.gracePeriod)
 
 	if err := p.manipulator.Create(manipulate.NewContext(ctx), revoke); err != nil {
 		slog.Error("Unable to revoke okta tokens", "namespace", namespace, "revoked", fclaims, err)

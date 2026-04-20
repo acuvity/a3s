@@ -13,7 +13,6 @@ import (
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/karlseguin/ccache/v3"
-	"go.acuvity.ai/a3s/internal/idp/utils"
 	"go.acuvity.ai/a3s/pkgs/api"
 	"go.acuvity.ai/a3s/pkgs/netsafe"
 	"go.acuvity.ai/elemental"
@@ -81,7 +80,7 @@ func (m *Manager) GetAccessToken(ctx context.Context, creds *api.MTLSSourceEntra
 			return nil, elemental.NewError("Invalid status code returned from request to retrieve client access token", fmt.Sprintf("(%s) %s", resp.Status, string(d)), "a3s:entra", http.StatusBadRequest)
 		}
 
-		// utils.PeekBody(resp)
+		// idp.PeekBody(resp)
 
 		dec := json.NewDecoder(resp.Body)
 		if err := dec.Decode(rtoken); err != nil {
@@ -126,7 +125,7 @@ func (m *Manager) GetUser(ctx context.Context, rtoken *AccessToken, principalNam
 		return nil, elemental.NewError("Invalid status code returned from request to retrieve user", fmt.Sprintf("(%s) %s", resp.Status, string(d)), "a3s:entra", http.StatusBadRequest)
 	}
 
-	// utils.PeekBody(resp)
+	// idp.PeekBody(resp)
 
 	ruser := &User{}
 	dec := json.NewDecoder(resp.Body)
@@ -158,7 +157,7 @@ func (m *Manager) GetGroup(ctx context.Context, rtoken *AccessToken, principalNa
 		return nil, elemental.NewError("Invalid status code returned from request to retrieve group", fmt.Sprintf("(%s) %s", resp.Status, string(d)), "a3s:entra", http.StatusBadRequest)
 	}
 
-	utils.PeekBody(resp)
+	// idp.PeekBody(resp)
 
 	rgroup := &Group{}
 	dec := json.NewDecoder(resp.Body)
@@ -195,7 +194,7 @@ func (m *Manager) GetMembership(ctx context.Context, rtoken *AccessToken, ruser 
 			return nil, elemental.NewError("Invalid status code returned from request to retrieve user groups", fmt.Sprintf("(%s) %s", resp.Status, string(d)), "a3s:entra", http.StatusBadRequest)
 		}
 
-		// utils.PeekBody(resp)
+		// idp.PeekBody(resp)
 
 		page := &Membership{}
 		dec := json.NewDecoder(resp.Body)

@@ -10,9 +10,9 @@ import (
 	"time"
 
 	"github.com/bsm/redislock"
+	"go.acuvity.ai/a3s/internal/idp"
 	"go.acuvity.ai/a3s/internal/idp/entra"
 	"go.acuvity.ai/a3s/pkgs/api"
-	"go.acuvity.ai/a3s/pkgs/authorizer"
 	"go.acuvity.ai/bahamut"
 	"go.acuvity.ai/elemental"
 	"go.acuvity.ai/manipulate"
@@ -24,16 +24,18 @@ type EntraEventsProcessor struct {
 	locker       *redislock.Client
 	entraManager *entra.Manager
 	quiteTime    time.Duration
+	gracePeriod  time.Duration
 }
 
 // NewEntraEventsProcessor returns a new EntraEventsProcessor.
-func NewEntraEventsProcessor(manipulator manipulate.TransactionalManipulator, entraManager *entra.Manager, locker *redislock.Client, quietTime time.Duration) *EntraEventsProcessor {
+func NewEntraEventsProcessor(manipulator manipulate.TransactionalManipulator, entraManager *entra.Manager, locker *redislock.Client, quietTime time.Duration, gracePeriod time.Duration) *EntraEventsProcessor {
 
 	return &EntraEventsProcessor{
 		manipulator:  manipulator,
 		locker:       locker,
 		entraManager: entraManager,
 		quiteTime:    quietTime,
+		gracePeriod:  gracePeriod,
 	}
 }
 
@@ -136,7 +138,7 @@ func (p *EntraEventsProcessor) invalidateTokensMacthing(ctx context.Context, log
 		fmt.Sprintf("@source:namespace=%s", src.Namespace),
 	}, claims...)
 
-	revoke := makeEventTriggeredRevocation(fclaims, src.Namespace)
+	revoke := idp.MakeEventTriggeredRevocation(fclaims, src.Namespace, p.gracePeriod)
 
 	if err := p.manipulator.Create(manipulate.NewContext(ctx), revoke); err != nil {
 		logger.Error("Unable to revoke entra tokens", "namespace", src.Namespace, "revoked", fclaims, err)
@@ -144,22 +146,6 @@ func (p *EntraEventsProcessor) invalidateTokensMacthing(ctx context.Context, log
 	}
 
 	logger.Info("EntraEvent triggered tokens revocation", "namespace", src.Namespace, "revoked", fclaims)
-}
-
-func makeEventTriggeredRevocation(claims []string, namespace string) *api.Revocation {
-
-	revoke := api.NewRevocation()
-
-	revoke.CreateTime = time.Now()
-	revoke.UpdateTime = revoke.CreateTime
-	revoke.Namespace = namespace
-	revoke.IssuedBefore = time.Now()
-	revoke.Subject = [][]string{claims}
-	revoke.Expiration = time.Now().Add(365 * 24 * time.Hour)
-	revoke.Propagate = true
-	revoke.FlattenedSubject = authorizer.FlattenTags(revoke.Subject)
-
-	return revoke
 }
 
 type entraPayload struct {

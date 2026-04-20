@@ -530,6 +530,13 @@ func main() {
 	oktaManager := okta.NewManager(&http.Client{Timeout: 5 * time.Second}, noloRequestMaker)
 	entraManager := entra.NewManager(&http.Client{Timeout: 5 * time.Second}, noloRequestMaker)
 
+	if cfg.IDPGracePeriod < 0 {
+		slog.Error("IDP grace period cannot be negative", "period", cfg.IDPGracePeriod)
+		os.Exit(1)
+	}
+
+	slog.Info("IDP event based revocation grace period set", "period", cfg.IDPGracePeriod)
+
 	var entraSyncer *entra.Syncer
 	var redisLocker *redislock.Client
 	if cfg.RedisAddress != "" {
@@ -545,7 +552,10 @@ func main() {
 
 		entraSyncer = entra.NewSyncer(m, pubsub, redisLocker, entraManager, entraNotifHook)
 		entraSyncer.Start(ctx)
-		slog.Info("Entra notification endpoint configured", "endpoint", entraNotifHook, "quiet-time", cfg.EntraQuietTime)
+		slog.Info("Entra notification endpoint configured",
+			"endpoint", entraNotifHook,
+			"quiet-time", cfg.EntraQuietTime,
+		)
 	} else {
 		slog.Warn("No redis configuration. Entra syncer is disabled.")
 	}
@@ -594,9 +604,9 @@ func main() {
 	bahamut.RegisterProcessorOrDie(server, processors.NewGroupProcessor(m, pubsub), api.GroupIdentity)
 	bahamut.RegisterProcessorOrDie(server, processors.NewLogoutProcessor(m, pubsub, cookiePolicy, cookieDomain), api.LogoutIdentity)
 
-	bahamut.RegisterProcessorOrDie(server, processors.NewOktaEventsProcessor(m), api.OktaEventIdentity)
+	bahamut.RegisterProcessorOrDie(server, processors.NewOktaEventsProcessor(m, cfg.IDPGracePeriod), api.OktaEventIdentity)
 	if redisLocker != nil {
-		bahamut.RegisterProcessorOrDie(server, processors.NewEntraEventsProcessor(m, entraManager, redisLocker, cfg.EntraQuietTime), api.EntraEventIdentity)
+		bahamut.RegisterProcessorOrDie(server, processors.NewEntraEventsProcessor(m, entraManager, redisLocker, cfg.EntraQuietTime, cfg.IDPGracePeriod), api.EntraEventIdentity)
 	}
 
 	// Object clean up

@@ -23,6 +23,7 @@ type Conf struct {
 	BinaryModifierHash        string        `mapstructure:"binary-modifier-sha256" desc:"Sha256 hash of the binary-modifier"`
 	EntraNotifEndpoint        string        `mapstructure:"entra-notification-endpoint" desc:"The hook URL to use when subscribing to MS Graph notifications" default:"/idp/entra/events"`
 	EntraQuietTime            time.Duration `mapstructure:"entra-quiet-time" desc:"Sets the amount of time to ignore subsequent events from Entra" default:"10m"`
+	IDPGracePeriod            time.Duration `mapstructure:"idp-grace-period" desc:"Sets the grace period of the tokens revoked by IDP events changes" default:"24h"`
 	Init                      bool          `mapstructure:"init" desc:"If set, initialize the root permissions using the CAs passed in --init-root-ca and --init-platform-ca"`
 	InitContinue              bool          `mapstructure:"init-continue" desc:"Continues normal boot after init."`
 	InitDB                    bool          `mapstructure:"init-db" desc:"If set, initialize the database using the mongo config passed in and init-db-username"`
