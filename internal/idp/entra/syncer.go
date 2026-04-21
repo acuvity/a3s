@@ -211,7 +211,7 @@ func (s *Syncer) syncSource(ctx context.Context, src *api.MTLSSource) (created i
 
 		// If we have a stored user sub id, we renew it
 		slog.Debug("Renewing /users subscription for source", "srcid", src.ID, "srcname", src.Name, "namespace", src.Namespace, "sub", usid)
-		sub, err := s.manager.RenewSubscription(ctx, src.EntraApplicationCredentials, gsid, subscriptionLifetime)
+		sub, err := s.manager.RenewSubscription(ctx, src.EntraApplicationCredentials, usid, subscriptionLifetime)
 		if err != nil {
 			slog.Debug("Unable to renew subscription to /users. Trying to subscribe", "source-id", src.ID, "source-name", src.Name, "namespace", src.Namespace, err)
 			usid = ""
