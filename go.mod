@@ -3,7 +3,7 @@ module go.acuvity.ai/a3s
 go 1.26.1
 
 require (
-	go.acuvity.ai/bahamut v0.0.0-20260421165250-524ad3282cca
+	go.acuvity.ai/bahamut v0.0.0-20260423183731-9a67cc65a83a
 	go.acuvity.ai/elemental v0.0.0-20260403154455-893c40b4b95b
 	go.acuvity.ai/manipulate v0.0.0-20260406171314-7ceeb37890f6
 	go.acuvity.ai/regolithe v0.0.0-20260108214434-eb28e7a6e391 // indirect
@@ -50,6 +50,7 @@ require (
 	go.uber.org/automaxprocs v1.6.0
 	golang.org/x/oauth2 v0.30.0
 	golang.org/x/term v0.41.0
+	golang.org/x/time v0.15.0
 )
 
 require (
@@ -152,7 +153,6 @@ require (
 	golang.org/x/net v0.51.0 // indirect
 	golang.org/x/sys v0.42.0 // indirect
 	golang.org/x/text v0.35.0 // indirect
-	golang.org/x/time v0.15.0 // indirect
 	google.golang.org/protobuf v1.36.3 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
