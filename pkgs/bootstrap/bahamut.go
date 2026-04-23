@@ -167,13 +167,43 @@ func MakeBahamutGatewayNotifier(
 	ctx context.Context,
 	pubsub bahamut.PubSubClient,
 	serviceName string,
-	gatewayTopic string,
-	anouncedAddress string,
+	apiManager elemental.ModelManager,
+	cfg any,
 	nopts ...push.NotifierOption,
 ) []bahamut.Option {
 
-	if gatewayTopic == "" {
+	cs := structs.New(cfg)
+
+	f, ok := cs.FieldOk(structs.Name(conf.GatewayConf{}))
+	if !ok {
+		slog.Error("Unable to configure gateway notifier: the config does not implement conf.GatewayConf")
+		os.Exit(1)
+	}
+
+	c := f.Value().(conf.GatewayConf)
+
+	anouncedAddress := c.GWAnnouncedAddress
+	if anouncedAddress == "" {
+		slog.Info("Gateway notifier disabled", "reason", "no-announce-address")
 		return nil
+	}
+
+	gatewayTopic := c.GWTopic
+	if gatewayTopic == "" {
+		slog.Info("Gateway notifier disabled", "reason", "no-topic")
+		return nil
+	}
+
+	if len(c.GWPerAPIRateLimit) > 0 {
+		rls, err := c.PerAPILimits(apiManager)
+		if err != nil {
+			slog.Error("Unable to configure per api rate limiters", err)
+			os.Exit(1)
+		}
+
+		slog.Info("Configured per api rate limiter", "limits", c.GWPerAPIRateLimit)
+
+		nopts = append([]push.NotifierOption{push.OptionNotifierAnnounceRateLimits(rls)}, nopts...)
 	}
 
 	nw := push.NewNotifier(

@@ -338,9 +338,8 @@ func main() {
 
 	if cfg.GWTopic != "" {
 
-		gwAnnouncedAddress := cfg.GWAnnouncedAddress
-		if gwAnnouncedAddress == "" {
-			gwAnnouncedAddress = automaticEndpoint
+		if cfg.GWAnnouncedAddress == "" {
+			cfg.GWAnnouncedAddress = automaticEndpoint
 		}
 
 		opts = append(
@@ -349,17 +348,17 @@ func main() {
 				ctx,
 				pubsub,
 				"a3s",
-				cfg.GWTopic,
-				gwAnnouncedAddress,
+				api.Manager(),
+				cfg,
 				gwpush.OptionNotifierPrefix(cfg.GWAnnouncePrefix),
-				gwpush.OptionNotifierPrivateAPIOverrides(cfg.GWPrivateOverrides()),
+				gwpush.OptionNotifierPrivateAPIOverrides(cfg.GWPrivateOverrides(api.Manager())),
 				gwpush.OptionNotifierHiddenAPIs(cfg.GWHiddenAPIs()),
 			)...,
 		)
 
 		slog.Info(
 			"Gateway announcement configured",
-			"address", gwAnnouncedAddress,
+			"address", cfg.GWAnnouncedAddress,
 			"topic", cfg.GWTopic,
 			"prefix", cfg.GWAnnouncePrefix,
 			"overrides", cfg.GWOverridePrivate,

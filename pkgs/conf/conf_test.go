@@ -9,8 +9,10 @@ import (
 
 	. "github.com/smartystreets/goconvey/convey"
 	"go.acuvity.ai/a3s/pkgs/api"
+	"go.acuvity.ai/bahamut/gateway/upstreamer/push"
 	"go.acuvity.ai/elemental"
 	"go.acuvity.ai/tg/tglib"
+	"golang.org/x/time/rate"
 )
 
 func TestTLSConf(t *testing.T) {
@@ -380,10 +382,172 @@ func TestGatewayConf_GWPrivateOverrides(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			receiver := tt.init(t)
-			got1 := receiver.GWPrivateOverrides()
+			got1 := receiver.GWPrivateOverrides(api.Manager())
 
 			if !reflect.DeepEqual(got1, tt.want1) {
 				t.Errorf("GatewayConf.GWPrivateOverrides got1 = %v, want1: %v", got1, tt.want1)
+			}
+		})
+	}
+}
+
+func TestGatewayConf_PerAPILimits(t *testing.T) {
+	tests := []struct {
+		name string
+		init func(t *testing.T) *GatewayConf
+
+		want1      push.IdentityToAPILimitersRegistry
+		wantErr    bool
+		inspectErr func(err error, t *testing.T) //use for more precise error evaluation after test
+	}{
+		{
+			"empty",
+			func(t *testing.T) *GatewayConf {
+				return &GatewayConf{
+					GWPerAPIRateLimit: []string{},
+				}
+			},
+			push.IdentityToAPILimitersRegistry{},
+			false, nil,
+		},
+		{
+			"valid singular",
+			func(t *testing.T) *GatewayConf {
+				return &GatewayConf{
+					GWPerAPIRateLimit: []string{"authorization:1:2"},
+				}
+			},
+			push.IdentityToAPILimitersRegistry{
+				"authorizations": {
+					Limit: rate.Limit(1),
+					Burst: 2,
+				},
+			},
+			false, nil,
+		},
+		{
+			"valid plurial",
+			func(t *testing.T) *GatewayConf {
+				return &GatewayConf{
+					GWPerAPIRateLimit: []string{"authorizations:1:2"},
+				}
+			},
+			push.IdentityToAPILimitersRegistry{
+				"authorizations": {
+					Limit: rate.Limit(1),
+					Burst: 2,
+				},
+			},
+			false, nil,
+		},
+		{
+			"invalid identity",
+			func(t *testing.T) *GatewayConf {
+				return &GatewayConf{
+					GWPerAPIRateLimit: []string{"nope:1:2"},
+				}
+			},
+			push.IdentityToAPILimitersRegistry{},
+			true, func(err error, t *testing.T) {
+				want := "invalid api identity: must exist in model manager, got 'nope'"
+				if err.Error() != want {
+					t.Errorf("invalid error: %s", err)
+				}
+			},
+		},
+		{
+			"invalid format",
+			func(t *testing.T) *GatewayConf {
+				return &GatewayConf{
+					GWPerAPIRateLimit: []string{"wesh"},
+				}
+			},
+			push.IdentityToAPILimitersRegistry{},
+			true, func(err error, t *testing.T) {
+				want := "invalid api rate limited format. must be identityname:rps:burst, got 'wesh'"
+				if err.Error() != want {
+					t.Errorf("invalid error: %s", err)
+				}
+			},
+		},
+		{
+			"invalid limit",
+			func(t *testing.T) *GatewayConf {
+				return &GatewayConf{
+					GWPerAPIRateLimit: []string{"authorizations:coucou:2"},
+				}
+			},
+			push.IdentityToAPILimitersRegistry{},
+			true, func(err error, t *testing.T) {
+				want := "invalid api rps: must be a valid number, got 'coucou'"
+				if err.Error() != want {
+					t.Errorf("invalid error: %s", err)
+				}
+			},
+		},
+		{
+			"negative limit",
+			func(t *testing.T) *GatewayConf {
+				return &GatewayConf{
+					GWPerAPIRateLimit: []string{"authorizations:-1:2"},
+				}
+			},
+			push.IdentityToAPILimitersRegistry{},
+			true, func(err error, t *testing.T) {
+				want := "invalid api rps: must be a positive number, got -1"
+				if err.Error() != want {
+					t.Errorf("invalid error: %s", err)
+				}
+			},
+		},
+
+		{
+			"invalid burst",
+			func(t *testing.T) *GatewayConf {
+				return &GatewayConf{
+					GWPerAPIRateLimit: []string{"authorizations:1:coucou"},
+				}
+			},
+			push.IdentityToAPILimitersRegistry{},
+			true, func(err error, t *testing.T) {
+				want := "invalid api burst: must be a valid number, got 'coucou'"
+				if err.Error() != want {
+					t.Errorf("invalid error: %s", err)
+				}
+			},
+		},
+		{
+			"negative burst",
+			func(t *testing.T) *GatewayConf {
+				return &GatewayConf{
+					GWPerAPIRateLimit: []string{"authorizations:1:-2"},
+				}
+			},
+			push.IdentityToAPILimitersRegistry{},
+			true, func(err error, t *testing.T) {
+				want := "invalid api burst: must be a positive number, got -2"
+				if err.Error() != want {
+					t.Errorf("invalid error: %s", err)
+				}
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			receiver := tt.init(t)
+			got1, err := receiver.PerAPILimits(api.Manager())
+
+			if !reflect.DeepEqual(got1, tt.want1) {
+				t.Errorf("GatewayConf.IdentitiesLimited got1 = %v, want1: %v", got1, tt.want1)
+			}
+
+			if (err != nil) != tt.wantErr {
+				t.Fatalf("GatewayConf.IdentitiesLimited error = %v, wantErr: %t", err, tt.wantErr)
+			}
+
+			if tt.inspectErr != nil {
+				tt.inspectErr(err, t)
 			}
 		})
 	}

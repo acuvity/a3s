@@ -8,12 +8,15 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
 	"go.acuvity.ai/a3s/pkgs/api"
+	"go.acuvity.ai/bahamut/gateway/upstreamer/push"
 	"go.acuvity.ai/elemental"
 	"go.acuvity.ai/tg/tglib"
+	"golang.org/x/time/rate"
 )
 
 // HTTPTimeoutsConf holds http server timeout.
@@ -519,21 +522,22 @@ func (c *A3SClientConf) SystemCAPool() (*x509.CertPool, error) {
 
 // GatewayConf holds the configuration for the bahamut gateway behaviors.
 type GatewayConf struct {
+	GWAPIsHidden       []string `mapstructure:"gw-hidden-api" desc:"Set the list of api that will be completely hidden to the gateway."`
 	GWAnnouncePrefix   string   `mapstructure:"gw-announce-prefix" desc:"Sets the prefix to use for the bahaamut gateway announcement"`
 	GWAnnouncedAddress string   `mapstructure:"gw-announce-address" desc:"If set, announce as the service address to the gateway"`
 	GWOverridePrivate  []string `mapstructure:"gw-override-private" desc:"Overrides the api public/private. In form <name>:<override>. namespace:private makes namespaces api private on the gateway"`
-	GWAPIsHidden       []string `mapstructure:"gw-hidden-api" desc:"Set the list of api that will be completely hidden to the gateway."`
 	GWTopic            string   `mapstructure:"gw-topic" desc:"Topic to use for gateway services discovery"`
+	GWPerAPIRateLimit  []string `mapstructure:"gw-api-rate-limit" desc:"list of per-identity rate limit, expressed as 'identity.name:rps:bust'"`
 }
 
 // GWPrivateOverrides returns the private overrides in the needed format.
-func (c *GatewayConf) GWPrivateOverrides() map[elemental.Identity]bool {
+func (c *GatewayConf) GWPrivateOverrides(manager elemental.ModelManager) map[elemental.Identity]bool {
 
 	out := map[elemental.Identity]bool{}
 
 	for _, v := range c.GWOverridePrivate {
 		parts := strings.SplitN(v, ":", 2)
-		identity := api.Manager().IdentityFromAny(parts[0])
+		identity := manager.IdentityFromAny(parts[0])
 		if parts[0] == "*" {
 			for _, i := range api.AllIdentities() {
 				out[i] = parts[1] == "private"
@@ -544,6 +548,48 @@ func (c *GatewayConf) GWPrivateOverrides() map[elemental.Identity]bool {
 	}
 
 	return out
+}
+
+// PerAPILimits return the push.IdentityToAPILimitersRegistry from the --gw-identity-rate-limit flag.
+func (c *GatewayConf) PerAPILimits(manager elemental.ModelManager) (push.IdentityToAPILimitersRegistry, error) {
+
+	out := push.IdentityToAPILimitersRegistry{}
+
+	for _, v := range c.GWPerAPIRateLimit {
+
+		parts := strings.SplitN(v, ":", 3)
+		if len(parts) != 3 {
+			return out, fmt.Errorf("invalid api rate limited format. must be identityname:rps:burst, got '%s'", v)
+		}
+
+		identity := manager.IdentityFromAny(parts[0])
+		if identity.IsEmpty() {
+			return out, fmt.Errorf("invalid api identity: must exist in model manager, got '%s'", parts[0])
+		}
+
+		l, err := strconv.Atoi(parts[1])
+		if err != nil {
+			return out, fmt.Errorf("invalid api rps: must be a valid number, got '%s'", parts[1])
+		}
+		if l < 0 {
+			return out, fmt.Errorf("invalid api rps: must be a positive number, got %s", parts[1])
+		}
+
+		b, err := strconv.Atoi(parts[2])
+		if err != nil {
+			return out, fmt.Errorf("invalid api burst: must be a valid number, got '%s'", parts[2])
+		}
+		if b < 0 {
+			return out, fmt.Errorf("invalid api burst: must be a positive number, got %s", parts[2])
+		}
+
+		out[identity.Category] = &push.APILimiter{
+			Limit: rate.Limit(l),
+			Burst: b,
+		}
+	}
+
+	return out, nil
 }
 
 // GWHiddenAPIs returns the list of hidden API in the needed format.
