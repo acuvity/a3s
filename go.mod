@@ -3,11 +3,11 @@ module go.acuvity.ai/a3s
 go 1.26.1
 
 require (
-	go.acuvity.ai/bahamut v0.0.0-20260423183731-9a67cc65a83a
-	go.acuvity.ai/elemental v0.0.0-20260403154455-893c40b4b95b
-	go.acuvity.ai/manipulate v0.0.0-20260406171314-7ceeb37890f6
-	go.acuvity.ai/regolithe v0.0.0-20260108214434-eb28e7a6e391 // indirect
-	go.acuvity.ai/tg v1.0.1-0.20260403154206-79026a87f448
+	go.acuvity.ai/bahamut v0.0.0-20260423213417-4e98048de25c
+	go.acuvity.ai/elemental v0.0.0-20260423213045-b41d7aac5a19
+	go.acuvity.ai/manipulate v0.0.0-20260423213734-3c32dc2b0037
+	go.acuvity.ai/regolithe v0.0.0-20260423212828-c6b9b4d7394e // indirect
+	go.acuvity.ai/tg v1.0.1-0.20260423213220-f6124d6982b8
 	go.acuvity.ai/wsc v0.0.0-20250506232542-8de7ff436ec0 // indirect
 )
 
@@ -55,7 +55,7 @@ require (
 
 require (
 	dario.cat/mergo v1.0.1 // indirect
-	github.com/Azure/go-ntlmssp v0.0.0-20221128193559-754e69321358 // indirect
+	github.com/Azure/go-ntlmssp v0.1.1 // indirect
 	github.com/HdrHistogram/hdrhistogram-go v1.1.2 // indirect
 	github.com/Masterminds/goutils v1.1.1 // indirect
 	github.com/Masterminds/semver/v3 v3.2.0 // indirect
@@ -78,7 +78,7 @@ require (
 	github.com/go-asn1-ber/asn1-ber v1.5.4 // indirect
 	github.com/go-git/gcfg v1.5.1-0.20230307220236-3a3c6141e376 // indirect
 	github.com/go-git/go-billy/v5 v5.8.0 // indirect
-	github.com/go-git/go-git/v5 v5.17.1 // indirect
+	github.com/go-git/go-git/v5 v5.18.0 // indirect
 	github.com/go-jose/go-jose/v4 v4.1.4 // indirect
 	github.com/go-ole/go-ole v1.2.6 // indirect
 	github.com/go-zoo/bone v1.3.0 // indirect
