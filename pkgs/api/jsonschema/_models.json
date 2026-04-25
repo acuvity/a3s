@@ -81,6 +81,12 @@
     "oauth2source": {
       "$ref": "oauth2source.json"
     },
+    "oauthapplication": {
+      "$ref": "oauthapplication.json"
+    },
+    "oauthclient": {
+      "$ref": "oauthclient.json"
+    },
     "oidcsource": {
       "$ref": "oidcsource.json"
     },
