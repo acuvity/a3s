@@ -580,6 +580,7 @@ func main() {
 		processors.NewIssueProcessor( // nolint
 			m,
 			jwks,
+			oauth,
 			cfg.JWT.JWTDefaultValidity,     // nolint
 			cfg.JWT.JWTMaxValidity,         // nolint
 			cfg.JWT.JWTIssuer,              // nolint
