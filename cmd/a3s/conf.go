@@ -37,7 +37,8 @@ type Conf struct {
 	RestrictedIgnoredNetworks []string      `mapstructure:"restricted-cidr-ignore" desc:"list of CIDR that must be allowed, even if restricted by --restricted-cidr"`
 	RestrictedNetworks        []string      `mapstructure:"restricted-cidr" desc:"list of restricted CIDR. A3S will refuse to make calls to url provider by users to any host in that network. If empty, defaults to IANA private subnets definition"`
 
-	JWT JWTConf `mapstructure:",squash"`
+	JWT   JWTConf   `mapstructure:",squash"`
+	OAuth OAuthConf `mapstructure:",squash"`
 
 	conf.APIServerConf       `mapstructure:",squash"`
 	conf.GatewayConf         `mapstructure:",squash"`
@@ -118,6 +119,11 @@ type JWTConf struct {
 	jwtKey           crypto.PrivateKey
 	jwtCert          *x509.Certificate
 	previousJWTCerts []*x509.Certificate
+}
+
+// OAuthConf holds the configuration related to the embedded OAuth server.
+type OAuthConf struct {
+	OAuthUIEndpoint string `mapstructure:"oauth-ui-endpoint" desc:"Optional external UI endpoint used as the authorize continuation page. Defaults to the bundled /ui/request.html page"`
 }
 
 // JWTCertificate returns the certificate used to verify JWTs.
