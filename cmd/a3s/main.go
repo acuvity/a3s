@@ -602,6 +602,8 @@ func main() {
 	bahamut.RegisterProcessorOrDie(server, processors.NewRevocationsProcessor(m, pubsub), api.RevocationIdentity)
 	bahamut.RegisterProcessorOrDie(server, processors.NewGroupProcessor(m, pubsub), api.GroupIdentity)
 	bahamut.RegisterProcessorOrDie(server, processors.NewLogoutProcessor(m, pubsub, cookiePolicy, cookieDomain), api.LogoutIdentity)
+	bahamut.RegisterProcessorOrDie(server, processors.NewOAuthApplicationsProcessor(m), api.OAuthApplicationIdentity)
+	bahamut.RegisterProcessorOrDie(server, processors.NewOAuthClientsProcessor(m), api.OAuthClientIdentity)
 
 	bahamut.RegisterProcessorOrDie(server, processors.NewOktaEventsProcessor(m, cfg.IDPGracePeriod), api.OktaEventIdentity)
 	if redisLocker != nil {
