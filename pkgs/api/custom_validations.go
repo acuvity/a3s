@@ -213,6 +213,32 @@ func ValidateURL(attribute string, u string) error {
 	return nil
 }
 
+// ValidateURLs validates that every value in the list is a correct URL.
+func ValidateURLs(attribute string, values []string) error {
+
+	for i, value := range values {
+		if err := ValidateURL(fmt.Sprintf("%s[%d]", attribute, i), value); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// ValidateFilters validates that every value in the list is a valid Elemental filter.
+func ValidateFilters(attribute string, values []string) error {
+	for i, value := range values {
+		if _, err := elemental.NewFilterFromString(value); err != nil {
+			return makeErr(
+				fmt.Sprintf("%s[%d]", attribute, i),
+				fmt.Sprintf("invalid filter: %s", err),
+			)
+		}
+	}
+
+	return nil
+}
+
 // ValidateMTLSSource validates the given MTLSSource.
 func ValidateMTLSSource(source *MTLSSource) error {
 

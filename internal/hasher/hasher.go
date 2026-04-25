@@ -56,6 +56,11 @@ func (t *Hasher) Hash(z sharder.Shardable) error {
 	case *api.SparseA3SSource:
 		z.SetZHash(hash(fmt.Sprintf("%s:%s", *oo.Namespace, *oo.Name)))
 
+	case *api.OAuthClient:
+		z.SetZHash(hash(fmt.Sprintf("%s:%s", oo.Namespace, oo.ClientID)))
+	case *api.SparseOAuthClient:
+		z.SetZHash(hash(fmt.Sprintf("%s:%s", *oo.Namespace, *oo.ClientID)))
+
 	default:
 		z.SetZHash(hash(oo.Identifier()))
 	}

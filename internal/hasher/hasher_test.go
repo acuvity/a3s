@@ -123,5 +123,21 @@ func TestHash(t *testing.T) {
 			So(*so.Zone, ShouldEqual, 0)
 			So(o.ZHash, ShouldEqual, hash(fmt.Sprintf("%s:%s", aString, aString)))
 		})
+
+		Convey("Then sharding an OAuthClient should work", func() {
+			o := api.NewOAuthClient()
+			o.Namespace = aString
+			o.ClientID = aString
+			So(s.Hash(o), ShouldBeNil)
+			So(o.Zone, ShouldEqual, 0)
+			So(o.ZHash, ShouldEqual, hash(fmt.Sprintf("%s:%s", aString, aString)))
+
+			so := api.NewSparseOAuthClient()
+			so.Namespace = &aString
+			so.ClientID = &aString
+			So(s.Hash(so), ShouldBeNil)
+			So(*so.Zone, ShouldEqual, 0)
+			So(*so.ZHash, ShouldEqual, hash(fmt.Sprintf("%s:%s", aString, aString)))
+		})
 	})
 }

@@ -106,6 +106,22 @@ relations:
   create:
     description: Creates a new oauthpsource.
 
+- rest_name: oauthapplication
+  get:
+    description: Retrieves the list of oauthapplications.
+    global_parameters:
+    - $queryable
+  create:
+    description: Creates a new oauthapplication.
+
+- rest_name: oauthclient
+  get:
+    description: Retrieves the list of oauthclients.
+    global_parameters:
+    - $queryable
+  create:
+    description: Creates a new oauthclient.
+
 - rest_name: oidcsource
   get:
     description: Retrieves the list of oidcsources.

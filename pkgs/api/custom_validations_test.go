@@ -1220,6 +1220,81 @@ func TestValidateURL(t *testing.T) {
 	}
 }
 
+func TestValidateFilters(t *testing.T) {
+	type args struct {
+		attribute string
+		values    []string
+	}
+	tests := []struct {
+		name string
+		args func(t *testing.T) args
+
+		wantErr    bool
+		inspectErr func(err error, t *testing.T)
+	}{
+		{
+			"valid filters",
+			func(*testing.T) args {
+				return args{
+					"attr",
+					[]string{
+						`namespace == /my/ns and name == corp`,
+						`namespace == /partner and name == login`,
+					},
+				}
+			},
+			false,
+			nil,
+		},
+		{
+			"invalid filter",
+			func(*testing.T) args {
+				return args{
+					"attr",
+					[]string{
+						`namespace ==`,
+					},
+				}
+			},
+			true,
+			func(err error, t *testing.T) {
+				wanted := "error 422 (a3s): Validation Error: invalid filter:"
+				if err == nil || len(err.Error()) < len(wanted) || err.Error()[:len(wanted)] != wanted {
+					t.Logf("wanted prefix %s but got %v", wanted, err)
+					t.Fail()
+				}
+			},
+		},
+		{
+			"empty list",
+			func(*testing.T) args {
+				return args{
+					"attr",
+					nil,
+				}
+			},
+			false,
+			nil,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tArgs := tt.args(t)
+
+			err := ValidateFilters(tArgs.attribute, tArgs.values)
+
+			if (err != nil) != tt.wantErr {
+				t.Fatalf("ValidateFilters error = %v, wantErr: %t", err, tt.wantErr)
+			}
+
+			if tt.inspectErr != nil {
+				tt.inspectErr(err, t)
+			}
+		})
+	}
+}
+
 func TestValidateSAMLSource(t *testing.T) {
 	type args struct {
 		source *SAMLSource

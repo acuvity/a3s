@@ -18,6 +18,10 @@ $duration:
   elemental:
     name: ValidateDuration
 
+$filters:
+  elemental:
+    name: ValidateFilters
+
 $issue:
   elemental:
     name: ValidateIssue
@@ -49,3 +53,7 @@ $tags_expression:
 $url:
   elemental:
     name: ValidateURL
+
+$urls:
+  elemental:
+    name: ValidateURLs
