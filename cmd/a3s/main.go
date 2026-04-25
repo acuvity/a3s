@@ -18,6 +18,7 @@ import (
 	"go.acuvity.ai/a3s/internal/hasher"
 	"go.acuvity.ai/a3s/internal/idp/entra"
 	"go.acuvity.ai/a3s/internal/idp/okta"
+	"go.acuvity.ai/a3s/internal/oauthserver"
 	"go.acuvity.ai/a3s/internal/processors"
 	"go.acuvity.ai/a3s/internal/ui"
 	"go.acuvity.ai/a3s/pkgs/api"
@@ -248,6 +249,11 @@ func main() {
 	if publicAPIURL == "" {
 		publicAPIURL = fmt.Sprintf("https://%s", automaticEndpoint)
 	}
+	publicAPIEndpoint, err := url.Parse(publicAPIURL)
+	if err != nil {
+		slog.Error("Unable to parse publicAPIURL", err)
+		os.Exit(1)
+	}
 
 	slog.Info("Announced public API", "url", publicAPIURL)
 	cookiePolicy := http.SameSiteDefaultMode
@@ -263,12 +269,7 @@ func main() {
 
 	cookieDomain := cfg.JWT.JWTCookieDomain
 	if cookieDomain == "" {
-		u, err := url.Parse(publicAPIURL)
-		if err != nil {
-			slog.Error("Unable to parse publicAPIURL", err)
-			os.Exit(1)
-		}
-		cookieDomain = u.Hostname()
+		cookieDomain = publicAPIEndpoint.Hostname()
 	}
 	slog.Info("Cookie domain set", "domain", cookieDomain)
 
@@ -557,6 +558,22 @@ func main() {
 		"endpoint", entraNotifHook,
 		"quiet-time", cfg.EntraQuietTime,
 	)
+
+	oauthStore := oauthserver.NewRedisStore(redisClient)
+	if err := oauthStore.Init(); err != nil {
+		slog.Error("Unable to initialize redis oauthserver store", err)
+		os.Exit(1)
+	}
+	oauth := oauthserver.NewOAuth(oauthStore, m, jwks, publicAPIEndpoint, cfg.JWT.JWTDefaultValidity)
+	oauthHTTPHandler := oauthserver.NewHTTPHandler(
+		oauth,
+		cfg.OAuth.OAuthUIEndpoint,
+	)
+
+	if err := oauthserver.RegisterRoutes(server, oauthHTTPHandler); err != nil {
+		slog.Error("Unable to install OAuth handlers", err)
+		os.Exit(1)
+	}
 
 	bahamut.RegisterProcessorOrDie(server,
 		processors.NewIssueProcessor( // nolint
