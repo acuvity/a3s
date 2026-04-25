@@ -1,0 +1,141 @@
+{
+  "$extends": [
+    "@sharded",
+    "@identifiable",
+    "@importable",
+    "@timed"
+  ],
+  "$friendlyName": "OAuth Application",
+  "$friendlyNamePlural": "OAuth Applications",
+  "$modelName": "OAuthApplication",
+  "$modelPackage": "a3s",
+  "$modelResourceName": "oauthapplications",
+  "$modelRestName": "oauthapplication",
+  "additionalProperties": false,
+  "description": "An OAuth Application defines namespace-scoped OAuth behavior and policy used by client registrations.",
+  "properties": {
+    "ID": {
+      "$friendlyName": "ID",
+      "$readOnly": true,
+      "description": "ID is the identifier of the object.",
+      "title": "ID",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "allowedSources": {
+      "$friendlyName": "Allowed Sources",
+      "description": "Optional list of allowed interactive authentication sources. If omitted or empty, any supported interactive source in the namespace is allowed. Each entry is an Elemental filter expression evaluated against the resolved source object, such as its `name` and `namespace`.",
+      "items": {
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "title": "allowedSources",
+      "type": "array"
+    },
+    "audience": {
+      "$friendlyName": "Audience",
+      "$required": true,
+      "description": "Audience to use for resulting a3s access tokens.",
+      "title": "audience",
+      "type": "string"
+    },
+    "createTime": {
+      "$friendlyName": "CreateTime",
+      "$readOnly": true,
+      "description": "Creation date of the object.",
+      "title": "createTime",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "defaultScopes": {
+      "$friendlyName": "Default Scopes",
+      "description": "Default scopes to use when a client does not request any scope.",
+      "items": {
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "title": "defaultScopes",
+      "type": "array"
+    },
+    "description": {
+      "$friendlyName": "Description",
+      "description": "The description of the object.",
+      "title": "description",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "enabled": {
+      "$defaultValue": true,
+      "$friendlyName": "Enabled",
+      "description": "If false, the OAuth application cannot be used.",
+      "title": "enabled",
+      "type": [
+        "boolean",
+        "null"
+      ]
+    },
+    "importHash": {
+      "$creationOnly": true,
+      "$friendlyName": "ImportHash",
+      "description": "The hash of the structure used to compare with new import version.",
+      "title": "importHash",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "importLabel": {
+      "$creationOnly": true,
+      "$friendlyName": "ImportLabel",
+      "description": "The user-defined import label that allows the system to group resources from the same import operation.",
+      "title": "importLabel",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "name": {
+      "$friendlyName": "Name",
+      "$required": true,
+      "description": "The name of the OAuth application.",
+      "title": "name",
+      "type": "string"
+    },
+    "namespace": {
+      "$friendlyName": "Namespace",
+      "$readOnly": true,
+      "description": "The namespace of the object.",
+      "title": "namespace",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "updateTime": {
+      "$friendlyName": "UpdateTime",
+      "$readOnly": true,
+      "description": "Last update date of the object.",
+      "title": "updateTime",
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  },
+  "required": [
+    "audience",
+    "name"
+  ],
+  "title": "OAuthApplication",
+  "type": "object"
+}

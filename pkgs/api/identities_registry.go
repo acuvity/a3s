@@ -24,6 +24,8 @@ var (
 		"namespace":               NamespaceIdentity,
 		"namespacedeletionrecord": NamespaceDeletionRecordIdentity,
 		"oauth2source":            OAuth2SourceIdentity,
+		"oauthapplication":        OAuthApplicationIdentity,
+		"oauthclient":             OAuthClientIdentity,
 		"oidcsource":              OIDCSourceIdentity,
 		"oktaevent":               OktaEventIdentity,
 		"permissions":             PermissionsIdentity,
@@ -50,6 +52,8 @@ var (
 		"namespaces":               NamespaceIdentity,
 		"namespacedeletionrecords": NamespaceDeletionRecordIdentity,
 		"oauth2sources":            OAuth2SourceIdentity,
+		"oauthapplications":        OAuthApplicationIdentity,
+		"oauthclients":             OAuthClientIdentity,
 		"oidcsources":              OIDCSourceIdentity,
 		"oktaevents":               OktaEventIdentity,
 		"permissions":              PermissionsIdentity,
@@ -136,6 +140,20 @@ var (
 			{"namespace", "ID"},
 			{"namespace", "importLabel"},
 			{"namespace", "name"},
+		},
+		"oauthapplication": {
+			{":shard", ":unique", "zone", "zHash"},
+			{"namespace"},
+			{"namespace", "ID"},
+			{"namespace", "importLabel"},
+			{"namespace", "name"},
+		},
+		"oauthclient": {
+			{":shard", ":unique", "zone", "zHash"},
+			{":unique", "namespace", "clientID"},
+			{"namespace"},
+			{"namespace", "ID"},
+			{"namespace", "importLabel"},
 		},
 		"oidcsource": {
 			{":shard", ":unique", "zone", "zHash"},
@@ -235,6 +253,10 @@ func (f modelManager) Identifiable(identity elemental.Identity) elemental.Identi
 		return NewNamespaceDeletionRecord()
 	case OAuth2SourceIdentity:
 		return NewOAuth2Source()
+	case OAuthApplicationIdentity:
+		return NewOAuthApplication()
+	case OAuthClientIdentity:
+		return NewOAuthClient()
 	case OIDCSourceIdentity:
 		return NewOIDCSource()
 	case OktaEventIdentity:
@@ -286,6 +308,10 @@ func (f modelManager) SparseIdentifiable(identity elemental.Identity) elemental.
 		return NewSparseNamespaceDeletionRecord()
 	case OAuth2SourceIdentity:
 		return NewSparseOAuth2Source()
+	case OAuthApplicationIdentity:
+		return NewSparseOAuthApplication()
+	case OAuthClientIdentity:
+		return NewSparseOAuthClient()
 	case OIDCSourceIdentity:
 		return NewSparseOIDCSource()
 	case OktaEventIdentity:
@@ -345,6 +371,10 @@ func (f modelManager) Identifiables(identity elemental.Identity) elemental.Ident
 		return &NamespaceDeletionRecordsList{}
 	case OAuth2SourceIdentity:
 		return &OAuth2SourcesList{}
+	case OAuthApplicationIdentity:
+		return &OAuthApplicationsList{}
+	case OAuthClientIdentity:
+		return &OAuthClientsList{}
 	case OIDCSourceIdentity:
 		return &OIDCSourcesList{}
 	case OktaEventIdentity:
@@ -394,6 +424,10 @@ func (f modelManager) SparseIdentifiables(identity elemental.Identity) elemental
 		return &SparseNamespaceDeletionRecordsList{}
 	case OAuth2SourceIdentity:
 		return &SparseOAuth2SourcesList{}
+	case OAuthApplicationIdentity:
+		return &SparseOAuthApplicationsList{}
+	case OAuthClientIdentity:
+		return &SparseOAuthClientsList{}
 	case OIDCSourceIdentity:
 		return &SparseOIDCSourcesList{}
 	case OktaEventIdentity:
@@ -480,6 +514,8 @@ func AllIdentities() []elemental.Identity {
 		NamespaceIdentity,
 		NamespaceDeletionRecordIdentity,
 		OAuth2SourceIdentity,
+		OAuthApplicationIdentity,
+		OAuthClientIdentity,
 		OIDCSourceIdentity,
 		OktaEventIdentity,
 		PermissionsIdentity,
@@ -522,6 +558,10 @@ func AliasesForIdentity(identity elemental.Identity) []string {
 	case NamespaceDeletionRecordIdentity:
 		return []string{}
 	case OAuth2SourceIdentity:
+		return []string{}
+	case OAuthApplicationIdentity:
+		return []string{}
+	case OAuthClientIdentity:
 		return []string{}
 	case OIDCSourceIdentity:
 		return []string{}
