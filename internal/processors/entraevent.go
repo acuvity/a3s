@@ -10,7 +10,8 @@ import (
 	"time"
 
 	"github.com/bsm/redislock"
-	"go.acuvity.ai/a3s/internal/idp"
+	"github.com/cespare/xxhash/v2"
+	"github.com/karlseguin/ccache/v3"
 	"go.acuvity.ai/a3s/internal/idp/entra"
 	"go.acuvity.ai/a3s/pkgs/api"
 	"go.acuvity.ai/bahamut"
@@ -25,6 +26,7 @@ type EntraEventsProcessor struct {
 	entraManager *entra.Manager
 	quiteTime    time.Duration
 	gracePeriod  time.Duration
+	srccache     *ccache.Cache[*api.MTLSSource]
 }
 
 // NewEntraEventsProcessor returns a new EntraEventsProcessor.
@@ -36,6 +38,7 @@ func NewEntraEventsProcessor(manipulator manipulate.TransactionalManipulator, en
 		entraManager: entraManager,
 		quiteTime:    quietTime,
 		gracePeriod:  gracePeriod,
+		srccache:     ccache.New(ccache.Configure[*api.MTLSSource]().MaxSize(1024)),
 	}
 }
 
@@ -75,39 +78,48 @@ func (p *EntraEventsProcessor) ProcessCreate(bctx bahamut.Context) error {
 		// so we don't manage the BS flood of duplicated events from these microsoft
 		// morons.
 
-		log.Debug("Received Entra notification")
+		log.Debug("Received Entra notification", "payload", evt.Payload)
 
-		mctx := manipulate.NewContext(
-			bctx.Context(),
-			manipulate.ContextOptionRecursive(true),
-			manipulate.ContextOptionFilter(
-				elemental.NewFilterComposer().
-					WithKey("entraapplicationcredentials.grapheventsenabled").Equals(true).
-					WithKey("entraapplicationcredentials.grapheventsecret").Equals(v.ClientState).
-					WithKey("entraapplicationcredentials.clienttenantid").Equals(v.TenantID).
-					Done(),
-			),
-		)
+		f := elemental.NewFilterComposer().
+			WithKey("entraapplicationcredentials.grapheventsenabled").Equals(true).
+			WithKey("entraapplicationcredentials.grapheventsecret").Equals(v.ClientState).
+			WithKey("entraapplicationcredentials.clienttenantid").Equals(v.TenantID).
+			Done()
 
-		sources := api.MTLSSourcesList{}
-		if err := p.manipulator.RetrieveMany(mctx, &sources); err != nil {
-			log.Warn("Unable to retrieve mtlssource", err)
-			continue
+		ckey := fmt.Sprintf("%x", xxhash.Sum64String(f.String()))
+
+		var src *api.MTLSSource
+		if item := p.srccache.Get(ckey); item != nil && !item.Expired() {
+			src = item.Value()
+			log.Debug("Handling Entra notification", "src-cached", true)
+		} else {
+
+			mctx := manipulate.NewContext(
+				bctx.Context(),
+				manipulate.ContextOptionRecursive(true),
+				manipulate.ContextOptionFilter(f),
+			)
+
+			sources := api.MTLSSourcesList{}
+			if err := p.manipulator.RetrieveMany(mctx, &sources); err != nil {
+				log.Warn("Unable to retrieve mtlssource", err)
+				continue
+			}
+
+			switch len(sources) {
+			case 1:
+			case 0:
+				log.Warn("No MTLS sources found for the given clientState", "expiration", v.SubscriptionExpirationDateTime)
+				continue
+			default:
+				log.Error("Multiple MTLS sources found for the given clientState")
+				continue
+			}
+
+			log.Debug("Handling Entra notification", "src-cached", false)
+
+			src = sources[0]
 		}
-
-		switch len(sources) {
-		case 1:
-		case 0:
-			log.Warn("No MTLS sources found for the given clientState", "expiration", v.SubscriptionExpirationDateTime)
-			continue
-		default:
-			log.Error("Multiple MTLS sources found for the given clientState")
-			continue
-		}
-
-		log.Debug("Handling Entra notification")
-
-		src := sources[0]
 
 		if strings.HasPrefix(v.Resource, "Groups/") && v.ResourceData.MembersDelta != nil {
 			for _, member := range *v.ResourceData.MembersDelta {
@@ -138,14 +150,17 @@ func (p *EntraEventsProcessor) invalidateTokensMacthing(ctx context.Context, log
 		fmt.Sprintf("@source:namespace=%s", src.Namespace),
 	}, claims...)
 
-	revoke := idp.MakeEventTriggeredRevocation(fclaims, src.Namespace, p.gracePeriod)
+	// We disable this for now, as it creates quite a lot of scaling issue.
+	_ = ctx // hush linter for now
 
-	if err := p.manipulator.Create(manipulate.NewContext(ctx), revoke); err != nil {
-		logger.Error("Unable to revoke entra tokens", "namespace", src.Namespace, "revoked", fclaims, err)
-		return
-	}
+	// revoke := idp.MakeEventTriggeredRevocation(fclaims, src.Namespace, p.gracePeriod)
 
-	logger.Info("EntraEvent triggered tokens revocation", "namespace", src.Namespace, "revoked", fclaims)
+	// if err := p.manipulator.Create(manipulate.NewContext(ctx), revoke); err != nil {
+	// 	logger.Error("Unable to revoke entra tokens", "namespace", src.Namespace, "revoked", fclaims, err)
+	// 	return
+	// }
+
+	logger.Info("EntraEvent triggered tokens revocation", "namespace", src.Namespace, "revoked", fclaims, "DRYRUN", true)
 }
 
 type entraPayload struct {
