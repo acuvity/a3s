@@ -71,6 +71,8 @@ attributes:
     exposed: true
     stored: true
     omit_empty: true
+    validations:
+    - $url
 
   - name: IDPURL
     friendly_name: IDP URL

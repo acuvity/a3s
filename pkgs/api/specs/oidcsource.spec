@@ -79,6 +79,8 @@ attributes:
     stored: true
     required: true
     example_value: https://accounts.google.com
+    validations:
+    - $url
 
   - name: modifier
     friendly_name: Modifier
