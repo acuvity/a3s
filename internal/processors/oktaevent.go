@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"time"
 
-	"go.acuvity.ai/a3s/internal/idp"
 	"go.acuvity.ai/a3s/pkgs/api"
 	"go.acuvity.ai/bahamut"
 	"go.acuvity.ai/elemental"
@@ -44,6 +43,8 @@ func (p *OktaEventsProcessor) ProcessCreate(bctx bahamut.Context) error {
 	}
 
 	ns := bctx.Request().Namespace
+
+	slog.Debug("Received Okta notification", "payload", evt.Payload)
 
 	for _, evt := range payload.Data.Events {
 
@@ -97,14 +98,16 @@ func (p *OktaEventsProcessor) invalidateTokensMacthing(ctx context.Context, name
 		"@source:type=mtls",
 	}, claims...)
 
-	revoke := idp.MakeEventTriggeredRevocation(fclaims, namespace, p.gracePeriod)
+	_ = ctx // hush linter
 
-	if err := p.manipulator.Create(manipulate.NewContext(ctx), revoke); err != nil {
-		slog.Error("Unable to revoke okta tokens", "namespace", namespace, "revoked", fclaims, err)
-		return
-	}
+	// revoke := idp.MakeEventTriggeredRevocation(fclaims, namespace, p.gracePeriod)
+	//
+	// if err := p.manipulator.Create(manipulate.NewContext(ctx), revoke); err != nil {
+	// 	slog.Error("Unable to revoke okta tokens", "namespace", namespace, "revoked", fclaims, err)
+	// 	return
+	// }
 
-	slog.Info("OktaEvent triggered tokens revocation", "namespace", namespace, "revoked", fclaims)
+	slog.Info("OktaEvent triggered tokens revocation", "namespace", namespace, "revoked", fclaims, "DRYRUN", true)
 }
 
 type oktaResource struct {
