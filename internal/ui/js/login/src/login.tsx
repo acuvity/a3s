@@ -62,6 +62,11 @@ if (audience.length === 1 && audience[0] === "") {
 const enableCloak = "__ENABLE_CLOAKING__" as StringBoolean
 
 export const Login = () => {
+  const params = new URLSearchParams(window.location.search)
+  const authorizeRequestID = params.get("authorizeRequestID") || undefined
+  const initialAuthorizeNamespace = params.get("namespace") ?? "/"
+  const isAuthorizeMode = authorizeRequestID !== undefined
+
   const theme = useTheme()
   const [cloak, setCloak] = useLocalState(enableCloak, "cloak")
   const [sourceType, setSourceType] = useLocalState<string>(
@@ -87,9 +92,19 @@ export const Login = () => {
     })
   const fullScreen = useMediaQuery("(max-width: 600px)")
 
-  const isClaimRequestMode = requestedClaims.length > 0
+  const isClaimRequestMode = !isAuthorizeMode && requestedClaims.length > 0
   // @ts-ignore
   const isQrCodeMode = redirectUrl === "" || isClaimRequestMode
+
+  useEffect(() => {
+    if (authorizeRequestID === undefined) {
+      return
+    }
+    if (sourceType !== "MTLS" && sourceType !== "OIDC") {
+      setSourceType("OIDC")
+    }
+    setSourceNamespace(initialAuthorizeNamespace)
+  }, [])
 
   // Reset cloak mode if we are in the QR request mode.
   if (isClaimRequestMode && cloak === "true") {
@@ -101,9 +116,17 @@ export const Login = () => {
       if (res.status === 200) {
         if (shouldRedirect) {
           window.location.href = redirectUrl
-        } else {
-          return (await res.json()).token as string
+          return
         }
+        const payload = (await res.json()) as {
+          token?: string
+          opaque?: { redirectURL?: string }
+        }
+        if (payload.opaque?.redirectURL) {
+          window.location.href = payload.opaque.redirectURL
+          return
+        }
+        return payload.token as string
       } else {
         throw Error(
           "Request to issue failed. Please check the network tab for details"
@@ -134,10 +157,9 @@ export const Login = () => {
   )
 
   // Not using `cloak === "false"` in case `__ENABLE_CLOAKING__` is not replaced
-  const shouldRedirect = !isQrCodeMode && cloak !== "true"
+  const shouldRedirect = !isAuthorizeMode && !isQrCodeMode && cloak !== "true"
 
   // Below for OIDC auto login
-  const params = new URLSearchParams(window.location.search)
   const OIDCstate = params.get("state")
   const OIDCcode = params.get("code")
   useEffect(() => {
@@ -345,9 +367,13 @@ export const Login = () => {
             }}
           >
             <FormControlLabel value="MTLS" control={<Radio />} label="MTLS" />
-            <FormControlLabel value="LDAP" control={<Radio />} label="LDAP" />
+            {!isAuthorizeMode && (
+              <FormControlLabel value="LDAP" control={<Radio />} label="LDAP" />
+            )}
             <FormControlLabel value="OIDC" control={<Radio />} label="OIDC" />
-            <FormControlLabel value="QR" control={<Radio />} label="QR Code" />
+            {!isAuthorizeMode && (
+              <FormControlLabel value="QR" control={<Radio />} label="QR Code" />
+            )}
           </RadioGroup>
         </FormControl>
         {!isClaimRequestMode && (
@@ -460,6 +486,7 @@ export const Login = () => {
               onClick={() => {
                 sourceType === "MTLS"
                   ? issueWithMtls({
+                      authorizeRequestID,
                       sourceNamespace,
                       sourceName,
                       cookie: shouldRedirect,
@@ -479,9 +506,10 @@ export const Login = () => {
                       .then(handleIssueResponse(shouldRedirect))
                       .then(onToken)
                   : issueWithOidc({
+                      authorizeRequestID,
                       sourceNamespace,
                       sourceName,
-                      redirectUrl,
+                      redirectUrl: isAuthorizeMode ? undefined : redirectUrl,
                       cloak: isClaimRequestMode ? requestedClaims : undefined,
                     })
               }}

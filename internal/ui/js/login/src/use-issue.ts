@@ -63,11 +63,12 @@ export function useIssue({ apiUrl, audience }: UseIssueOptions) {
   )
 
   const issueWithMtls = useCallback(
-    ({ sourceNamespace, sourceName, cookie, cloak }: IssueParams) =>
+    ({ authorizeRequestID, sourceNamespace, sourceName, cookie, cloak }: IssueParams & { authorizeRequestID?: string }) =>
       fetch(issueUrl, {
         method: "POST",
         body: JSON.stringify({
           sourceType: "MTLS",
+          authorizeRequestID,
           sourceNamespace,
           sourceName,
           cookie,
@@ -86,9 +87,10 @@ export function useIssue({ apiUrl, audience }: UseIssueOptions) {
     ({
       sourceNamespace,
       sourceName,
+      authorizeRequestID,
       redirectUrl,
       cloak,
-    }: Omit<IssueParams, "cookie"> & { redirectUrl: string }) => {
+    }: Omit<IssueParams, "cookie"> & { authorizeRequestID?: string; redirectUrl?: string }) => {
       // Remove the trailing slash
       const currentUrl = (
         window.location.origin + window.location.pathname
@@ -97,6 +99,7 @@ export function useIssue({ apiUrl, audience }: UseIssueOptions) {
         method: "POST",
         body: JSON.stringify({
           sourceType: "OIDC",
+          authorizeRequestID,
           sourceNamespace,
           sourceName,
           inputOIDC: {
