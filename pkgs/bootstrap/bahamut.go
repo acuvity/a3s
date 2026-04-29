@@ -7,6 +7,7 @@ import (
 	"log/slog"
 	"net"
 	"os"
+	"runtime"
 
 	"github.com/fatih/structs"
 	"github.com/opentracing/opentracing-go"
@@ -92,6 +93,11 @@ func ConfigureBahamut(
 			bahamut.OptRestServer(c.ListenAddress),
 			bahamut.OptMaxConnection(c.MaxConnections),
 		)
+
+		if c.MaxProcs > 0 {
+			runtime.GOMAXPROCS(c.MaxProcs)
+			slog.Info("GOMAXPROCS configured", "max-procs", c.MaxProcs)
+		}
 
 		if c.CORSDefaultOrigin != "" || len(c.CORSAdditionalOrigins) > 0 {
 			opts = append(
