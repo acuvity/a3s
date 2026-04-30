@@ -355,7 +355,16 @@ func (p *IssueProcessor) ProcessCreate(bctx bahamut.Context) (err error) {
 		}
 	}
 
+	if oauthApplication != nil {
+		idt.OAuthApplication = token.OAuthApplication{
+			ID:        oauthApplication.ID,
+			Namespace: oauthApplication.Namespace,
+			Name:      oauthApplication.Name,
+		}
+	}
+
 	originalSource := idt.Source
+	originalOAuthApplication := idt.OAuthApplication
 	if p.pluginModifier != nil {
 		if idt, err = p.pluginModifier.Token(bctx.Context(), p.manipulator, idt, p.issuer); err != nil {
 			return fmt.Errorf("modifier: plugin: unable to run Token: %w", err)
@@ -368,6 +377,7 @@ func (p *IssueProcessor) ProcessCreate(bctx bahamut.Context) (err error) {
 		}
 	}
 	idt.Source = originalSource
+	idt.OAuthApplication = originalOAuthApplication
 
 	// tighten the requested expiry if the source provided an expiration
 	if idt.ExpiresAt != nil && !exp.IsZero() && idt.ExpiresAt.Before(exp) {
