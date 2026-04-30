@@ -72,6 +72,11 @@ func TestParse(t *testing.T) {
 		token1.Source.Type = "certificate"
 		token1.Source.Namespace = "/my/ns"
 		token1.Source.Name = "mysource"
+		token1.OAuthApplication = OAuthApplication{
+			ID:        "oauthapp-id",
+			Namespace: "/oauth/ns",
+			Name:      "oauthapp-name",
+		}
 		token1.Identity = []string{
 			"org=a3s.com",
 			"orgunit=admin",
@@ -100,6 +105,9 @@ func TestParse(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(token3.Identity, ShouldResemble, []string{
 				"@issuer=iss",
+				"@oauthapp:id=oauthapp-id",
+				"@oauthapp:name=oauthapp-name",
+				"@oauthapp:namespace=/oauth/ns",
 				"@source:name=mysource",
 				"@source:namespace=/my/ns",
 				"@source:type=certificate",
@@ -113,12 +121,20 @@ func TestParse(t *testing.T) {
 
 			So(err, ShouldBeNil)
 			So(token2.Source.Type, ShouldEqual, "certificate")
+			So(token2.OAuthApplication, ShouldResemble, OAuthApplication{
+				ID:        "oauthapp-id",
+				Namespace: "/oauth/ns",
+				Name:      "oauthapp-name",
+			})
 			So(token2.Issuer, ShouldEqual, "iss")
 			So(token2.Audience, ShouldResemble, jwt.ClaimStrings{"aud"})
 			So(token2.ExpiresAt, ShouldResemble, token1.ExpiresAt)
 			So(token2.IssuedAt, ShouldResemble, token1.IssuedAt)
 			So(token2.Identity, ShouldResemble, []string{
 				"@issuer=iss",
+				"@oauthapp:id=oauthapp-id",
+				"@oauthapp:name=oauthapp-name",
+				"@oauthapp:namespace=/oauth/ns",
 				"@source:name=mysource",
 				"@source:namespace=/my/ns",
 				"@source:type=certificate",
@@ -205,6 +221,11 @@ func TestParseUnverified(t *testing.T) {
 		token1.Source.Type = "certificate"
 		token1.Source.Namespace = "/my/ns"
 		token1.Source.Name = "mysource"
+		token1.OAuthApplication = OAuthApplication{
+			ID:        "oauthapp-id",
+			Namespace: "/oauth/ns",
+			Name:      "oauthapp-name",
+		}
 		token1.Identity = []string{
 			"org=a3s.com",
 			"orgunit=admin",
@@ -225,12 +246,20 @@ func TestParseUnverified(t *testing.T) {
 
 			So(err, ShouldBeNil)
 			So(token2.Source.Type, ShouldEqual, "certificate")
+			So(token2.OAuthApplication, ShouldResemble, OAuthApplication{
+				ID:        "oauthapp-id",
+				Namespace: "/oauth/ns",
+				Name:      "oauthapp-name",
+			})
 			So(token2.Issuer, ShouldEqual, "iss")
 			So(token2.Audience, ShouldResemble, jwt.ClaimStrings{"aud"})
 			So(token2.ExpiresAt, ShouldResemble, token1.ExpiresAt)
 			So(token2.IssuedAt, ShouldResemble, token1.IssuedAt)
 			So(token2.Identity, ShouldResemble, []string{
 				"@issuer=iss",
+				"@oauthapp:id=oauthapp-id",
+				"@oauthapp:name=oauthapp-name",
+				"@oauthapp:namespace=/oauth/ns",
 				"@source:name=mysource",
 				"@source:namespace=/my/ns",
 				"@source:type=certificate",
