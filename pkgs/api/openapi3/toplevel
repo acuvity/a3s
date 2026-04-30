@@ -542,6 +542,10 @@
             },
             "type": "array"
           },
+          "authorizeRequestID": {
+            "description": "Optional OAuth authorize context identifier used when `/issue` is resuming\nan OAuth authorization flow.",
+            "type": "string"
+          },
           "claims": {
             "description": "The list of claims delivered in the token. This can be useful when the caller\nneeds to have information about the user when token is delivered as a secure\nhttpOnly cookie.",
             "items": {
