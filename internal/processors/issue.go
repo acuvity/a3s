@@ -561,8 +561,9 @@ func (p *IssueProcessor) handleOIDCIssue(bctx bahamut.Context, source elemental.
 		}
 
 		cacheItem := &oauth2ceremony.CacheItem{
-			State:        state,
-			OAuth2Config: oauth2Config,
+			State:              state,
+			OAuth2Config:       oauth2Config,
+			AuthorizeRequestID: req.AuthorizeRequestID,
 		}
 
 		if err := oauth2ceremony.Set(p.manipulator, cacheItem); err != nil {
@@ -589,6 +590,7 @@ func (p *IssueProcessor) handleOIDCIssue(bctx bahamut.Context, source elemental.
 	if err := oauth2ceremony.Delete(p.manipulator, state); err != nil {
 		return nil, rerr(fmt.Errorf("unable to delete cached oidc state: %w", err))
 	}
+	req.AuthorizeRequestID = cached.AuthorizeRequestID
 
 	client, err := oauth2ceremony.MakeClient(src.CA)
 	if err != nil {
@@ -662,8 +664,9 @@ func (p *IssueProcessor) handleOAuth2Issue(bctx bahamut.Context, source elementa
 		}
 
 		cacheItem := &oauth2ceremony.CacheItem{
-			State:        state,
-			OAuth2Config: conf,
+			State:              state,
+			OAuth2Config:       conf,
+			AuthorizeRequestID: req.AuthorizeRequestID,
 		}
 
 		if err := oauth2ceremony.Set(p.manipulator, cacheItem); err != nil {
@@ -696,6 +699,7 @@ func (p *IssueProcessor) handleOAuth2Issue(bctx bahamut.Context, source elementa
 		}
 
 		conf = cached.OAuth2Config
+		req.AuthorizeRequestID = cached.AuthorizeRequestID
 
 	} else {
 
@@ -779,8 +783,9 @@ func (p *IssueProcessor) handleSAMLIssue(bctx bahamut.Context, source elemental.
 		}
 
 		cacheItem := &samlceremony.CacheItem{
-			State:  state,
-			ACSURL: sp.AssertionConsumerServiceURL,
+			State:              state,
+			ACSURL:             sp.AssertionConsumerServiceURL,
+			AuthorizeRequestID: req.AuthorizeRequestID,
 		}
 
 		if err := samlceremony.Set(p.manipulator, cacheItem); err != nil {
@@ -812,6 +817,7 @@ func (p *IssueProcessor) handleSAMLIssue(bctx bahamut.Context, source elemental.
 		}
 
 		ACSURL = item.ACSURL
+		req.AuthorizeRequestID = item.AuthorizeRequestID
 	}
 
 	audienceURI := src.AudienceURI

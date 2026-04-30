@@ -12,9 +12,10 @@ const collection = "samlcache"
 
 // CacheItem represents a cache OIDC request info.
 type CacheItem struct {
-	State  string    `bson:"state"`
-	ACSURL string    `bson:"acsurl"`
-	Time   time.Time `bson:"time"`
+	State              string    `bson:"state"`
+	ACSURL             string    `bson:"acsurl"`
+	AuthorizeRequestID string    `bson:"authorizerequestid,omitempty"`
+	Time               time.Time `bson:"time"`
 }
 
 // Set sets the given OIDCRequestItem in redis.
