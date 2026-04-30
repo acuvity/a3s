@@ -142,6 +142,7 @@ func (p *IssueProcessor) ProcessCreate(bctx bahamut.Context) (err error) {
 	bctx.Request().Namespace = ""
 
 	req := bctx.InputData().(*api.Issue)
+	authorizeRequestID := req.AuthorizeRequestID
 
 	validity, _ := time.ParseDuration(req.Validity) // elemental already validated this
 
@@ -274,19 +275,19 @@ func (p *IssueProcessor) ProcessCreate(bctx bahamut.Context) (err error) {
 		issuer, err = p.handleRemoteA3SIssue(bctx.Context(), source, req)
 
 	case api.IssueSourceTypeOIDC:
-		issuer, err = p.handleOIDCIssue(bctx, source, req)
+		issuer, err = p.handleOIDCIssue(bctx, source, req, authorizeRequestID)
 		if issuer == nil && err == nil {
 			return nil
 		}
 
 	case api.IssueSourceTypeOAuth2:
-		issuer, err = p.handleOAuth2Issue(bctx, source, req)
+		issuer, err = p.handleOAuth2Issue(bctx, source, req, authorizeRequestID)
 		if issuer == nil && err == nil {
 			return nil
 		}
 
 	case api.IssueSourceTypeSAML:
-		issuer, err = p.handleSAMLIssue(bctx, source, req)
+		issuer, err = p.handleSAMLIssue(bctx, source, req, authorizeRequestID)
 		if issuer == nil && err == nil {
 			return nil
 		}
@@ -523,7 +524,7 @@ func (p *IssueProcessor) handleRemoteA3SIssue(ctx context.Context, source elemen
 	return iss, nil
 }
 
-func (p *IssueProcessor) handleOIDCIssue(bctx bahamut.Context, source elemental.Identifiable, req *api.Issue) (token.Issuer, error) {
+func (p *IssueProcessor) handleOIDCIssue(bctx bahamut.Context, source elemental.Identifiable, req *api.Issue, authorizeRequestID string) (token.Issuer, error) {
 
 	input := req.InputOIDC
 	state := input.State
@@ -561,8 +562,9 @@ func (p *IssueProcessor) handleOIDCIssue(bctx bahamut.Context, source elemental.
 		}
 
 		cacheItem := &oauth2ceremony.CacheItem{
-			State:        state,
-			OAuth2Config: oauth2Config,
+			State:              state,
+			OAuth2Config:       oauth2Config,
+			AuthorizeRequestID: authorizeRequestID,
 		}
 
 		if err := oauth2ceremony.Set(p.manipulator, cacheItem); err != nil {
@@ -589,6 +591,7 @@ func (p *IssueProcessor) handleOIDCIssue(bctx bahamut.Context, source elemental.
 	if err := oauth2ceremony.Delete(p.manipulator, state); err != nil {
 		return nil, rerr(fmt.Errorf("unable to delete cached oidc state: %w", err))
 	}
+	req.AuthorizeRequestID = cached.AuthorizeRequestID
 
 	client, err := oauth2ceremony.MakeClient(src.CA)
 	if err != nil {
@@ -627,7 +630,7 @@ func (p *IssueProcessor) handleOIDCIssue(bctx bahamut.Context, source elemental.
 	return oidcissuer.New(bctx.Context(), src, claims, p.requestMaker)
 }
 
-func (p *IssueProcessor) handleOAuth2Issue(bctx bahamut.Context, source elemental.Identifiable, req *api.Issue) (token.Issuer, error) {
+func (p *IssueProcessor) handleOAuth2Issue(bctx bahamut.Context, source elemental.Identifiable, req *api.Issue, authorizeRequestID string) (token.Issuer, error) {
 
 	input := req.InputOAuth2
 	state := input.State
@@ -662,8 +665,9 @@ func (p *IssueProcessor) handleOAuth2Issue(bctx bahamut.Context, source elementa
 		}
 
 		cacheItem := &oauth2ceremony.CacheItem{
-			State:        state,
-			OAuth2Config: conf,
+			State:              state,
+			OAuth2Config:       conf,
+			AuthorizeRequestID: authorizeRequestID,
 		}
 
 		if err := oauth2ceremony.Set(p.manipulator, cacheItem); err != nil {
@@ -696,6 +700,7 @@ func (p *IssueProcessor) handleOAuth2Issue(bctx bahamut.Context, source elementa
 		}
 
 		conf = cached.OAuth2Config
+		req.AuthorizeRequestID = cached.AuthorizeRequestID
 
 	} else {
 
@@ -730,7 +735,7 @@ func (p *IssueProcessor) handleOAuth2Issue(bctx bahamut.Context, source elementa
 	return oauth2issuer.New(bctx.Context(), src, claims, p.requestMaker)
 }
 
-func (p *IssueProcessor) handleSAMLIssue(bctx bahamut.Context, source elemental.Identifiable, req *api.Issue) (token.Issuer, error) {
+func (p *IssueProcessor) handleSAMLIssue(bctx bahamut.Context, source elemental.Identifiable, req *api.Issue, authorizeRequestID string) (token.Issuer, error) {
 
 	input := req.InputSAML
 
@@ -779,8 +784,9 @@ func (p *IssueProcessor) handleSAMLIssue(bctx bahamut.Context, source elemental.
 		}
 
 		cacheItem := &samlceremony.CacheItem{
-			State:  state,
-			ACSURL: sp.AssertionConsumerServiceURL,
+			State:              state,
+			ACSURL:             sp.AssertionConsumerServiceURL,
+			AuthorizeRequestID: authorizeRequestID,
 		}
 
 		if err := samlceremony.Set(p.manipulator, cacheItem); err != nil {
@@ -812,6 +818,7 @@ func (p *IssueProcessor) handleSAMLIssue(bctx bahamut.Context, source elemental.
 		}
 
 		ACSURL = item.ACSURL
+		req.AuthorizeRequestID = item.AuthorizeRequestID
 	}
 
 	audienceURI := src.AudienceURI
