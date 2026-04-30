@@ -137,6 +137,10 @@ type Issue struct {
 	// Requested audience for the delivered token.
 	Audience []string `json:"audience,omitempty" msgpack:"audience,omitempty" bson:"-" mapstructure:"audience,omitempty"`
 
+	// Optional OAuth authorize context identifier used when `/issue` is resuming
+	// an OAuth authorization flow.
+	AuthorizeRequestID string `json:"authorizeRequestID,omitempty" msgpack:"authorizeRequestID,omitempty" bson:"-" mapstructure:"authorizeRequestID,omitempty"`
+
 	// The list of claims delivered in the token. This can be useful when the caller
 	// needs to have information about the user when token is delivered as a secure
 	// httpOnly cookie.
@@ -348,6 +352,7 @@ func (o *Issue) ToSparse(fields ...string) elemental.SparseIdentifiable {
 		// nolint: goimports
 		return &SparseIssue{
 			Audience:              &o.Audience,
+			AuthorizeRequestID:    &o.AuthorizeRequestID,
 			Claims:                &o.Claims,
 			Cloak:                 &o.Cloak,
 			Cookie:                &o.Cookie,
@@ -382,6 +387,8 @@ func (o *Issue) ToSparse(fields ...string) elemental.SparseIdentifiable {
 		switch f {
 		case "audience":
 			sp.Audience = &(o.Audience)
+		case "authorizeRequestID":
+			sp.AuthorizeRequestID = &(o.AuthorizeRequestID)
 		case "claims":
 			sp.Claims = &(o.Claims)
 		case "cloak":
@@ -449,6 +456,9 @@ func (o *Issue) Patch(sparse elemental.SparseIdentifiable) {
 	so := sparse.(*SparseIssue)
 	if so.Audience != nil {
 		o.Audience = *so.Audience
+	}
+	if so.AuthorizeRequestID != nil {
+		o.AuthorizeRequestID = *so.AuthorizeRequestID
 	}
 	if so.Claims != nil {
 		o.Claims = *so.Claims
@@ -825,6 +835,8 @@ func (o *Issue) ValueForAttribute(name string) any {
 	switch name {
 	case "audience":
 		return o.Audience
+	case "authorizeRequestID":
+		return o.AuthorizeRequestID
 	case "claims":
 		return o.Claims
 	case "cloak":
@@ -892,6 +904,15 @@ var IssueAttributesMap = map[string]elemental.AttributeSpecification{
 		Name:           "audience",
 		SubType:        "string",
 		Type:           "list",
+	},
+	"AuthorizeRequestID": {
+		AllowedChoices: []string{},
+		ConvertedName:  "AuthorizeRequestID",
+		Description: `Optional OAuth authorize context identifier used when ` + "`" + `/issue` + "`" + ` is resuming
+an OAuth authorization flow.`,
+		Exposed: true,
+		Name:    "authorizeRequestID",
+		Type:    "string",
 	},
 	"Claims": {
 		AllowedChoices: []string{},
@@ -1169,6 +1190,15 @@ var IssueLowerCaseAttributesMap = map[string]elemental.AttributeSpecification{
 		Name:           "audience",
 		SubType:        "string",
 		Type:           "list",
+	},
+	"authorizerequestid": {
+		AllowedChoices: []string{},
+		ConvertedName:  "AuthorizeRequestID",
+		Description: `Optional OAuth authorize context identifier used when ` + "`" + `/issue` + "`" + ` is resuming
+an OAuth authorization flow.`,
+		Exposed: true,
+		Name:    "authorizeRequestID",
+		Type:    "string",
 	},
 	"claims": {
 		AllowedChoices: []string{},
@@ -1502,6 +1532,10 @@ type SparseIssue struct {
 	// Requested audience for the delivered token.
 	Audience *[]string `json:"audience,omitempty" msgpack:"audience,omitempty" bson:"-" mapstructure:"audience,omitempty"`
 
+	// Optional OAuth authorize context identifier used when `/issue` is resuming
+	// an OAuth authorization flow.
+	AuthorizeRequestID *string `json:"authorizeRequestID,omitempty" msgpack:"authorizeRequestID,omitempty" bson:"-" mapstructure:"authorizeRequestID,omitempty"`
+
 	// The list of claims delivered in the token. This can be useful when the caller
 	// needs to have information about the user when token is delivered as a secure
 	// httpOnly cookie.
@@ -1678,6 +1712,9 @@ func (o *SparseIssue) ToPlain() elemental.PlainIdentifiable {
 	out := NewIssue()
 	if o.Audience != nil {
 		out.Audience = *o.Audience
+	}
+	if o.AuthorizeRequestID != nil {
+		out.AuthorizeRequestID = *o.AuthorizeRequestID
 	}
 	if o.Claims != nil {
 		out.Claims = *o.Claims

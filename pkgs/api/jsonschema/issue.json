@@ -21,6 +21,15 @@
       "title": "audience",
       "type": "array"
     },
+    "authorizeRequestID": {
+      "$friendlyName": "AuthorizeRequestID",
+      "description": "Optional OAuth authorize context identifier used when `/issue` is resuming an OAuth authorization flow.",
+      "title": "authorizeRequestID",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
     "claims": {
       "$friendlyName": "Claims",
       "$readOnly": true,
