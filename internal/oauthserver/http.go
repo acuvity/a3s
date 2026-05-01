@@ -22,6 +22,8 @@ const (
 	routeTokenRoot            = "/oauth/token"
 	routeAuthorizeNamespaced  = "/oauth/:" + encodedNamespacePathParam + "/authorize"
 	routeTokenNamespaced      = "/oauth/:" + encodedNamespacePathParam + "/token"
+	wellKnownOAuthServerPath  = "/.well-known/oauth-authorization-server"
+	jwksPath                  = "/.well-known/jwks.json"
 )
 
 // RegisterRoutes installs the OAuth HTTP routes in Bahamut.
@@ -46,8 +48,10 @@ func baseOAuthRoutes() []string {
 
 // HTTPHandler serves the OAuth protocol endpoints.
 type HTTPHandler struct {
-	oauth      *OAuth
-	uiEndpoint string
+	oauth                    *OAuth
+	uiEndpoint               string
+	baseURL                  *url.URL
+	authorizationServerRoute string
 }
 
 // NewHTTPHandler returns a new HTTPHandler.
@@ -55,15 +59,25 @@ func NewHTTPHandler(
 	oauth *OAuth,
 	uiEndpoint string,
 ) *HTTPHandler {
+	baseURL := *oauth.issuerURL
+	baseURL.Path = ""
+	baseURL.RawPath = ""
+	baseURL.RawQuery = ""
+	baseURL.Fragment = ""
+	authorizationServerRoute := wellKnownOAuthServerPath + oauth.issuerURL.EscapedPath()
 	return &HTTPHandler{
-		oauth:      oauth,
-		uiEndpoint: uiEndpoint,
+		oauth:                    oauth,
+		uiEndpoint:               uiEndpoint,
+		baseURL:                  &baseURL,
+		authorizationServerRoute: authorizationServerRoute,
 	}
 }
 
 // routes returns the route patterns served by the OAuth handler.
 func (h *HTTPHandler) routes() []string {
-	return append([]string{}, baseOAuthRoutes()...)
+	routes := append([]string{}, baseOAuthRoutes()...)
+	routes = append(routes, h.authorizationServerRoute, h.authorizationServerRoute+"/:"+encodedNamespacePathParam)
+	return routes
 }
 
 // ServeHTTP dispatches requests to the authorize or token endpoint.
@@ -75,6 +89,8 @@ func (h *HTTPHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	}
 
 	switch {
+	case req.URL.Path == h.authorizationServerRoute || strings.HasPrefix(req.URL.Path, h.authorizationServerRoute+"/"):
+		h.handleAuthorizationServerMetadata(w, req, namespace)
 	case strings.HasSuffix(req.URL.Path, "/authorize"):
 		h.handleAuthorize(w, req, namespace)
 	case strings.HasSuffix(req.URL.Path, "/token"):
@@ -273,6 +289,37 @@ func (h *HTTPHandler) handleToken(w http.ResponseWriter, req *http.Request, name
 		response["scope"] = strings.Join(scopes, " ")
 	}
 	writeJSON(w, http.StatusOK, response)
+}
+
+func (h *HTTPHandler) handleAuthorizationServerMetadata(w http.ResponseWriter, req *http.Request, namespace string) {
+	if req.Method != http.MethodGet {
+		w.Header().Set("Allow", http.MethodGet)
+		writeOAuthError(w, http.StatusMethodNotAllowed, "invalid_request", "authorization server metadata endpoint only accepts GET")
+		return
+	}
+
+	issuer := h.oauth.issuerForNamespace(namespace)
+
+	jwksURI := *h.baseURL
+	jwksURI.Path = jwksPath
+	jwksURI.RawPath = ""
+	jwksURI.RawQuery = ""
+
+	writeJSON(w, http.StatusOK, authorizationServerMetadata{
+		Issuer:                        issuer,
+		AuthorizationEndpoint:         issuer + "/authorize",
+		TokenEndpoint:                 issuer + "/token",
+		JWKSURI:                       jwksURI.String(),
+		ResponseTypesSupported:        []string{oauthResponseTypeCode},
+		ResponseModesSupported:        []string{"query"},
+		GrantTypesSupported:           []string{oauthGrantTypeAuthorizationCode},
+		CodeChallengeMethodsSupported: []string{pkceMethodS256},
+		TokenEndpointAuthMethodsSupported: []string{
+			"client_secret_basic",
+			"client_secret_post",
+			"none",
+		},
+	})
 }
 
 func requestNamespace(req *http.Request) (string, error) {
