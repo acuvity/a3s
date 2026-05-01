@@ -542,6 +542,10 @@
             },
             "type": "array"
           },
+          "authorizeRequestID": {
+            "description": "Optional OAuth authorize context identifier used when `/issue` is resuming\nan OAuth authorization flow.",
+            "type": "string"
+          },
           "claims": {
             "description": "The list of claims delivered in the token. This can be useful when the caller\nneeds to have information about the user when token is delivered as a secure\nhttpOnly cookie.",
             "items": {
@@ -1378,6 +1382,184 @@
           "clientSecret",
           "name",
           "provider"
+        ],
+        "type": "object"
+      },
+      "oauthapplication": {
+        "description": "An OAuth Application defines namespace-scoped OAuth behavior and policy used\nby client registrations.",
+        "properties": {
+          "ID": {
+            "description": "ID is the identifier of the object.",
+            "readOnly": true,
+            "type": "string"
+          },
+          "allowedSources": {
+            "description": "Optional list of allowed interactive authentication sources. If omitted or\nempty, any supported interactive source in the namespace is allowed. Each\nentry is an Elemental filter expression evaluated against the resolved\nsource object, such as its `name` and `namespace`.",
+            "example": [
+              "namespace == /my/ns and name == corp",
+              "namespace == /partner and name == login"
+            ],
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "audience": {
+            "description": "Audience to use for resulting a3s access tokens.",
+            "example": "my-app",
+            "type": "string"
+          },
+          "createTime": {
+            "description": "Creation date of the object.",
+            "format": "date-time",
+            "readOnly": true,
+            "type": "string"
+          },
+          "defaultScopes": {
+            "description": "Default scopes to use when a client does not request any scope.",
+            "example": [
+              "openid",
+              "profile"
+            ],
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "description": {
+            "description": "The description of the object.",
+            "type": "string"
+          },
+          "enabled": {
+            "default": true,
+            "description": "If false, the OAuth application cannot be used.",
+            "type": "boolean"
+          },
+          "importHash": {
+            "description": "The hash of the structure used to compare with new import version.",
+            "type": "string"
+          },
+          "importLabel": {
+            "description": "The user-defined import label that allows the system to group resources from the\nsame import operation.",
+            "type": "string"
+          },
+          "name": {
+            "description": "The name of the OAuth application.",
+            "example": "my-app",
+            "type": "string"
+          },
+          "namespace": {
+            "description": "The namespace of the object.",
+            "readOnly": true,
+            "type": "string"
+          },
+          "updateTime": {
+            "description": "Last update date of the object.",
+            "format": "date-time",
+            "readOnly": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "audience",
+          "name"
+        ],
+        "type": "object"
+      },
+      "oauthclient": {
+        "description": "An OAuth Client is a namespace-scoped client registration linked to an OAuth\napplication.",
+        "properties": {
+          "ID": {
+            "description": "ID is the identifier of the object.",
+            "readOnly": true,
+            "type": "string"
+          },
+          "clientID": {
+            "description": "Client identifier used in OAuth requests.",
+            "example": "my-client",
+            "type": "string"
+          },
+          "clientSecret": {
+            "description": "Client secret associated with the client ID.",
+            "example": "s3cr3t",
+            "type": "string"
+          },
+          "createTime": {
+            "description": "Creation date of the object.",
+            "format": "date-time",
+            "readOnly": true,
+            "type": "string"
+          },
+          "description": {
+            "description": "The description of the object.",
+            "type": "string"
+          },
+          "importHash": {
+            "description": "The hash of the structure used to compare with new import version.",
+            "type": "string"
+          },
+          "importLabel": {
+            "description": "The user-defined import label that allows the system to group resources from the\nsame import operation.",
+            "type": "string"
+          },
+          "namespace": {
+            "description": "The namespace of the object.",
+            "readOnly": true,
+            "type": "string"
+          },
+          "oauthApplicationID": {
+            "description": "Identifier of the referenced OAuth application.",
+            "example": "67f7b5f3f1f2d1c1b0a99887",
+            "type": "string"
+          },
+          "oauthApplicationNamespace": {
+            "description": "Namespace of the referenced OAuth application.",
+            "example": "/my/ns",
+            "type": "string"
+          },
+          "redirectURIs": {
+            "description": "List of allowed redirect URIs for the client.",
+            "example": [
+              "https://client.example.com/callback"
+            ],
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "scopes": {
+            "description": "Scopes allowed for the client.",
+            "example": [
+              "openid",
+              "profile"
+            ],
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "tokenEndpointAuthMethod": {
+            "description": "How the client authenticates to the token endpoint.",
+            "enum": [
+              "ClientSecretBasic",
+              "ClientSecretPost",
+              "None"
+            ],
+            "example": "ClientSecretBasic"
+          },
+          "updateTime": {
+            "description": "Last update date of the object.",
+            "format": "date-time",
+            "readOnly": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "clientID",
+          "oauthApplicationID",
+          "oauthApplicationNamespace",
+          "redirectURIs",
+          "tokenEndpointAuthMethod"
         ],
         "type": "object"
       },
@@ -3241,6 +3423,292 @@
         ]
       }
     },
+    "/oauthapplications": {
+      "get": {
+        "description": "Retrieves the list of oauthapplications.",
+        "operationId": "get-all-OAuthApplications",
+        "parameters": [
+          {
+            "description": "This is an example.",
+            "example": "hello == world",
+            "in": "query",
+            "name": "q",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/oauthapplication"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "n/a"
+          }
+        },
+        "tags": [
+          "authn/app"
+        ]
+      },
+      "post": {
+        "description": "Creates a new oauthapplication.",
+        "operationId": "create-OAuthApplication",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/oauthapplication"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/oauthapplication"
+                }
+              }
+            },
+            "description": "n/a"
+          }
+        },
+        "tags": [
+          "authn/app"
+        ]
+      }
+    },
+    "/oauthapplications/{id}": {
+      "delete": {
+        "description": "Delete a particular oauthapplication object.",
+        "operationId": "delete-OAuthApplication",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/oauthapplication"
+                }
+              }
+            },
+            "description": "n/a"
+          }
+        },
+        "tags": [
+          "authn/app"
+        ]
+      },
+      "get": {
+        "description": "Get a particular oauthapplication object.",
+        "operationId": "get-OAuthApplication",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/oauthapplication"
+                }
+              }
+            },
+            "description": "n/a"
+          }
+        },
+        "tags": [
+          "authn/app"
+        ]
+      },
+      "parameters": [
+        {
+          "in": "path",
+          "name": "id",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "put": {
+        "description": "Update a particular oauthapplication object.",
+        "operationId": "update-OAuthApplication",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/oauthapplication"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/oauthapplication"
+                }
+              }
+            },
+            "description": "n/a"
+          }
+        },
+        "tags": [
+          "authn/app"
+        ]
+      }
+    },
+    "/oauthclients": {
+      "get": {
+        "description": "Retrieves the list of oauthclients.",
+        "operationId": "get-all-OAuthClients",
+        "parameters": [
+          {
+            "description": "This is an example.",
+            "example": "hello == world",
+            "in": "query",
+            "name": "q",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/oauthclient"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "n/a"
+          }
+        },
+        "tags": [
+          "authn/app"
+        ]
+      },
+      "post": {
+        "description": "Creates a new oauthclient.",
+        "operationId": "create-OAuthClient",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/oauthclient"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/oauthclient"
+                }
+              }
+            },
+            "description": "n/a"
+          }
+        },
+        "tags": [
+          "authn/app"
+        ]
+      }
+    },
+    "/oauthclients/{id}": {
+      "delete": {
+        "description": "Delete a particular oauthclient object.",
+        "operationId": "delete-OAuthClient",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/oauthclient"
+                }
+              }
+            },
+            "description": "n/a"
+          }
+        },
+        "tags": [
+          "authn/app"
+        ]
+      },
+      "get": {
+        "description": "Get a particular oauthclient object.",
+        "operationId": "get-OAuthClient",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/oauthclient"
+                }
+              }
+            },
+            "description": "n/a"
+          }
+        },
+        "tags": [
+          "authn/app"
+        ]
+      },
+      "parameters": [
+        {
+          "in": "path",
+          "name": "id",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "put": {
+        "description": "Update a particular oauthclient object.",
+        "operationId": "update-OAuthClient",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/oauthclient"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/oauthclient"
+                }
+              }
+            },
+            "description": "n/a"
+          }
+        },
+        "tags": [
+          "authn/app"
+        ]
+      }
+    },
     "/oidcsources": {
       "get": {
         "description": "Retrieves the list of oidcsources.",
@@ -3750,6 +4218,10 @@
     }
   ],
   "tags": [
+    {
+      "description": "This tag is for group 'authn/app'",
+      "name": "authn/app"
+    },
     {
       "description": "This tag is for group 'authn/issue'",
       "name": "authn/issue"

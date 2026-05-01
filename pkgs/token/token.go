@@ -25,6 +25,14 @@ type Source struct {
 	Name      string `json:"name,omitempty"`
 }
 
+// An OAuthApplication represents the oauth application info
+// used to derive an IdentityToken.
+type OAuthApplication struct {
+	ID        string
+	Namespace string
+	Name      string
+}
+
 // An IdentityToken represents a normalized identity token.
 type IdentityToken struct {
 
@@ -44,6 +52,10 @@ type IdentityToken struct {
 	// Information relative to the autentication source used to
 	// validate bearer's Identity.
 	Source Source `json:"source"`
+
+	// Information relative to the oauth application used to
+	// mint bearer's token.
+	OAuthApplication OAuthApplication `json:"-"`
 
 	jwt.RegisteredClaims
 }
@@ -134,6 +146,12 @@ func finalizeTokenParsing(idt *IdentityToken) error {
 			idt.Source.Namespace = strings.TrimPrefix(c, "@source:namespace=")
 		case strings.HasPrefix(c, "@source:type="):
 			idt.Source.Type = strings.TrimPrefix(c, "@source:type=")
+		case strings.HasPrefix(c, "@oauthapp:id="):
+			idt.OAuthApplication.ID = strings.TrimPrefix(c, "@oauthapp:id=")
+		case strings.HasPrefix(c, "@oauthapp:namespace="):
+			idt.OAuthApplication.Namespace = strings.TrimPrefix(c, "@oauthapp:namespace=")
+		case strings.HasPrefix(c, "@oauthapp:name="):
+			idt.OAuthApplication.Name = strings.TrimPrefix(c, "@oauthapp:name=")
 		}
 	}
 
@@ -188,6 +206,18 @@ func (t *IdentityToken) JWT(key crypto.PrivateKey, kid string, issuer string, au
 
 	if t.Source.Name != "" {
 		t.Identity = append(t.Identity, fmt.Sprintf("@source:name=%s", t.Source.Name))
+	}
+
+	if t.OAuthApplication.ID != "" {
+		t.Identity = append(t.Identity, fmt.Sprintf("@oauthapp:id=%s", t.OAuthApplication.ID))
+	}
+
+	if t.OAuthApplication.Namespace != "" {
+		t.Identity = append(t.Identity, fmt.Sprintf("@oauthapp:namespace=%s", t.OAuthApplication.Namespace))
+	}
+
+	if t.OAuthApplication.Name != "" {
+		t.Identity = append(t.Identity, fmt.Sprintf("@oauthapp:name=%s", t.OAuthApplication.Name))
 	}
 
 	t.Identity = append(t.Identity, fmt.Sprintf("@issuer=%s", t.Issuer))

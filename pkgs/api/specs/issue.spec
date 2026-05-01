@@ -24,6 +24,15 @@ attributes:
     - https://mysecondapp
     omit_empty: true
 
+  - name: authorizeRequestID
+    friendly_name: AuthorizeRequestID
+    description: |-
+      Optional OAuth authorize context identifier used when `/issue` is resuming
+      an OAuth authorization flow.
+    type: string
+    exposed: true
+    omit_empty: true
+
   - name: claims
     friendly_name: Claims
     description: |-

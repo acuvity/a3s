@@ -213,6 +213,18 @@ func ValidateURL(attribute string, u string) error {
 	return nil
 }
 
+// ValidateURLList validates that every value in the list is a correct URL.
+func ValidateURLList(attribute string, values []string) error {
+
+	for i, value := range values {
+		if err := ValidateURL(fmt.Sprintf("%s[%d]", attribute, i), value); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 // ValidateMTLSSource validates the given MTLSSource.
 func ValidateMTLSSource(source *MTLSSource) error {
 

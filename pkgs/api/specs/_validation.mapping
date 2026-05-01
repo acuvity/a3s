@@ -49,3 +49,7 @@ $tags_expression:
 $url:
   elemental:
     name: ValidateURL
+
+$url_list:
+  elemental:
+    name: ValidateURLList

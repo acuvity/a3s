@@ -13,9 +13,10 @@ const collection = "oauth2cache"
 
 // CacheItem represents a cache OIDC request info.
 type CacheItem struct {
-	State        string        `bson:"state"`
-	OAuth2Config oauth2.Config `bson:"oauth2config"`
-	Time         time.Time     `bson:"time"`
+	State              string        `bson:"state"`
+	OAuth2Config       oauth2.Config `bson:"oauth2config"`
+	AuthorizeRequestID string        `bson:"authorizerequestid,omitempty"`
+	Time               time.Time     `bson:"time"`
 }
 
 // Set sets the given OIDCRequestItem in redis.

@@ -1,0 +1,159 @@
+{
+  "$extends": [
+    "@sharded",
+    "@identifiable",
+    "@importable",
+    "@timed"
+  ],
+  "$friendlyName": "OAuth Client",
+  "$friendlyNamePlural": "OAuth Clients",
+  "$modelName": "OAuthClient",
+  "$modelPackage": "a3s",
+  "$modelResourceName": "oauthclients",
+  "$modelRestName": "oauthclient",
+  "additionalProperties": false,
+  "description": "An OAuth Client is a namespace-scoped client registration linked to an OAuth application.",
+  "properties": {
+    "ID": {
+      "$friendlyName": "ID",
+      "$readOnly": true,
+      "description": "ID is the identifier of the object.",
+      "title": "ID",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "clientID": {
+      "$friendlyName": "Client ID",
+      "$required": true,
+      "description": "Client identifier used in OAuth requests.",
+      "title": "clientID",
+      "type": "string"
+    },
+    "clientSecret": {
+      "$friendlyName": "Client Secret",
+      "description": "Client secret associated with the client ID.",
+      "title": "clientSecret",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "createTime": {
+      "$friendlyName": "CreateTime",
+      "$readOnly": true,
+      "description": "Creation date of the object.",
+      "title": "createTime",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "description": {
+      "$friendlyName": "Description",
+      "description": "The description of the object.",
+      "title": "description",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "importHash": {
+      "$creationOnly": true,
+      "$friendlyName": "ImportHash",
+      "description": "The hash of the structure used to compare with new import version.",
+      "title": "importHash",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "importLabel": {
+      "$creationOnly": true,
+      "$friendlyName": "ImportLabel",
+      "description": "The user-defined import label that allows the system to group resources from the same import operation.",
+      "title": "importLabel",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "namespace": {
+      "$friendlyName": "Namespace",
+      "$readOnly": true,
+      "description": "The namespace of the object.",
+      "title": "namespace",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "oauthApplicationID": {
+      "$friendlyName": "OAuth Application ID",
+      "$required": true,
+      "description": "Identifier of the referenced OAuth application.",
+      "title": "oauthApplicationID",
+      "type": "string"
+    },
+    "oauthApplicationNamespace": {
+      "$friendlyName": "OAuth Application Namespace",
+      "$required": true,
+      "description": "Namespace of the referenced OAuth application.",
+      "title": "oauthApplicationNamespace",
+      "type": "string"
+    },
+    "redirectURIs": {
+      "$friendlyName": "Redirect URIs",
+      "$required": true,
+      "description": "List of allowed redirect URIs for the client.",
+      "items": {
+        "type": "string"
+      },
+      "title": "redirectURIs",
+      "type": "array"
+    },
+    "scopes": {
+      "$friendlyName": "Scopes",
+      "description": "Scopes allowed for the client.",
+      "items": {
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "title": "scopes",
+      "type": "array"
+    },
+    "tokenEndpointAuthMethod": {
+      "$friendlyName": "Token Endpoint Auth Method",
+      "$required": true,
+      "description": "How the client authenticates to the token endpoint.",
+      "enum": [
+        "ClientSecretBasic",
+        "ClientSecretPost",
+        "None"
+      ],
+      "title": "tokenEndpointAuthMethod"
+    },
+    "updateTime": {
+      "$friendlyName": "UpdateTime",
+      "$readOnly": true,
+      "description": "Last update date of the object.",
+      "title": "updateTime",
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  },
+  "required": [
+    "clientID",
+    "oauthApplicationID",
+    "oauthApplicationNamespace",
+    "redirectURIs",
+    "tokenEndpointAuthMethod"
+  ],
+  "title": "OAuthClient",
+  "type": "object"
+}

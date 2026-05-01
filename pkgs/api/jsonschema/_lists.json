@@ -162,6 +162,18 @@
       },
       "type": "array"
     },
+    "oauthapplications": {
+      "items": {
+        "$ref": "oauthapplication.json"
+      },
+      "type": "array"
+    },
+    "oauthclients": {
+      "items": {
+        "$ref": "oauthclient.json"
+      },
+      "type": "array"
+    },
     "oidcsources": {
       "items": {
         "$ref": "oidcsource.json"

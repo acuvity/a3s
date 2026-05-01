@@ -31,6 +31,7 @@ import (
 	"go.acuvity.ai/a3s/internal/issuer/samlissuer"
 	"go.acuvity.ai/a3s/internal/oauth2ceremony"
 	"go.acuvity.ai/a3s/internal/oauth2ceremony/oauth2provider"
+	"go.acuvity.ai/a3s/internal/oauthserver"
 	"go.acuvity.ai/a3s/internal/relaystate"
 	"go.acuvity.ai/a3s/internal/samlceremony"
 	"go.acuvity.ai/a3s/pkgs/api"
@@ -53,6 +54,7 @@ import (
 // A IssueProcessor is a bahamut processor for Issue.
 type IssueProcessor struct {
 	manipulator           manipulate.Manipulator
+	oauth                 *oauthserver.OAuth
 	pluginModifier        plugin.Modifier
 	binaryModifier        *binary.Modifier
 	jwks                  *token.JWKS
@@ -81,6 +83,7 @@ type IssueProcessor struct {
 func NewIssueProcessor(
 	manipulator manipulate.Manipulator,
 	jwks *token.JWKS,
+	oauth *oauthserver.OAuth,
 	defaultValidity time.Duration,
 	maxValidity time.Duration,
 	issuer string,
@@ -111,6 +114,7 @@ func NewIssueProcessor(
 
 	return &IssueProcessor{
 		manipulator:           manipulator,
+		oauth:                 oauth,
 		jwks:                  jwks,
 		defaultValidity:       defaultValidity,
 		maxValidity:           maxValidity,
@@ -142,6 +146,7 @@ func (p *IssueProcessor) ProcessCreate(bctx bahamut.Context) (err error) {
 	bctx.Request().Namespace = ""
 
 	req := bctx.InputData().(*api.Issue)
+	authorizeRequestID := req.AuthorizeRequestID
 
 	validity, _ := time.ParseDuration(req.Validity) // elemental already validated this
 
@@ -274,19 +279,19 @@ func (p *IssueProcessor) ProcessCreate(bctx bahamut.Context) (err error) {
 		issuer, err = p.handleRemoteA3SIssue(bctx.Context(), source, req)
 
 	case api.IssueSourceTypeOIDC:
-		issuer, err = p.handleOIDCIssue(bctx, source, req)
+		issuer, err = p.handleOIDCIssue(bctx, source, req, authorizeRequestID)
 		if issuer == nil && err == nil {
 			return nil
 		}
 
 	case api.IssueSourceTypeOAuth2:
-		issuer, err = p.handleOAuth2Issue(bctx, source, req)
+		issuer, err = p.handleOAuth2Issue(bctx, source, req, authorizeRequestID)
 		if issuer == nil && err == nil {
 			return nil
 		}
 
 	case api.IssueSourceTypeSAML:
-		issuer, err = p.handleSAMLIssue(bctx, source, req)
+		issuer, err = p.handleSAMLIssue(bctx, source, req, authorizeRequestID)
 		if issuer == nil && err == nil {
 			return nil
 		}
@@ -337,7 +342,29 @@ func (p *IssueProcessor) ProcessCreate(bctx bahamut.Context) (err error) {
 		}
 	}
 
+	var authorizeContext *oauthserver.AuthorizeContext
+	var oauthClient *api.OAuthClient
+	var oauthApplication *api.OAuthApplication
+
+	// Callback handlers may restore authorizeRequestID from cached ceremony state.
+	authorizeRequestID = req.AuthorizeRequestID
+	if authorizeRequestID != "" {
+		authorizeContext, oauthClient, oauthApplication, err = p.loadAuthorizeIssueContext(bctx.Context(), req, authorizeRequestID, source)
+		if err != nil {
+			return err
+		}
+	}
+
+	if oauthApplication != nil {
+		idt.OAuthApplication = token.OAuthApplication{
+			ID:        oauthApplication.ID,
+			Namespace: oauthApplication.Namespace,
+			Name:      oauthApplication.Name,
+		}
+	}
+
 	originalSource := idt.Source
+	originalOAuthApplication := idt.OAuthApplication
 	if p.pluginModifier != nil {
 		if idt, err = p.pluginModifier.Token(bctx.Context(), p.manipulator, idt, p.issuer); err != nil {
 			return fmt.Errorf("modifier: plugin: unable to run Token: %w", err)
@@ -350,6 +377,7 @@ func (p *IssueProcessor) ProcessCreate(bctx bahamut.Context) (err error) {
 		}
 	}
 	idt.Source = originalSource
+	idt.OAuthApplication = originalOAuthApplication
 
 	// tighten the requested expiry if the source provided an expiration
 	if idt.ExpiresAt != nil && !exp.IsZero() && idt.ExpiresAt.Before(exp) {
@@ -366,6 +394,17 @@ func (p *IssueProcessor) ProcessCreate(bctx bahamut.Context) (err error) {
 	idt.Identity = cleaned
 
 	k := p.jwks.GetLastWithPrivate()
+	if authorizeContext != nil {
+		if err := p.completeAuthorizeIssue(bctx, req, idt, authorizeContext, oauthClient, oauthApplication, exp); err != nil {
+			eerr := elemental.Error{}
+			if errors.As(err, &eerr) {
+				return eerr
+			}
+			return err
+		}
+		return nil
+	}
+
 	tkn, err := idt.JWT(k.PrivateKey(), k.KID, p.issuer, audience, exp, req.Cloak)
 	if err != nil {
 		return fmt.Errorf("unable to sign jwt: %w", err)
@@ -375,15 +414,7 @@ func (p *IssueProcessor) ProcessCreate(bctx bahamut.Context) (err error) {
 	req.WaiveValiditySecret = ""
 	req.ExpirationTime = idt.ExpiresAt.Time
 	req.Claims = idt.Identity
-	req.InputLDAP = nil
-	req.InputAWS = nil
-	req.InputAzure = nil
-	req.InputGCP = nil
-	req.InputOIDC = nil
-	req.InputA3S = nil
-	req.InputRemoteA3S = nil
-	req.InputOAuth2 = nil
-	req.InputSAML = nil
+	clearIssueCredentialInputs(req)
 
 	if req.Cookie {
 		domain := req.CookieDomain
@@ -523,7 +554,7 @@ func (p *IssueProcessor) handleRemoteA3SIssue(ctx context.Context, source elemen
 	return iss, nil
 }
 
-func (p *IssueProcessor) handleOIDCIssue(bctx bahamut.Context, source elemental.Identifiable, req *api.Issue) (token.Issuer, error) {
+func (p *IssueProcessor) handleOIDCIssue(bctx bahamut.Context, source elemental.Identifiable, req *api.Issue, authorizeRequestID string) (token.Issuer, error) {
 
 	input := req.InputOIDC
 	state := input.State
@@ -561,8 +592,9 @@ func (p *IssueProcessor) handleOIDCIssue(bctx bahamut.Context, source elemental.
 		}
 
 		cacheItem := &oauth2ceremony.CacheItem{
-			State:        state,
-			OAuth2Config: oauth2Config,
+			State:              state,
+			OAuth2Config:       oauth2Config,
+			AuthorizeRequestID: authorizeRequestID,
 		}
 
 		if err := oauth2ceremony.Set(p.manipulator, cacheItem); err != nil {
@@ -589,6 +621,7 @@ func (p *IssueProcessor) handleOIDCIssue(bctx bahamut.Context, source elemental.
 	if err := oauth2ceremony.Delete(p.manipulator, state); err != nil {
 		return nil, rerr(fmt.Errorf("unable to delete cached oidc state: %w", err))
 	}
+	req.AuthorizeRequestID = cached.AuthorizeRequestID
 
 	client, err := oauth2ceremony.MakeClient(src.CA)
 	if err != nil {
@@ -627,7 +660,7 @@ func (p *IssueProcessor) handleOIDCIssue(bctx bahamut.Context, source elemental.
 	return oidcissuer.New(bctx.Context(), src, claims, p.requestMaker)
 }
 
-func (p *IssueProcessor) handleOAuth2Issue(bctx bahamut.Context, source elemental.Identifiable, req *api.Issue) (token.Issuer, error) {
+func (p *IssueProcessor) handleOAuth2Issue(bctx bahamut.Context, source elemental.Identifiable, req *api.Issue, authorizeRequestID string) (token.Issuer, error) {
 
 	input := req.InputOAuth2
 	state := input.State
@@ -662,8 +695,9 @@ func (p *IssueProcessor) handleOAuth2Issue(bctx bahamut.Context, source elementa
 		}
 
 		cacheItem := &oauth2ceremony.CacheItem{
-			State:        state,
-			OAuth2Config: conf,
+			State:              state,
+			OAuth2Config:       conf,
+			AuthorizeRequestID: authorizeRequestID,
 		}
 
 		if err := oauth2ceremony.Set(p.manipulator, cacheItem); err != nil {
@@ -696,6 +730,7 @@ func (p *IssueProcessor) handleOAuth2Issue(bctx bahamut.Context, source elementa
 		}
 
 		conf = cached.OAuth2Config
+		req.AuthorizeRequestID = cached.AuthorizeRequestID
 
 	} else {
 
@@ -730,7 +765,7 @@ func (p *IssueProcessor) handleOAuth2Issue(bctx bahamut.Context, source elementa
 	return oauth2issuer.New(bctx.Context(), src, claims, p.requestMaker)
 }
 
-func (p *IssueProcessor) handleSAMLIssue(bctx bahamut.Context, source elemental.Identifiable, req *api.Issue) (token.Issuer, error) {
+func (p *IssueProcessor) handleSAMLIssue(bctx bahamut.Context, source elemental.Identifiable, req *api.Issue, authorizeRequestID string) (token.Issuer, error) {
 
 	input := req.InputSAML
 
@@ -779,8 +814,9 @@ func (p *IssueProcessor) handleSAMLIssue(bctx bahamut.Context, source elemental.
 		}
 
 		cacheItem := &samlceremony.CacheItem{
-			State:  state,
-			ACSURL: sp.AssertionConsumerServiceURL,
+			State:              state,
+			ACSURL:             sp.AssertionConsumerServiceURL,
+			AuthorizeRequestID: authorizeRequestID,
 		}
 
 		if err := samlceremony.Set(p.manipulator, cacheItem); err != nil {
@@ -812,6 +848,7 @@ func (p *IssueProcessor) handleSAMLIssue(bctx bahamut.Context, source elemental.
 		}
 
 		ACSURL = item.ACSURL
+		req.AuthorizeRequestID = item.AuthorizeRequestID
 	}
 
 	audienceURI := src.AudienceURI
@@ -942,6 +979,144 @@ func identityFromType(srcType api.IssueSourceTypeValue) elemental.Identity {
 	}
 
 	return elemental.Identity{}
+}
+
+func (p *IssueProcessor) loadAuthorizeIssueContext(
+	ctx context.Context,
+	req *api.Issue,
+	authorizeRequestID string,
+	source elemental.Identifiable,
+) (*oauthserver.AuthorizeContext, *api.OAuthClient, *api.OAuthApplication, error) {
+	authorizeContext, oauthClient, oauthApplication, err := p.oauth.LoadAuthorizeContext(ctx, authorizeRequestID)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+	if err := validateAuthorizeIssueSource(req, source, oauthApplication); err != nil {
+		return nil, nil, nil, err
+	}
+
+	return authorizeContext, oauthClient, oauthApplication, nil
+}
+
+func validateAuthorizeIssueSource(req *api.Issue, source elemental.Identifiable, app *api.OAuthApplication) error {
+	switch req.SourceType {
+	case api.IssueSourceTypeMTLS, api.IssueSourceTypeOIDC, api.IssueSourceTypeOAuth2, api.IssueSourceTypeSAML:
+	default:
+		return elemental.NewError(
+			"Bad Request",
+			"authorizeRequestID only supports MTLS, OIDC, OAuth2, or SAML sources",
+			"a3s:authn",
+			http.StatusBadRequest,
+		)
+	}
+
+	if len(app.AllowedSources) == 0 {
+		return nil
+	}
+
+	if source == nil {
+		return elemental.NewError(
+			"Internal Server Error",
+			"unable to load source for attribute-based matching",
+			"a3s:authn",
+			http.StatusInternalServerError,
+		)
+	}
+
+	attrSource, ok := source.(elemental.AttributeSpecifiable)
+	if !ok {
+		return elemental.NewError(
+			"Internal Server Error",
+			fmt.Sprintf("source %T does not support attribute-based matching", source),
+			"a3s:authn",
+			http.StatusInternalServerError,
+		)
+	}
+
+	for _, allowed := range app.AllowedSources {
+		filter, err := elemental.NewFilterFromString(allowed)
+		if err != nil {
+			return elemental.NewError(
+				"Internal Server Error",
+				fmt.Sprintf("invalid allowedSources filter %q on oauth application %q: %v", allowed, app.Name, err),
+				"a3s:authn",
+				http.StatusInternalServerError,
+			)
+		}
+
+		matched, err := elemental.MatchesFilter(attrSource, filter)
+		if err != nil {
+			return elemental.NewError(
+				"Internal Server Error",
+				fmt.Sprintf("unable to evaluate allowedSources filter %q on oauth application %q: %v", allowed, app.Name, err),
+				"a3s:authn",
+				http.StatusInternalServerError,
+			)
+		}
+		if matched {
+			return nil
+		}
+	}
+
+	return elemental.NewError(
+		"Forbidden",
+		fmt.Sprintf("source %q/%q is not allowed for oauth application %q", req.SourceNamespace, req.SourceName, app.Name),
+		"a3s:authn",
+		http.StatusForbidden,
+	)
+}
+
+func (p *IssueProcessor) completeAuthorizeIssue(
+	bctx bahamut.Context,
+	req *api.Issue,
+	idt *token.IdentityToken,
+	authorizeContext *oauthserver.AuthorizeContext,
+	oauthClient *api.OAuthClient,
+	oauthApplication *api.OAuthApplication,
+	exp time.Time,
+) error {
+	idt.ExpiresAt = jwt.NewNumericDate(exp)
+
+	redirectURL, err := p.oauth.CompleteAuthorize(
+		idt,
+		authorizeContext,
+		oauthClient,
+		oauthApplication,
+	)
+	if err != nil {
+		return elemental.NewError(
+			"Internal Server Error",
+			"unable to complete authorization",
+			"a3s:authn",
+			http.StatusInternalServerError,
+		)
+	}
+
+	req.Token = ""
+	req.Claims = append([]string{}, idt.Identity...)
+	req.Audience = []string{oauthApplication.Audience}
+	req.ExpirationTime = time.Time{}
+	req.Validity = ""
+	if req.Opaque == nil {
+		req.Opaque = map[string]string{}
+	}
+	clearIssueCredentialInputs(req)
+	req.Opaque["redirectURL"] = redirectURL
+	bctx.SetOutputData(req)
+	return nil
+}
+
+func clearIssueCredentialInputs(req *api.Issue) {
+	req.WaiveValiditySecret = ""
+	req.InputLDAP = nil
+	req.InputAWS = nil
+	req.InputAzure = nil
+	req.InputGCP = nil
+	req.InputOIDC = nil
+	req.InputA3S = nil
+	req.InputRemoteA3S = nil
+	req.InputOAuth2 = nil
+	req.InputSAML = nil
 }
 
 func (p *IssueProcessor) extractCertificate(tlsState *tls.ConnectionState, tlsHeader string, bypassTLSState bool) ([]*x509.Certificate, error) {
