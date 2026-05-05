@@ -536,28 +536,27 @@ func main() {
 
 	slog.Info("IDP event based revocation grace period set", "period", cfg.IDPGracePeriod)
 
-	var entraSyncer *entra.Syncer
-	var redisLocker *redislock.Client
-	if cfg.RedisAddress != "" {
-		slog.Info("Redis configured", "addr", cfg.RedisAddress, "db", cfg.RedisDB, "user", cfg.RedisUser)
-
-		redisClient, err := bootstrap.MakeRedisClient(cfg.RedisConf)
-		if err != nil {
-			slog.Info("Unable to connect to redis", err)
-			os.Exit(1)
-		}
-
-		redisLocker = redislock.New(redisClient)
-
-		entraSyncer = entra.NewSyncer(m, pubsub, redisLocker, entraManager, entraNotifHook)
-		entraSyncer.Start(ctx)
-		slog.Info("Entra notification endpoint configured",
-			"endpoint", entraNotifHook,
-			"quiet-time", cfg.EntraQuietTime,
-		)
-	} else {
-		slog.Warn("No redis configuration. Entra syncer is disabled.")
+	if cfg.RedisAddress == "" {
+		slog.Error("No redis configuration. Redis is required")
+		os.Exit(1)
 	}
+
+	slog.Info("Redis configured", "addr", cfg.RedisAddress, "db", cfg.RedisDB, "user", cfg.RedisUser)
+
+	redisClient, err := bootstrap.MakeRedisClient(cfg.RedisConf)
+	if err != nil {
+		slog.Info("Unable to connect to redis", err)
+		os.Exit(1)
+	}
+
+	redisLocker := redislock.New(redisClient)
+
+	entraSyncer := entra.NewSyncer(m, pubsub, redisLocker, entraManager, entraNotifHook)
+	entraSyncer.Start(ctx)
+	slog.Info("Entra notification endpoint configured",
+		"endpoint", entraNotifHook,
+		"quiet-time", cfg.EntraQuietTime,
+	)
 
 	bahamut.RegisterProcessorOrDie(server,
 		processors.NewIssueProcessor( // nolint
