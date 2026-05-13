@@ -404,6 +404,11 @@ func TestHandleFederatedToken(t *testing.T) {
 
 			var called int
 			ts := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+				if req.URL.Path != "/.well-known/jwks.json" {
+					http.NotFound(w, req)
+					return
+				}
+
 				called++
 				j := token.NewJWKS()
 				j.Append(c2) // nolint

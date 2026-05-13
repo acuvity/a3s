@@ -257,4 +257,98 @@ func TestJWKSFromTokenIssuer(t *testing.T) {
 			So(jwks.Keys[0].y, ShouldHaveSameTypeAs, big.NewInt(42))
 		})
 	})
+
+	Convey("given an issuer with RFC 8414 metadata", t, func() {
+
+		var serverURL string
+		ts := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+			switch req.URL.Path {
+			case "/.well-known/oauth-authorization-server/oauth/team":
+				_ = json.NewEncoder(w).Encode(map[string]string{
+					"issuer":   serverURL + "/oauth/team",
+					"jwks_uri": serverURL + "/jwks",
+				})
+			case "/jwks":
+				j := NewJWKS()
+				j.Keys = []*JWKSKey{
+					{
+						KID: "kid",
+						X:   "vs1LjF38O2OOSmy0Nbo45zfroQ1ME7GLuZ69uuiCOkk",
+						Y:   "vs1LjF38O2OOSmy0Nbo45zfroQ1ME7GLuZ69uuiCOkk",
+					},
+				}
+				d, _ := json.Marshal(j)
+				w.Write(d) // nolint
+			default:
+				http.NotFound(w, req)
+			}
+		}))
+		serverURL = ts.URL
+
+		idt := &IdentityToken{
+			RegisteredClaims: jwt.RegisteredClaims{
+				Issuer: ts.URL + "/oauth/team",
+			},
+		}
+
+		jwks, err := JWKSFromTokenIssuer(
+			context.Background(),
+			idt,
+			&tls.Config{
+				MinVersion:         tls.VersionTLS13,
+				InsecureSkipVerify: true, // nolint
+			},
+		)
+
+		So(err, ShouldBeNil)
+		So(len(jwks.Keys), ShouldEqual, 1)
+	})
+
+	Convey("given an issuer without metadata, fallback should use root well-known jwks", t, func() {
+
+		var requestedPaths []string
+		ts := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+			requestedPaths = append(requestedPaths, req.URL.Path)
+
+			switch req.URL.Path {
+			case "/.well-known/oauth-authorization-server/oauth/team":
+				http.NotFound(w, req)
+			case "/.well-known/jwks.json":
+				j := NewJWKS()
+				j.Keys = []*JWKSKey{
+					{
+						KID: "kid",
+						X:   "vs1LjF38O2OOSmy0Nbo45zfroQ1ME7GLuZ69uuiCOkk",
+						Y:   "vs1LjF38O2OOSmy0Nbo45zfroQ1ME7GLuZ69uuiCOkk",
+					},
+				}
+				d, _ := json.Marshal(j)
+				w.Write(d) // nolint
+			default:
+				http.NotFound(w, req)
+			}
+		}))
+
+		idt := &IdentityToken{
+			RegisteredClaims: jwt.RegisteredClaims{
+				Issuer: ts.URL + "/oauth/team",
+			},
+		}
+
+		jwks, err := JWKSFromTokenIssuer(
+			context.Background(),
+			idt,
+			&tls.Config{
+				MinVersion:         tls.VersionTLS13,
+				InsecureSkipVerify: true, // nolint
+			},
+		)
+
+		So(err, ShouldBeNil)
+		So(len(jwks.Keys), ShouldEqual, 1)
+		So(requestedPaths, ShouldResemble, []string{
+			"/.well-known/oauth-authorization-server/oauth/team",
+			"/.well-known/jwks.json",
+		})
+	})
 }

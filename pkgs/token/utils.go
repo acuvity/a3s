@@ -5,8 +5,10 @@ import (
 	"crypto/sha256"
 	"crypto/tls"
 	"crypto/x509"
+	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
 	"strings"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -81,16 +83,24 @@ func Fingerprint(cert *x509.Certificate) string {
 func JWKSFromTokenIssuer(ctx context.Context, idt *IdentityToken, tlsConfig *tls.Config) (*JWKS, error) {
 
 	wellKnownSuffix := ".well-known/jwks.json"
-
-	endpoint := idt.Issuer
-	if !strings.HasSuffix(endpoint, wellKnownSuffix) {
-		endpoint = fmt.Sprintf("%s/%s", strings.TrimRight(endpoint, "/"), wellKnownSuffix)
-	}
-
 	client := &http.Client{
 		Transport: &http.Transport{
 			TLSClientConfig: tlsConfig,
 		},
+	}
+
+	endpoint := idt.Issuer
+	if !strings.HasSuffix(endpoint, wellKnownSuffix) {
+		if discovered, err := oauthJWKSURL(ctx, endpoint, client); err == nil {
+			endpoint = discovered
+		} else {
+			u, err := url.Parse(endpoint)
+			if err != nil {
+				return nil, fmt.Errorf("unable to parse issuer url: %w", err)
+			}
+			u.Path = wellKnownSuffix
+			endpoint = u.String()
+		}
 	}
 
 	jwks, err := NewRemoteJWKS(ctx, client, endpoint)
@@ -99,6 +109,50 @@ func JWKSFromTokenIssuer(ctx context.Context, idt *IdentityToken, tlsConfig *tls
 	}
 
 	return jwks, nil
+}
+
+func oauthJWKSURL(ctx context.Context, issuer string, client *http.Client) (string, error) {
+
+	u, err := url.Parse(issuer)
+	if err != nil {
+		return "", err
+	}
+
+	u.Path = "/.well-known/oauth-authorization-server" + u.EscapedPath()
+	u.RawPath = ""
+	u.RawQuery = ""
+	u.Fragment = ""
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, u.String(), nil)
+	if err != nil {
+		return "", err
+	}
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close() // nolint
+
+	if resp.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("invalid status code: %s", resp.Status)
+	}
+
+	var metadata struct {
+		Issuer  string `json:"issuer"`
+		JWKSURI string `json:"jwks_uri"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&metadata); err != nil {
+		return "", err
+	}
+	if metadata.Issuer != issuer {
+		return "", fmt.Errorf("invalid issuer %q", metadata.Issuer)
+	}
+	if metadata.JWKSURI == "" {
+		return "", fmt.Errorf("missing jwks_uri")
+	}
+
+	return metadata.JWKSURI, nil
 }
 
 func makeKeyFunc(keychain *JWKS) jwt.Keyfunc {
