@@ -197,6 +197,10 @@ func ValidateIssue(iss *Issue) error {
 // ValidateURL validates the given value is a correct url.
 func ValidateURL(attribute string, u string) error {
 
+	if len(u) == 0 {
+		return nil
+	}
+
 	uu, err := url.Parse(u)
 	if err != nil {
 		return makeErr(attribute, fmt.Sprintf("invalid url: %s", err))

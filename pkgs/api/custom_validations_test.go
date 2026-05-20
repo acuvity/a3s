@@ -1201,6 +1201,17 @@ func TestValidateURL(t *testing.T) {
 			true,
 			nil,
 		},
+		{
+			"empty",
+			func(t *testing.T) args {
+				return args{
+					"attr",
+					"",
+				}
+			},
+			false,
+			nil,
+		},
 	}
 
 	for _, tt := range tests {
