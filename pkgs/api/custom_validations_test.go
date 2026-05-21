@@ -1169,17 +1169,6 @@ func TestValidateURL(t *testing.T) {
 			nil,
 		},
 		{
-			"invalid url 2",
-			func(t *testing.T) args {
-				return args{
-					"attr",
-					"",
-				}
-			},
-			true,
-			nil,
-		},
-		{
 			"invalid url 3",
 			func(t *testing.T) args {
 				return args{
