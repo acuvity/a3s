@@ -867,7 +867,7 @@ func (p *IssueProcessor) handleSAMLIssue(bctx bahamut.Context, source elemental.
 	if len(src.IDPCertificate) > 0 {
 		certs, err := tglib.ParseCertificates([]byte(src.IDPCertificate))
 		if err != nil {
-			return nil, fmt.Errorf("unable to parse IDP certificates: %w", err)
+			return nil, fmt.Errorf("unable to parse SAML IDP certificates: %w", err)
 		}
 		sp.IDPCertificateStore = &dsig.MemoryX509CertificateStore{Roots: certs}
 	}
@@ -878,19 +878,19 @@ func (p *IssueProcessor) handleSAMLIssue(bctx bahamut.Context, source elemental.
 	}
 
 	if assertionInfo.WarningInfo.InvalidTime {
-		return nil, rerr(elemental.NewError("Forbidden", "Invalid assertion time", "a3s", http.StatusForbidden))
+		return nil, rerr(elemental.NewError("Forbidden", "Invalid SAML assertion time", "a3s", http.StatusForbidden))
 	}
 
 	if assertionInfo.WarningInfo.OneTimeUse {
-		return nil, rerr(elemental.NewError("Forbidden", "Invalid one time use", "a3s", http.StatusForbidden))
+		return nil, rerr(elemental.NewError("Forbidden", "Invalid SAML one time use", "a3s", http.StatusForbidden))
 	}
 
 	if !src.SkipResponseSignatureCheck && !assertionInfo.ResponseSignatureValidated {
-		return nil, rerr(elemental.NewError("Forbidden", "Invalid response signature", "a3s", http.StatusForbidden))
+		return nil, rerr(elemental.NewError("Forbidden", "Invalid SAML response signature", "a3s", http.StatusForbidden))
 	}
 
 	if assertionInfo.WarningInfo.NotInAudience {
-		return nil, rerr(elemental.NewError("Forbidden", "Invalid audience", "a3s", http.StatusForbidden))
+		return nil, rerr(elemental.NewError("Forbidden", "Invalid SAML audience", "a3s", http.StatusForbidden))
 	}
 
 	return samlissuer.New(bctx.Context(), src, assertionInfo, p.requestMaker)
