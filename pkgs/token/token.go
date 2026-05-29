@@ -55,7 +55,7 @@ type IdentityToken struct {
 
 	// Information relative to the oauth application used to
 	// mint bearer's token.
-	OAuthApplication OAuthApplication `json:"oauthapplication,omitempty"`
+	OAuthApplication OAuthApplication `json:"oauthapplication,omitempty,omitzero"`
 
 	jwt.RegisteredClaims
 }
