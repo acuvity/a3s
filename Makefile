@@ -111,7 +111,7 @@ package_ca_certs:
 
 remod:
 	go get go.acuvity.ai/tg@master
-	go get go.acuvity.ai/wsc@master
+	go get go.acuvity.ai/wsc@v1.0.0
 	go get go.acuvity.ai/regolithe@master
 	go get go.acuvity.ai/elemental@master
 	go get go.acuvity.ai/manipulate@master
