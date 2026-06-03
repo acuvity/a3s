@@ -68,7 +68,7 @@ func ConfigureBahamut(
 
 	tlscfg, err := TLSConfig(autoConf, staticConf)
 	if err != nil {
-		slog.Error("Unable to configure tls", err)
+		slog.Error("Unable to configure tls", "error", err)
 		os.Exit(1)
 	}
 
@@ -203,7 +203,7 @@ func MakeBahamutGatewayNotifier(
 	if len(c.GWPerAPIRateLimit) > 0 {
 		rls, err := c.PerAPILimits(apiManager)
 		if err != nil {
-			slog.Error("Unable to configure per api rate limiters", err)
+			slog.Error("Unable to configure per api rate limiters", "error", err)
 			os.Exit(1)
 		}
 
