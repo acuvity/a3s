@@ -14,7 +14,7 @@ func ConfigureMaxProc(overrideMax int) {
 
 	if overrideMax == 0 {
 		if _, err := maxprocs.Set(maxprocs.Logger(func(msg string, args ...any) {})); err != nil {
-			slog.Error("Unable to set automaxprocs", err)
+			slog.Error("Unable to set automaxprocs", "error", err)
 			os.Exit(1)
 		}
 	} else {

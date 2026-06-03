@@ -38,7 +38,7 @@ func MakeNATSClient(cfg conf.NATSConf) bahamut.PubSubClient {
 
 	tlscfg, err := cfg.TLSConfig()
 	if err != nil {
-		slog.Error("Unable to prepare TLS config for nats", err)
+		slog.Error("Unable to prepare TLS config for nats", "error", err)
 		os.Exit(1)
 	}
 
@@ -52,7 +52,7 @@ func MakeNATSClient(cfg conf.NATSConf) bahamut.PubSubClient {
 	defer cancel()
 
 	if err := pubsub.Connect(ctx); err != nil {
-		slog.Error("Could not connect to nats", err)
+		slog.Error("Could not connect to nats", "error", err)
 		os.Exit(1)
 	}
 
@@ -94,7 +94,7 @@ func MakeMongoManipulator(cfg conf.MongoConf, hasher sharder.Hasher, model eleme
 					"try", info.Try(),
 					"operation", string(info.Operation),
 					"identity", info.Identity.Name,
-					info.Err(),
+					"error", info.Err(),
 				)
 				return nil
 			}),
@@ -111,7 +111,7 @@ func MakeMongoManipulator(cfg conf.MongoConf, hasher sharder.Hasher, model eleme
 
 	tlscfg, err := cfg.TLSConfig()
 	if err != nil {
-		slog.Error("Unable to prepare TLS config for mongodb", err)
+		slog.Error("Unable to prepare TLS config for mongodb", "error", err)
 		os.Exit(1)
 	}
 
@@ -122,7 +122,7 @@ func MakeMongoManipulator(cfg conf.MongoConf, hasher sharder.Hasher, model eleme
 	if cfg.MongoAttrEncryptKey != "" {
 		encrypter, err := elemental.NewAESAttributeEncrypter(cfg.MongoAttrEncryptKey)
 		if err != nil {
-			slog.Error("Unable to create mongodb attribute encrypter", err)
+			slog.Error("Unable to create mongodb attribute encrypter", "error", err)
 			os.Exit(1)
 		}
 		opts = append(opts, manipmongo.OptionAttributeEncrypter(encrypter))
@@ -133,7 +133,7 @@ func MakeMongoManipulator(cfg conf.MongoConf, hasher sharder.Hasher, model eleme
 
 	m, err := manipmongo.New(cfg.MongoURL, cfg.MongoDBName, opts...)
 	if err != nil {
-		slog.Error("Unable to connect to mongo", err)
+		slog.Error("Unable to connect to mongo", "error", err)
 		os.Exit(1)
 	}
 
@@ -187,7 +187,7 @@ func MakeA3SManipulator(ctx context.Context, a3sConfig conf.A3SClientConf) (mani
 				"try", info.Try(),
 				"method", info.Method,
 				"url", info.URL,
-				info.Err(),
+				"error", info.Err(),
 			)
 			return nil
 		}),

@@ -111,11 +111,18 @@ func TestConfigureBahamutWithOptionalSettings(t *testing.T) {
 }
 
 func TestMakeBahamutGatewayNotifier(t *testing.T) {
-	if opts := MakeBahamutGatewayNotifier(context.Background(), testPubSubClient{}, "a3s", "", "127.0.0.1:8443"); opts != nil {
+	if opts := MakeBahamutGatewayNotifier(context.Background(), testPubSubClient{}, "a3s", nil, struct{ conf.GatewayConf }{
+		GatewayConf: conf.GatewayConf{GWAnnouncedAddress: "127.0.0.1:8443"},
+	}); opts != nil {
 		t.Fatalf("expected no notifier options when no topic is configured")
 	}
 
-	opts := MakeBahamutGatewayNotifier(context.Background(), testPubSubClient{}, "a3s", "gateway.topic", "127.0.0.1:8443")
+	opts := MakeBahamutGatewayNotifier(context.Background(), testPubSubClient{}, "a3s", nil, struct{ conf.GatewayConf }{
+		GatewayConf: conf.GatewayConf{
+			GWAnnouncedAddress: "127.0.0.1:8443",
+			GWTopic:            "gateway.topic",
+		},
+	})
 	if len(opts) != 2 {
 		t.Fatalf("expected 2 notifier options, got %d", len(opts))
 	}
