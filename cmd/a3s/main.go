@@ -101,23 +101,8 @@ func main() {
 		os.Exit(1)
 	}
 
-	if err := manipmongo.EnsureIndex(m, elemental.MakeIdentity("oauth2cache", "oauth2cache"), ttlIndexModel("time", "index_expiration_exp", time.Minute)); err != nil {
-		slog.Error("Unable to create exp expiration index for oauth2cache", err)
-		os.Exit(1)
-	}
-
-	if err := manipmongo.EnsureIndex(m, elemental.MakeIdentity("samlcache", "samlcache"), ttlIndexModel("time", "index_expiration_exp", time.Minute)); err != nil {
-		slog.Error("Unable to create exp expiration index for samlcache", err)
-		os.Exit(1)
-	}
-
-	if err := manipmongo.EnsureIndex(m, api.NamespaceDeletionRecordIdentity, ttlIndexModel("deletetime", "index_expiration_deletetime", 24*time.Hour)); err != nil {
-		slog.Error("Unable to create expiration index for namesapce deletion records", err)
-		os.Exit(1)
-	}
-
-	if err := manipmongo.EnsureIndex(m, api.RevocationIdentity, ttlIndexModel("expiration", "index_revocation_expiration", time.Minute)); err != nil {
-		slog.Error("Unable to create revocation expiration index for expiration", err)
+	if err := ensureA3STTLIndexes(m); err != nil {
+		slog.Error(err.Error(), "error", err)
 		os.Exit(1)
 	}
 
@@ -635,6 +620,49 @@ func main() {
 	server.Run(ctx)
 }
 
+type ttlIndexSpec struct {
+	identity elemental.Identity
+	field    string
+	name     string
+	ttl      time.Duration
+	message  string
+}
+
+type ensureIndexFunc func(manipulate.Manipulator, elemental.Identity, ...mongo.IndexModel) error
+
+func a3sTTLIndexSpecs() []ttlIndexSpec {
+	return []ttlIndexSpec{
+		{
+			identity: elemental.MakeIdentity("oauth2cache", "oauth2cache"),
+			field:    "time",
+			name:     "index_expiration_exp",
+			ttl:      time.Minute,
+			message:  "unable to create exp expiration index for oauth2cache",
+		},
+		{
+			identity: elemental.MakeIdentity("samlcache", "samlcache"),
+			field:    "time",
+			name:     "index_expiration_exp",
+			ttl:      time.Minute,
+			message:  "unable to create exp expiration index for samlcache",
+		},
+		{
+			identity: api.NamespaceDeletionRecordIdentity,
+			field:    "deletetime",
+			name:     "index_expiration_deletetime",
+			ttl:      24 * time.Hour,
+			message:  "unable to create expiration index for namespace deletion records",
+		},
+		{
+			identity: api.RevocationIdentity,
+			field:    "expiration",
+			name:     "index_revocation_expiration",
+			ttl:      time.Minute,
+			message:  "unable to create revocation expiration index for expiration",
+		},
+	}
+}
+
 func ttlIndexModel(field, name string, ttl time.Duration) mongo.IndexModel {
 	opts := mongooptions.Index().SetName(name).SetExpireAfterSeconds(int32(ttl.Seconds()))
 	return mongo.IndexModel{
@@ -643,20 +671,64 @@ func ttlIndexModel(field, name string, ttl time.Duration) mongo.IndexModel {
 	}
 }
 
-func upsertMongoUser(ctx context.Context, db *mongo.Database, username string, roles bson.A) error {
-	var info struct {
-		Users []bson.M `bson:"users"`
+func ensureA3STTLIndexes(m manipulate.Manipulator) error {
+	return ensureTTLIndexes(m, a3sTTLIndexSpecs(), manipmongo.EnsureIndex)
+}
+
+func ensureTTLIndexes(m manipulate.Manipulator, specs []ttlIndexSpec, ensure ensureIndexFunc) error {
+	for _, spec := range specs {
+		if err := ensure(m, spec.identity, ttlIndexModel(spec.field, spec.name, spec.ttl)); err != nil {
+			return fmt.Errorf("%s: %w", spec.message, err)
+		}
 	}
-	if err := db.RunCommand(ctx, bson.D{{Key: "usersInfo", Value: username}}).Decode(&info); err != nil {
+	return nil
+}
+
+type mongoUsersInfo struct {
+	Users []bson.M `bson:"users"`
+}
+
+type mongoCommandRunner func(command bson.D, out any) error
+
+func finishMongoCommand(result *mongo.SingleResult, out any) error {
+	if out != nil {
+		return result.Decode(out)
+	}
+	return result.Err()
+}
+
+func runMongoCommand(ctx context.Context, db *mongo.Database, command bson.D, out any) error {
+	return finishMongoCommand(db.RunCommand(ctx, command), out)
+}
+
+func mongoUserCommand(username string, roles bson.A, existingUsers []bson.M) bson.D {
+	operation := "createUser"
+	if len(existingUsers) > 0 {
+		operation = "updateUser"
+	}
+	return bson.D{{Key: operation, Value: username}, {Key: "roles", Value: roles}}
+}
+
+func mongoAccountRoles() bson.A {
+	return bson.A{
+		bson.D{{Key: "role", Value: "readWrite"}, {Key: "db", Value: "a3s"}},
+		bson.D{{Key: "role", Value: "dbAdmin"}, {Key: "db", Value: "a3s"}},
+	}
+}
+
+func upsertMongoUserWithRunner(username string, roles bson.A, run mongoCommandRunner) error {
+	info := mongoUsersInfo{}
+	if err := run(bson.D{{Key: "usersInfo", Value: username}}, &info); err != nil {
 		return err
 	}
 
-	command := bson.D{{Key: "createUser", Value: username}, {Key: "roles", Value: roles}}
-	if len(info.Users) > 0 {
-		command = bson.D{{Key: "updateUser", Value: username}, {Key: "roles", Value: roles}}
-	}
+	return run(mongoUserCommand(username, roles, info.Users), nil)
+}
 
-	return db.RunCommand(ctx, command).Err()
+func upsertMongoUser(ctx context.Context, db *mongo.Database, username string, roles bson.A) error {
+	return upsertMongoUserWithRunner(username, roles, func(command bson.D, out any) error {
+		return runMongoCommand(ctx, db, command, out)
+	})
 }
 
 func createMongoDBAccount(cfg conf.MongoConf, username string) error {
@@ -671,10 +743,7 @@ func createMongoDBAccount(cfg conf.MongoConf, username string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
-	roles := bson.A{
-		bson.D{{Key: "role", Value: "readWrite"}, {Key: "db", Value: "a3s"}},
-		bson.D{{Key: "role", Value: "dbAdmin"}, {Key: "db", Value: "a3s"}},
-	}
+	roles := mongoAccountRoles()
 	if err := upsertMongoUser(ctx, db, username, roles); err != nil {
 		return fmt.Errorf("unable to upsert the user: %w", err)
 	}

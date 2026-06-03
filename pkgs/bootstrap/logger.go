@@ -21,7 +21,7 @@ func ConfigureLogger(serviceName string, cfg conf.LoggingConf) CloseRecorderHand
 
 	f, err := ConfigureTracerWithURL(cfg.LogTracerURL, serviceName)
 	if err != nil {
-		slog.Warn("Unable to configure the OpenTracing", "error", err)
+		slog.Warn("Unable to configure the OpenTracing", err)
 	}
 
 	if f != nil {
