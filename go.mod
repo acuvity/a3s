@@ -5,7 +5,7 @@ go 1.26.1
 require (
 	go.acuvity.ai/bahamut v0.0.0-20260601180028-45123d5deb0b
 	go.acuvity.ai/elemental v0.0.0-20260601175251-78f998107f34
-	go.acuvity.ai/manipulate v0.0.0-20260404025536-218778f7999d
+	go.acuvity.ai/manipulate v0.0.0-20260603222225-4130398ec785
 	go.acuvity.ai/regolithe v0.0.0-20260601174230-81cdfce253df // indirect
 	go.acuvity.ai/tg v1.0.1-0.20260519184745-c99f6bc63fa0
 	go.acuvity.ai/wsc v1.0.0 // indirect
