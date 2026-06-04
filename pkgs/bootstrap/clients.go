@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/redis/go-redis/v9"
@@ -82,25 +83,27 @@ func MakeMongoManipulator(cfg conf.MongoConf, hasher sharder.Hasher, model eleme
 		panic(fmt.Sprintf("unknown consistency '%s'", cfg.MongoConsistency))
 	}
 
-	opts := append(
-		[]manipmongo.Option{
-			manipmongo.OptionCredentials(cfg.MongoUser, cfg.MongoPassword, cfg.MongoAuthDB),
-			manipmongo.OptionConnectionPoolLimit(cfg.MongoPoolSize),
-			manipmongo.OptionDefaultReadConsistencyMode(consistency),
-			manipmongo.OptionTranslateKeysFromModelManager(model),
-			manipmongo.OptionDefaultRetryFunc(func(i manipulate.RetryInfo) error {
-				info := i.(manipmongo.RetryInfo)
-				slog.Debug("mongo manipulator retry",
-					"try", info.Try(),
-					"operation", string(info.Operation),
-					"identity", info.Identity.Name,
-					info.Err(),
-				)
-				return nil
-			}),
-		},
-		additionalOptions...,
-	)
+	baseOptions := []manipmongo.Option{
+		manipmongo.OptionConnectionPoolLimit(cfg.MongoPoolSize),
+		manipmongo.OptionDefaultReadConsistencyMode(consistency),
+		manipmongo.OptionTranslateKeysFromModelManager(model),
+		manipmongo.OptionDefaultRetryFunc(func(i manipulate.RetryInfo) error {
+			info := i.(manipmongo.RetryInfo)
+			slog.Debug("mongo manipulator retry",
+				"try", info.Try(),
+				"operation", string(info.Operation),
+				"identity", info.Identity.Name,
+				info.Err(),
+			)
+			return nil
+		}),
+	}
+
+	if !strings.Contains(strings.ToUpper(cfg.MongoURL), "AUTHMECHANISM=MONGODB-X509") {
+		baseOptions = append(baseOptions, manipmongo.OptionCredentials(cfg.MongoUser, cfg.MongoPassword, cfg.MongoAuthDB))
+	}
+
+	opts := append(baseOptions, additionalOptions...)
 
 	if hasher != nil {
 		opts = append(
