@@ -27,6 +27,7 @@ attributes:
     type: string
     exposed: true
     stored: true
+    required: true
     example_value: a83e57d8-24af-4aec-bc8f-822db8d165b0
     omit_empty: true
 
@@ -52,6 +53,7 @@ attributes:
     type: string
     exposed: true
     stored: true
+    required: true
     example_value: a83e57d8-24af-4aec-bc8f-822db8d165b0
     omit_empty: true
 

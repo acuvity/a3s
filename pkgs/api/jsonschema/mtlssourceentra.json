@@ -11,12 +11,10 @@
   "properties": {
     "clientID": {
       "$friendlyName": "Client ID",
+      "$required": true,
       "description": "The oauth clientID if any. This may be required for autologin, depending on the mode.",
       "title": "clientID",
-      "type": [
-        "string",
-        "null"
-      ]
+      "type": "string"
     },
     "clientSecret": {
       "$friendlyName": "Client Secret",
@@ -27,12 +25,10 @@
     },
     "clientTenantID": {
       "$friendlyName": "Client Tenant ID",
+      "$required": true,
       "description": "ID of the tenant for the identity provider, if any. This may be required for autologin, depending on the mode.",
       "title": "clientTenantID",
-      "type": [
-        "string",
-        "null"
-      ]
+      "type": "string"
     },
     "graphEventsEnabled": {
       "$friendlyName": "Enable Graph Events",
@@ -45,7 +41,9 @@
     }
   },
   "required": [
-    "clientSecret"
+    "clientID",
+    "clientSecret",
+    "clientTenantID"
   ],
   "title": "MTLSSourceEntra",
   "type": "object"

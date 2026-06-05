@@ -880,7 +880,7 @@ Directory.Read.All and User.Read.
 
 #### Attributes
 
-##### `clientID`
+##### `clientID` [`required`]
 
 Type: `string`
 
@@ -894,7 +894,7 @@ Type: `string`
 Client secret associated with the client ID. This may be required for autologin,
 depending on the mode.
 
-##### `clientTenantID`
+##### `clientTenantID` [`required`]
 
 Type: `string`
 

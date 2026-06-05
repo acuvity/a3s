@@ -197,6 +197,14 @@ func (o *MTLSSourceEntra) Validate() error {
 	errors := elemental.Errors{}
 	requiredErrors := elemental.Errors{}
 
+	if err := elemental.ValidateRequiredString("clientID", o.ClientID); err != nil {
+		requiredErrors = requiredErrors.Append(err)
+	}
+
+	if err := elemental.ValidateRequiredString("clientTenantID", o.ClientTenantID); err != nil {
+		requiredErrors = requiredErrors.Append(err)
+	}
+
 	if len(requiredErrors) > 0 {
 		return requiredErrors
 	}
@@ -260,10 +268,11 @@ var MTLSSourceEntraAttributesMap = map[string]elemental.AttributeSpecification{
 		ConvertedName:  "ClientID",
 		Description: `The oauth clientID if any. This may be required for autologin, depending on the
 mode.`,
-		Exposed: true,
-		Name:    "clientID",
-		Stored:  true,
-		Type:    "string",
+		Exposed:  true,
+		Name:     "clientID",
+		Required: true,
+		Stored:   true,
+		Type:     "string",
 	},
 	"ClientSecret": {
 		AllowedChoices: []string{},
@@ -286,10 +295,11 @@ depending on the mode.`,
 		ConvertedName:  "ClientTenantID",
 		Description: `ID of the tenant for the identity provider, if any. This may be required for
 autologin, depending on the mode.`,
-		Exposed: true,
-		Name:    "clientTenantID",
-		Stored:  true,
-		Type:    "string",
+		Exposed:  true,
+		Name:     "clientTenantID",
+		Required: true,
+		Stored:   true,
+		Type:     "string",
 	},
 	"EntraAccessToken": {
 		AllowedChoices: []string{},
@@ -359,10 +369,11 @@ var MTLSSourceEntraLowerCaseAttributesMap = map[string]elemental.AttributeSpecif
 		ConvertedName:  "ClientID",
 		Description: `The oauth clientID if any. This may be required for autologin, depending on the
 mode.`,
-		Exposed: true,
-		Name:    "clientID",
-		Stored:  true,
-		Type:    "string",
+		Exposed:  true,
+		Name:     "clientID",
+		Required: true,
+		Stored:   true,
+		Type:     "string",
 	},
 	"clientsecret": {
 		AllowedChoices: []string{},
@@ -385,10 +396,11 @@ depending on the mode.`,
 		ConvertedName:  "ClientTenantID",
 		Description: `ID of the tenant for the identity provider, if any. This may be required for
 autologin, depending on the mode.`,
-		Exposed: true,
-		Name:    "clientTenantID",
-		Stored:  true,
-		Type:    "string",
+		Exposed:  true,
+		Name:     "clientTenantID",
+		Required: true,
+		Stored:   true,
+		Type:     "string",
 	},
 	"entraaccesstoken": {
 		AllowedChoices: []string{},

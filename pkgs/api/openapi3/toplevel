@@ -1167,7 +1167,9 @@
           }
         },
         "required": [
-          "clientSecret"
+          "clientID",
+          "clientSecret",
+          "clientTenantID"
         ],
         "type": "object"
       },
