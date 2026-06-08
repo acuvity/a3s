@@ -96,7 +96,9 @@ func main() {
 		}
 	}
 
-	m := bootstrap.MakeMongoManipulator(cfg.MongoConf, &hasher.Hasher{}, api.Manager())
+	h := &hasher.Hasher{}
+
+	m := bootstrap.MakeMongoManipulator(cfg.MongoConf, h, api.Manager())
 	if err := indexes.Ensure(m, api.Manager(), "a3s"); err != nil {
 		slog.Error("Unable to ensure indexes", err)
 		os.Exit(1)
@@ -138,7 +140,7 @@ func main() {
 		}
 
 		if cfg.InitData != "" {
-			initialized, err := initData(ctx, m, cfg.InitData)
+			initialized, err := initData(ctx, m, cfg.InitData, h)
 			if err != nil {
 				slog.Error("Unable to init provisionning data", err)
 				os.Exit(1)
@@ -591,7 +593,7 @@ func main() {
 	bahamut.RegisterProcessorOrDie(server, processors.NewNamespacesProcessor(m, pubsub), api.NamespaceIdentity)
 	bahamut.RegisterProcessorOrDie(server, processors.NewNamespaceDeletionRecordsProcessor(m), api.NamespaceDeletionRecordIdentity)
 	bahamut.RegisterProcessorOrDie(server, processors.NewAuthorizationProcessor(m, pubsub, retriever, cfg.JWT.JWTIssuer), api.AuthorizationIdentity)
-	bahamut.RegisterProcessorOrDie(server, processors.NewImportProcessor(bmanipMaker, pauthz), api.ImportIdentity)
+	bahamut.RegisterProcessorOrDie(server, processors.NewImportProcessor(bmanipMaker, pauthz, &hasher.Hasher{}), api.ImportIdentity)
 	bahamut.RegisterProcessorOrDie(server, processors.NewRevocationsProcessor(m, pubsub), api.RevocationIdentity)
 	bahamut.RegisterProcessorOrDie(server, processors.NewGroupProcessor(m, pubsub), api.GroupIdentity)
 	bahamut.RegisterProcessorOrDie(server, processors.NewLogoutProcessor(m, pubsub, cookiePolicy, cookieDomain), api.LogoutIdentity)
@@ -962,7 +964,7 @@ func initPlatformPermissions(ctx context.Context, m manipulate.Manipulator, caPa
 	return true, nil
 }
 
-func initData(ctx context.Context, m manipulate.Manipulator, dataPath string) (bool, error) {
+func initData(ctx context.Context, m manipulate.Manipulator, dataPath string, h *hasher.Hasher) (bool, error) {
 
 	data, err := os.ReadFile(dataPath)
 	if err != nil {
@@ -1009,6 +1011,8 @@ func initData(ctx context.Context, m manipulate.Manipulator, dataPath string) (b
 			"a3s:init:data",
 			lst,
 			false,
+			false,
+			h,
 		); err != nil {
 			return false, fmt.Errorf("unable to import '%s': %w", lst.Identity().Name, err)
 		}

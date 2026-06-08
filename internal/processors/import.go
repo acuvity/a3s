@@ -9,6 +9,7 @@ import (
 	"go.acuvity.ai/a3s/pkgs/bearermanip"
 	"go.acuvity.ai/a3s/pkgs/importing"
 	"go.acuvity.ai/a3s/pkgs/permissions"
+	"go.acuvity.ai/a3s/pkgs/sharder"
 	"go.acuvity.ai/a3s/pkgs/token"
 	"go.acuvity.ai/bahamut"
 	"go.acuvity.ai/elemental"
@@ -18,13 +19,15 @@ import (
 type ImportProcessor struct {
 	bmanipMaker bearermanip.MakerFunc
 	authz       authorizer.Authorizer
+	hasher      sharder.Hasher
 }
 
 // NewImportProcessor returns a new ImportProcessor .
-func NewImportProcessor(bmanipMaker bearermanip.MakerFunc, authz authorizer.Authorizer) *ImportProcessor {
+func NewImportProcessor(bmanipMaker bearermanip.MakerFunc, authz authorizer.Authorizer, hasher sharder.Hasher) *ImportProcessor {
 	return &ImportProcessor{
 		bmanipMaker: bmanipMaker,
 		authz:       authz,
+		hasher:      hasher,
 	}
 }
 
@@ -80,6 +83,17 @@ func (p *ImportProcessor) ProcessCreate(bctx bahamut.Context) error {
 		}
 	}
 
+	updateMode := bctx.Request().Parameters.Get("mode").StringValue() == "Update"
+	deleteMode := bctx.Request().Parameters.Get("delete").BoolValue()
+	if deleteMode && updateMode {
+		return elemental.NewError(
+			"Bad Request",
+			"Mode cannot be both 'update' and 'delete'",
+			"a3s:import",
+			http.StatusBadRequest,
+		)
+	}
+
 	for _, lst := range values {
 
 		// if len(lst.List()) == 0 {
@@ -93,7 +107,9 @@ func (p *ImportProcessor) ProcessCreate(bctx bahamut.Context) error {
 			ns,
 			req.Label,
 			lst,
-			bctx.Request().Parameters.Get("delete").BoolValue(),
+			deleteMode,
+			updateMode,
+			p.hasher,
 		); err != nil {
 			return err
 		}

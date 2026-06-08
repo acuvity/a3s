@@ -24,7 +24,7 @@ func TestCreate(t *testing.T) {
 		m := maniptest.NewTestManipulator()
 
 		Convey("When everything is ok with a non namespaceable", func() {
-			obj := testmodel.NewList()
+			obj := testmodel.NewRoot()
 			err := Create(bctx, m, obj)
 			So(err, ShouldBeNil)
 		})

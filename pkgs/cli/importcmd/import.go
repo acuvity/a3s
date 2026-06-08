@@ -31,6 +31,7 @@ func MakeImportCmd(mmaker manipcli.ManipulatorMaker, importMaker func() elementa
 			fSet := viper.GetStringSlice("set")
 			fValues := viper.GetString("values")
 			fDelete := viper.GetBool("delete")
+			fMode := viper.GetString("mode")
 			fRender := viper.GetBool("render")
 
 			var furl, ffile string
@@ -71,16 +72,19 @@ func MakeImportCmd(mmaker manipcli.ManipulatorMaker, importMaker func() elementa
 
 			actionString := "imported"
 			var opts []manipulate.ContextOption
+
 			if fDelete {
 				actionString = "deleted"
-				opts = append(
-					opts,
-					manipulate.ContextOptionParameters(
-						url.Values{
-							"delete": []string{"true"},
-						},
-					),
-				)
+				opts = append(opts, manipulate.ContextOptionParameters(url.Values{"delete": []string{"true"}}))
+			}
+
+			switch fMode {
+			case "", "replace", "Replace":
+			case "update", "Update":
+				actionString = "updated"
+				opts = append(opts, manipulate.ContextOptionParameters(url.Values{"mode": []string{"Update"}}))
+			default:
+				return fmt.Errorf("unknown mode %q: must be 'replace' or 'update'", fMode)
 			}
 
 			if err := m.Create(
@@ -102,6 +106,7 @@ func MakeImportCmd(mmaker manipcli.ManipulatorMaker, importMaker func() elementa
 	cmd.Flags().StringSliceP("set", "S", nil, "Set the value for one key in the template.")
 	cmd.Flags().StringP("values", "V", "", "Path to a values file.")
 	cmd.Flags().BoolP("delete", "D", false, "Delete the previously created data declared in the import file.")
+	cmd.Flags().StringP("mode", "m", "", "Import mode: 'replace' (default) or 'update'.")
 	cmd.Flags().BoolP("render", "R", false, "Only renders the templated information locally.")
 
 	return cmd
