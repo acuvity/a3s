@@ -154,6 +154,7 @@ func Email(claims Map) string {
 		"preferred_username",
 		"nameid",
 		"email",
+		"upn",
 	}
 
 	isEmail := func(email string) bool {

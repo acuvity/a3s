@@ -240,6 +240,28 @@ func TestEmail(t *testing.T) {
 			"b@b.fr",
 		},
 		{
+			"use upn email",
+			args{
+				claims: Map{
+					"x":   {"c@c.fr"},
+					"upn": {"b@b.fr"},
+				},
+			},
+			"b@b.fr",
+		},
+
+		{
+			"use upn not email",
+			args{
+				claims: Map{
+					"x":   {"c@c.fr"},
+					"upn": {"not-email"},
+				},
+			},
+			"c@c.fr",
+		},
+
+		{
 			"use email",
 			args{
 				claims: Map{
