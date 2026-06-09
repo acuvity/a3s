@@ -150,6 +150,12 @@ func (c *mtlsIssuer) fromCertificate(ctx context.Context, cert *x509.Certificate
 				c.token.Identity = appendClaim(c.token.Identity, "dnsname", v)
 			}
 		}
+
+		upn, err := getPrincipalName(api.MTLSSourcePrincipalUserX509FieldMicrosoftUPN, cert)
+		if err == nil {
+			c.token.Identity = appendClaim(c.token.Identity, "upn", upn)
+		}
+
 	}
 
 	if len(fingerprints) > 0 {

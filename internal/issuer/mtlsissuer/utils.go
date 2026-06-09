@@ -17,9 +17,9 @@ func appendClaim(lst []string, key string, val string) []string {
 	return append(lst, fmt.Sprintf("%s=%s", key, val))
 }
 
-func getPrincipalName(iss *mtlsIssuer, cert *x509.Certificate) (string, error) {
+func getPrincipalName(field api.MTLSSourcePrincipalUserX509FieldValue, cert *x509.Certificate) (string, error) {
 
-	switch iss.source.PrincipalUserX509Field {
+	switch field {
 
 	case api.MTLSSourcePrincipalUserX509FieldCommonName:
 		return cert.Subject.CommonName, nil

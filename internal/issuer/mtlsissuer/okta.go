@@ -19,7 +19,7 @@ func handleOktaAutologin(ctx context.Context, iss *mtlsIssuer, cert *x509.Certif
 	}
 
 	// Step 2: now we have a client token, we will query the user info
-	principalName, err := getPrincipalName(iss, cert)
+	principalName, err := getPrincipalName(iss.source.PrincipalUserX509Field, cert)
 	if err != nil {
 		return oerr("Unable to retrieve principal name from client certificate", err.Error(), http.StatusBadRequest)
 	}

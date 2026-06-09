@@ -16,7 +16,7 @@ func handleEntraAutologin(ctx context.Context, iss *mtlsIssuer, cert *x509.Certi
 		return err
 	}
 
-	principalName, err := getPrincipalName(iss, cert)
+	principalName, err := getPrincipalName(iss.source.PrincipalUserX509Field, cert)
 	if err != nil {
 		return elemental.NewError("Unable to retrieve principal name from certificate", err.Error(), "a3s:entra", http.StatusBadRequest)
 	}
