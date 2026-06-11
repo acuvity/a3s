@@ -72,7 +72,7 @@
     },
     "audienceURI": {
       "$friendlyName": "Audience URI",
-      "description": "The AudienceURI expected for the response. If not provided, Acuvity will send the issuer URL.",
+      "description": "The AudienceURI expected for the response. If not provided, the issuer URL will be sent.",
       "title": "audienceURI",
       "type": [
         "string",
@@ -176,7 +176,7 @@
     },
     "serviceProviderIssuer": {
       "$friendlyName": "Service Provider Issuer",
-      "description": "The Service Provider Issuer which is represented by the client ID. If not provided, Acuvity will send the issuer URL.",
+      "description": "The Service Provider Issuer which is represented by the client ID. If not provided, the issuer URL will be sent.",
       "title": "serviceProviderIssuer",
       "type": [
         "string",

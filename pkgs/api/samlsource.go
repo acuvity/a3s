@@ -107,8 +107,8 @@ type SAMLSource struct {
 	// URL of the identity provider.
 	IDPURL string `json:"IDPURL" msgpack:"IDPURL" bson:"idpurl" mapstructure:"IDPURL,omitempty"`
 
-	// The AudienceURI expected for the response. If not provided, Acuvity will send
-	// the issuer URL.
+	// The AudienceURI expected for the response. If not provided, the issuer URL
+	// will be sent.
 	AudienceURI string `json:"audienceURI" msgpack:"audienceURI" bson:"audienceuri" mapstructure:"audienceURI,omitempty"`
 
 	// Creation date of the object.
@@ -150,7 +150,7 @@ type SAMLSource struct {
 	Namespace string `json:"namespace,omitempty" msgpack:"namespace,omitempty" bson:"namespace,omitempty" mapstructure:"namespace,omitempty"`
 
 	// The Service Provider Issuer which is represented by the client ID. If not
-	// provided, Acuvity will send the issuer URL.
+	// provided, the issuer URL will be sent.
 	ServiceProviderIssuer string `json:"serviceProviderIssuer" msgpack:"serviceProviderIssuer" bson:"serviceproviderissuer" mapstructure:"serviceProviderIssuer,omitempty"`
 
 	// If true, the issue request won't check the ResponseSignatureValidated.
@@ -796,8 +796,8 @@ ignored and the metadata will be retrieved when needed for logging in.`,
 		AllowedChoices: []string{},
 		BSONFieldName:  "audienceuri",
 		ConvertedName:  "AudienceURI",
-		Description: `The AudienceURI expected for the response. If not provided, Acuvity will send
-the issuer URL.`,
+		Description: `The AudienceURI expected for the response. If not provided, the issuer URL
+will be sent.`,
 		Exposed: true,
 		Name:    "audienceURI",
 		Stored:  true,
@@ -939,7 +939,7 @@ the claims that are about to be delivered using this authentication source.`,
 		BSONFieldName:  "serviceproviderissuer",
 		ConvertedName:  "ServiceProviderIssuer",
 		Description: `The Service Provider Issuer which is represented by the client ID. If not
-provided, Acuvity will send the issuer URL.`,
+provided, the issuer URL will be sent.`,
 		Exposed: true,
 		Name:    "serviceProviderIssuer",
 		Stored:  true,
@@ -1072,8 +1072,8 @@ ignored and the metadata will be retrieved when needed for logging in.`,
 		AllowedChoices: []string{},
 		BSONFieldName:  "audienceuri",
 		ConvertedName:  "AudienceURI",
-		Description: `The AudienceURI expected for the response. If not provided, Acuvity will send
-the issuer URL.`,
+		Description: `The AudienceURI expected for the response. If not provided, the issuer URL
+will be sent.`,
 		Exposed: true,
 		Name:    "audienceURI",
 		Stored:  true,
@@ -1215,7 +1215,7 @@ the claims that are about to be delivered using this authentication source.`,
 		BSONFieldName:  "serviceproviderissuer",
 		ConvertedName:  "ServiceProviderIssuer",
 		Description: `The Service Provider Issuer which is represented by the client ID. If not
-provided, Acuvity will send the issuer URL.`,
+provided, the issuer URL will be sent.`,
 		Exposed: true,
 		Name:    "serviceProviderIssuer",
 		Stored:  true,
@@ -1360,8 +1360,8 @@ type SparseSAMLSource struct {
 	// URL of the identity provider.
 	IDPURL *string `json:"IDPURL,omitempty" msgpack:"IDPURL,omitempty" bson:"idpurl,omitempty" mapstructure:"IDPURL,omitempty"`
 
-	// The AudienceURI expected for the response. If not provided, Acuvity will send
-	// the issuer URL.
+	// The AudienceURI expected for the response. If not provided, the issuer URL
+	// will be sent.
 	AudienceURI *string `json:"audienceURI,omitempty" msgpack:"audienceURI,omitempty" bson:"audienceuri,omitempty" mapstructure:"audienceURI,omitempty"`
 
 	// Creation date of the object.
@@ -1403,7 +1403,7 @@ type SparseSAMLSource struct {
 	Namespace *string `json:"namespace,omitempty" msgpack:"namespace,omitempty" bson:"namespace,omitempty" mapstructure:"namespace,omitempty"`
 
 	// The Service Provider Issuer which is represented by the client ID. If not
-	// provided, Acuvity will send the issuer URL.
+	// provided, the issuer URL will be sent.
 	ServiceProviderIssuer *string `json:"serviceProviderIssuer,omitempty" msgpack:"serviceProviderIssuer,omitempty" bson:"serviceproviderissuer,omitempty" mapstructure:"serviceProviderIssuer,omitempty"`
 
 	// If true, the issue request won't check the ResponseSignatureValidated.

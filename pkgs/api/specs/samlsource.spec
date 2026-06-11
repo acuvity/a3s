@@ -85,8 +85,8 @@ attributes:
   - name: audienceURI
     friendly_name: Audience URI
     description: |-
-      The AudienceURI expected for the response. If not provided, Acuvity will send
-      the issuer URL.
+      The AudienceURI expected for the response. If not provided, the issuer URL
+      will be sent.
     type: string
     exposed: true
     stored: true
@@ -136,7 +136,7 @@ attributes:
     friendly_name: Service Provider Issuer
     description: |-
       The Service Provider Issuer which is represented by the client ID. If not
-      provided, Acuvity will send the issuer URL.
+      provided, the issuer URL will be sent.
     type: string
     exposed: true
     stored: true

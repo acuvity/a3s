@@ -1879,7 +1879,7 @@
             "type": "string"
           },
           "audienceURI": {
-            "description": "The AudienceURI expected for the response. If not provided, Acuvity will send\nthe issuer URL.",
+            "description": "The AudienceURI expected for the response. If not provided, the issuer URL\nwill be sent.",
             "example": "spn:abc-3423-fdsfs-fdsfs",
             "type": "string"
           },
@@ -1933,7 +1933,7 @@
             "type": "string"
           },
           "serviceProviderIssuer": {
-            "description": "The Service Provider Issuer which is represented by the client ID. If not\nprovided, Acuvity will send the issuer URL.",
+            "description": "The Service Provider Issuer which is represented by the client ID. If not\nprovided, the issuer URL will be sent.",
             "example": "abc-3423-fdsfs-fdsfs",
             "type": "string"
           },
