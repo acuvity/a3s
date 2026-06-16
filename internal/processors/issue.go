@@ -722,6 +722,10 @@ func (p *IssueProcessor) handleOAuth2Issue(bctx bahamut.Context, source elementa
 			return nil, rerr(fmt.Errorf("unable to retrieve cached oauth2 state: %w", err))
 		}
 
+		if cached == nil {
+			return nil, rerr(elemental.NewError("Unauthorized", "oauth2: unable to find code associated to the provided state", "a3s:authn", http.StatusUnauthorized))
+		}
+
 		if err := oauth2ceremony.Delete(p.manipulator, state); err != nil {
 			return nil, rerr(fmt.Errorf("unable to delete cached oauth2 state: %w", err))
 		}
