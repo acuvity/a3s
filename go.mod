@@ -3,9 +3,9 @@ module go.acuvity.ai/a3s
 go 1.26.1
 
 require (
-	go.acuvity.ai/bahamut v0.0.0-20260601180028-45123d5deb0b
+	go.acuvity.ai/bahamut v0.0.0-20260617150351-1e3acb1c723a
 	go.acuvity.ai/elemental v0.0.0-20260601175251-78f998107f34
-	go.acuvity.ai/manipulate v0.0.0-20260605002034-aace6c31aac8
+	go.acuvity.ai/manipulate v0.0.0-20260609192825-631c9be42b8d
 	go.acuvity.ai/regolithe v0.0.0-20260601174230-81cdfce253df // indirect
 	go.acuvity.ai/tg v1.0.1-0.20260519184745-c99f6bc63fa0
 	go.acuvity.ai/wsc v1.0.0 // indirect
@@ -136,7 +136,7 @@ require (
 	github.com/sagikazarmark/slog-shim v0.1.0 // indirect
 	github.com/sergi/go-diff v1.3.2-0.20230802210424-5b0b94c5c0d3 // indirect
 	github.com/shirou/gopsutil/v3 v3.24.5 // indirect
-	github.com/shoenig/go-m1cpu v0.1.6 // indirect
+	github.com/shoenig/go-m1cpu v0.2.1 // indirect
 	github.com/shopspring/decimal v1.3.1 // indirect
 	github.com/skeema/knownhosts v1.3.1 // indirect
 	github.com/smartystreets/assertions v1.2.0 // indirect
