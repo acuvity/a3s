@@ -48,8 +48,11 @@ const (
 )
 
 // NewOAuth returns a new OAuth engine.
-func NewOAuth(store oauthStore, manipulator manipulate.Manipulator, jwks *token.JWKS, baseURL *url.URL, validity time.Duration) *OAuth {
-	issuerURL := *baseURL
+func NewOAuth(store oauthStore, manipulator manipulate.Manipulator, jwks *token.JWKS, baseURL string, validity time.Duration) (*OAuth, error) {
+	issuerURL, err := url.Parse(baseURL)
+	if err != nil {
+		return nil, err
+	}
 	issuerURL.Path = issuerURL.Path + "/oauth"
 	issuerURL.RawPath = ""
 	issuerURL.RawQuery = ""
@@ -58,9 +61,9 @@ func NewOAuth(store oauthStore, manipulator manipulate.Manipulator, jwks *token.
 		store:     store,
 		m:         manipulator,
 		jwks:      jwks,
-		issuerURL: &issuerURL,
+		issuerURL: issuerURL,
 		validity:  validity,
-	}
+	}, nil
 }
 
 func (o *OAuth) getClient(ctx context.Context, namespace string, clientID string) (*api.OAuthClient, error) {
