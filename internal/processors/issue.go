@@ -615,6 +615,10 @@ func (p *IssueProcessor) handleOIDCIssue(bctx bahamut.Context, source elemental.
 		return nil, rerr(fmt.Errorf("unable to retrieve cached oidc state: %w", err))
 	}
 
+	if cached == nil {
+		return nil, rerr(elemental.NewError("Unauthorized", "oauth2: unable to find code associated to the provided state", "a3s:authn", http.StatusUnauthorized))
+	}
+
 	if err := oauth2ceremony.Delete(p.manipulator, state); err != nil {
 		return nil, rerr(fmt.Errorf("unable to delete cached oidc state: %w", err))
 	}
@@ -834,18 +838,22 @@ func (p *IssueProcessor) handleSAMLIssue(bctx bahamut.Context, source elemental.
 
 	if !relaystate.IsDirect(input.RelayState) {
 
-		item, err := samlceremony.Get(p.manipulator, input.RelayState)
+		cached, err := samlceremony.Get(p.manipulator, input.RelayState)
 
 		if err != nil {
 			return nil, rerr(elemental.NewError("SAML Error", "Unable to find SAML session. Did you wait too long?", "a3s", http.StatusForbidden))
+		}
+
+		if cached == nil {
+			return nil, rerr(elemental.NewError("Unauthorized", "saml: unable to find code associated to the provided relay state", "a3s:authn", http.StatusUnauthorized))
 		}
 
 		if err := samlceremony.Delete(p.manipulator, input.RelayState); err != nil {
 			return nil, rerr(fmt.Errorf("unable to clean saml ceremony cache: %w", err))
 		}
 
-		ACSURL = item.ACSURL
-		req.AuthorizeRequestID = item.AuthorizeRequestID
+		ACSURL = cached.ACSURL
+		req.AuthorizeRequestID = cached.AuthorizeRequestID
 	}
 
 	audienceURI := src.AudienceURI
