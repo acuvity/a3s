@@ -2,7 +2,6 @@ package samlceremony
 
 import (
 	"context"
-	"errors"
 	"time"
 
 	"go.acuvity.ai/manipulate"
@@ -66,9 +65,6 @@ func Get(m manipulate.Manipulator, state string) (*CacheItem, error) {
 
 	item := &CacheItem{}
 	if err := findCacheItem(ctx, db, state, item); err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) {
-			return nil, nil
-		}
 		return nil, err
 	}
 	return item, nil
