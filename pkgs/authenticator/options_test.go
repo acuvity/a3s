@@ -22,3 +22,12 @@ func TestOption(t *testing.T) {
 		So(cfg.externalTrustedIssuers, ShouldResemble, []RemoteIssuer{i1, i2})
 	})
 }
+
+func TestCheckOption(t *testing.T) {
+
+	Convey("CheckOptionIssuer should work", t, func() {
+		cfg := &checkConfig{}
+		CheckOptionIssuer("issuer1")(cfg)
+		So(cfg.issuer, ShouldEqual, "issuer1")
+	})
+}

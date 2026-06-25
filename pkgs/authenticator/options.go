@@ -31,3 +31,18 @@ func OptionExternalTrustedIssuers(issuers ...RemoteIssuer) Option {
 		cfg.externalTrustedIssuers = issuers
 	}
 }
+
+type checkConfig struct {
+	issuer string
+}
+
+// An CheckOption can be used to configure various options in the
+// CheckAuthentication.
+type CheckOption func(*checkConfig)
+
+// OptionIssuer sets an issuer to be used on CheckAuthentication
+func CheckOptionIssuer(issuer string) CheckOption {
+	return func(cfg *checkConfig) {
+		cfg.issuer = issuer
+	}
+}

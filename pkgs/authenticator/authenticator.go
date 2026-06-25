@@ -69,6 +69,10 @@ func (a *Authenticator) AuthenticateSession(session bahamut.Session) (bahamut.Au
 	return action, nil
 }
 
+func (a *Authenticator) Issuer() string {
+	return a.issuer
+}
+
 // AuthenticateRequest authenticates the request from the given bahamut.Context.
 func (a *Authenticator) AuthenticateRequest(bctx bahamut.Context) (bahamut.AuthAction, error) {
 
@@ -104,7 +108,12 @@ func (a *Authenticator) AuthenticateRequest(bctx bahamut.Context) (bahamut.AuthA
 }
 
 // CheckAuthentication authenticates the given JWT string.
-func (a *Authenticator) CheckAuthentication(ctx context.Context, tokenString string) (bahamut.AuthAction, *token.IdentityToken, error) {
+func (a *Authenticator) CheckAuthentication(ctx context.Context, tokenString string, options ...CheckOption) (bahamut.AuthAction, *token.IdentityToken, error) {
+
+	cfg := checkConfig{}
+	for _, o := range options {
+		o(&cfg)
+	}
 
 	if tokenString == "" {
 		return bahamut.AuthActionKO, nil, elemental.NewError(
@@ -117,6 +126,9 @@ func (a *Authenticator) CheckAuthentication(ctx context.Context, tokenString str
 
 	jwks := a.jwks
 	issuer := a.issuer
+	if cfg.issuer != "" {
+		issuer = cfg.issuer
+	}
 
 	rjwks, rissuer, err := a.handleFederatedToken(ctx, tokenString)
 	if err != nil {

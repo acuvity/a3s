@@ -105,6 +105,26 @@ func TestCommonAuth(t *testing.T) {
 			So(idt.Identity, ShouldResemble, []string{"color=blue", "@source:type=test"})
 		})
 
+		Convey("Calling commonAuth with an issuer option should work", func() {
+			iss := "other-iss"
+
+			token := makeToken(
+				&token.IdentityToken{
+					RegisteredClaims: jwt.RegisteredClaims{Issuer: iss},
+					Identity:         []string{"color=blue", "@source:type=test"},
+				},
+				jwt.SigningMethodES256,
+				k,
+				kid1,
+			)
+
+			action, idt, err := a.CheckAuthentication(context.Background(), token, CheckOptionIssuer(iss))
+
+			So(err, ShouldBeNil)
+			So(action, ShouldEqual, bahamut.AuthActionContinue)
+			So(idt.Identity, ShouldResemble, []string{"color=blue", "@source:type=test"})
+		})
+
 		Convey("Calling commonAuth on a refresh token should fail", func() {
 
 			token := makeToken(
