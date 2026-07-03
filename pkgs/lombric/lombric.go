@@ -45,7 +45,7 @@ type VersionPrinter interface {
 // Initialize does all the basic job of bindings
 func Initialize(conf Configurable) {
 
-	requiredFlags, secretFlags, allowedValues, filesValues := installFlags(conf)
+	requiredFlags, secretFlags, allowedValues, filesValues, mapFlags := installFlags(conf)
 
 	pflag.VisitAll(func(f *pflag.Flag) {
 
@@ -103,6 +103,10 @@ func Initialize(conf Configurable) {
 
 		for _, key := range filesValues {
 
+			if stringInSlice(key, mapFlags) {
+				continue // resolved per-entry in the mapFlags loop below
+			}
+
 			value := viper.GetString(key)
 
 			if strings.HasPrefix(value, "file://") {
@@ -112,18 +116,40 @@ func Initialize(conf Configurable) {
 					panic(fmt.Sprintf("invalid url for secret: %s", err))
 				}
 
-				data, err := os.ReadFile(u.Path)
+				content, err := resolveSecretFile(u)
 				if err != nil {
-					panic(fmt.Sprintf("unable to read secret file for key '%s': %s", key, err))
+					panic(fmt.Sprintf("unable to resolve secret file for key '%s': %s", key, err))
 				}
-				viper.Set(key, string(bytes.TrimSpace(data)))
 
-				if u.Query().Get("delete") != "" {
-					if err := os.Remove(u.Path); err != nil {
-						panic(fmt.Sprintf("unable to delete secret file: %s", err))
-					}
-				}
+				viper.Set(key, content)
 			}
+		}
+
+		for _, key := range mapFlags {
+
+			parsed, err := parseStringToStringMap(viper.GetString(key))
+			if err != nil {
+				panic(fmt.Sprintf("invalid map value for '%s': %s", key, err))
+			}
+
+			isFile := stringInSlice(key, filesValues)
+			m := make(map[string]string, len(parsed))
+
+			for k, u := range parsed {
+
+				if !isFile || u.Scheme != "file" {
+					m[k] = u.String()
+					continue
+				}
+
+				content, err := resolveSecretFile(u)
+				if err != nil {
+					panic(fmt.Sprintf("unable to resolve secret file for map key '%s': %s", key, err))
+				}
+				m[k] = content
+			}
+
+			viper.Set(key, m)
 		}
 	}
 
@@ -140,6 +166,44 @@ func Initialize(conf Configurable) {
 			}
 		}
 	}
+}
+
+func resolveSecretFile(u *url.URL) (string, error) {
+
+	data, err := os.ReadFile(u.Path)
+	if err != nil {
+		return "", err
+	}
+
+	if u.Query().Get("delete") != "" {
+		if err := os.Remove(u.Path); err != nil {
+			return "", err
+		}
+	}
+
+	return string(bytes.TrimSpace(data)), nil
+}
+
+func parseStringToStringMap(s string) (map[string]*url.URL, error) {
+	m := make(map[string]*url.URL)
+	if s == "" {
+		return m, nil
+	}
+	for _, entry := range strings.Fields(s) {
+
+		id, value, found := strings.Cut(entry, ":")
+		if !found || id == "" {
+			return nil, fmt.Errorf("invalid entry %q: missing 'id:' prefix", entry)
+		}
+
+		u, err := url.Parse(value)
+		if err != nil {
+			return nil, fmt.Errorf("invalid entry %q: %w", entry, err)
+		}
+
+		m[id] = u
+	}
+	return m, nil
 }
 
 func deepFields(ift reflect.Type) ([]reflect.StructField, []string) {
@@ -171,7 +235,7 @@ func deepFields(ift reflect.Type) ([]reflect.StructField, []string) {
 	return fields, overrides
 }
 
-func installFlags(conf Configurable) (requiredFlags []string, secretFlags []string, allowedValues map[string][]string, fromFilesFlags []string) {
+func installFlags(conf Configurable) (requiredFlags []string, secretFlags []string, allowedValues map[string][]string, fromFilesFlags []string, mapFlags []string) {
 
 	t := reflect.ValueOf(conf).Elem().Type()
 
@@ -221,6 +285,15 @@ func installFlags(conf Configurable) (requiredFlags []string, secretFlags []stri
 
 		if field.Tag.Get("hidden") == enabledKey {
 			hiddenFlags = append(hiddenFlags, key)
+		}
+
+		if field.Type.Kind() == reflect.Map {
+			if field.Type.Key().Kind() != reflect.String || field.Type.Elem().Kind() != reflect.String {
+				panic("Unsupported map type: " + field.Type.String())
+			}
+			mapFlags = append(mapFlags, key)
+			pflag.String(key, def, description)
+			continue
 		}
 
 		if field.Type.Kind() != reflect.Slice {
@@ -314,5 +387,5 @@ func installFlags(conf Configurable) (requiredFlags []string, secretFlags []stri
 
 	pflag.Parse()
 
-	return requiredFlags, secretFlags, allowedValues, fromFilesFlags
+	return requiredFlags, secretFlags, allowedValues, fromFilesFlags, mapFlags
 }

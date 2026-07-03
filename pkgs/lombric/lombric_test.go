@@ -27,25 +27,27 @@ func init() {
 }
 
 type testConf struct {
-	ABool                   bool          `mapstructure:"a-bool"                    desc:"This is a boolean"            default:"true"`
-	ARequiredBool           bool          `mapstructure:"a-required-bool"           desc:"This is a boolean"            required:"true"`
-	ABoolNoDef              bool          `mapstructure:"a-bool-nodef"              desc:"This is a no def boolean"     `
-	ABoolSlice              []bool        `mapstructure:"a-bool-slice"              desc:"This is a bool slice"         default:"true,false,true"`
-	ADuration               time.Duration `mapstructure:"a-duration"                desc:"This is a duration"           default:"10s"`
-	ADurationNoDef          time.Duration `mapstructure:"a-duration-nodef"          desc:"This is a no def duration"    `
-	AInteger                int           `mapstructure:"a-integer"                 desc:"This is a number"             default:"42"`
-	AIntegerNoDef           int           `mapstructure:"a-integer-nodef"           desc:"This is a no def number"      `
-	AIntSlice               []int         `mapstructure:"a-int-slice"               desc:"This is a int slice"          default:"1,2,3"`
-	AnEnum                  string        `mapstructure:"a-enum"                    desc:"This is an enum"              allowed:"a,b,c" default:"a"`
-	AnIPSlice               []net.IP      `mapstructure:"a-ip-slice"                desc:"This is an ip slice"          default:"127.0.0.1,192.168.100.1"`
-	AnotherStringSliceNoDef []string      `mapstructure:"a-string-slice-from-var"   desc:"This is a no def string"      `
-	ASecret                 string        `mapstructure:"a-secret-from-var"         desc:"This is a secret"             secret:"true"`
-	AString                 string        `mapstructure:"a-string"                  desc:"This is a string"             default:"hello"`
-	AStringNoDef            string        `mapstructure:"a-string-nodef"            desc:"This is a no def string"      `
-	AStringSlice            []string      `mapstructure:"a-string-slice"            desc:"This is a string slice"       default:"a,b,c"`
-	AStringSliceNoDef       []string      `mapstructure:"a-string-slice-nodef"      desc:"This is a no def string slice"`
-	ASimpleFromFile         string        `mapstructure:"a-simple-from-file"        desc:"This is a simple from file"   file:"true"`
-	ASimpleFromFileDelete   string        `mapstructure:"a-simple-from-file-del"    desc:"This is a simple from file"   file:"true"`
+	ABool                   bool              `mapstructure:"a-bool"                    desc:"This is a boolean"            default:"true"`
+	ARequiredBool           bool              `mapstructure:"a-required-bool"           desc:"This is a boolean"            required:"true"`
+	ABoolNoDef              bool              `mapstructure:"a-bool-nodef"              desc:"This is a no def boolean"     `
+	ABoolSlice              []bool            `mapstructure:"a-bool-slice"              desc:"This is a bool slice"         default:"true,false,true"`
+	ADuration               time.Duration     `mapstructure:"a-duration"                desc:"This is a duration"           default:"10s"`
+	ADurationNoDef          time.Duration     `mapstructure:"a-duration-nodef"          desc:"This is a no def duration"    `
+	AInteger                int               `mapstructure:"a-integer"                 desc:"This is a number"             default:"42"`
+	AIntegerNoDef           int               `mapstructure:"a-integer-nodef"           desc:"This is a no def number"      `
+	AIntSlice               []int             `mapstructure:"a-int-slice"               desc:"This is a int slice"          default:"1,2,3"`
+	AnEnum                  string            `mapstructure:"a-enum"                    desc:"This is an enum"              allowed:"a,b,c" default:"a"`
+	AnIPSlice               []net.IP          `mapstructure:"a-ip-slice"                desc:"This is an ip slice"          default:"127.0.0.1,192.168.100.1"`
+	AnotherStringSliceNoDef []string          `mapstructure:"a-string-slice-from-var"   desc:"This is a no def string"      `
+	ASecret                 string            `mapstructure:"a-secret-from-var"         desc:"This is a secret"             secret:"true"`
+	AString                 string            `mapstructure:"a-string"                  desc:"This is a string"             default:"hello"`
+	AStringNoDef            string            `mapstructure:"a-string-nodef"            desc:"This is a no def string"      `
+	AStringSlice            []string          `mapstructure:"a-string-slice"            desc:"This is a string slice"       default:"a,b,c"`
+	AStringSliceNoDef       []string          `mapstructure:"a-string-slice-nodef"      desc:"This is a no def string slice"`
+	ASimpleFromFile         string            `mapstructure:"a-simple-from-file"        desc:"This is a simple from file"   file:"true"`
+	ASimpleFromFileDelete   string            `mapstructure:"a-simple-from-file-del"    desc:"This is a simple from file"   file:"true"`
+	AStringToStringMap      map[string]string `mapstructure:"a-string-to-string-map"    desc:"This is a map"                secret:"true" file:"true"`
+	APlainStringToStringMap map[string]string `mapstructure:"a-plain-string-to-string-map" desc:"This is a plain map"`
 
 	embedTestConf `mapstructure:",squash" override:"embedded-string-a=outter1,embedded-ignored-string=-"`
 }
@@ -85,11 +87,23 @@ func TestLombric_Initialize(t *testing.T) {
 		spath2 := fmt.Sprintf("file://%s?delete=true", sfile2.Name())
 
 		conf := &testConf{}
+		sfile3, err := os.CreateTemp(os.TempDir(), "secret3")
+		if err != nil {
+			panic(err)
+		}
+		defer sfile3.Close() // nolint
+		if _, err := sfile3.WriteString("my-private-key\n\n"); err != nil {
+			panic(err)
+		}
+
 		os.Setenv("LOMBRIC_A_STRING_SLICE_FROM_VAR", "x y z") // nolint: errcheck
 		os.Setenv("LOMBRIC_A_REQUIRED_BOOL", "true")          // nolint: errcheck
 		os.Setenv("LOMBRIC_A_SECRET_FROM_VAR", "secret")      // nolint: errcheck
 		os.Setenv("LOMBRIC_A_SIMPLE_FROM_FILE", spath1)       // nolint: errcheck
 		os.Setenv("LOMBRIC_A_SIMPLE_FROM_FILE_DEL", spath2)   // nolint: errcheck
+		os.Setenv("LOMBRIC_A_STRING_TO_STRING_MAP",           // nolint: errcheck
+			fmt.Sprintf("key1:file://%s?delete=true key2:inline-value", sfile3.Name()))
+		os.Setenv("LOMBRIC_A_PLAIN_STRING_TO_STRING_MAP", "key1:val1 key2:val2") // nolint: errcheck
 
 		Initialize(conf)
 
@@ -121,10 +135,24 @@ func TestLombric_Initialize(t *testing.T) {
 			So(os.Getenv("LOMBRIC_A_SECRET_FROM_VAR"), ShouldEqual, "")
 			So(viper.AllKeys(), ShouldNotContain, "embedded-ignored-string")
 
+			So(conf.AStringToStringMap, ShouldResemble, map[string]string{
+				"key1": "my-private-key",
+				"key2": "inline-value",
+			})
+			So(os.Getenv("LOMBRIC_A_STRING_TO_STRING_MAP"), ShouldEqual, "")
+
+			So(conf.APlainStringToStringMap, ShouldResemble, map[string]string{
+				"key1": "val1",
+				"key2": "val2",
+			})
+
 			_, err := os.Stat(sfile1.Name())
 			So(os.IsNotExist(err), ShouldBeFalse)
 
 			_, err = os.Stat(sfile2.Name())
+			So(os.IsNotExist(err), ShouldBeTrue)
+
+			_, err = os.Stat(sfile3.Name())
 			So(os.IsNotExist(err), ShouldBeTrue)
 		})
 	})
