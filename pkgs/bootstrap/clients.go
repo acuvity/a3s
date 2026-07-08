@@ -131,6 +131,21 @@ func MakeMongoManipulator(cfg conf.MongoConf, hasher sharder.Hasher, model eleme
 		slog.Warn("Attribute encryption", "status", "disabled")
 	}
 
+	if cfg.MongoConnTimeout > 0 {
+		opts = append(opts, manipmongo.OptionConnectionTimeout(cfg.MongoConnTimeout))
+	}
+
+	slog.Debug(
+		"Connecting to mongodb...",
+		"url", cfg.MongoURL,
+		"db", cfg.MongoDBName,
+		"hasher", func() bool { return hasher != nil }(),
+		"encryption-key", func() bool { return cfg.MongoAttrEncryptKey != "" }(),
+		"consistency", consistency,
+		"pool-limit", cfg.MongoPoolSize,
+		"conn-timeout", cfg.MongoConnTimeout,
+	)
+
 	m, err := manipmongo.New(cfg.MongoURL, cfg.MongoDBName, opts...)
 	if err != nil {
 		slog.Error("Unable to connect to mongo", err)

@@ -331,20 +331,21 @@ type APIServerConf struct {
 
 // MongoConf holds the configuration for mongo db authentication.
 type MongoConf struct {
-	MongoAttrEncryptKey string `mapstructure:"mongo-encryption-key" desc:"Key to use for attributes encryption" secret:"true" file:"true"`
-	MongoAuthDB         string `mapstructure:"mongo-auth-db" desc:"Database to use for authenticating" default:"admin"`
-	MongoConsistency    string `mapstructure:"mongo-consistency" desc:"Set the read consistency" default:"nearest" allowed:"strong,monotonic,eventual,nearest,weakest"`
-	MongoDBName         string `mapstructure:"mongo-db" desc:"Database name in MongoDB" default:"override-me"`
-	MongoPassword       string `mapstructure:"mongo-pass" desc:"Password to use to connect to MongoDB" secret:"true" file:"true"`
-	MongoPoolSize       int    `mapstructure:"mongo-pool-size" desc:"Maximum size of the connection pool" default:"4096"`
-	MongoTLSCA          string `mapstructure:"mongo-tls-ca" desc:"Path to the CA used by MongoDB"`
-	MongoTLSCertificate string `mapstructure:"mongo-tls-cert" desc:"Path to the client certificate"`
-	MongoTLSDisable     bool   `mapstructure:"mongo-tls-disable" desc:"Set this to completely disable TLS" hidden:"true"`
-	MongoTLSKey         string `mapstructure:"mongo-tls-key" desc:"Path to the client key"`
-	MongoTLSKeyPass     string `mapstructure:"mongo-tls-key-pass" desc:"Password for the client key" secret:"true" file:"true"`
-	MongoTLSSkip        bool   `mapstructure:"mongo-tls-skip" desc:"Skip CA verification"`
-	MongoURL            string `mapstructure:"mongo-url" desc:"MongoDB connection string" required:"true"`
-	MongoUser           string `mapstructure:"mongo-user" desc:"User to use to connect to MongoDB"`
+	MongoAttrEncryptKey string        `mapstructure:"mongo-encryption-key" desc:"Key to use for attributes encryption" secret:"true" file:"true"`
+	MongoAuthDB         string        `mapstructure:"mongo-auth-db" desc:"Database to use for authenticating" default:"admin"`
+	MongoConnTimeout    time.Duration `mapstructure:"mongo-connect-timeout" desc:"Timeout before aborting initial mongo connection. 0 means driver default"`
+	MongoConsistency    string        `mapstructure:"mongo-consistency" desc:"Set the read consistency" default:"nearest" allowed:"strong,monotonic,eventual,nearest,weakest"`
+	MongoDBName         string        `mapstructure:"mongo-db" desc:"Database name in MongoDB" default:"override-me"`
+	MongoPassword       string        `mapstructure:"mongo-pass" desc:"Password to use to connect to MongoDB" secret:"true" file:"true"`
+	MongoPoolSize       int           `mapstructure:"mongo-pool-size" desc:"Maximum size of the connection pool" default:"4096"`
+	MongoTLSCA          string        `mapstructure:"mongo-tls-ca" desc:"Path to the CA used by MongoDB"`
+	MongoTLSCertificate string        `mapstructure:"mongo-tls-cert" desc:"Path to the client certificate"`
+	MongoTLSDisable     bool          `mapstructure:"mongo-tls-disable" desc:"Set this to completely disable TLS" hidden:"true"`
+	MongoTLSKey         string        `mapstructure:"mongo-tls-key" desc:"Path to the client key"`
+	MongoTLSKeyPass     string        `mapstructure:"mongo-tls-key-pass" desc:"Password for the client key" secret:"true" file:"true"`
+	MongoTLSSkip        bool          `mapstructure:"mongo-tls-skip" desc:"Skip CA verification"`
+	MongoURL            string        `mapstructure:"mongo-url" desc:"MongoDB connection string" required:"true"`
+	MongoUser           string        `mapstructure:"mongo-user" desc:"User to use to connect to MongoDB"`
 }
 
 // TLSConfig returns the configured TLS configuration as *tls.Config.
