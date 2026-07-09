@@ -207,7 +207,7 @@ func TestMakeTLSPeerCertificateForwarder(t *testing.T) {
 		So(action, ShouldEqual, gateway.InterceptorActionStop)
 		So(upstream, ShouldBeEmpty)
 		So(err, ShouldNotBeNil)
-		So(err.Error(), ShouldEqual, "invalid passphrase: size must be exactly 16 bytes")
+		So(err.Error(), ShouldEqual, "invalid passphrase: size must be either of [16 24 32]")
 	})
 
 	Convey("When everything is fine, the header should be provided", t, func() {
