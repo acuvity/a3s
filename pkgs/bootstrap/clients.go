@@ -286,54 +286,60 @@ func MakeA3SRemoteAuthX(
 // MakeRedisClient returns a redis client based on the provided configuration.
 func MakeRedisClient(cfg conf.RedisConf) (redis.UniversalClient, error) {
 
-	tlsConfig := &tls.Config{
-		MinVersion: tls.VersionTLS13,
-	}
+	var tlsConfig *tls.Config
 
-	if cfg.RedisTLSCert != "" {
-		cert, key, err := tglib.ReadCertificatePEM(
-			cfg.RedisTLSCert,
-			cfg.RedisTLSKey,
-			cfg.RedisTLSKeyPass,
-		)
-		if err != nil {
-			return nil, fmt.Errorf("unable to read certificate: %w", err)
+	if !cfg.RedisDisableTLS {
+
+		tlsConfig = &tls.Config{
+			MinVersion: tls.VersionTLS13,
 		}
 
-		clientCert, err := tglib.ToTLSCertificate(cert, key)
-		if err != nil {
-			return nil, fmt.Errorf("unable to convert client certificate: %w", err)
+		if cfg.RedisTLSCert != "" {
+			cert, key, err := tglib.ReadCertificatePEM(
+				cfg.RedisTLSCert,
+				cfg.RedisTLSKey,
+				cfg.RedisTLSKeyPass,
+			)
+			if err != nil {
+				return nil, fmt.Errorf("unable to read certificate: %w", err)
+			}
+
+			clientCert, err := tglib.ToTLSCertificate(cert, key)
+			if err != nil {
+				return nil, fmt.Errorf("unable to convert client certificate: %w", err)
+			}
+
+			tlsConfig.Certificates = []tls.Certificate{clientCert}
 		}
 
-		tlsConfig.Certificates = []tls.Certificate{clientCert}
-	}
+		if cfg.RedisTLSCA == "" {
+			pool, err := x509.SystemCertPool()
+			if err != nil {
+				return nil, fmt.Errorf("unable to load system cert pool: %w", err)
+			}
 
-	if cfg.RedisTLSCA == "" {
-		pool, err := x509.SystemCertPool()
-		if err != nil {
-			return nil, fmt.Errorf("unable to load system cert pool: %w", err)
+			tlsConfig.RootCAs = pool
+		} else {
+			data, err := os.ReadFile(cfg.RedisTLSCA)
+			if err != nil {
+				return nil, fmt.Errorf("unable to read CA file: %w", err)
+			}
+
+			pool := x509.NewCertPool()
+			if !pool.AppendCertsFromPEM(data) {
+				return nil, fmt.Errorf("unable to append system signing ca")
+			}
+
+			tlsConfig.RootCAs = pool
 		}
-
-		tlsConfig.RootCAs = pool
-	} else {
-		data, err := os.ReadFile(cfg.RedisTLSCA)
-		if err != nil {
-			return nil, fmt.Errorf("unable to read CA file: %w", err)
-		}
-
-		pool := x509.NewCertPool()
-		if !pool.AppendCertsFromPEM(data) {
-			return nil, fmt.Errorf("unable to append system signing ca")
-		}
-
-		tlsConfig.RootCAs = pool
 	}
 
 	slog.Info("Redis configured",
 		"addr", cfg.RedisAddress,
 		"user", cfg.RedisUser,
-		"passw", cfg.RedisPassword != "",
 		"db", cfg.RedisDB,
+		"passw", cfg.RedisPassword != "",
+		"tls", !cfg.RedisDisableTLS,
 	)
 
 	return redis.NewClient(&redis.Options{
