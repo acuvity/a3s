@@ -513,8 +513,6 @@ func main() {
 		os.Exit(1)
 	}
 
-	slog.Info("Redis configured", "addr", cfg.RedisAddress, "db", cfg.RedisDB, "user", cfg.RedisUser)
-
 	redisClient, err := bootstrap.MakeRedisClient(cfg.RedisConf)
 	if err != nil {
 		slog.Info("Unable to connect to redis", err)

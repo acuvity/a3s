@@ -329,6 +329,13 @@ func MakeRedisClient(cfg conf.RedisConf) (redis.UniversalClient, error) {
 		tlsConfig.RootCAs = pool
 	}
 
+	slog.Info("Redis configured",
+		"addr", cfg.RedisAddress,
+		"user", cfg.RedisUser,
+		"passw", cfg.RedisPassword != "",
+		"db", cfg.RedisDB,
+	)
+
 	return redis.NewClient(&redis.Options{
 		Addr:        cfg.RedisAddress,
 		Username:    cfg.RedisUser,
