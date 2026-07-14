@@ -315,7 +315,9 @@ func (p *IssueProcessor) ProcessCreate(bctx bahamut.Context) (err error) {
 	}
 
 	defer func() {
-		bctx.SetMetadata(auditor.MetadataKeyAudit, idt.Identity)
+		if idt != nil {
+			bctx.SetMetadata(auditor.MetadataKeyAudit, idt.Identity)
+		}
 	}()
 
 	if err := idt.Restrict(permissions.Restrictions{
