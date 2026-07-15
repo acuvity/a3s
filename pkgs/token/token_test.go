@@ -4,6 +4,7 @@ import (
 	"crypto"
 	"crypto/x509"
 	"crypto/x509/pkix"
+	"encoding/json"
 	"encoding/pem"
 	"fmt"
 	"reflect"
@@ -54,6 +55,106 @@ func TestNewIdentityToken(t *testing.T) {
 		So(c.Map(), ShouldResemble, map[string][]string{})
 		c.Identity = []string{"a=b", "b=c", "b=d"}
 		So(c.Map(), ShouldResemble, map[string][]string{"a": {"b"}, "b": {"c", "d"}})
+	})
+}
+
+func TestIdentityToken_JSON(t *testing.T) {
+
+	Convey("Given a fully populated IdentityToken", t, func() {
+
+		token1 := &IdentityToken{
+			Identity: []string{"org=a3s.com", "orgunit=admin"},
+			Refresh:  true,
+			Opaque:   map[string]string{"key": "value"},
+			Restrictions: &permissions.Restrictions{
+				Namespace:   "/the/ns",
+				Networks:    []string{"10.0.0.0/24"},
+				Permissions: []string{"dog:get,put"},
+			},
+			Source: Source{
+				Type:      "certificate",
+				Namespace: "/my/ns",
+				Name:      "mysource",
+			},
+			OAuthApplication: OAuthApplication{
+				ID:        "oauthapp-id",
+				Namespace: "/oauth/ns",
+				Name:      "oauthapp-name",
+			},
+			OAuthClient: OAuthClient{
+				ClientID:  "oauthclient-id",
+				Namespace: "/oauthclient/ns",
+			},
+		}
+		token1.ID = "token-id"
+		token1.Issuer = "iss"
+		token1.Audience = jwt.ClaimStrings{"aud"}
+		token1.IssuedAt = jwt.NewNumericDate(time.Now().Truncate(time.Second))
+		token1.ExpiresAt = jwt.NewNumericDate(time.Now().Add(10 * time.Second).Truncate(time.Second))
+
+		Convey("Marshaling it should produce the expected JSON keys", func() {
+
+			d, err := json.Marshal(token1)
+			So(err, ShouldBeNil)
+
+			var m map[string]any
+			So(json.Unmarshal(d, &m), ShouldBeNil)
+
+			So(m, ShouldContainKey, "identity")
+			So(m, ShouldContainKey, "refresh")
+			So(m, ShouldContainKey, "opaque")
+			So(m, ShouldContainKey, "restrictions")
+			So(m, ShouldContainKey, "source")
+			So(m, ShouldContainKey, "oauthApplication")
+			So(m, ShouldContainKey, "oauthClient")
+			So(m, ShouldContainKey, "jti")
+			So(m, ShouldContainKey, "iss")
+			So(m, ShouldContainKey, "aud")
+			So(m, ShouldContainKey, "iat")
+			So(m, ShouldContainKey, "exp")
+
+			So(m["oauthClient"], ShouldResemble, map[string]any{
+				"clientID":  "oauthclient-id",
+				"namespace": "/oauthclient/ns",
+			})
+			So(m["oauthApplication"], ShouldResemble, map[string]any{
+				"ID":        "oauthapp-id",
+				"namespace": "/oauth/ns",
+				"name":      "oauthapp-name",
+			})
+		})
+
+		Convey("Marshaling then unmarshaling it should round trip all fields", func() {
+
+			d, err := json.Marshal(token1)
+			So(err, ShouldBeNil)
+
+			token2 := &IdentityToken{}
+			So(json.Unmarshal(d, token2), ShouldBeNil)
+
+			So(token2, ShouldResemble, token1)
+		})
+	})
+
+	Convey("Given an IdentityToken with zero-value OAuthApplication and OAuthClient", t, func() {
+
+		token1 := &IdentityToken{
+			Source: Source{
+				Type: "certificate",
+			},
+		}
+
+		Convey("Marshaling it should omit the oauthapplication and oauthClient keys", func() {
+
+			d, err := json.Marshal(token1)
+			So(err, ShouldBeNil)
+
+			var m map[string]any
+			So(json.Unmarshal(d, &m), ShouldBeNil)
+
+			So(m, ShouldNotContainKey, "oauthApplication")
+			So(m, ShouldNotContainKey, "oauthClient")
+		})
 	})
 }
 
