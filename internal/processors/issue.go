@@ -362,6 +362,13 @@ func (p *IssueProcessor) ProcessCreate(bctx bahamut.Context) (err error) {
 		}
 	}
 
+	if oauthClient != nil {
+		idt.OAuthClient = token.OAuthClient{
+			ClientID:  oauthClient.ClientID,
+			Namespace: oauthClient.Namespace,
+		}
+	}
+
 	originalSource := idt.Source
 	originalOAuthApplication := idt.OAuthApplication
 	if p.pluginModifier != nil {

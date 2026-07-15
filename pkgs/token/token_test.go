@@ -77,6 +77,10 @@ func TestParse(t *testing.T) {
 			Namespace: "/oauth/ns",
 			Name:      "oauthapp-name",
 		}
+		token1.OAuthClient = OAuthClient{
+			ClientID:  "oauthclient-id",
+			Namespace: "/oauthclient/ns",
+		}
 		token1.Identity = []string{
 			"org=a3s.com",
 			"orgunit=admin",
@@ -108,6 +112,8 @@ func TestParse(t *testing.T) {
 				"@oauthapp:id=oauthapp-id",
 				"@oauthapp:name=oauthapp-name",
 				"@oauthapp:namespace=/oauth/ns",
+				"@oauthclient:clientid=oauthclient-id",
+				"@oauthclient:namespace=/oauthclient/ns",
 				"@source:name=mysource",
 				"@source:namespace=/my/ns",
 				"@source:type=certificate",
@@ -126,6 +132,10 @@ func TestParse(t *testing.T) {
 				Namespace: "/oauth/ns",
 				Name:      "oauthapp-name",
 			})
+			So(token2.OAuthClient, ShouldResemble, OAuthClient{
+				ClientID:  "oauthclient-id",
+				Namespace: "/oauthclient/ns",
+			})
 			So(token2.Issuer, ShouldEqual, "iss")
 			So(token2.Audience, ShouldResemble, jwt.ClaimStrings{"aud"})
 			So(token2.ExpiresAt, ShouldResemble, token1.ExpiresAt)
@@ -135,6 +145,8 @@ func TestParse(t *testing.T) {
 				"@oauthapp:id=oauthapp-id",
 				"@oauthapp:name=oauthapp-name",
 				"@oauthapp:namespace=/oauth/ns",
+				"@oauthclient:clientid=oauthclient-id",
+				"@oauthclient:namespace=/oauthclient/ns",
 				"@source:name=mysource",
 				"@source:namespace=/my/ns",
 				"@source:type=certificate",
@@ -226,6 +238,10 @@ func TestParseUnverified(t *testing.T) {
 			Namespace: "/oauth/ns",
 			Name:      "oauthapp-name",
 		}
+		token1.OAuthClient = OAuthClient{
+			ClientID:  "oauthclient-id",
+			Namespace: "/oauthclient/ns",
+		}
 		token1.Identity = []string{
 			"org=a3s.com",
 			"orgunit=admin",
@@ -251,6 +267,10 @@ func TestParseUnverified(t *testing.T) {
 				Namespace: "/oauth/ns",
 				Name:      "oauthapp-name",
 			})
+			So(token2.OAuthClient, ShouldResemble, OAuthClient{
+				ClientID:  "oauthclient-id",
+				Namespace: "/oauthclient/ns",
+			})
 			So(token2.Issuer, ShouldEqual, "iss")
 			So(token2.Audience, ShouldResemble, jwt.ClaimStrings{"aud"})
 			So(token2.ExpiresAt, ShouldResemble, token1.ExpiresAt)
@@ -260,6 +280,8 @@ func TestParseUnverified(t *testing.T) {
 				"@oauthapp:id=oauthapp-id",
 				"@oauthapp:name=oauthapp-name",
 				"@oauthapp:namespace=/oauth/ns",
+				"@oauthclient:clientid=oauthclient-id",
+				"@oauthclient:namespace=/oauthclient/ns",
 				"@source:name=mysource",
 				"@source:namespace=/my/ns",
 				"@source:type=certificate",

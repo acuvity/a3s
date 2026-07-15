@@ -33,6 +33,13 @@ type OAuthApplication struct {
 	Name      string
 }
 
+// An OAuthClient represents the oauth client info
+// used to derive an IdentityToken.
+type OAuthClient struct {
+	ClientID  string `json:"clientID"`
+	Namespace string `json:"namespace,omitempty"`
+}
+
 // An IdentityToken represents a normalized identity token.
 type IdentityToken struct {
 
@@ -56,6 +63,10 @@ type IdentityToken struct {
 	// Information relative to the oauth application used to
 	// mint bearer's token.
 	OAuthApplication OAuthApplication `json:"oauthapplication,omitempty,omitzero"`
+
+	// Information relative to the oauth client used to
+	// mint bearer's token.
+	OAuthClient OAuthClient `json:"oauthClient,omitempty,omitzero"`
 
 	jwt.RegisteredClaims
 }
@@ -152,6 +163,10 @@ func finalizeTokenParsing(idt *IdentityToken) error {
 			idt.OAuthApplication.Namespace = strings.TrimPrefix(c, "@oauthapp:namespace=")
 		case strings.HasPrefix(c, "@oauthapp:name="):
 			idt.OAuthApplication.Name = strings.TrimPrefix(c, "@oauthapp:name=")
+		case strings.HasPrefix(c, "@oauthclient:clientid="):
+			idt.OAuthClient.ClientID = strings.TrimPrefix(c, "@oauthclient:clientid=")
+		case strings.HasPrefix(c, "@oauthclient:namespace="):
+			idt.OAuthClient.Namespace = strings.TrimPrefix(c, "@oauthclient:namespace=")
 		}
 	}
 
@@ -218,6 +233,14 @@ func (t *IdentityToken) JWT(key crypto.PrivateKey, kid string, issuer string, au
 
 	if t.OAuthApplication.Name != "" {
 		t.Identity = append(t.Identity, fmt.Sprintf("@oauthapp:name=%s", t.OAuthApplication.Name))
+	}
+
+	if t.OAuthClient.ClientID != "" {
+		t.Identity = append(t.Identity, fmt.Sprintf("@oauthclient:clientid=%s", t.OAuthClient.ClientID))
+	}
+
+	if t.OAuthClient.Namespace != "" {
+		t.Identity = append(t.Identity, fmt.Sprintf("@oauthclient:namespace=%s", t.OAuthClient.Namespace))
 	}
 
 	t.Identity = append(t.Identity, fmt.Sprintf("@issuer=%s", t.Issuer))
