@@ -28,9 +28,9 @@ type Source struct {
 // An OAuthApplication represents the oauth application info
 // used to derive an IdentityToken.
 type OAuthApplication struct {
-	ID        string
-	Namespace string
-	Name      string
+	ID        string `json:"ID"`
+	Namespace string `json:"namespace,omitempty"`
+	Name      string `json:"name,omitempty"`
 }
 
 // An OAuthClient represents the oauth client info
@@ -62,7 +62,7 @@ type IdentityToken struct {
 
 	// Information relative to the oauth application used to
 	// mint bearer's token.
-	OAuthApplication OAuthApplication `json:"oauthapplication,omitempty,omitzero"`
+	OAuthApplication OAuthApplication `json:"oauthApplication,omitempty,omitzero"`
 
 	// Information relative to the oauth client used to
 	// mint bearer's token.
