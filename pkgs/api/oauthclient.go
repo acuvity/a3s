@@ -17,6 +17,9 @@ import (
 type OAuthClientTokenEndpointAuthMethodValue string
 
 const (
+	// OAuthClientTokenEndpointAuthMethodClientSecretAny represents the value ClientSecretAny.
+	OAuthClientTokenEndpointAuthMethodClientSecretAny OAuthClientTokenEndpointAuthMethodValue = "ClientSecretAny"
+
 	// OAuthClientTokenEndpointAuthMethodClientSecretBasic represents the value ClientSecretBasic.
 	OAuthClientTokenEndpointAuthMethodClientSecretBasic OAuthClientTokenEndpointAuthMethodValue = "ClientSecretBasic"
 
@@ -133,7 +136,11 @@ type OAuthClient struct {
 	// Scopes allowed for the client.
 	Scopes []string `json:"scopes" msgpack:"scopes" bson:"scopes" mapstructure:"scopes,omitempty"`
 
-	// How the client authenticates to the token endpoint.
+	// How the client authenticates to the token endpoint. ClientSecretBasic and
+	// ClientSecretPost pin the client to that exact transport for its secret.
+	// ClientSecretAny requires a secret but accepts it via either transport,
+	// useful for generic OAuth clients that cannot be told which one to use.
+	// None means the client is public and must not authenticate with a secret.
 	TokenEndpointAuthMethod OAuthClientTokenEndpointAuthMethodValue `json:"tokenEndpointAuthMethod" msgpack:"tokenEndpointAuthMethod" bson:"tokenendpointauthmethod" mapstructure:"tokenEndpointAuthMethod,omitempty"`
 
 	// Last update date of the object.
@@ -543,7 +550,7 @@ func (o *OAuthClient) Validate() error {
 		requiredErrors = requiredErrors.Append(err)
 	}
 
-	if err := elemental.ValidateStringInList("tokenEndpointAuthMethod", string(o.TokenEndpointAuthMethod), []string{"ClientSecretBasic", "ClientSecretPost", "None"}, false); err != nil {
+	if err := elemental.ValidateStringInList("tokenEndpointAuthMethod", string(o.TokenEndpointAuthMethod), []string{"ClientSecretBasic", "ClientSecretPost", "ClientSecretAny", "None"}, false); err != nil {
 		errors = errors.Append(err)
 	}
 
@@ -762,15 +769,19 @@ same import operation.`,
 		Type:           "list",
 	},
 	"TokenEndpointAuthMethod": {
-		AllowedChoices: []string{"ClientSecretBasic", "ClientSecretPost", "None"},
+		AllowedChoices: []string{"ClientSecretBasic", "ClientSecretPost", "ClientSecretAny", "None"},
 		BSONFieldName:  "tokenendpointauthmethod",
 		ConvertedName:  "TokenEndpointAuthMethod",
-		Description:    `How the client authenticates to the token endpoint.`,
-		Exposed:        true,
-		Name:           "tokenEndpointAuthMethod",
-		Required:       true,
-		Stored:         true,
-		Type:           "enum",
+		Description: `How the client authenticates to the token endpoint. ClientSecretBasic and
+ClientSecretPost pin the client to that exact transport for its secret.
+ClientSecretAny requires a secret but accepts it via either transport,
+useful for generic OAuth clients that cannot be told which one to use.
+None means the client is public and must not authenticate with a secret.`,
+		Exposed:  true,
+		Name:     "tokenEndpointAuthMethod",
+		Required: true,
+		Stored:   true,
+		Type:     "enum",
 	},
 	"UpdateTime": {
 		AllowedChoices: []string{},
@@ -962,15 +973,19 @@ same import operation.`,
 		Type:           "list",
 	},
 	"tokenendpointauthmethod": {
-		AllowedChoices: []string{"ClientSecretBasic", "ClientSecretPost", "None"},
+		AllowedChoices: []string{"ClientSecretBasic", "ClientSecretPost", "ClientSecretAny", "None"},
 		BSONFieldName:  "tokenendpointauthmethod",
 		ConvertedName:  "TokenEndpointAuthMethod",
-		Description:    `How the client authenticates to the token endpoint.`,
-		Exposed:        true,
-		Name:           "tokenEndpointAuthMethod",
-		Required:       true,
-		Stored:         true,
-		Type:           "enum",
+		Description: `How the client authenticates to the token endpoint. ClientSecretBasic and
+ClientSecretPost pin the client to that exact transport for its secret.
+ClientSecretAny requires a secret but accepts it via either transport,
+useful for generic OAuth clients that cannot be told which one to use.
+None means the client is public and must not authenticate with a secret.`,
+		Exposed:  true,
+		Name:     "tokenEndpointAuthMethod",
+		Required: true,
+		Stored:   true,
+		Type:     "enum",
 	},
 	"updatetime": {
 		AllowedChoices: []string{},
@@ -1113,7 +1128,11 @@ type SparseOAuthClient struct {
 	// Scopes allowed for the client.
 	Scopes *[]string `json:"scopes,omitempty" msgpack:"scopes,omitempty" bson:"scopes,omitempty" mapstructure:"scopes,omitempty"`
 
-	// How the client authenticates to the token endpoint.
+	// How the client authenticates to the token endpoint. ClientSecretBasic and
+	// ClientSecretPost pin the client to that exact transport for its secret.
+	// ClientSecretAny requires a secret but accepts it via either transport,
+	// useful for generic OAuth clients that cannot be told which one to use.
+	// None means the client is public and must not authenticate with a secret.
 	TokenEndpointAuthMethod *OAuthClientTokenEndpointAuthMethodValue `json:"tokenEndpointAuthMethod,omitempty" msgpack:"tokenEndpointAuthMethod,omitempty" bson:"tokenendpointauthmethod,omitempty" mapstructure:"tokenEndpointAuthMethod,omitempty"`
 
 	// Last update date of the object.

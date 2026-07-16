@@ -123,10 +123,11 @@
     "tokenEndpointAuthMethod": {
       "$friendlyName": "Token Endpoint Auth Method",
       "$required": true,
-      "description": "How the client authenticates to the token endpoint.",
+      "description": "How the client authenticates to the token endpoint. ClientSecretBasic and ClientSecretPost pin the client to that exact transport for its secret. ClientSecretAny requires a secret but accepts it via either transport, useful for generic OAuth clients that cannot be told which one to use. None means the client is public and must not authenticate with a secret.",
       "enum": [
         "ClientSecretBasic",
         "ClientSecretPost",
+        "ClientSecretAny",
         "None"
       ],
       "title": "tokenEndpointAuthMethod"
