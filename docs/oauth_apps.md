@@ -201,6 +201,11 @@ Notes:
 - the protocol layer supports `client_secret_basic`, `client_secret_post`, and
   `none`
 - clients using `none` are public clients
+- clients configured with `ClientSecretBasic` or `ClientSecretPost` are pinned
+  to that exact transport for their secret; `ClientSecretAny` requires a
+  secret but accepts it via either transport, since a3s has no DCR and
+  generic OAuth clients have no way to discover which one a given client is
+  pinned to
 - because only one grant type and one response type are supported in v1, they
   do not need to be stored per client yet
 - for DCR, new clients create registration records, not new `oauthapplication`
@@ -208,7 +213,8 @@ Notes:
 
 Stored object values:
 
-- `tokenEndpointAuthMethod`: `ClientSecretBasic`, `ClientSecretPost`, `None`
+- `tokenEndpointAuthMethod`: `ClientSecretBasic`, `ClientSecretPost`,
+  `ClientSecretAny`, `None`
 
 ## Pending Authorize Context
 

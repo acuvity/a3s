@@ -380,6 +380,8 @@ func validateClientAuthMethod(client *api.OAuthClient, tokenRequest TokenRequest
 		if tokenRequest.ClientAuthMethod != api.OAuthClientTokenEndpointAuthMethodClientSecretPost {
 			return newProtocolError("invalid_client", "client requires client_secret_post")
 		}
+	case api.OAuthClientTokenEndpointAuthMethodClientSecretAny:
+		// no transport requirement: either client_secret_basic or client_secret_post is accepted.
 	case api.OAuthClientTokenEndpointAuthMethodNone:
 		if tokenRequest.ClientAuthMethod != api.OAuthClientTokenEndpointAuthMethodNone {
 			return newProtocolError("invalid_client", "client does not allow secret-based authentication")
@@ -395,7 +397,7 @@ func validateClientSecret(client *api.OAuthClient, tokenRequest TokenRequest) er
 	switch client.TokenEndpointAuthMethod {
 	case api.OAuthClientTokenEndpointAuthMethodNone:
 		return nil
-	case api.OAuthClientTokenEndpointAuthMethodClientSecretBasic, api.OAuthClientTokenEndpointAuthMethodClientSecretPost:
+	case api.OAuthClientTokenEndpointAuthMethodClientSecretBasic, api.OAuthClientTokenEndpointAuthMethodClientSecretPost, api.OAuthClientTokenEndpointAuthMethodClientSecretAny:
 		if client.ClientSecret == "" {
 			return newProtocolError("invalid_client", fmt.Sprintf("confidential client %q has no client secret", client.ClientID))
 		}
