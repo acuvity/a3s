@@ -57,3 +57,11 @@ $url:
 $urls:
   elemental:
     name: ValidateURLs
+
+$webscheme:
+  elemental:
+    name: ValidateWebSchemeURL
+
+$webschemes:
+  elemental:
+    name: ValidateWebSchemeURLs

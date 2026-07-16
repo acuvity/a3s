@@ -194,10 +194,45 @@ func ValidateIssue(iss *Issue) error {
 	return nil
 }
 
-// ValidateURL validates the given value is a correct url.
+// ValidateURL validates the given value is a correct url with any scheme.
 func ValidateURL(attribute string, u string) error {
 
-	if len(u) == 0 {
+	if u == "" {
+		return nil
+	}
+
+	uu, err := url.Parse(u)
+	if err != nil {
+		return makeErr(attribute, fmt.Sprintf("invalid url: %s", err))
+	}
+
+	if uu.Scheme == "" {
+		return makeErr(attribute, "invalid url: missing scheme")
+	}
+
+	if uu.Hostname() == "" {
+		return makeErr(attribute, "invalid url: missing hostname")
+	}
+
+	return nil
+}
+
+// ValidateURLs validates the given value is a list of correct urls with any scheme.
+func ValidateURLs(attribute string, u []string) error {
+
+	for i := range len(u) {
+		if err := ValidateURL(attribute, u[i]); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// ValidateWebSchemeURL validates that the given url uses a web scheme (http, https, ws, wss).
+// Intended to be paired with $url: $url validates structure, $webscheme validates the scheme.
+func ValidateWebSchemeURL(attribute string, u string) error {
+
+	if u == "" {
 		return nil
 	}
 
@@ -207,25 +242,23 @@ func ValidateURL(attribute string, u string) error {
 	}
 
 	switch uu.Scheme {
-	case "http", "https":
-	case "":
-		return makeErr(attribute, "invalid url: missing scheme")
+	case "http", "https", "ws", "wss":
 	default:
-		return makeErr(attribute, "invalid url: invalid scheme")
+		return makeErr(attribute, fmt.Sprintf("invalid url: invalid scheme '%s'. Must be 'http', 'https', 'ws' or 'wss'", uu.Scheme))
 	}
 
 	return nil
 }
 
-// ValidateURLs validates that every value in the list is a correct URL.
-func ValidateURLs(attribute string, values []string) error {
+// ValidateWebSchemeURLs validates that the given urls use a web scheme (http, https, ws, wss).
+// Intended to be paired with $urls.
+func ValidateWebSchemeURLs(attribute string, u []string) error {
 
-	for i, value := range values {
-		if err := ValidateURL(fmt.Sprintf("%s[%d]", attribute, i), value); err != nil {
+	for i := range len(u) {
+		if err := ValidateWebSchemeURL(attribute, u[i]); err != nil {
 			return err
 		}
 	}
-
 	return nil
 }
 

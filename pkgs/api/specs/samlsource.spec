@@ -73,6 +73,7 @@ attributes:
     omit_empty: true
     validations:
     - $url
+    - $webscheme
 
   - name: IDPURL
     friendly_name: IDP URL

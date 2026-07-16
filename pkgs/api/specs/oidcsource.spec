@@ -81,6 +81,7 @@ attributes:
     example_value: https://accounts.google.com
     validations:
     - $url
+    - $webscheme
 
   - name: modifier
     friendly_name: Modifier

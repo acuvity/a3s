@@ -47,6 +47,7 @@ attributes:
     example_value: https://modifier.acme.com/modify
     validations:
     - $url
+    - $webscheme
 
   - name: certificate
     friendly_name: Certificate

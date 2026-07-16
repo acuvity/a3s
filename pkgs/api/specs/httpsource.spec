@@ -63,6 +63,7 @@ attributes:
     example_value: https://account.acme.com/auth
     validations:
     - $url
+    - $webscheme
 
   - name: certificate
     friendly_name: Certificate

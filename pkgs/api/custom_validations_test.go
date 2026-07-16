@@ -1169,6 +1169,17 @@ func TestValidateURL(t *testing.T) {
 			nil,
 		},
 		{
+			"empty",
+			func(t *testing.T) args {
+				return args{
+					"attr",
+					"",
+				}
+			},
+			false,
+			nil,
+		},
+		{
 			"invalid url 3",
 			func(t *testing.T) args {
 				return args{
@@ -1180,25 +1191,113 @@ func TestValidateURL(t *testing.T) {
 			nil,
 		},
 		{
-			"invalid scheme",
+			"non-web scheme is valid structure",
 			func(t *testing.T) args {
 				return args{
 					"attr",
 					"ftp://what.com",
 				}
 			},
+			false,
+			nil,
+		},
+		{
+			"custom scheme is valid structure",
+			func(t *testing.T) args {
+				return args{
+					"attr",
+					"cursor://what.com",
+				}
+			},
+			false,
+			nil,
+		},
+		{
+			"scheme but no hostname",
+			func(t *testing.T) args {
+				return args{
+					"attr",
+					"https://",
+				}
+			},
 			true,
 			nil,
 		},
 		{
-			"empty",
+			"relative path, no scheme",
 			func(t *testing.T) args {
 				return args{
 					"attr",
-					"",
+					"/foo/bar",
+				}
+			},
+			true,
+			nil,
+		},
+		{
+			"scheme-relative url (missing scheme)",
+			func(t *testing.T) args {
+				return args{
+					"attr",
+					"//example.com/path",
+				}
+			},
+			true,
+			nil,
+		},
+		{
+			"url with port, path, query and fragment",
+			func(t *testing.T) args {
+				return args{
+					"attr",
+					"https://example.com:8443/path?q=1#frag",
 				}
 			},
 			false,
+			nil,
+		},
+		{
+			"ipv4 host",
+			func(t *testing.T) args {
+				return args{
+					"attr",
+					"http://127.0.0.1:8080",
+				}
+			},
+			false,
+			nil,
+		},
+		{
+			"ipv6 host",
+			func(t *testing.T) args {
+				return args{
+					"attr",
+					"http://[::1]:8080",
+				}
+			},
+			false,
+			nil,
+		},
+		{
+			"control character in url",
+			func(t *testing.T) args {
+				return args{
+					"attr",
+					"https://exa\nmple.com",
+				}
+			},
+			true,
+			nil,
+		},
+		{
+			"whitespace only",
+			func(t *testing.T) args {
+				return args{
+					"attr",
+					"   ",
+				}
+			},
+			true,
 			nil,
 		},
 	}
@@ -1211,6 +1310,135 @@ func TestValidateURL(t *testing.T) {
 
 			if (err != nil) != tt.wantErr {
 				t.Fatalf("ValidateURL error = %v, wantErr: %t", err, tt.wantErr)
+			}
+
+			if tt.inspectErr != nil {
+				tt.inspectErr(err, t)
+			}
+		})
+	}
+}
+func TestValidateWebSchemeURL(t *testing.T) {
+	type args struct {
+		attribute string
+		u         string
+	}
+	tests := []struct {
+		name string
+		args func(t *testing.T) args
+
+		wantErr    bool
+		inspectErr func(err error, t *testing.T) //use for more precise error evaluation after test
+	}{
+		{
+			"valid https",
+			func(t *testing.T) args {
+				return args{
+					"attr",
+					"https://toto.com",
+				}
+			},
+			false,
+			nil,
+		},
+		{
+			"valid http",
+			func(t *testing.T) args {
+				return args{
+					"attr",
+					"http://toto.com",
+				}
+			},
+			false,
+			nil,
+		},
+		{
+			"valid ws",
+			func(t *testing.T) args {
+				return args{
+					"attr",
+					"ws://toto.com",
+				}
+			},
+			false,
+			nil,
+		},
+		{
+			"valid wss",
+			func(t *testing.T) args {
+				return args{
+					"attr",
+					"wss://toto.com",
+				}
+			},
+			false,
+			nil,
+		},
+		{
+			"empty is allowed",
+			func(t *testing.T) args {
+				return args{
+					"attr",
+					"",
+				}
+			},
+			false,
+			nil,
+		},
+		{
+			"invalid scheme (ftp)",
+			func(t *testing.T) args {
+				return args{
+					"attr",
+					"ftp://what.com",
+				}
+			},
+			true,
+			nil,
+		},
+		{
+			"missing scheme",
+			func(t *testing.T) args {
+				return args{
+					"attr",
+					"toto.com",
+				}
+			},
+			true,
+			nil,
+		},
+		{
+			"unparseable url",
+			func(t *testing.T) args {
+				return args{
+					"attr",
+					"http##dd%",
+				}
+			},
+			true,
+			nil,
+		},
+		{
+			"scheme is case-insensitive",
+			func(t *testing.T) args {
+				return args{
+					"attr",
+					"HTTPS://toto.com",
+				}
+			},
+			false,
+			nil,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tArgs := tt.args(t)
+
+			err := ValidateWebSchemeURL(tArgs.attribute, tArgs.u)
+
+			if (err != nil) != tt.wantErr {
+				t.Fatalf("ValidateWebSchemeURL error = %v, wantErr: %t", err, tt.wantErr)
 			}
 
 			if tt.inspectErr != nil {
