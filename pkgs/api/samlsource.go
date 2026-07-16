@@ -615,6 +615,9 @@ func (o *SAMLSource) Validate() error {
 	if err := ValidateURL("IDPMetadataURL", o.IDPMetadataURL); err != nil {
 		errors = errors.Append(err)
 	}
+	if err := ValidateWebSchemeURL("IDPMetadataURL", o.IDPMetadataURL); err != nil {
+		errors = errors.Append(err)
+	}
 
 	if err := ValidateKeys("ignoredKeys", o.IgnoredKeys); err != nil {
 		errors = errors.Append(err)

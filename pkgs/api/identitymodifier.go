@@ -335,6 +335,9 @@ func (o *IdentityModifier) Validate() error {
 	if err := ValidateURL("URL", o.URL); err != nil {
 		errors = errors.Append(err)
 	}
+	if err := ValidateWebSchemeURL("URL", o.URL); err != nil {
+		errors = errors.Append(err)
+	}
 
 	if err := elemental.ValidateRequiredString("certificate", o.Certificate); err != nil {
 		requiredErrors = requiredErrors.Append(err)

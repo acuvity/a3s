@@ -589,6 +589,9 @@ func (o *OIDCSource) Validate() error {
 	if err := ValidateURL("endpoint", o.Endpoint); err != nil {
 		errors = errors.Append(err)
 	}
+	if err := ValidateWebSchemeURL("endpoint", o.Endpoint); err != nil {
+		errors = errors.Append(err)
+	}
 
 	if err := ValidateKeys("ignoredKeys", o.IgnoredKeys); err != nil {
 		errors = errors.Append(err)
