@@ -94,7 +94,12 @@ attributes:
 
   - name: tokenEndpointAuthMethod
     friendly_name: Token Endpoint Auth Method
-    description: How the client authenticates to the token endpoint.
+    description: |-
+      How the client authenticates to the token endpoint. ClientSecretBasic and
+      ClientSecretPost pin the client to that exact transport for its secret.
+      ClientSecretAny requires a secret but accepts it via either transport,
+      useful for generic OAuth clients that cannot be told which one to use.
+      None means the client is public and must not authenticate with a secret.
     type: enum
     exposed: true
     stored: true
@@ -102,5 +107,6 @@ attributes:
     allowed_choices:
     - ClientSecretBasic
     - ClientSecretPost
+    - ClientSecretAny
     - None
     example_value: ClientSecretBasic
