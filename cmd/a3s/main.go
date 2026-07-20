@@ -16,6 +16,7 @@ import (
 	"github.com/ghodss/yaml"
 	"go.acuvity.ai/a3s/internal/hasher"
 	"go.acuvity.ai/a3s/internal/idp/entra"
+	"go.acuvity.ai/a3s/internal/idp/google"
 	"go.acuvity.ai/a3s/internal/idp/okta"
 	"go.acuvity.ai/a3s/internal/oauthserver"
 	"go.acuvity.ai/a3s/internal/processors"
@@ -500,6 +501,7 @@ func main() {
 
 	oktaManager := okta.NewManager(&http.Client{Timeout: 5 * time.Second}, noloRequestMaker)
 	entraManager := entra.NewManager(&http.Client{Timeout: 5 * time.Second}, noloRequestMaker)
+	googleManager := google.NewManager(&http.Client{Timeout: 5 * time.Second}, noloRequestMaker)
 
 	if cfg.IDPGracePeriod < 0 {
 		slog.Error("IDP grace period cannot be negative", "period", cfg.IDPGracePeriod)
@@ -572,6 +574,7 @@ func main() {
 			oidSourceNamespace,
 			entraManager,
 			oktaManager,
+			googleManager,
 			noloRequestMaker,
 		),
 		api.IssueIdentity,

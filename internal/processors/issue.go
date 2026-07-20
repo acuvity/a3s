@@ -17,6 +17,7 @@ import (
 	saml2 "github.com/russellhaering/gosaml2"
 	dsig "github.com/russellhaering/goxmldsig"
 	"go.acuvity.ai/a3s/internal/idp/entra"
+	"go.acuvity.ai/a3s/internal/idp/google"
 	"go.acuvity.ai/a3s/internal/idp/okta"
 	"go.acuvity.ai/a3s/internal/issuer/a3sissuer"
 	"go.acuvity.ai/a3s/internal/issuer/awsissuer"
@@ -76,6 +77,7 @@ type IssueProcessor struct {
 	oidSourceNamespace    asn1.ObjectIdentifier
 	entraManager          *entra.Manager
 	oktaManager           *okta.Manager
+	googleManager         *google.Manager
 	requestMaker          netsafe.RequestMaker
 }
 
@@ -103,6 +105,7 @@ func NewIssueProcessor(
 	oidSourceNamespace asn1.ObjectIdentifier,
 	entraManager *entra.Manager,
 	oktaManager *okta.Manager,
+	googleManager *google.Manager,
 	requestMaker netsafe.RequestMaker,
 ) *IssueProcessor {
 
@@ -136,6 +139,7 @@ func NewIssueProcessor(
 		oidSourceNamespace:    oidSourceNamespace,
 		entraManager:          entraManager,
 		oktaManager:           oktaManager,
+		googleManager:         googleManager,
 		requestMaker:          requestMaker,
 	}
 }
@@ -465,7 +469,7 @@ func (p *IssueProcessor) handleCertificateIssue(ctx context.Context, source elem
 
 	src := source.(*api.MTLSSource)
 
-	iss, err := mtlsissuer.New(ctx, src, certs[0], p.entraManager, p.oktaManager, p.requestMaker)
+	iss, err := mtlsissuer.New(ctx, src, certs[0], p.entraManager, p.oktaManager, p.googleManager, p.requestMaker)
 	if err != nil {
 		return nil, err
 	}

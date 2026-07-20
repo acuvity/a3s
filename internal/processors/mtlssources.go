@@ -128,6 +128,14 @@ func insertTLSReferences(src *api.MTLSSource) error {
 		}
 	}
 
+	if src.ClaimsRetrievalMode == api.MTLSSourceClaimsRetrievalModeGoogleWorkspace && src.GoogleWorkspaceApplicationCredentials != nil {
+		if pk := src.GoogleWorkspaceApplicationCredentials.PrivateKey; pk != "" {
+			if err := api.ValidatePEM("googleWorkspaceApplicationCredentials/privateKey", pk); err != nil {
+				return err
+			}
+		}
+	}
+
 	certs, err := tglib.ParseCertificates([]byte(src.CA))
 	if err != nil {
 		return err
@@ -148,11 +156,17 @@ func insertEntraSecrets(src *api.MTLSSource, orig *api.MTLSSource) {
 	switch src.ClaimsRetrievalMode {
 	case api.MTLSSourceClaimsRetrievalModeEntra:
 		src.OktaApplicationCredentials = nil
+		src.GoogleWorkspaceApplicationCredentials = nil
+	case api.MTLSSourceClaimsRetrievalModeGoogleWorkspace:
+		src.EntraApplicationCredentials = nil
+		src.OktaApplicationCredentials = nil
 	case api.MTLSSourceClaimsRetrievalModeOkta:
 		src.EntraApplicationCredentials = nil
+		src.GoogleWorkspaceApplicationCredentials = nil
 	default:
 		src.OktaApplicationCredentials = nil
 		src.EntraApplicationCredentials = nil
+		src.GoogleWorkspaceApplicationCredentials = nil
 	}
 
 	installGraphEvents := func() {

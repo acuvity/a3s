@@ -287,6 +287,19 @@ func ValidateMTLSSource(source *MTLSSource) error {
 		if source.OktaApplicationCredentials != nil {
 			return makeErr("oktaApplicationCredentials", "oktaApplicationCredentials must not be set when retrieval mode is 'Entra'")
 		}
+		if source.GoogleWorkspaceApplicationCredentials != nil {
+			return makeErr("googleWorkspaceApplicationCredentials", "googleWorkspaceApplicationCredentials must not be set when retrieval mode is 'Entra'")
+		}
+	case MTLSSourceClaimsRetrievalModeGoogleWorkspace:
+		if source.GoogleWorkspaceApplicationCredentials == nil {
+			return makeErr("googleWorkspaceApplicationCredentials", "googleWorkspaceApplicationCredentials must be set when retrieval mode is 'GoogleWorkspace'")
+		}
+		if source.EntraApplicationCredentials != nil {
+			return makeErr("entraApplicationCredentials", "entraApplicationCredentials must not be set when retrieval mode is 'GoogleWorkspace'")
+		}
+		if source.OktaApplicationCredentials != nil {
+			return makeErr("oktaApplicationCredentials", "oktaApplicationCredentials must not be set when retrieval mode is 'GoogleWorkspace'")
+		}
 	case MTLSSourceClaimsRetrievalModeOkta:
 		if source.OktaApplicationCredentials == nil {
 			return makeErr("oktaApplicationCredentials", "oktaApplicationCredentials must be set when retrieval mode is 'Okta'")
@@ -294,12 +307,18 @@ func ValidateMTLSSource(source *MTLSSource) error {
 		if source.EntraApplicationCredentials != nil {
 			return makeErr("entraApplicationCredentials", "entraApplicationCredentials must not be set when retrieval mode is 'Okta'")
 		}
+		if source.GoogleWorkspaceApplicationCredentials != nil {
+			return makeErr("googleWorkspaceApplicationCredentials", "googleWorkspaceApplicationCredentials must not be set when retrieval mode is 'Okta'")
+		}
 	default:
 		if source.EntraApplicationCredentials != nil {
 			return makeErr("entraApplicationCredentials", "entraApplicationCredentials must not be set when retrieval mode is 'X509'")
 		}
 		if source.OktaApplicationCredentials != nil {
 			return makeErr("oktaApplicationCredentials", "oktaApplicationCredentials must not be set when retrieval mode is 'X509'")
+		}
+		if source.GoogleWorkspaceApplicationCredentials != nil {
+			return makeErr("googleWorkspaceApplicationCredentials", "googleWorkspaceApplicationCredentials must not be set when retrieval mode is 'X509'")
 		}
 	}
 
