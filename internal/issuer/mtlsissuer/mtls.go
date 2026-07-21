@@ -8,6 +8,7 @@ import (
 
 	"go.acuvity.ai/a3s/internal/identitymodifier"
 	"go.acuvity.ai/a3s/internal/idp/entra"
+	"go.acuvity.ai/a3s/internal/idp/google"
 	"go.acuvity.ai/a3s/internal/idp/okta"
 	"go.acuvity.ai/a3s/pkgs/api"
 	"go.acuvity.ai/a3s/pkgs/netsafe"
@@ -15,10 +16,10 @@ import (
 )
 
 // New returns a new MTLS issuer.
-func New(ctx context.Context, source *api.MTLSSource, cert *x509.Certificate, entraManager *entra.Manager, oktaManager *okta.Manager, requestMaker netsafe.RequestMaker) (token.Issuer, error) {
+func New(ctx context.Context, source *api.MTLSSource, cert *x509.Certificate, entraManager *entra.Manager, oktaManager *okta.Manager, googleManager *google.Manager, requestMaker netsafe.RequestMaker) (token.Issuer, error) {
 
 	c := newMTLSIssuer(source, requestMaker)
-	if err := c.fromCertificate(ctx, cert, entraManager, oktaManager); err != nil {
+	if err := c.fromCertificate(ctx, cert, entraManager, oktaManager, googleManager); err != nil {
 		return nil, err
 	}
 
@@ -44,7 +45,7 @@ func newMTLSIssuer(source *api.MTLSSource, requestMaker netsafe.RequestMaker) *m
 	}
 }
 
-func (c *mtlsIssuer) fromCertificate(ctx context.Context, cert *x509.Certificate, entraManager *entra.Manager, oktaManager *okta.Manager) error {
+func (c *mtlsIssuer) fromCertificate(ctx context.Context, cert *x509.Certificate, entraManager *entra.Manager, oktaManager *okta.Manager, googleManager *google.Manager) error {
 
 	pool := x509.NewCertPool()
 	if !pool.AppendCertsFromPEM([]byte(c.source.CA)) {
@@ -85,6 +86,12 @@ func (c *mtlsIssuer) fromCertificate(ctx context.Context, cert *x509.Certificate
 
 		if err := handleOktaAutologin(ctx, c, cert, oktaManager); err != nil {
 			return fmt.Errorf("unable to perform okta additional claims retrieval: %w", err)
+		}
+
+	case api.MTLSSourceClaimsRetrievalModeGoogleWorkspace:
+
+		if err := handleGoogleAutologin(ctx, c, cert, googleManager); err != nil {
+			return fmt.Errorf("unable to perform google additional claims retrieval: %w", err)
 		}
 
 	case api.MTLSSourceClaimsRetrievalModeX509:

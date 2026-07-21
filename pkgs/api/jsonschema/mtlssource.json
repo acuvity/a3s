@@ -38,6 +38,7 @@
       "description": "Defines if and how you want to enable auto login with client certificates.",
       "enum": [
         "Entra",
+        "GoogleWorkspace",
         "Okta",
         "X509"
       ],
@@ -80,6 +81,12 @@
       },
       "title": "fingerprints",
       "type": "array"
+    },
+    "googleWorkspaceApplicationCredentials": {
+      "$friendlyName": "Google Workspace Application Credentials",
+      "$ref": "mtlssourcegoogle.json",
+      "description": "Additional information required when claims retrieval mode is set to GoogleWorkspace.",
+      "title": "googleWorkspaceApplicationCredentials"
     },
     "ignoredKeys": {
       "$friendlyName": "IgnoredKeys",

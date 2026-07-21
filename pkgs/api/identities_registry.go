@@ -483,6 +483,8 @@ func (f modelManager) DetachedFromString(name string) any {
 		return NewIssueSAML()
 	case "mtlssourceentra", "MTLSSourceEntra":
 		return NewMTLSSourceEntra()
+	case "mtlssourcegoogle", "MTLSSourceGoogle":
+		return NewMTLSSourceGoogle()
 	case "mtlssourceokta", "MTLSSourceOkta":
 		return NewMTLSSourceOkta()
 	default:

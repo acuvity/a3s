@@ -1,0 +1,49 @@
+{
+  "$extends": [],
+  "$friendlyName": "MTLS Source Google Workspace",
+  "$friendlyNamePlural": "MTLS Source Google Workspaces",
+  "$modelName": "MTLSSourceGoogle",
+  "$modelPackage": "a3s",
+  "$modelResourceName": "mtlssourcegoogle",
+  "$modelRestName": "mtlssourcegoogle",
+  "additionalProperties": false,
+  "description": "Additional authentication information for MTLS source getting information from Google Workspace.  You will need a Google Cloud service account with domain-wide delegation enabled in the Google Workspace Admin console, granted the admin.directory.user.readonly and admin.directory.group.readonly scopes.",
+  "properties": {
+    "clientEmail": {
+      "$friendlyName": "Client Email",
+      "$required": true,
+      "description": "The email of the service account used to call the Directory API.",
+      "title": "clientEmail",
+      "type": "string"
+    },
+    "privateKey": {
+      "$friendlyName": "PrivateKey",
+      "$required": true,
+      "description": "The service account private key.",
+      "title": "privateKey",
+      "type": "string"
+    },
+    "privateKeyID": {
+      "$friendlyName": "Private Key ID",
+      "$required": true,
+      "description": "The identifier of the service account private key.",
+      "title": "privateKeyID",
+      "type": "string"
+    },
+    "subject": {
+      "$friendlyName": "Subject",
+      "$required": true,
+      "description": "The email of the Google Workspace administrator to impersonate when calling the Directory API. This is required for domain-wide delegation.",
+      "title": "subject",
+      "type": "string"
+    }
+  },
+  "required": [
+    "clientEmail",
+    "privateKey",
+    "privateKeyID",
+    "subject"
+  ],
+  "title": "MTLSSourceGoogle",
+  "type": "object"
+}

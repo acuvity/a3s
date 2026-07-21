@@ -2159,6 +2159,101 @@ func TestValidateMTLSSource(t *testing.T) {
 			true,
 			nil,
 		},
+		{
+			"Okta google set",
+			func(*testing.T) args {
+				return args{
+					source: &MTLSSource{
+						ClaimsRetrievalMode:                   MTLSSourceClaimsRetrievalModeOkta,
+						OktaApplicationCredentials:            &MTLSSourceOkta{},
+						GoogleWorkspaceApplicationCredentials: &MTLSSourceGoogle{},
+					},
+				}
+			},
+			true,
+			nil,
+		},
+
+		{
+			"GoogleWorkspace nothing set",
+			func(*testing.T) args {
+				return args{
+					source: &MTLSSource{
+						ClaimsRetrievalMode: MTLSSourceClaimsRetrievalModeGoogleWorkspace,
+					},
+				}
+			},
+			true,
+			nil,
+		},
+		{
+			"GoogleWorkspace google set",
+			func(*testing.T) args {
+				return args{
+					source: &MTLSSource{
+						ClaimsRetrievalMode:                   MTLSSourceClaimsRetrievalModeGoogleWorkspace,
+						GoogleWorkspaceApplicationCredentials: &MTLSSourceGoogle{},
+					},
+				}
+			},
+			false,
+			nil,
+		},
+		{
+			"GoogleWorkspace entra set",
+			func(*testing.T) args {
+				return args{
+					source: &MTLSSource{
+						ClaimsRetrievalMode:                   MTLSSourceClaimsRetrievalModeGoogleWorkspace,
+						GoogleWorkspaceApplicationCredentials: &MTLSSourceGoogle{},
+						EntraApplicationCredentials:           &MTLSSourceEntra{},
+					},
+				}
+			},
+			true,
+			nil,
+		},
+		{
+			"GoogleWorkspace okta set",
+			func(*testing.T) args {
+				return args{
+					source: &MTLSSource{
+						ClaimsRetrievalMode:                   MTLSSourceClaimsRetrievalModeGoogleWorkspace,
+						GoogleWorkspaceApplicationCredentials: &MTLSSourceGoogle{},
+						OktaApplicationCredentials:            &MTLSSourceOkta{},
+					},
+				}
+			},
+			true,
+			nil,
+		},
+		{
+			"x509 google set",
+			func(*testing.T) args {
+				return args{
+					source: &MTLSSource{
+						ClaimsRetrievalMode:                   MTLSSourceClaimsRetrievalModeX509,
+						GoogleWorkspaceApplicationCredentials: &MTLSSourceGoogle{},
+					},
+				}
+			},
+			true,
+			nil,
+		},
+		{
+			"Entra google set",
+			func(*testing.T) args {
+				return args{
+					source: &MTLSSource{
+						ClaimsRetrievalMode:                   MTLSSourceClaimsRetrievalModeEntra,
+						EntraApplicationCredentials:           &MTLSSourceEntra{},
+						GoogleWorkspaceApplicationCredentials: &MTLSSourceGoogle{},
+					},
+				}
+			},
+			true,
+			nil,
+		},
 	}
 
 	for _, tt := range tests {

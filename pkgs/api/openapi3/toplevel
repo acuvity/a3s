@@ -1050,6 +1050,7 @@
             "description": "Defines if and how you want to enable auto login with client certificates.",
             "enum": [
               "Entra",
+              "GoogleWorkspace",
               "Okta",
               "X509"
             ]
@@ -1074,6 +1075,9 @@
             },
             "readOnly": true,
             "type": "array"
+          },
+          "googleWorkspaceApplicationCredentials": {
+            "$ref": "#/components/schemas/mtlssourcegoogle"
           },
           "ignoredKeys": {
             "description": "A list of claims that will be filtered out from the identity token. A claim will\nbe ignored if it is prefixed with one of the items in the ignoredKeys list. This\nruns before includedKeys computation.",
@@ -1170,6 +1174,38 @@
           "clientID",
           "clientSecret",
           "clientTenantID"
+        ],
+        "type": "object"
+      },
+      "mtlssourcegoogle": {
+        "description": "Additional authentication information for MTLS source getting information from\nGoogle Workspace.\n\nYou will need a Google Cloud service account with domain-wide delegation\nenabled in the Google Workspace Admin console, granted the\nadmin.directory.user.readonly and admin.directory.group.readonly scopes.",
+        "properties": {
+          "clientEmail": {
+            "description": "The email of the service account used to call the Directory API.",
+            "example": "a3s@my-project.iam.gserviceaccount.com",
+            "type": "string"
+          },
+          "privateKey": {
+            "description": "The service account private key.",
+            "example": "-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----",
+            "type": "string"
+          },
+          "privateKeyID": {
+            "description": "The identifier of the service account private key.",
+            "example": "3cb0a1d5f7e9b2c4a6d8e0f1234567890abcdef1",
+            "type": "string"
+          },
+          "subject": {
+            "description": "The email of the Google Workspace administrator to impersonate when calling\nthe Directory API. This is required for domain-wide delegation.",
+            "example": "admin@my-org.com",
+            "type": "string"
+          }
+        },
+        "required": [
+          "clientEmail",
+          "privateKey",
+          "privateKeyID",
+          "subject"
         ],
         "type": "object"
       },
