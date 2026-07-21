@@ -132,6 +132,12 @@
       },
       "type": "array"
     },
+    "mtlssourcegoogle": {
+      "items": {
+        "$ref": "mtlssourcegoogle.json"
+      },
+      "type": "array"
+    },
     "mtlssourceokta": {
       "items": {
         "$ref": "mtlssourceokta.json"

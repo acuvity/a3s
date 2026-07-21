@@ -913,6 +913,55 @@ Enables background jobs to maintain subscriptions to Entra to be notified of
 changes in groups, users and memmber assignation. This requires A3S to be
 configured with an event hook endpoint.
 
+### MTLSSourceGoogle
+
+Additional authentication information for MTLS source getting information from
+Google Workspace.
+
+You will need a Google Cloud service account with domain-wide delegation
+enabled in the Google Workspace Admin console, granted the
+admin.directory.user.readonly and admin.directory.group.readonly scopes.
+
+#### Example
+
+```json
+{
+  "clientEmail": "a3s@my-project.iam.gserviceaccount.com",
+  "privateKey": "-----BEGIN PRIVATE KEY-----
+...
+-----END PRIVATE KEY-----",
+  "privateKeyID": "3cb0a1d5f7e9b2c4a6d8e0f1234567890abcdef1",
+  "subject": "admin@my-org.com"
+}
+```
+
+#### Attributes
+
+##### `clientEmail` [`required`]
+
+Type: `string`
+
+The email of the service account used to call the Directory API.
+
+##### `privateKey` [`required`]
+
+Type: `string`
+
+The service account private key.
+
+##### `privateKeyID` [`required`]
+
+Type: `string`
+
+The identifier of the service account private key.
+
+##### `subject` [`required`]
+
+Type: `string`
+
+The email of the Google Workspace administrator to impersonate when calling
+the Directory API. This is required for domain-wide delegation.
+
 ### MTLSSourceOkta
 
 Additional authentication information for MTLS source getting information from
@@ -1603,7 +1652,7 @@ ID is the identifier of the object.
 
 ##### `claimsRetrievalMode`
 
-Type: `enum(Entra | Okta | X509)`
+Type: `enum(Entra | GoogleWorkspace | Okta | X509)`
 
 Defines if and how you want to enable auto login with client certificates.
 
@@ -1636,6 +1685,12 @@ Additional information required when claims retrieval mode is set to Entra.
 Type: `[]string`
 
 The fingerprint of the CAs in the chain.
+
+##### `googleWorkspaceApplicationCredentials`
+
+Type: [`mtlssourcegoogle`](#mtlssourcegoogle)
+
+Additional information required when claims retrieval mode is set to GoogleWorkspace.
 
 ##### `ignoredKeys`
 
