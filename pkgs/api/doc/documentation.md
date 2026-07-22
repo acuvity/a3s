@@ -3090,6 +3090,7 @@ Sends an import request.
 Parameters:
 
 - `delete` (`boolean`): If set, delete the current imported data.
+- `mode` (`enum(Replace | Update)`): Controls how existing objects carrying the import label arehandled.
 
 #### Attributes
 

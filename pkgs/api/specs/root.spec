@@ -59,6 +59,15 @@ relations:
       - name: delete
         description: If set, delete the current imported data.
         type: boolean
+      - name: mode
+        description: |-
+          Controls how existing objects carrying the import label are
+          handled.
+        type: enum
+        allowed_choices:
+        - Replace
+        - Update
+        default_value: Replace
 
 - rest_name: issue
   create:

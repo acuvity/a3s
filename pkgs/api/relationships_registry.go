@@ -241,6 +241,15 @@ func init() {
 						Name: "delete",
 						Type: "boolean",
 					},
+					{
+						Name:         "mode",
+						Type:         "enum",
+						DefaultValue: "Replace",
+						AllowedChoices: []string{
+							"Replace",
+							"Update",
+						},
+					},
 				},
 			},
 		},
