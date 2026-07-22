@@ -108,6 +108,64 @@ func sanitize(restName string, obj elemental.AttributeSpecifiable, manager eleme
 				data[k] = m
 			}
 		}
+		if spec.Type == "refList" {
+			rv := reflect.ValueOf(v)
+			if rv.Kind() == reflect.Slice {
+				cleaned := make([]any, 0, rv.Len())
+				for i := range rv.Len() {
+					item := rv.Index(i).Interface()
+					vv := getIdentifiableOrDetached(spec.SubType, manager)
+					if vv == nil {
+						cleaned = append(cleaned, item)
+						continue
+					}
+					if err := mapstructure.Decode(item, vv); err != nil {
+						return nil, fmt.Errorf("unable to decode refList element: %w", err)
+					}
+					m, err := sanitize(spec.SubType, vv.(elemental.AttributeSpecifiable), manager)
+					if err != nil {
+						return nil, fmt.Errorf("unable to sub sanitize list: %w", err)
+					}
+					cleaned = append(cleaned, m)
+				}
+				if len(cleaned) == 0 {
+					delete(data, k)
+				} else {
+					data[k] = cleaned
+				}
+			}
+		}
+
+		if spec.Type == "refMap" {
+			rv := reflect.ValueOf(v)
+			if rv.Kind() == reflect.Map {
+				cleaned := make(map[string]any, rv.Len())
+				iter := rv.MapRange()
+				for iter.Next() {
+					key := fmt.Sprintf("%v", iter.Key().Interface())
+					item := iter.Value().Interface()
+					vv := getIdentifiableOrDetached(spec.SubType, manager)
+					if vv == nil {
+						cleaned[key] = item
+						continue
+					}
+					if err := mapstructure.Decode(item, vv); err != nil {
+						return nil, fmt.Errorf("unable to decode refMap element: %w", err)
+					}
+					m, err := sanitize(spec.SubType, vv.(elemental.AttributeSpecifiable), manager)
+					if err != nil {
+						return nil, fmt.Errorf("unable to sub sanitize map: %w", err)
+					}
+					cleaned[key] = m
+				}
+				if len(cleaned) == 0 {
+					delete(data, k)
+				} else {
+					data[k] = cleaned
+				}
+			}
+		}
+
 	}
 
 	return data, nil
