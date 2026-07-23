@@ -1690,7 +1690,8 @@ The fingerprint of the CAs in the chain.
 
 Type: [`mtlssourcegoogle`](#mtlssourcegoogle)
 
-Additional information required when claims retrieval mode is set to GoogleWorkspace.
+Additional information required when claims retrieval mode is set to
+GoogleWorkspace.
 
 ##### `ignoredKeys`
 

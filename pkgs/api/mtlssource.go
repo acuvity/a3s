@@ -137,7 +137,8 @@ type MTLSSource struct {
 	// The fingerprint of the CAs in the chain.
 	Fingerprints []string `json:"fingerprints" msgpack:"fingerprints" bson:"fingerprints" mapstructure:"fingerprints,omitempty"`
 
-	// Additional information required when claims retrieval mode is set to GoogleWorkspace.
+	// Additional information required when claims retrieval mode is set to
+	// GoogleWorkspace.
 	GoogleWorkspaceApplicationCredentials *MTLSSourceGoogle `json:"googleWorkspaceApplicationCredentials" msgpack:"googleWorkspaceApplicationCredentials" bson:"googleworkspaceapplicationcredentials" mapstructure:"googleWorkspaceApplicationCredentials,omitempty"`
 
 	// A list of claims that will be filtered out from the identity token. A claim will
@@ -900,12 +901,13 @@ var MTLSSourceAttributesMap = map[string]elemental.AttributeSpecification{
 		AllowedChoices: []string{},
 		BSONFieldName:  "googleworkspaceapplicationcredentials",
 		ConvertedName:  "GoogleWorkspaceApplicationCredentials",
-		Description:    `Additional information required when claims retrieval mode is set to GoogleWorkspace.`,
-		Exposed:        true,
-		Name:           "googleWorkspaceApplicationCredentials",
-		Stored:         true,
-		SubType:        "mtlssourcegoogle",
-		Type:           "ref",
+		Description: `Additional information required when claims retrieval mode is set to
+GoogleWorkspace.`,
+		Exposed: true,
+		Name:    "googleWorkspaceApplicationCredentials",
+		Stored:  true,
+		SubType: "mtlssourcegoogle",
+		Type:    "ref",
 	},
 	"IgnoredKeys": {
 		AllowedChoices: []string{},
@@ -1172,12 +1174,13 @@ var MTLSSourceLowerCaseAttributesMap = map[string]elemental.AttributeSpecificati
 		AllowedChoices: []string{},
 		BSONFieldName:  "googleworkspaceapplicationcredentials",
 		ConvertedName:  "GoogleWorkspaceApplicationCredentials",
-		Description:    `Additional information required when claims retrieval mode is set to GoogleWorkspace.`,
-		Exposed:        true,
-		Name:           "googleWorkspaceApplicationCredentials",
-		Stored:         true,
-		SubType:        "mtlssourcegoogle",
-		Type:           "ref",
+		Description: `Additional information required when claims retrieval mode is set to
+GoogleWorkspace.`,
+		Exposed: true,
+		Name:    "googleWorkspaceApplicationCredentials",
+		Stored:  true,
+		SubType: "mtlssourcegoogle",
+		Type:    "ref",
 	},
 	"ignoredkeys": {
 		AllowedChoices: []string{},
@@ -1436,7 +1439,8 @@ type SparseMTLSSource struct {
 	// The fingerprint of the CAs in the chain.
 	Fingerprints *[]string `json:"fingerprints,omitempty" msgpack:"fingerprints,omitempty" bson:"fingerprints,omitempty" mapstructure:"fingerprints,omitempty"`
 
-	// Additional information required when claims retrieval mode is set to GoogleWorkspace.
+	// Additional information required when claims retrieval mode is set to
+	// GoogleWorkspace.
 	GoogleWorkspaceApplicationCredentials *MTLSSourceGoogle `json:"googleWorkspaceApplicationCredentials,omitempty" msgpack:"googleWorkspaceApplicationCredentials,omitempty" bson:"googleworkspaceapplicationcredentials,omitempty" mapstructure:"googleWorkspaceApplicationCredentials,omitempty"`
 
 	// A list of claims that will be filtered out from the identity token. A claim will

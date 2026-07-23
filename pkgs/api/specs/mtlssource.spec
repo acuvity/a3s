@@ -99,8 +99,9 @@ attributes:
 
   - name: googleWorkspaceApplicationCredentials
     friendly_name: Google Workspace Application Credentials
-    description: Additional information required when claims retrieval mode is set
-      to GoogleWorkspace.
+    description: |-
+      Additional information required when claims retrieval mode is set to
+      GoogleWorkspace.
     type: ref
     exposed: true
     subtype: mtlssourcegoogle
