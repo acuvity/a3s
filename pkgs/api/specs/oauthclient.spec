@@ -29,6 +29,27 @@ indexes:
 # Attributes
 attributes:
   v1:
+  - name: clientID
+    friendly_name: Client ID
+    description: Client identifier used in OAuth requests.
+    type: string
+    exposed: true
+    stored: true
+    required: true
+    creation_only: true
+    example_value: my-client
+
+  - name: clientSecret
+    friendly_name: Client Secret
+    description: Client secret associated with the client ID.
+    type: string
+    exposed: true
+    stored: true
+    example_value: s3cr3t
+    secret: true
+    transient: true
+    encrypted: true
+
   - name: description
     friendly_name: Description
     description: The description of the object.
@@ -46,35 +67,13 @@ attributes:
     creation_only: true
     example_value: 67f7b5f3f1f2d1c1b0a99887
 
-  - name: clientID
-    friendly_name: Client ID
-    description: Client identifier used in OAuth requests.
-    type: string
-    exposed: true
-    stored: true
-    required: true
-    creation_only: true
-    example_value: my-client
-
-  - name: clientSecret
-    friendly_name: Client Secret
-    description: Client secret associated with the client ID.
-    type: string
-    exposed: true
-    stored: true
-    required: false
-    secret: true
-    transient: true
-    encrypted: true
-    example_value: s3cr3t
-
   - name: redirectURIs
     friendly_name: Redirect URIs
     description: List of allowed redirect URIs for the client.
     type: list
     exposed: true
-    stored: true
     subtype: string
+    stored: true
     required: true
     example_value:
     - https://client.example.com/callback
@@ -86,8 +85,8 @@ attributes:
     description: Scopes allowed for the client.
     type: list
     exposed: true
-    stored: true
     subtype: string
+    stored: true
     example_value:
     - openid
     - profile

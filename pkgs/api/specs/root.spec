@@ -59,6 +59,7 @@ relations:
       - name: delete
         description: If set, delete the current imported data.
         type: boolean
+
       - name: mode
         description: |-
           Controls how existing objects carrying the import label are

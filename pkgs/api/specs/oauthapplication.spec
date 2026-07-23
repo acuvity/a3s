@@ -29,6 +29,43 @@ indexes:
 # Attributes
 attributes:
   v1:
+  - name: allowedSources
+    friendly_name: Allowed Sources
+    description: |-
+      Optional list of allowed interactive authentication sources. If omitted or
+      empty, any supported interactive source in the namespace is allowed. Each
+      entry is an Elemental filter expression evaluated against the resolved
+      source object, such as its `name` and `namespace`.
+    type: list
+    exposed: true
+    subtype: string
+    stored: true
+    example_value:
+    - namespace == /my/ns and name == corp
+    - namespace == /partner and name == login
+    validations:
+    - $filters
+
+  - name: audience
+    friendly_name: Audience
+    description: Audience to use for resulting a3s access tokens.
+    type: string
+    exposed: true
+    stored: true
+    required: true
+    example_value: my-app
+
+  - name: defaultScopes
+    friendly_name: Default Scopes
+    description: Default scopes to use when a client does not request any scope.
+    type: list
+    exposed: true
+    subtype: string
+    stored: true
+    example_value:
+    - openid
+    - profile
+
   - name: description
     friendly_name: Description
     description: The description of the object.
@@ -42,43 +79,6 @@ attributes:
     type: boolean
     exposed: true
     stored: true
-
-  - name: audience
-    friendly_name: Audience
-    description: Audience to use for resulting a3s access tokens.
-    type: string
-    exposed: true
-    stored: true
-    required: true
-    example_value: my-app
-
-  - name: allowedSources
-    friendly_name: Allowed Sources
-    description: |-
-      Optional list of allowed interactive authentication sources. If omitted or
-      empty, any supported interactive source in the namespace is allowed. Each
-      entry is an Elemental filter expression evaluated against the resolved
-      source object, such as its `name` and `namespace`.
-    type: list
-    exposed: true
-    stored: true
-    subtype: string
-    example_value:
-    - namespace == /my/ns and name == corp
-    - namespace == /partner and name == login
-    validations:
-    - $filters
-
-  - name: defaultScopes
-    friendly_name: Default Scopes
-    description: Default scopes to use when a client does not request any scope.
-    type: list
-    exposed: true
-    stored: true
-    subtype: string
-    example_value:
-    - openid
-    - profile
 
   - name: name
     friendly_name: Name
