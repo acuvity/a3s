@@ -5,9 +5,12 @@ import (
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/x509"
+	"encoding/base64"
+	"encoding/json"
 	"encoding/pem"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
@@ -71,6 +74,35 @@ func TestManagerGetAccessToken(t *testing.T) {
 			So(tok.AccessToken, ShouldEqual, "the-token")
 			So(gotGrant, ShouldEqual, "urn:ietf:params:oauth:grant-type:jwt-bearer")
 			So(gotAssertion, ShouldNotBeEmpty)
+
+			// Decode the JWT assertion payload (header.payload.signature).
+			parts := strings.Split(gotAssertion, ".")
+			So(len(parts), ShouldEqual, 3)
+			raw, derr := base64.RawURLEncoding.DecodeString(parts[1])
+			So(derr, ShouldBeNil)
+
+			// The audience must be a single string, never an array. Google's
+			// token endpoint rejects ["https://oauth2.googleapis.com/token"]
+			// with "invalid_grant: Failed audience check". googleTokenURL is
+			// overridden to the test server URL above, so assert against it.
+			So(string(raw), ShouldContainSubstring, `"aud":"`+googleTokenURL+`"`)
+			So(string(raw), ShouldNotContainSubstring, `"aud":[`)
+
+			payload := map[string]any{}
+			So(json.Unmarshal(raw, &payload), ShouldBeNil)
+
+			audString, isString := payload["aud"].(string)
+			So(isString, ShouldBeTrue)
+			So(audString, ShouldEqual, googleTokenURL)
+			_, isArray := payload["aud"].([]any)
+			So(isArray, ShouldBeFalse)
+
+			// Existing claims are preserved.
+			So(payload["scope"], ShouldEqual, googleDirectoryScopes)
+			So(payload["iss"], ShouldEqual, "a3s@proj.iam.gserviceaccount.com")
+			So(payload["sub"], ShouldEqual, "admin@org.com")
+			So(payload, ShouldContainKey, "iat")
+			So(payload, ShouldContainKey, "exp")
 		})
 
 		Convey("When I call GetAccessToken with nil credentials", func() {

@@ -66,8 +66,8 @@ func (m *Manager) GetAccessToken(ctx context.Context, creds *api.MTLSSourceGoogl
 	now := time.Now()
 	claims := assertionClaims{
 		Scope: googleDirectoryScopes,
+		Aud:   googleTokenURL,
 		RegisteredClaims: jwt.RegisteredClaims{
-			Audience:  jwt.ClaimStrings{googleTokenURL},
 			Issuer:    creds.ClientEmail,
 			Subject:   creds.Subject,
 			IssuedAt:  jwt.NewNumericDate(now),

@@ -11,8 +11,16 @@ type AccessToken struct {
 // assertionClaims are the claims of the service account JWT assertion sent to
 // the Google OAuth2 token endpoint. In addition to the standard registered
 // claims, Google requires the requested `scope` to be part of the assertion.
+//
+// The audience is carried here as a plain string (Aud) rather than through
+// RegisteredClaims.Audience. Google's token endpoint requires "aud" to be a
+// single string, but RegisteredClaims.Audience is a jwt.ClaimStrings which
+// jwt/v5 serializes as a JSON array for a single value (its default
+// MarshalSingleStringAsArray is true). RegisteredClaims.Audience is therefore
+// left unset (it is omitempty and dropped), and this string wins the "aud" key.
 type assertionClaims struct {
 	Scope string `json:"scope"`
+	Aud   string `json:"aud"`
 	jwt.RegisteredClaims
 }
 
