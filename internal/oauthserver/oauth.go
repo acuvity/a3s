@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"slices"
 	"strings"
 	"time"
 
@@ -22,11 +23,13 @@ import (
 
 // OAuth implements the embedded OAuth authorization-code flow used by a3s.
 type OAuth struct {
-	store     oauthStore
-	m         manipulate.Manipulator
-	jwks      *token.JWKS
-	issuerURL *url.URL
-	validity  time.Duration
+	store       oauthStore
+	m           manipulate.Manipulator
+	jwks        *token.JWKS
+	issuerURL   *url.URL
+	a3sIssuer   string
+	a3sAudience string
+	validity    time.Duration
 }
 
 type oauthStore interface {
@@ -39,6 +42,7 @@ type oauthStore interface {
 
 const (
 	oauthGrantTypeAuthorizationCode = "authorization_code"
+	oauthGrantTypeTokenExchange     = "urn:ietf:params:oauth:grant-type:token-exchange"
 	oauthResponseTypeCode           = "code"
 	pkceMethodS256                  = "S256"
 	// OAuth state has no RFC-defined size limit. This cap is arbitrary but
@@ -46,11 +50,21 @@ const (
 	maxOAuthStateLen        = 8192
 	maxPKCECodeChallengeLen = 128
 
+	// RFC 8693 section 3 token type identifiers.
+	oauthTokenTypeAccessToken = "urn:ietf:params:oauth:token-type:access_token"
+	oauthTokenTypeIDToken     = "urn:ietf:params:oauth:token-type:id_token"
+	oauthTokenTypeJWT         = "urn:ietf:params:oauth:token-type:jwt"
+
 	tokenTypeBearer = "Bearer"
+	// tokenTypeNotApplicable is the RFC 8693 section 2.2.1 token_type value
+	// for an issued token that is not usable as an access token.
+	tokenTypeNotApplicable = "N_A"
 )
 
-// NewOAuth returns a new OAuth engine.
-func NewOAuth(store oauthStore, manipulator manipulate.Manipulator, jwks *token.JWKS, baseURL string, validity time.Duration) (*OAuth, error) {
+// NewOAuth returns a new OAuth engine. baseURL is the a3s issuer, and audience
+// the a3s audience. Both are needed to accept native a3s tokens as the subject
+// of a token exchange.
+func NewOAuth(store oauthStore, manipulator manipulate.Manipulator, jwks *token.JWKS, baseURL string, audience string, validity time.Duration) (*OAuth, error) {
 	issuerURL, err := url.Parse(baseURL)
 	if err != nil {
 		return nil, err
@@ -60,11 +74,13 @@ func NewOAuth(store oauthStore, manipulator manipulate.Manipulator, jwks *token.
 	issuerURL.RawQuery = ""
 	issuerURL.Fragment = ""
 	return &OAuth{
-		store:     store,
-		m:         manipulator,
-		jwks:      jwks,
-		issuerURL: issuerURL,
-		validity:  validity,
+		store:       store,
+		m:           manipulator,
+		jwks:        jwks,
+		issuerURL:   issuerURL,
+		a3sIssuer:   baseURL,
+		a3sAudience: audience,
+		validity:    validity,
 	}, nil
 }
 
@@ -242,9 +258,23 @@ func (o *OAuth) exchangeToken(ctx context.Context, namespace string, tokenReques
 		}
 	}
 
-	if client == nil {
+	if client == nil && tokenRequest.GrantType != oauthGrantTypeTokenExchange {
 		return nil, newProtocolError("invalid_client", "missing client authentication")
 	}
+
+	switch tokenRequest.GrantType {
+	case oauthGrantTypeAuthorizationCode:
+		return o.redeemAuthorizationCode(client, tokenRequest)
+	case oauthGrantTypeTokenExchange:
+		return o.exchangeSubjectToken(ctx, namespace, tokenRequest)
+	default:
+		return nil, newProtocolError("unsupported_grant_type", fmt.Sprintf("unsupported grant type %q", tokenRequest.GrantType))
+	}
+}
+
+// redeemAuthorizationCode validates and redeems an authorization code and
+// returns the final access token plus OAuth response metadata.
+func (o *OAuth) redeemAuthorizationCode(client *api.OAuthClient, tokenRequest TokenRequest) (*TokenResponse, error) {
 
 	if tokenRequest.GrantType != oauthGrantTypeAuthorizationCode {
 		return nil, newProtocolError("unsupported_grant_type", fmt.Sprintf("unsupported grant type %q", tokenRequest.GrantType))
@@ -286,7 +316,19 @@ func (o *OAuth) exchangeToken(ctx context.Context, namespace string, tokenReques
 		return nil, newProtocolError("invalid_grant", "authorization result expired")
 	}
 
-	accessToken, expiresIn, err := o.mintAccessToken(session.Namespace, session.OAuthTokenData)
+	// The access token lives for the default validity, unless the frozen
+	// authorization result expires sooner.
+	expiration := time.Now().UTC().Add(o.validity)
+	if !session.OAuthTokenData.ExpiresAt.IsZero() {
+		expiration = session.OAuthTokenData.ExpiresAt.UTC()
+	}
+
+	accessToken, expiresIn, err := o.signToken(
+		session.Namespace,
+		session.OAuthTokenData.IdentityToken,
+		jwt.ClaimStrings{session.OAuthTokenData.Audience},
+		expiration,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -306,23 +348,178 @@ func (o *OAuth) exchangeToken(ctx context.Context, namespace string, tokenReques
 	return response, nil
 }
 
-func (o *OAuth) mintAccessToken(namespace string, data *OAuthTokenData) (string, int64, error) {
-	expiration := time.Now().UTC().Add(o.validity)
-	if !data.ExpiresAt.IsZero() {
-		expiration = data.ExpiresAt.UTC()
+// exchangeSubjectToken implements the RFC 8693 token-exchange grant. It takes
+// an a3s access token and mints an ID token: identity evidence signed by a3s
+// for the parties named in the requested target, and nothing more.
+//
+// RFC 8693 section 2.1 leaves client authentication to the authorization
+// server, and this grant does not require it: possession of a valid subject
+// token is the authority, and everything the exchange needs is carried by that
+// token.
+func (o *OAuth) exchangeSubjectToken(ctx context.Context, namespace string, tokenRequest TokenRequest) (*TokenResponse, error) {
+
+	if tokenRequest.ActorToken != "" || tokenRequest.ActorTokenType != "" {
+		return nil, newProtocolError("invalid_request", "delegation through actor_token is not supported")
 	}
+	if tokenRequest.SubjectToken == "" {
+		return nil, newProtocolError("invalid_request", "missing subject_token")
+	}
+
+	// RFC 8693 makes subject_token_type mandatory. Only the types that
+	// describe an a3s token are accepted.
+	switch tokenRequest.SubjectTokenType {
+	case oauthTokenTypeAccessToken, oauthTokenTypeJWT:
+	case "":
+		return nil, newProtocolError("invalid_request", "missing subject_token_type")
+	default:
+		return nil, newProtocolError("invalid_request", fmt.Sprintf("unsupported subject_token_type %q", tokenRequest.SubjectTokenType))
+	}
+
+	switch tokenRequest.RequestedTokenType {
+	case oauthTokenTypeIDToken, oauthTokenTypeJWT, "":
+	default:
+		return nil, newProtocolError("invalid_request", fmt.Sprintf("unsupported requested_token_type %q, this endpoint only issues %s", tokenRequest.RequestedTokenType, oauthTokenTypeIDToken))
+	}
+
+	if tokenRequest.Resource != "" {
+		return nil, newProtocolError("invalid_target", "targeting through resource is not supported, use audience")
+	}
+
+	if tokenRequest.Audience == "" {
+		return nil, newProtocolError("invalid_request", "token exchange requires audience")
+	}
+
+	// This grant issues evidence for third parties, never a token addressed
+	// to a3s itself. Refusing the a3s audience keeps an exchange from
+	// producing something shaped like an a3s access token.
+	if tokenRequest.Audience == o.a3sAudience {
+		return nil, newProtocolError("invalid_target", "the a3s audience cannot be requested")
+	}
+	audience := jwt.ClaimStrings{tokenRequest.Audience}
+
+	idt, err := o.parseSubjectToken(ctx, namespace, tokenRequest.SubjectToken)
+	if err != nil {
+		return nil, err
+	}
+
+	// Drop the derived claims. IdentityToken.JWT re-adds them from the
+	// token's own fields against the new issuer.
+	identity := make([]string, 0, len(idt.Identity))
+	for _, claim := range idt.Identity {
+		if !strings.HasPrefix(claim, "@") {
+			identity = append(identity, claim)
+		}
+	}
+	idt.Identity = identity
+
+	// Opaque data is carried for the bearer of the original token, not for
+	// the third party this evidence is addressed to.
+	idt.Opaque = nil
+
+	// The ID token attests an authentication that already happened, so it
+	// must never outlive the token that evidences it.
+	idToken, expiresIn, err := o.signToken(namespace, idt, audience, idt.ExpiresAt.UTC())
+	if err != nil {
+		return nil, err
+	}
+
+	return &TokenResponse{
+		Token: idToken,
+		// The ID token cannot be used as an access token, which RFC 8693
+		// section 2.2.1 spells N_A.
+		TokenType:       tokenTypeNotApplicable,
+		IssuedTokenType: oauthTokenTypeIDToken,
+		ExpiresIn:       expiresIn,
+	}, nil
+}
+
+// parseSubjectToken validates an exchange subject token. Both tokens minted by
+// this namespace's authorization-code flow and native a3s tokens are accepted.
+func (o *OAuth) parseSubjectToken(ctx context.Context, namespace string, subjectToken string) (*token.IdentityToken, error) {
+
+	unverified, err := token.ParseUnverified(subjectToken)
+	if err != nil {
+		return nil, newProtocolError("invalid_request", fmt.Sprintf("unable to parse subject_token: %s", err))
+	}
+
+	var idt *token.IdentityToken
+
+	switch unverified.Issuer {
+
+	case o.issuerForNamespace(namespace):
+		// The audience is left out here so the token can be checked against
+		// the application it names, which is only trustworthy once the
+		// signature has been verified.
+		if idt, err = token.Parse(subjectToken, o.jwks, unverified.Issuer, ""); err != nil {
+			return nil, newProtocolError("invalid_request", fmt.Sprintf("invalid subject_token: %s", err))
+		}
+		if err := o.validateSubjectTokenApplication(ctx, idt); err != nil {
+			return nil, err
+		}
+
+	case o.a3sIssuer:
+		if idt, err = token.Parse(subjectToken, o.jwks, unverified.Issuer, o.a3sAudience); err != nil {
+			return nil, newProtocolError("invalid_request", fmt.Sprintf("invalid subject_token: %s", err))
+		}
+
+	default:
+		return nil, newProtocolError("invalid_request", fmt.Sprintf("subject_token issuer %q is not this authorization server", unverified.Issuer))
+	}
+
+	if idt.Refresh {
+		return nil, newProtocolError("invalid_request", "subject_token must not be a refresh token")
+	}
+	// The issued token is capped to the subject token's expiration, so the
+	// subject token must carry one.
+	if idt.ExpiresAt == nil || idt.ExpiresAt.IsZero() {
+		return nil, newProtocolError("invalid_request", "subject_token has no expiration")
+	}
+
+	return idt, nil
+}
+
+func (o *OAuth) validateSubjectTokenApplication(ctx context.Context, idt *token.IdentityToken) error {
+
+	if idt.OAuthApplication.ID == "" {
+		return newProtocolError("invalid_request", "subject_token names no oauth application")
+	}
+
+	app, err := o.getOAuthApplication(ctx, idt.OAuthApplication.Namespace, idt.OAuthApplication.ID)
+	if err != nil {
+		if errors.Is(err, ErrNotFound) {
+			return newProtocolError("invalid_request", "subject_token names an unknown oauth application")
+		}
+		return err
+	}
+	if app.Disabled {
+		return newProtocolError("invalid_request", ErrOAuthApplicationDisabled.Error())
+	}
+
+	// Only a token still addressed to its own application can be exchanged.
+	// A token whose audience was already retargeted by an earlier exchange is
+	// evidence held for a third party rather than an a3s access token, and
+	// must not be exchanged again.
+	if !slices.Contains(idt.Audience, app.Audience) {
+		return newProtocolError("invalid_request", "subject_token was not issued for its oauth application")
+	}
+
+	return nil
+}
+
+// signToken signs idt as a token issued by namespace and returns it alongside
+// its lifetime in seconds. It is the single signing path of every token this
+// authorization server issues.
+func (o *OAuth) signToken(namespace string, idt *token.IdentityToken, audience jwt.ClaimStrings, expiration time.Time) (string, int64, error) {
 	key := o.jwks.GetLastWithPrivate()
 	if key == nil {
 		return "", 0, fmt.Errorf("missing signing key")
 	}
 
-	issuer := o.issuerForNamespace(namespace)
-
-	accessToken, err := data.IdentityToken.JWT(
+	signed, err := idt.JWT(
 		key.PrivateKey(),
 		key.KID,
-		issuer,
-		jwt.ClaimStrings{data.Audience},
+		o.issuerForNamespace(namespace),
+		audience,
 		expiration,
 		nil,
 	)
@@ -330,7 +527,7 @@ func (o *OAuth) mintAccessToken(namespace string, data *OAuthTokenData) (string,
 		return "", 0, err
 	}
 
-	return accessToken, int64(time.Until(expiration).Round(time.Second) / time.Second), nil
+	return signed, int64(time.Until(expiration).Round(time.Second) / time.Second), nil
 }
 
 // issuerForNamespace returns the OAuth issuer identifier for the provided namespace.

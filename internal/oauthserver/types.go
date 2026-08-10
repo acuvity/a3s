@@ -76,6 +76,15 @@ type TokenRequest struct {
 	ClientSecret     string
 	ClientAuthMethod api.OAuthClientTokenEndpointAuthMethodValue
 	CodeVerifier     string
+
+	// RFC 8693 token exchange parameters.
+	SubjectToken       string
+	SubjectTokenType   string
+	RequestedTokenType string
+	ActorToken         string
+	ActorTokenType     string
+	Audience           string
+	Resource           string
 }
 
 // TokenResponse is the normalized result of a token endpoint request. It is
@@ -86,6 +95,10 @@ type TokenResponse struct {
 	TokenType string `json:"token_type"`
 
 	ExpiresIn int64 `json:"expires_in"`
+
+	// IssuedTokenType is the RFC 8693 token type URI of Token. It is empty
+	// for grants that do not define it, such as authorization_code.
+	IssuedTokenType string `json:"issued_token_type,omitempty"`
 
 	// Scope is the space delimited list of granted scopes. It is only set
 	// when the response must advertise them, which RFC 6749 section 5.1

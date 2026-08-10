@@ -243,6 +243,14 @@ func (h *HTTPHandler) handleToken(w http.ResponseWriter, req *http.Request, name
 		ClientSecret:     clientSecret,
 		ClientAuthMethod: clientAuthMethod,
 		CodeVerifier:     req.PostForm.Get("code_verifier"),
+
+		SubjectToken:       req.PostForm.Get("subject_token"),
+		SubjectTokenType:   req.PostForm.Get("subject_token_type"),
+		RequestedTokenType: req.PostForm.Get("requested_token_type"),
+		ActorToken:         req.PostForm.Get("actor_token"),
+		ActorTokenType:     req.PostForm.Get("actor_token_type"),
+		Audience:           req.PostForm.Get("audience"),
+		Resource:           req.PostForm.Get("resource"),
 	}
 
 	result, err := h.oauth.exchangeToken(req.Context(), namespace, tokenRequest)
@@ -283,7 +291,7 @@ func (h *HTTPHandler) handleAuthorizationServerMetadata(w http.ResponseWriter, r
 		JWKSURI:                       jwksURI.String(),
 		ResponseTypesSupported:        []string{oauthResponseTypeCode},
 		ResponseModesSupported:        []string{"query"},
-		GrantTypesSupported:           []string{oauthGrantTypeAuthorizationCode},
+		GrantTypesSupported:           []string{oauthGrantTypeAuthorizationCode, oauthGrantTypeTokenExchange},
 		CodeChallengeMethodsSupported: []string{pkceMethodS256},
 		TokenEndpointAuthMethodsSupported: []string{
 			"client_secret_basic",

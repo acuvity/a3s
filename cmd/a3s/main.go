@@ -537,7 +537,7 @@ func main() {
 		slog.Error("Unable to initialize redis oauthserver store", err)
 		os.Exit(1)
 	}
-	oauth, err := oauthserver.NewOAuth(oauthStore, m, jwks, cfg.JWT.JWTIssuer, cfg.JWT.JWTDefaultValidity)
+	oauth, err := oauthserver.NewOAuth(oauthStore, m, jwks, cfg.JWT.JWTIssuer, cfg.JWT.JWTAudience, cfg.JWT.JWTDefaultValidity)
 	if err != nil {
 		slog.Error("Unable to initialize oauthserver", err)
 		os.Exit(1)
