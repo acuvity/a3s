@@ -77,3 +77,18 @@ type TokenRequest struct {
 	ClientAuthMethod api.OAuthClientTokenEndpointAuthMethodValue
 	CodeVerifier     string
 }
+
+// TokenResponse is the normalized result of a token endpoint request. It is
+// serialized as-is by the token endpoint.
+type TokenResponse struct {
+	Token string `json:"access_token"`
+
+	TokenType string `json:"token_type"`
+
+	ExpiresIn int64 `json:"expires_in"`
+
+	// Scope is the space delimited list of granted scopes. It is only set
+	// when the response must advertise them, which RFC 6749 section 5.1
+	// limits to the scopes differing from the ones requested.
+	Scope string `json:"scope,omitempty"`
+}

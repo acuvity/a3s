@@ -266,7 +266,7 @@ func (h *HTTPHandler) handleToken(w http.ResponseWriter, req *http.Request, name
 		CodeVerifier:     req.PostForm.Get("code_verifier"),
 	}
 
-	accessToken, expiresIn, scopes, includeScope, err := h.oauth.exchangeToken(client, tokenRequest)
+	result, err := h.oauth.exchangeToken(client, tokenRequest)
 	if err != nil {
 		code, description := oauthErrorDetails(err)
 		status := http.StatusBadRequest
@@ -280,15 +280,7 @@ func (h *HTTPHandler) handleToken(w http.ResponseWriter, req *http.Request, name
 
 	w.Header().Set("Cache-Control", "no-store")
 	w.Header().Set("Pragma", "no-cache")
-	response := map[string]any{
-		"access_token": accessToken,
-		"token_type":   "Bearer",
-		"expires_in":   expiresIn,
-	}
-	if includeScope && len(scopes) > 0 {
-		response["scope"] = strings.Join(scopes, " ")
-	}
-	writeJSON(w, http.StatusOK, response)
+	writeJSON(w, http.StatusOK, result)
 }
 
 func (h *HTTPHandler) handleAuthorizationServerMetadata(w http.ResponseWriter, req *http.Request, namespace string) {

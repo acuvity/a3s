@@ -45,6 +45,8 @@ const (
 	// should be sufficient for client state while bounding storage.
 	maxOAuthStateLen        = 8192
 	maxPKCECodeChallengeLen = 128
+
+	tokenTypeBearer = "Bearer"
 )
 
 // NewOAuth returns a new OAuth engine.
@@ -220,60 +222,72 @@ func (o *OAuth) CompleteAuthorize(
 }
 
 // exchangeToken validates and redeems a token request and returns the final
-// access token plus OAuth response metadata.
-func (o *OAuth) exchangeToken(client *api.OAuthClient, tokenRequest TokenRequest) (string, int64, []string, bool, error) {
+// access token plus OAuth response metadata as TokenResponse.
+func (o *OAuth) exchangeToken(client *api.OAuthClient, tokenRequest TokenRequest) (*TokenResponse, error) {
 	if err := validateClientAuthMethod(client, tokenRequest); err != nil {
-		return "", 0, nil, false, err
+		return nil, err
 	}
 	if err := validateClientSecret(client, tokenRequest); err != nil {
-		return "", 0, nil, false, err
+		return nil, err
 	}
 	if tokenRequest.GrantType != oauthGrantTypeAuthorizationCode {
-		return "", 0, nil, false, newProtocolError("unsupported_grant_type", fmt.Sprintf("unsupported grant type %q", tokenRequest.GrantType))
+		return nil, newProtocolError("unsupported_grant_type", fmt.Sprintf("unsupported grant type %q", tokenRequest.GrantType))
 	}
 
 	session, err := o.store.getOAuthSession(tokenRequest.Code)
 	if err != nil {
 		if errors.Is(err, ErrNotFound) {
-			return "", 0, nil, false, newProtocolError("invalid_grant", "authorization code not found")
+			return nil, newProtocolError("invalid_grant", "authorization code not found")
 		}
-		return "", 0, nil, false, err
+		return nil, err
 	}
 	if session.ClientID != client.ClientID {
-		return "", 0, nil, false, newProtocolError("invalid_grant", "authorization code was not issued for this client")
+		return nil, newProtocolError("invalid_grant", "authorization code was not issued for this client")
 	}
 	if err := validateTokenRedirectURI(session.RedirectURI, session.RedirectURIIncluded, tokenRequest.RedirectURI); err != nil {
-		return "", 0, nil, false, err
+		return nil, err
 	}
 	if err := validateCodeVerifier(session.CodeChallenge, session.CodeChallengeMethod, tokenRequest.CodeVerifier); err != nil {
-		return "", 0, nil, false, err
+		return nil, err
 	}
 	// The session is read first so Go can validate client binding, redirect_uri,
 	// and PKCE. The store contract must still guarantee atomic single-use
 	// invalidation so only one successful redemption can win after these checks.
 	if err := o.store.invalidateOAuthSession(tokenRequest.Code); err != nil {
 		if errors.Is(err, ErrNotFound) {
-			return "", 0, nil, false, newProtocolError("invalid_grant", "authorization code not found")
+			return nil, newProtocolError("invalid_grant", "authorization code not found")
 		}
 		if errors.Is(err, ErrAuthorizationCodeUsed) {
-			return "", 0, nil, false, newProtocolError("invalid_grant", err.Error())
+			return nil, newProtocolError("invalid_grant", err.Error())
 		}
-		return "", 0, nil, false, err
+		return nil, err
 	}
 
 	if session.OAuthTokenData == nil {
-		return "", 0, nil, false, fmt.Errorf("oauthserver: missing oauth token data")
+		return nil, fmt.Errorf("oauthserver: missing oauth token data")
 	}
 	if !session.OAuthTokenData.ExpiresAt.IsZero() && !session.OAuthTokenData.ExpiresAt.After(time.Now().UTC()) {
-		return "", 0, nil, false, newProtocolError("invalid_grant", "authorization result expired")
+		return nil, newProtocolError("invalid_grant", "authorization result expired")
 	}
 
 	accessToken, expiresIn, err := o.mintAccessToken(session.Namespace, session.OAuthTokenData)
 	if err != nil {
-		return "", 0, nil, false, err
+		return nil, err
 	}
 
-	return accessToken, expiresIn, append([]string{}, session.OAuthTokenData.Scopes...), !session.ScopeIncluded, nil
+	response := &TokenResponse{
+		Token:     accessToken,
+		TokenType: tokenTypeBearer,
+		ExpiresIn: expiresIn,
+	}
+
+	// The client did not ask for scopes, so the granted ones may surprise
+	// it and must be advertised.
+	if !session.ScopeIncluded {
+		response.Scope = strings.Join(session.OAuthTokenData.Scopes, " ")
+	}
+
+	return response, nil
 }
 
 func (o *OAuth) mintAccessToken(namespace string, data *OAuthTokenData) (string, int64, error) {
