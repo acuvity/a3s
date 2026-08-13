@@ -223,13 +223,29 @@ func (o *OAuth) CompleteAuthorize(
 
 // exchangeToken validates and redeems a token request and returns the final
 // access token plus OAuth response metadata as TokenResponse.
-func (o *OAuth) exchangeToken(client *api.OAuthClient, tokenRequest TokenRequest) (*TokenResponse, error) {
-	if err := validateClientAuthMethod(client, tokenRequest); err != nil {
-		return nil, err
+func (o *OAuth) exchangeToken(ctx context.Context, namespace string, tokenRequest TokenRequest) (*TokenResponse, error) {
+
+	var client *api.OAuthClient
+	if tokenRequest.ClientID != "" {
+		var err error
+		if client, err = o.getClient(ctx, namespace, tokenRequest.ClientID); err != nil {
+			if errors.Is(err, ErrNotFound) {
+				return nil, newProtocolError("invalid_client", "unknown client_id")
+			}
+			return nil, err
+		}
+		if err := validateClientAuthMethod(client, tokenRequest); err != nil {
+			return nil, err
+		}
+		if err := validateClientSecret(client, tokenRequest); err != nil {
+			return nil, err
+		}
 	}
-	if err := validateClientSecret(client, tokenRequest); err != nil {
-		return nil, err
+
+	if client == nil {
+		return nil, newProtocolError("invalid_client", "missing client authentication")
 	}
+
 	if tokenRequest.GrantType != oauthGrantTypeAuthorizationCode {
 		return nil, newProtocolError("unsupported_grant_type", fmt.Sprintf("unsupported grant type %q", tokenRequest.GrantType))
 	}

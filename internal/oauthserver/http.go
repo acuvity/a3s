@@ -235,27 +235,6 @@ func (h *HTTPHandler) handleToken(w http.ResponseWriter, req *http.Request, name
 		clientAuthMethod = api.OAuthClientTokenEndpointAuthMethodClientSecretPost
 	}
 
-	if clientID == "" {
-		if hasBasicAuth {
-			w.Header().Set("WWW-Authenticate", `Basic realm="oauth"`)
-			writeOAuthError(w, http.StatusUnauthorized, "invalid_client", "missing client authentication")
-			return
-		}
-		writeOAuthError(w, http.StatusBadRequest, "invalid_client", "missing client authentication")
-		return
-	}
-
-	client, err := h.oauth.getClient(req.Context(), namespace, clientID)
-	if err != nil {
-		status := http.StatusBadRequest
-		if hasBasicAuth {
-			status = http.StatusUnauthorized
-			w.Header().Set("WWW-Authenticate", `Basic realm="oauth"`)
-		}
-		writeOAuthError(w, status, "invalid_client", "unknown client_id")
-		return
-	}
-
 	tokenRequest := TokenRequest{
 		GrantType:        req.PostForm.Get("grant_type"),
 		Code:             req.PostForm.Get("code"),
@@ -266,7 +245,7 @@ func (h *HTTPHandler) handleToken(w http.ResponseWriter, req *http.Request, name
 		CodeVerifier:     req.PostForm.Get("code_verifier"),
 	}
 
-	result, err := h.oauth.exchangeToken(client, tokenRequest)
+	result, err := h.oauth.exchangeToken(req.Context(), namespace, tokenRequest)
 	if err != nil {
 		code, description := oauthErrorDetails(err)
 		status := http.StatusBadRequest
