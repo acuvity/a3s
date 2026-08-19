@@ -162,6 +162,44 @@ func TestIsAuthorizedWithToken(t *testing.T) {
 			So(perms.Allows("get", "things"), ShouldEqual, false)
 		})
 
+		Convey("When matching @org and @org+email authorizations conflict, deny wins", func() {
+
+			m.MockRetrieveMany(t, func(mctx manipulate.Context, dest elemental.Identifiables) error {
+				if dest.Identity().IsEqual(api.AuthorizationIdentity) {
+					*dest.(*api.AuthorizationsList) = append(
+						*dest.(*api.AuthorizationsList),
+						makeAPIPolWithSubject([]string{"ui:admin"}, nil, [][]string{{"@org=acme.com"}}),
+						makeAPIPolWithSubject([]string{"-ui:admin"}, nil, [][]string{{"@org=acme.com", "email=user@acme.com"}}),
+					)
+				}
+				return nil
+			})
+
+			perms, err := r.Permissions(ctx, []string{"@org=acme.com", "email=user@acme.com"}, "/a")
+
+			So(err, ShouldBeNil)
+			So(perms.Allows("admin", "ui"), ShouldEqual, false)
+		})
+
+		Convey("When matching @org and @org+email authorizations are reversed, deny still wins", func() {
+
+			m.MockRetrieveMany(t, func(mctx manipulate.Context, dest elemental.Identifiables) error {
+				if dest.Identity().IsEqual(api.AuthorizationIdentity) {
+					*dest.(*api.AuthorizationsList) = append(
+						*dest.(*api.AuthorizationsList),
+						makeAPIPolWithSubject([]string{"ui:admin"}, nil, [][]string{{"@org=acme.com", "email=user@acme.com"}}),
+						makeAPIPolWithSubject([]string{"-ui:admin"}, nil, [][]string{{"@org=acme.com"}}),
+					)
+				}
+				return nil
+			})
+
+			perms, err := r.Permissions(ctx, []string{"@org=acme.com", "email=user@acme.com"}, "/a")
+
+			So(err, ShouldBeNil)
+			So(perms.Allows("admin", "ui"), ShouldEqual, false)
+		})
+
 		Convey("When there is a policy matching with target namespace outside of restricted ns", func() {
 
 			m.MockRetrieveMany(t, func(mctx manipulate.Context, dest elemental.Identifiables) error {

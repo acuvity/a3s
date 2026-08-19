@@ -106,13 +106,15 @@ func (a *retriever) Permissions(ctx context.Context, claims []string, ns string,
 		}
 	}
 
-	policies, err := a.resolvePoliciesMatchingClaims(ctx, append(claims, groupClaims...), ns, cfg.label)
+	allClaims := append(claims, groupClaims...)
+
+	policies, err := a.resolvePoliciesMatchingClaims(ctx, allClaims, ns, cfg.label)
 	if err != nil {
 		return nil, fmt.Errorf("unable to resolve authorizations: %w", err)
 	}
 
-	out := PermissionMap{}
 	accessibleNamespaces := map[string]struct{}{}
+	out := PermissionMap{}
 
 	for _, p := range policies {
 
