@@ -563,7 +563,7 @@ func TestOAuthTokenExchangeRejectsInvalidClientCredentials(t *testing.T) {
 }
 
 func TestOAuthMetadataAdvertisesTokenExchange(t *testing.T) {
-	handler := newOAuthHTTPHandlerForTest(t, nil, nil)
+	handler := newOAuthHTTPHandlerForTest(t)
 
 	request := httptest.NewRequest(http.MethodGet, "/.well-known/oauth-authorization-server/oauth", nil)
 	recorder := httptest.NewRecorder()

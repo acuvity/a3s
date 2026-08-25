@@ -20,14 +20,11 @@ import (
 	"go.acuvity.ai/manipulate"
 )
 
-func newOAuthHTTPHandlerForTest(t *testing.T, client *api.OAuthClient, app *api.OAuthApplication) *HTTPHandler {
+func newOAuthHTTPHandlerForTest(t *testing.T) *HTTPHandler {
 	t.Helper()
 
 	baseURL := "https://issuer.example"
-	oauth, _ := NewOAuth(nil, &fakeManipulator{
-		client: client,
-		app:    app,
-	}, token.NewJWKS(), baseURL, testA3SAudience, 5*time.Minute)
+	oauth, _ := NewOAuth(nil, &fakeManipulator{}, token.NewJWKS(), baseURL, testA3SAudience, 5*time.Minute)
 
 	return NewHTTPHandler(oauth, "")
 }
