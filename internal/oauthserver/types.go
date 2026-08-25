@@ -50,6 +50,13 @@ type authorizationServerMetadata struct {
 	TokenEndpointAuthMethodsSupported []string `json:"token_endpoint_auth_methods_supported"`
 }
 
+type openIDProviderMetadata struct {
+	authorizationServerMetadata
+	UserinfoEndpoint                 string   `json:"userinfo_endpoint"`
+	SubjectTypesSupported            []string `json:"subject_types_supported"`
+	IDTokenSigningAlgValuesSupported []string `json:"id_token_signing_alg_values_supported"`
+}
+
 // Session is the unified persisted OAuth session bound to an authorization code.
 type Session struct {
 	Code                string          `json:"code"`

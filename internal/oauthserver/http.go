@@ -25,7 +25,16 @@ const (
 	routeTokenNamespaced      = "/oauth/:" + encodedNamespacePathParam + "/token"
 	routeUserinfoNamespaced   = "/oauth/:" + encodedNamespacePathParam + "/userinfo"
 	wellKnownOAuthServerPath  = "/.well-known/oauth-authorization-server"
+	wellKnownOpenIDPath       = "/.well-known/openid-configuration"
 	jwksPath                  = "/.well-known/jwks.json"
+
+	// subjectTypePublic is the only OpenID subject type a3s exposes: the
+	// subject claim is not pairwise per client.
+	subjectTypePublic = "public"
+
+	// signingAlgES256 is the algorithm the a3s token machinery uses to sign
+	// the JWTs advertised through jwks_uri.
+	signingAlgES256 = "ES256"
 )
 
 // RegisterRoutes installs the OAuth HTTP routes in Bahamut.
@@ -52,10 +61,23 @@ func baseOAuthRoutes() []string {
 
 // HTTPHandler serves the OAuth protocol endpoints.
 type HTTPHandler struct {
-	oauth                    *OAuth
-	uiEndpoint               string
-	baseURL                  *url.URL
+	oauth      *OAuth
+	uiEndpoint string
+	baseURL    *url.URL
+
+	// issuerPath is the path component of the issuer, and so the prefix every
+	// route appended to the issuer shares.
+	issuerPath string
+
 	authorizationServerRoute string
+
+	// openIDConfigurationRoute is the RFC 8414 flavored discovery route,
+	// where the well-known path is inserted before the issuer path.
+	openIDConfigurationRoute string
+
+	// issuerOpenIDConfigurationRoute is the OpenID Connect Discovery 1.0
+	// flavored route, where the well-known path is appended to the issuer.
+	issuerOpenIDConfigurationRoute string
 }
 
 // NewHTTPHandler returns a new HTTPHandler.
@@ -68,19 +90,29 @@ func NewHTTPHandler(
 	baseURL.RawPath = ""
 	baseURL.RawQuery = ""
 	baseURL.Fragment = ""
-	authorizationServerRoute := wellKnownOAuthServerPath + oauth.issuerURL.EscapedPath()
+	issuerPath := oauth.issuerURL.EscapedPath()
 	return &HTTPHandler{
-		oauth:                    oauth,
-		uiEndpoint:               uiEndpoint,
-		baseURL:                  &baseURL,
-		authorizationServerRoute: authorizationServerRoute,
+		oauth:                          oauth,
+		uiEndpoint:                     uiEndpoint,
+		baseURL:                        &baseURL,
+		issuerPath:                     issuerPath,
+		authorizationServerRoute:       wellKnownOAuthServerPath + issuerPath,
+		openIDConfigurationRoute:       wellKnownOpenIDPath + issuerPath,
+		issuerOpenIDConfigurationRoute: issuerPath + wellKnownOpenIDPath,
 	}
 }
 
 // routes returns the route patterns served by the OAuth handler.
 func (h *HTTPHandler) routes() []string {
 	routes := append([]string{}, baseOAuthRoutes()...)
-	routes = append(routes, h.authorizationServerRoute, h.authorizationServerRoute+"/:"+encodedNamespacePathParam)
+	routes = append(routes,
+		h.authorizationServerRoute,
+		h.authorizationServerRoute+"/:"+encodedNamespacePathParam,
+		h.openIDConfigurationRoute,
+		h.openIDConfigurationRoute+"/:"+encodedNamespacePathParam,
+		h.issuerOpenIDConfigurationRoute,
+		h.issuerPath+"/:"+encodedNamespacePathParam+wellKnownOpenIDPath,
+	)
 	return routes
 }
 
@@ -95,6 +127,10 @@ func (h *HTTPHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	switch {
 	case req.URL.Path == h.authorizationServerRoute || strings.HasPrefix(req.URL.Path, h.authorizationServerRoute+"/"):
 		h.handleAuthorizationServerMetadata(w, req, namespace)
+	case req.URL.Path == h.openIDConfigurationRoute,
+		strings.HasPrefix(req.URL.Path, h.openIDConfigurationRoute+"/"),
+		strings.HasPrefix(req.URL.Path, h.issuerPath) && strings.HasSuffix(req.URL.Path, wellKnownOpenIDPath):
+		h.handleOpenIDConfiguration(w, req, namespace)
 	case strings.HasSuffix(req.URL.Path, "/authorize"):
 		h.handleAuthorize(w, req, namespace)
 	case strings.HasSuffix(req.URL.Path, "/token"):
@@ -348,6 +384,25 @@ func (h *HTTPHandler) handleAuthorizationServerMetadata(w http.ResponseWriter, r
 		return
 	}
 
+	writeJSON(w, http.StatusOK, h.serverMetadata(namespace))
+}
+
+func (h *HTTPHandler) handleOpenIDConfiguration(w http.ResponseWriter, req *http.Request, namespace string) {
+	if req.Method != http.MethodGet {
+		w.Header().Set("Allow", http.MethodGet)
+		writeOAuthError(w, http.StatusMethodNotAllowed, "invalid_request", "openid configuration endpoint only accepts GET")
+		return
+	}
+
+	writeJSON(w, http.StatusOK, openIDProviderMetadata{
+		authorizationServerMetadata:      h.serverMetadata(namespace),
+		UserinfoEndpoint:                 h.oauth.issuerForNamespace(namespace) + "/userinfo",
+		SubjectTypesSupported:            []string{subjectTypePublic},
+		IDTokenSigningAlgValuesSupported: []string{signingAlgES256},
+	})
+}
+
+func (h *HTTPHandler) serverMetadata(namespace string) authorizationServerMetadata {
 	issuer := h.oauth.issuerForNamespace(namespace)
 
 	jwksURI := *h.baseURL
@@ -355,7 +410,7 @@ func (h *HTTPHandler) handleAuthorizationServerMetadata(w http.ResponseWriter, r
 	jwksURI.RawPath = ""
 	jwksURI.RawQuery = ""
 
-	writeJSON(w, http.StatusOK, authorizationServerMetadata{
+	return authorizationServerMetadata{
 		Issuer:                        issuer,
 		AuthorizationEndpoint:         issuer + "/authorize",
 		TokenEndpoint:                 issuer + "/token",
@@ -369,7 +424,7 @@ func (h *HTTPHandler) handleAuthorizationServerMetadata(w http.ResponseWriter, r
 			"client_secret_post",
 			"none",
 		},
-	})
+	}
 }
 
 func requestNamespace(req *http.Request) (string, error) {
