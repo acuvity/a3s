@@ -50,6 +50,15 @@ const (
 	maxOAuthStateLen        = 8192
 	maxPKCECodeChallengeLen = 128
 
+	// scopeOpenID is the scope that, per OIDC Core section 3.1.2.1, turns an
+	// authorization request into an authentication request and so calls for
+	// an ID Token in the response.
+	scopeOpenID = "openid"
+
+	// maxOAuthNonceLen bounds the nonce a3s stores and echoes. OIDC defines
+	// no limit, so this mirrors the arbitrary cap applied to state.
+	maxOAuthNonceLen = maxOAuthStateLen
+
 	// RFC 8693 section 3 token type identifiers.
 	oauthTokenTypeAccessToken = "urn:ietf:params:oauth:token-type:access_token"
 	oauthTokenTypeIDToken     = "urn:ietf:params:oauth:token-type:id_token"
@@ -131,6 +140,7 @@ func buildAuthorizeRequest(namespace string, client *api.OAuthClient, requestPar
 	rawScope := requestParams.Get("scope")
 	requestedScopes := splitScopes(rawScope)
 	state := requestParams.Get("state")
+	nonce := requestParams.Get("nonce")
 	codeChallenge := requestParams.Get("code_challenge")
 	codeChallengeMethod := requestParams.Get("code_challenge_method")
 	responseType := requestParams.Get("response_type")
@@ -140,6 +150,9 @@ func buildAuthorizeRequest(namespace string, client *api.OAuthClient, requestPar
 	}
 	if len(state) > maxOAuthStateLen {
 		return nil, newProtocolError("invalid_request", "state exceeds maximum length")
+	}
+	if len(nonce) > maxOAuthNonceLen {
+		return nil, newProtocolError("invalid_request", "nonce exceeds maximum length")
 	}
 	if len(codeChallenge) > maxPKCECodeChallengeLen {
 		return nil, newProtocolError("invalid_request", "code_challenge exceeds maximum length")
@@ -162,6 +175,7 @@ func buildAuthorizeRequest(namespace string, client *api.OAuthClient, requestPar
 		ScopeIncluded:       strings.TrimSpace(rawScope) != "",
 		RequestedScopes:     append([]string{}, requestedScopes...),
 		State:               state,
+		Nonce:               nonce,
 		CodeChallenge:       codeChallenge,
 		CodeChallengeMethod: codeChallengeMethod,
 	}, nil
@@ -186,6 +200,7 @@ func (o *OAuth) issueAuthorizationCode(client *api.OAuthClient, authorizeContext
 		RedirectURI:         authorizeContext.RedirectURI,
 		RedirectURIIncluded: authorizeContext.RedirectURIIncluded,
 		ScopeIncluded:       authorizeContext.ScopeIncluded,
+		Nonce:               authorizeContext.Nonce,
 		CodeChallenge:       authorizeContext.CodeChallenge,
 		CodeChallengeMethod: authorizeContext.CodeChallengeMethod,
 		OAuthTokenData:      tokenData,
@@ -339,6 +354,22 @@ func (o *OAuth) redeemAuthorizationCode(client *api.OAuthClient, tokenRequest To
 		ExpiresIn: expiresIn,
 	}
 
+	// The openid scope makes this an authentication request, which OIDC Core
+	// section 3.1.3.3 answers with an ID Token beside the access token.
+	if slices.Contains(session.OAuthTokenData.Scopes, scopeOpenID) {
+		idToken, _, err := o.signIDToken(
+			session.Namespace,
+			session.OAuthTokenData.IdentityToken,
+			session.ClientID,
+			session.Nonce,
+			expiration,
+		)
+		if err != nil {
+			return nil, err
+		}
+		response.IDToken = idToken
+	}
+
 	// The client did not ask for scopes, so the granted ones may surprise
 	// it and must be advertised.
 	if !session.ScopeIncluded {
@@ -346,6 +377,56 @@ func (o *OAuth) redeemAuthorizationCode(client *api.OAuthClient, tokenRequest To
 	}
 
 	return response, nil
+}
+
+// signIDToken mints an OpenID Connect ID Token, which carries flat OIDC claims
+// rather than the nested a3s shape and so cannot reuse signToken.
+func (o *OAuth) signIDToken(
+	namespace string,
+	idt *token.IdentityToken,
+	audience string,
+	nonce string,
+	expiration time.Time,
+) (string, int64, error) {
+
+	key := o.jwks.GetLastWithPrivate()
+	if key == nil {
+		return "", 0, fmt.Errorf("missing signing key")
+	}
+
+	claims := jwt.MapClaims{}
+
+	// The projection already drops every claim set below, so a source cannot
+	// displace them whatever order they are written in.
+	for name, value := range userinfoClaims(idt) {
+		claims[name] = value
+	}
+
+	claims["iss"] = o.issuerForNamespace(namespace)
+	claims["aud"] = audience
+	claims["exp"] = jwt.NewNumericDate(expiration)
+	claims["iat"] = jwt.NewNumericDate(time.Now().UTC())
+
+	// OIDC Core section 3.1.3.7 makes echoing the nonce mandatory when the
+	// request carried one, and relying parties reject an ID Token whose nonce
+	// does not match what they sent.
+	if nonce != "" {
+		claims["nonce"] = nonce
+	}
+
+	// The header keeps the default JWT type. An ID Token is not an access
+	// token, so the RFC 9068 at+jwt type would be wrong here.
+	j := jwt.NewWithClaims(jwt.SigningMethodES256, claims)
+	if key.KID != "" {
+		j.Header["kid"] = key.KID
+	}
+
+	signed, err := j.SignedString(key.PrivateKey())
+	if err != nil {
+		return "", 0, err
+	}
+
+	return signed, int64(time.Until(expiration).Round(time.Second) / time.Second), nil
 }
 
 // exchangeSubjectToken implements the RFC 8693 token-exchange grant. It takes

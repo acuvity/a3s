@@ -17,6 +17,7 @@ type AuthorizeRequest struct {
 	ScopeIncluded       bool     `json:"scopeincluded"`
 	RequestedScopes     []string `json:"requestedscopes,omitempty"`
 	State               string   `json:"state,omitempty"`
+	Nonce               string   `json:"nonce,omitempty"`
 	CodeChallenge       string   `json:"codechallenge,omitempty"`
 	CodeChallengeMethod string   `json:"codechallengemethod,omitempty"`
 }
@@ -67,6 +68,7 @@ type Session struct {
 	RedirectURI         string          `json:"redirecturi"`
 	RedirectURIIncluded bool            `json:"redirecturiincluded"`
 	ScopeIncluded       bool            `json:"scopeincluded"`
+	Nonce               string          `json:"nonce,omitempty"`
 	CodeChallenge       string          `json:"codechallenge,omitempty"`
 	CodeChallengeMethod string          `json:"codechallengemethod,omitempty"`
 	OAuthTokenData      *OAuthTokenData `json:"oauthtokendata,omitempty"`
@@ -102,6 +104,10 @@ type TokenResponse struct {
 	TokenType string `json:"token_type"`
 
 	ExpiresIn int64 `json:"expires_in"`
+
+	// IDToken is the OpenID Connect ID Token, present when the request was
+	// an authentication request, meaning the granted scopes include openid.
+	IDToken string `json:"id_token,omitempty"`
 
 	// IssuedTokenType is the RFC 8693 token type URI of Token. It is empty
 	// for grants that do not define it, such as authorization_code.
