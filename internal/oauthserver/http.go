@@ -20,8 +20,10 @@ const (
 	encodedNamespacePathParam = "namespace"
 	routeAuthorizeRoot        = "/oauth/authorize"
 	routeTokenRoot            = "/oauth/token"
+	routeUserinfoRoot         = "/oauth/userinfo"
 	routeAuthorizeNamespaced  = "/oauth/:" + encodedNamespacePathParam + "/authorize"
 	routeTokenNamespaced      = "/oauth/:" + encodedNamespacePathParam + "/token"
+	routeUserinfoNamespaced   = "/oauth/:" + encodedNamespacePathParam + "/userinfo"
 	wellKnownOAuthServerPath  = "/.well-known/oauth-authorization-server"
 	jwksPath                  = "/.well-known/jwks.json"
 )
@@ -41,8 +43,10 @@ func baseOAuthRoutes() []string {
 	return []string{
 		routeAuthorizeRoot,
 		routeTokenRoot,
+		routeUserinfoRoot,
 		routeAuthorizeNamespaced,
 		routeTokenNamespaced,
+		routeUserinfoNamespaced,
 	}
 }
 
@@ -95,6 +99,8 @@ func (h *HTTPHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		h.handleAuthorize(w, req, namespace)
 	case strings.HasSuffix(req.URL.Path, "/token"):
 		h.handleToken(w, req, namespace)
+	case strings.HasSuffix(req.URL.Path, "/userinfo"):
+		h.handleUserinfo(w, req, namespace)
 	default:
 		http.NotFound(w, req)
 	}
@@ -268,6 +274,71 @@ func (h *HTTPHandler) handleToken(w http.ResponseWriter, req *http.Request, name
 	w.Header().Set("Cache-Control", "no-store")
 	w.Header().Set("Pragma", "no-cache")
 	writeJSON(w, http.StatusOK, result)
+}
+
+func (h *HTTPHandler) handleUserinfo(w http.ResponseWriter, req *http.Request, namespace string) {
+	if req.Method != http.MethodGet && req.Method != http.MethodPost {
+		w.Header().Set("Allow", http.MethodGet+", "+http.MethodPost)
+		writeOAuthError(w, http.StatusMethodNotAllowed, "invalid_request", "userinfo endpoint only accepts GET or POST")
+		return
+	}
+
+	// deliberately not using token.FromHTTPRequest, which falls back to the
+	// x-a3s-token cookie which we shouldn't support in this flow
+	accessToken, err := bearerToken(req)
+	if err != nil {
+		writeBearerError(w, "", "userinfo endpoint requires a bearer access token")
+		return
+	}
+
+	claims, err := h.oauth.userinfo(namespace, accessToken)
+	if err != nil {
+		code, description, ok := protocolErrorDetails(err)
+		if !ok {
+			writeOAuthError(w, http.StatusInternalServerError, "server_error", "server error")
+			return
+		}
+		writeBearerError(w, code, description)
+		return
+	}
+
+	w.Header().Set("Cache-Control", "no-store")
+	w.Header().Set("Pragma", "no-cache")
+	writeJSON(w, http.StatusOK, claims)
+}
+
+func bearerToken(req *http.Request) (string, error) {
+	header := req.Header.Get("Authorization")
+	if header == "" {
+		return "", errors.New("missing authorization header")
+	}
+
+	scheme, credential, ok := strings.Cut(header, " ")
+	if !ok || !strings.EqualFold(scheme, tokenTypeBearer) {
+		return "", errors.New("authorization header is not a bearer credential")
+	}
+
+	credential = strings.TrimSpace(credential)
+	if credential == "" {
+		return "", errors.New("empty bearer credential")
+	}
+
+	return credential, nil
+}
+
+func writeBearerError(w http.ResponseWriter, code string, description string) {
+	challenge := `Bearer realm="oauth"`
+	if code != "" {
+		challenge = fmt.Sprintf(`Bearer realm="oauth", error=%q`, code)
+	}
+
+	w.Header().Set("WWW-Authenticate", challenge)
+
+	if code == "" {
+		code = "invalid_request"
+	}
+
+	writeOAuthError(w, http.StatusUnauthorized, code, description)
 }
 
 func (h *HTTPHandler) handleAuthorizationServerMetadata(w http.ResponseWriter, req *http.Request, namespace string) {

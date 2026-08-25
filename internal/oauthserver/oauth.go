@@ -433,6 +433,66 @@ func (o *OAuth) exchangeSubjectToken(ctx context.Context, namespace string, toke
 	}, nil
 }
 
+func (o *OAuth) userinfo(namespace string, accessToken string) (map[string]any, error) {
+
+	// The audience is left out of validation as this is an informational
+	// endpoint
+	idt, err := token.Parse(accessToken, o.jwks, o.issuerForNamespace(namespace), "")
+	if err != nil {
+		return nil, newProtocolError("invalid_token", "invalid access token")
+	}
+
+	if idt.Refresh {
+		return nil, newProtocolError("invalid_token", "access token must not be a refresh token")
+	}
+
+	// Only OAuth application based tokens are supported for now.
+	if idt.OAuthApplication.ID == "" {
+		return nil, newProtocolError("invalid_token", "access token names no oauth application")
+	}
+
+	return userinfoClaims(idt), nil
+}
+
+func userinfoClaims(idt *token.IdentityToken) map[string]any {
+
+	claims := map[string]any{}
+
+	for _, claim := range idt.Identity {
+
+		// No need for internal claims
+		if strings.HasPrefix(claim, "@") {
+			continue
+		}
+
+		key, value, ok := strings.Cut(claim, "=")
+		if !ok || key == "" {
+			continue
+		}
+
+		// No need for the upstream's own registered claims. A source copies
+		// its whole claim set in, so these would read as if they were ours.
+		// sub is kept: it names the subject the source authenticated.
+		switch key {
+		case "iss", "aud", "exp", "nbf", "iat", "jti", "nonce",
+			"azp", "at_hash", "c_hash", "sid", "auth_time":
+			continue
+		}
+
+		// add multi-value claims as arrays
+		switch existing := claims[key].(type) {
+		case nil:
+			claims[key] = value
+		case string:
+			claims[key] = []string{existing, value}
+		case []string:
+			claims[key] = append(existing, value)
+		}
+	}
+
+	return claims
+}
+
 // parseSubjectToken validates an exchange subject token. Both tokens minted by
 // this namespace's authorization-code flow and native a3s tokens are accepted.
 func (o *OAuth) parseSubjectToken(ctx context.Context, namespace string, subjectToken string) (*token.IdentityToken, error) {
