@@ -20,7 +20,9 @@ func TestOAuthTokenExchangeMintsIDTokenFromOAuthAccessToken(t *testing.T) {
 	fixture := newTokenExchangeFixture(t)
 
 	subjectToken := fixture.mintSubjectToken(t, fixture.oauthIssuer(), "api://portal", func(idt *token.IdentityToken) {
-		idt.Identity = []string{"email=user@example.com", "org=acme"}
+		// The upstream nonce arrives with the rest of the source claim set,
+		// and must not reach a token whose request carried none.
+		idt.Identity = []string{"sub=1234", "email=user@example.com", "org=acme", "nonce=upstream-nonce"}
 		idt.Opaque = map[string]string{"tenant": "acme"}
 	})
 
@@ -49,37 +51,43 @@ func TestOAuthTokenExchangeMintsIDTokenFromOAuthAccessToken(t *testing.T) {
 		t.Fatal("response missing access_token")
 	}
 
-	// The ID token must verify against the issuer of the OAuth surface it was
+	// The ID Token must verify against the issuer of the OAuth surface it was
 	// requested from, and only for the requested audience.
-	issued, err := token.Parse(idToken, fixture.jwks, fixture.oauthIssuer(), "https://partner.example")
-	if err != nil {
-		t.Fatalf("token.Parse() error = %v", err)
+	claims := fixture.parseIDToken(t, idToken, "https://partner.example")
+
+	if fixture.idTokenValidFor(idToken, "api://portal") {
+		t.Error("ID Token must not be valid for the original access token audience")
+	}
+	if fixture.idTokenValidFor(idToken, testA3SAudience) {
+		t.Error("ID Token must not be valid for the a3s audience")
 	}
 
-	if got := issued.Audience; len(got) != 1 || got[0] != "https://partner.example" {
-		t.Fatalf("aud = %v, want [https://partner.example]", got)
-	}
-	if _, err := token.Parse(idToken, fixture.jwks, fixture.oauthIssuer(), "api://portal"); err == nil {
-		t.Fatal("ID token must not be valid for the original access token audience")
-	}
-	if _, err := token.Parse(idToken, fixture.jwks, fixture.oauthIssuer(), testA3SAudience); err == nil {
-		t.Fatal("ID token must not be valid for the a3s audience")
+	assertIDTokenClaims(t, claims, map[string]any{
+		"iss":   fixture.oauthIssuer(),
+		"aud":   "https://partner.example",
+		"sub":   "1234",
+		"email": "user@example.com",
+		"org":   "acme",
+	})
+
+	for _, field := range []string{"exp", "iat"} {
+		if _, ok := claims[field]; !ok {
+			t.Errorf("ID Token missing %q", field)
+		}
 	}
 
-	assertClaim(t, issued.Identity, "email=user@example.com")
-	assertClaim(t, issued.Identity, "org=acme")
-	assertClaim(t, issued.Identity, "@source:type=OIDC")
-	assertClaim(t, issued.Identity, "@source:name=corp")
-	assertClaim(t, issued.Identity, "@issuer="+fixture.oauthIssuer())
-
-	if len(issued.Opaque) != 0 {
-		t.Fatalf("opaque = %v, want empty", issued.Opaque)
+	// An exchange is not an authentication request, so there is no nonce.
+	if got, ok := claims["nonce"]; ok {
+		t.Errorf("nonce = %#v, want absent", got)
 	}
 
-	// A subject token minted with the same @issuer claim must not leave a
-	// stale duplicate behind after re-issuance.
-	if got := countClaimsWithPrefix(issued.Identity, "@issuer="); got != 1 {
-		t.Fatalf("@issuer claim count = %d, want 1", got)
+	// Nothing a3s specific survives: not the nested shape, not the opaque
+	// data held for the original bearer, not the source provenance.
+	assertIDTokenIsFlat(t, claims)
+	for _, field := range []string{"@source:type", "source:type", "@issuer", "issuer", "tenant"} {
+		if got, ok := claims[field]; ok {
+			t.Errorf("ID Token carries %q = %#v, want absent", field, got)
+		}
 	}
 }
 
@@ -101,16 +109,23 @@ func TestOAuthTokenExchangeAcceptsNativeA3SToken(t *testing.T) {
 
 	// A native a3s token names no oauth application, so it is checked against
 	// the a3s audience instead.
-	issued, err := token.Parse(response.payload["access_token"].(string), fixture.jwks, fixture.oauthIssuer(), "partner")
-	if err != nil {
-		t.Fatalf("token.Parse() error = %v", err)
-	}
-	if got := issued.Audience; len(got) != 1 || got[0] != "partner" {
-		t.Fatalf("aud = %v, want [partner]", got)
+	claims := fixture.parseIDToken(t, response.payload["access_token"].(string), "partner")
+
+	assertIDTokenClaims(t, claims, map[string]any{
+		"iss":   fixture.oauthIssuer(),
+		"aud":   "partner",
+		"email": "user@example.com",
+	})
+
+	// This identity names no subject, and a3s does not invent one. The ID
+	// Token is still issued, so the relying party fails on the missing claim
+	// rather than trusting an identifier a3s made up.
+	if got, ok := claims["sub"]; ok {
+		t.Errorf("sub = %#v, want absent", got)
 	}
 }
 
-func TestOAuthTokenExchangePreservesRestrictionsAndCapsExpiration(t *testing.T) {
+func TestOAuthTokenExchangeCapsExpirationAndDropsRestrictions(t *testing.T) {
 	fixture := newTokenExchangeFixture(t)
 
 	subjectExpiration := time.Now().UTC().Add(3 * time.Minute).Truncate(time.Second)
@@ -143,19 +158,20 @@ func TestOAuthTokenExchangePreservesRestrictionsAndCapsExpiration(t *testing.T) 
 		t.Fatalf("expires_in = %v, want 0 < expires_in <= 180", expiresIn)
 	}
 
-	issued, err := token.Parse(response.payload["access_token"].(string), fixture.jwks, fixture.oauthIssuer(), "client-1")
-	if err != nil {
-		t.Fatalf("token.Parse() error = %v", err)
+	claims := fixture.parseIDToken(t, response.payload["access_token"].(string), "client-1")
+
+	exp, ok := claims["exp"].(float64)
+	if !ok {
+		t.Fatalf("exp = %#v, want a number", claims["exp"])
 	}
-	if !issued.ExpiresAt.Time.Equal(subjectExpiration) {
-		t.Fatalf("exp = %s, want %s", issued.ExpiresAt.Time, subjectExpiration)
+	if got := time.Unix(int64(exp), 0).UTC(); !got.Equal(subjectExpiration) {
+		t.Fatalf("exp = %s, want %s", got, subjectExpiration)
 	}
-	if issued.Restrictions == nil || issued.Restrictions.Namespace != "/acme/dev" {
-		t.Fatalf("restrictions = %#v, want namespace /acme/dev", issued.Restrictions)
-	}
-	if issued.Restrictions == nil || len(issued.Restrictions.Networks) != 1 || issued.Restrictions.Networks[0] != "10.0.0.0/8" {
-		t.Fatalf("restricted networks = %#v, want [10.0.0.0/8]", issued.Restrictions)
-	}
+
+	// Restrictions bound what the subject token authorized. An ID Token is
+	// not an authorization credential, which is why the response marks it
+	// N_A, so they are deliberately left behind rather than retargeted.
+	assertIDTokenIsFlat(t, claims)
 }
 
 // A3S targets the issued evidence through audience alone. A resource
@@ -429,13 +445,10 @@ func TestOAuthTokenExchangeAcceptsRequestWithoutClient(t *testing.T) {
 		t.Fatalf("status = %d (%s), want %d", response.status, response.body, http.StatusOK)
 	}
 
-	issued, err := token.Parse(response.payload["access_token"].(string), fixture.jwks, fixture.oauthIssuer(), "partner")
-	if err != nil {
-		t.Fatalf("token.Parse() error = %v", err)
-	}
-	// The application still comes from the subject token, so its claims
-	// survive an exchange no client took part in.
-	assertClaim(t, issued.Identity, "@oauthapp:id="+fixture.app.ID)
+	// The identity still comes from the subject token, so its claims survive
+	// an exchange no client took part in.
+	claims := fixture.parseIDToken(t, response.payload["access_token"].(string), "partner")
+	assertIDTokenClaims(t, claims, map[string]any{"email": "user@example.com"})
 }
 
 // The authorization-code grant still needs a client: its code is bound to one.
@@ -498,12 +511,11 @@ func TestOAuthTokenExchangeDropsOpaqueData(t *testing.T) {
 		t.Fatalf("status = %d (%s), want %d", response.status, response.body, http.StatusOK)
 	}
 
-	issued, err := token.Parse(response.payload["access_token"].(string), fixture.jwks, fixture.oauthIssuer(), "partner")
-	if err != nil {
-		t.Fatalf("token.Parse() error = %v", err)
-	}
-	if len(issued.Opaque) != 0 {
-		t.Fatalf("opaque = %v, want empty", issued.Opaque)
+	claims := fixture.parseIDToken(t, response.payload["access_token"].(string), "partner")
+
+	assertIDTokenIsFlat(t, claims)
+	if got, ok := claims["internal"]; ok {
+		t.Errorf("opaque data leaked as claim %q = %#v", "internal", got)
 	}
 }
 
@@ -663,6 +675,75 @@ func (f *tokenExchangeFixture) mintSubjectToken(
 	return signed
 }
 
+func (f *tokenExchangeFixture) idTokenKeyfunc() jwt.Keyfunc {
+	return func(tok *jwt.Token) (any, error) {
+		kid, _ := tok.Header["kid"].(string)
+		key, err := f.jwks.Get(kid)
+		if err != nil {
+			return nil, err
+		}
+		return key.PublicKey(), nil
+	}
+}
+
+// parseIDToken verifies an OIDC ID Token and returns its claims. token.Parse
+// cannot read one: an ID Token is flat, not a3s shaped.
+func (f *tokenExchangeFixture) parseIDToken(t *testing.T, raw string, audience string) jwt.MapClaims {
+	t.Helper()
+
+	claims := jwt.MapClaims{}
+	if _, err := jwt.ParseWithClaims(raw, claims, f.idTokenKeyfunc(),
+		jwt.WithValidMethods([]string{signingAlgES256}),
+		jwt.WithIssuer(f.oauthIssuer()),
+		jwt.WithAudience(audience),
+	); err != nil {
+		t.Fatalf("parse id token: %v", err)
+	}
+
+	return claims
+}
+
+// idTokenValidFor reports whether the ID Token verifies for the given audience.
+func (f *tokenExchangeFixture) idTokenValidFor(raw string, audience string) bool {
+	_, err := jwt.ParseWithClaims(raw, jwt.MapClaims{}, f.idTokenKeyfunc(),
+		jwt.WithValidMethods([]string{signingAlgES256}),
+		jwt.WithIssuer(f.oauthIssuer()),
+		jwt.WithAudience(audience),
+	)
+
+	return err == nil
+}
+
+// assertIDTokenIsFlat fails if the token still carries the a3s structure an
+// ordinary OIDC library cannot read.
+func assertIDTokenIsFlat(t *testing.T, claims jwt.MapClaims) {
+	t.Helper()
+
+	for _, field := range []string{
+		"identity",
+		"source",
+		"opaque",
+		"restrictions",
+		"oauthApplication",
+		"oauthClient",
+	} {
+		if got, ok := claims[field]; ok {
+			t.Errorf("id token carries a3s field %q = %#v", field, got)
+		}
+	}
+}
+
+// assertIDTokenClaims fails for every claim whose value differs from want.
+func assertIDTokenClaims(t *testing.T, claims jwt.MapClaims, want map[string]any) {
+	t.Helper()
+
+	for name, value := range want {
+		if got := claims[name]; got != value {
+			t.Errorf("%s = %#v, want %#v", name, got, value)
+		}
+	}
+}
+
 type tokenEndpointResponse struct {
 	status  int
 	body    string
@@ -705,27 +786,4 @@ func (f *tokenExchangeFixture) post(t *testing.T, form url.Values, authenticated
 		body:    recorder.Body.String(),
 		payload: payload,
 	}
-}
-
-func assertClaim(t *testing.T, claims []string, want string) {
-	t.Helper()
-
-	for _, claim := range claims {
-		if claim == want {
-			return
-		}
-	}
-
-	t.Fatalf("claims %v missing %q", claims, want)
-}
-
-func countClaimsWithPrefix(claims []string, prefix string) int {
-	var count int
-	for _, claim := range claims {
-		if strings.HasPrefix(claim, prefix) {
-			count++
-		}
-	}
-
-	return count
 }

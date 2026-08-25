@@ -476,30 +476,17 @@ func (o *OAuth) exchangeSubjectToken(ctx context.Context, namespace string, toke
 	if tokenRequest.Audience == o.a3sAudience {
 		return nil, newProtocolError("invalid_target", "the a3s audience cannot be requested")
 	}
-	audience := jwt.ClaimStrings{tokenRequest.Audience}
-
 	idt, err := o.parseSubjectToken(ctx, namespace, tokenRequest.SubjectToken)
 	if err != nil {
 		return nil, err
 	}
 
-	// Drop the derived claims. IdentityToken.JWT re-adds them from the
-	// token's own fields against the new issuer.
-	identity := make([]string, 0, len(idt.Identity))
-	for _, claim := range idt.Identity {
-		if !strings.HasPrefix(claim, "@") {
-			identity = append(identity, claim)
-		}
-	}
-	idt.Identity = identity
-
-	// Opaque data is carried for the bearer of the original token, not for
-	// the third party this evidence is addressed to.
-	idt.Opaque = nil
-
-	// The ID token attests an authentication that already happened, so it
+	// The ID Token attests an authentication that already happened, so it
 	// must never outlive the token that evidences it.
-	idToken, expiresIn, err := o.signToken(namespace, idt, audience, idt.ExpiresAt.UTC())
+	//
+	// signIDToken carries nothing a3s-specific across, leaving a token an
+	// ordinary OIDC library can read.
+	idToken, expiresIn, err := o.signIDToken(namespace, idt, tokenRequest.Audience, "", idt.ExpiresAt.UTC())
 	if err != nil {
 		return nil, err
 	}
