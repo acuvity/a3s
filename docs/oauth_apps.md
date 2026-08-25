@@ -54,8 +54,13 @@ Routes:
 
 - `GET /oauth/{encodedNamespace}/authorize`
 - `POST /oauth/{encodedNamespace}/token`
+- `GET|POST /oauth/{encodedNamespace}/userinfo`
 - `GET /.well-known/oauth-authorization-server/oauth`
 - `GET /.well-known/oauth-authorization-server/oauth/{encodedNamespace}`
+- `GET /.well-known/openid-configuration/oauth`
+- `GET /.well-known/openid-configuration/oauth/{encodedNamespace}`
+- `GET /oauth/.well-known/openid-configuration`
+- `GET /oauth/{encodedNamespace}/.well-known/openid-configuration`
 
 `encodedNamespace` is a reversible slash-free encoding of the namespace so
 it fits in a single path segment - using base64 without padding.
@@ -66,8 +71,10 @@ Canonical examples:
 
 - root namespace authorize: `/oauth/authorize`
 - root namespace token: `/oauth/token`
+- root namespace userinfo: `/oauth/userinfo`
 - non-root namespace authorize: `/oauth/{encodedNamespace}/authorize`
 - non-root namespace token: `/oauth/{encodedNamespace}/token`
+- non-root namespace userinfo: `/oauth/{encodedNamespace}/userinfo`
 
 The existing `/.well-known/jwks.json` route continues to be used for key
 distribution.
@@ -94,6 +101,147 @@ Examples:
 
 The metadata response `issuer` value exactly matches the issuer used to
 derive the metadata URL.
+
+## OpenID Configuration Discovery
+
+Many OAuth clients only know the OpenID Connect discovery location. To stay
+usable by those clients, the same metadata is also served as an OpenID
+Provider configuration document, at both discovery locations in use in the
+wild:
+
+- OpenID Connect Discovery 1.0 appends the well-known path to the issuer:
+  - `https://host/oauth/.well-known/openid-configuration`
+  - `https://host/oauth/{encodedNamespace}/.well-known/openid-configuration`
+- RFC 8414 section 5 inserts it before the issuer path:
+  - `https://host/.well-known/openid-configuration/oauth`
+  - `https://host/.well-known/openid-configuration/oauth/{encodedNamespace}`
+
+The document is the RFC 8414 authorization server metadata of the same
+namespace, plus the fields OpenID Connect requires:
+
+- `userinfo_endpoint`: the userinfo endpoint of the same namespace
+- `subject_types_supported`: always `["public"]`, since a3s subjects are not
+  pairwise per client
+- `id_token_signing_alg_values_supported`: always `["ES256"]`, the algorithm
+  the a3s token machinery signs with
+
+a3s implements the OpenID Connect code flow: an authentication request, meaning
+one whose scopes include `openid`, is answered with an ID Token beside the
+access token, and `userinfo` serves the claims behind an access token. A client
+that speaks only OIDC can therefore use a3s.
+
+An `oauthclient` with an empty `scopes` list accepts any scope it is asked for.
+One that lists scopes must include `openid`, or have it in the
+`oauthapplication` `defaultScopes` when the client requests none, since a
+request naming an unlisted scope is refused with `invalid_scope` rather than
+reduced. The metadata advertises no `scopes_supported`, so a client cannot
+discover either rule.
+
+Conformance stops short of the whole specification. a3s does not implement:
+
+- `max_age` or `prompt`, and no `auth_time` to support them. A source
+  stringifies every claim it copies, and OIDC Core section 2 types `auth_time`
+  as a number, so passing an upstream one through would make a relying party
+  reject the whole token
+- `acr` and `amr`, in the sense that a3s never derives them. It does forward
+  the ones a source provides, so a relying party may see the authentication
+  context of the upstream login. Nothing in a3s requires, checks or enforces
+  those values, and `acr_values` on a request is ignored
+- request objects, the `claims` request parameter, or `display` and `ui_locales`
+- ID Token encryption, signed userinfo responses, or algorithms besides ES256
+- session management, front-channel or back-channel logout
+- a `sub` for identities whose source names none, as described under
+  [ID Token](#id-token)
+- typed claims. A source flattens every claim it copies into a string, so
+  `email_verified` is `"true"` rather than `true` and `updated_at` is a string
+  rather than a number, where OIDC Core section 5.1 types them as a boolean and
+  a number. A relying party deserializing the standard claims into typed fields
+  will fail on them
+
+A deployment needing any of those should not treat a3s as a drop-in OpenID
+Provider.
+
+## Userinfo Endpoint
+
+`userinfo` returns the identity claims carried by an access token this
+namespace's OAuth surface issued. It follows
+[OpenID Connect Core section 5.3](https://openid.net/specs/openid-connect-core-1_0.html#UserInfo),
+accepting `GET` or `POST` with the access token presented as an RFC 6750
+bearer credential.
+
+Only OAuth access tokens are served. The token must have been issued by this
+namespace's OAuth surface and must name an `oauthapplication`. A native a3s
+token is refused even though a3s signed it, which is a deliberate difference
+from the token exchange: the exchange accepts native a3s tokens as subject
+tokens, while the OIDC surface describes the OAuth surface, so it serves only
+tokens a client obtained through an `oauthapplication` with that application's
+policy applied.
+
+The endpoint validates the token signature, the issuer, and the expiration,
+and refuses refresh tokens. It deliberately does less than the token exchange
+does with its subject token:
+
+- the `oauthapplication` is not re-resolved
+- the audience is not checked
+
+An exchange mints fresh evidence addressed to a third party, so it must
+confirm the application still exists and still owns the token. `userinfo` only
+restates claims the caller already holds inside the token it presented, so the
+signature and expiration are the whole authority, and the endpoint needs no
+database read.
+
+For the same reason `userinfo` applies no scope check.
+
+The access token is only ever read from the `Authorization` header. Unlike the
+rest of a3s, this endpoint does not fall back to the `x-a3s-token` cookie: a
+cookie is attached by the browser rather than chosen by the caller, and an
+OAuth protected resource must authenticate the access token its client was
+issued, not an ambient session.
+
+### Claims
+
+The response projects the token identity claims into a flat JSON object. The
+same projection builds the ID Token, so both describe an identity the same way:
+
+- derived `@` claims are left out. They describe how a3s reached the identity,
+  not the identity
+- the claims a3s sets itself are left out too, along with the ones binding the
+  upstream token to its own client, access token or session: `iss`, `aud`,
+  `exp`, `nbf`, `iat`, `jti`, `nonce`, `azp`, `at_hash`, `c_hash` and `sid`. A
+  source copies its whole claim set into the identity, so these would otherwise
+  read as if they described this token. That is not cosmetic: a relying party
+  checks `azp` against its own client id and `at_hash` against the access token
+  a3s issued, and rejects the token when the upstream values disagree
+- `auth_time` goes with them, for the reason given in the conformance list
+  above: the value a source carries is a string, and a relying party rejects
+  the token over it
+- `sub` is deliberately kept: it names the subject the source authenticated
+- everything else a source carries is kept, including `acr` and `amr`, which
+  arrive correctly typed and describe the upstream login rather than binding
+  its token. A relying party reading them is reading the source's word for how
+  the user authenticated, which a3s forwards without checking
+- a claim the source repeats becomes an array, since a3s carries multi-valued
+  claims such as groups as repeated entries
+- every other claim is a string
+
+No `sub` is synthesized. Sources authenticating through OIDC carry the
+upstream `sub` into the token, and it surfaces here like any other claim.
+A source that names no subject, such as MTLS or LDAP, therefore produces a
+response with no `sub`, and an OIDC client will reject it. That is intended:
+clients key user accounts on `sub` permanently, and an identifier a3s invented
+would bind those accounts to an a3s implementation detail.
+
+Passing `sub` through has a consequence an operator has to plan around. A
+relying party identifies a user by the `iss` and `sub` pair, but the two are
+scoped differently here: `iss` is the namespace, identical for every source in
+it, while `sub` comes from whichever source authenticated. Two sources in one
+namespace can therefore issue the same `sub` for two different people, and the
+relying party merges them into a single account. Nothing in the flow detects
+it.
+
+Namespaces, not sources, are what isolate subjects. A namespace whose sources
+do not share a subject space needs either one source, or sources whose subject
+values cannot collide.
 
 ## UI Model
 
@@ -193,6 +341,21 @@ Authorize and token processing work as follows:
 Notes:
 
 - `clientSecret` is currently compared directly by the OAuth layer
+- over `client_secret_basic`, the `clientID` is percent-decoded, since RFC 6749
+  section 2.3.1 has the client encode it. That is what lets a `clientID`
+  containing a `:` authenticate at all: Basic splits on the first colon, so an
+  identifier sent raw is indistinguishable from a shorter identifier with a
+  different secret, and a3s rejects it rather than guessing the boundary. A
+  value that is not valid percent-encoding is used verbatim, so clients that
+  skip the encoding keep working, and `+` is left alone rather than read as an
+  encoded space, because it is far more likely to be a byte of a base64 secret
+- the `clientSecret` is deliberately *not* decoded, which departs from RFC 6749
+  section 2.3.1. Secrets are admin-supplied rather than minted by a3s, so
+  decoding one would silently change the meaning of any existing secret holding
+  a percent escape, leaving a bare `invalid_client` as the only symptom and the
+  same client working over `client_secret_post`. A secret that genuinely needs
+  encoding, because it contains a `:` or a space, must use
+  `client_secret_post`, where both values are ordinary form fields
 - `oauthApplicationID` is `creation_only`
 - `clientID` is `creation_only`
 - clients and oauth applications always live in the same namespace
@@ -231,6 +394,7 @@ It contains:
 - `redirectURI`
 - `requestedScopes`
 - `state`
+- `nonce`
 - `codeChallenge`
 - `codeChallengeMethod`
 - `expiresAt`
@@ -246,6 +410,11 @@ This follows the existing a3s pattern used by `internal/oauth2ceremony` and
 
 The authorize context preserves the original client-provided `state` value
 and the final redirect returns that exact value when it was supplied.
+
+It preserves the `nonce` the same way, and the authorization code carries it
+onward so `/token` can echo it into the ID Token. A relying party rejects an ID
+Token whose nonce does not match what it sent, so losing the value anywhere
+along that path would break every authentication request that used one.
 
 App configuration such as `allowedSources` is not duplicated into the
 authorize context. The client registration and its referenced
@@ -386,11 +555,13 @@ The token endpoint follows [RFC 6749 Section 3.2](https://www.rfc-editor.org/rfc
 4. validate PKCE if present
 5. extract claims and token metadata from the code
 6. mint a standard a3s token from that payload
+7. mint an ID Token beside it when the granted scopes include `openid`
 
 `/token` is deterministic and does not perform a second authorization
 decision.
 
-The token response follows the OAuth 2.0 token response format.
+The token response follows the OAuth 2.0 token response format, carrying
+`id_token` as well when step 7 applied.
 
 ## Token Shape
 
@@ -411,6 +582,57 @@ access token:
 
 Those claims are added alongside the existing `@source:*` and `@issuer=*`
 claims.
+
+## ID Token
+
+An ID Token is a different artifact from an access token that happens to share
+a signing key. An access token carries a3s claims in the nested a3s shape and
+its audience names the resource it grants access to. An ID Token carries flat
+top-level claims and its audience names the party the token is evidence for.
+
+Two paths mint one, through a single signing path:
+
+- the authorization-code grant, when the granted scopes include `openid`. The
+  audience is the `clientID`, since the token is evidence for the client that
+  authenticated the user
+- the RFC 8693 token exchange, always, since issuing one is what that grant is
+  for. The audience is the requested `audience`
+
+The claim set is:
+
+- `iss`: the OAuth issuer of the namespace
+- `aud`: as above
+- `sub`: the subject the source authenticated, when it names one
+- `exp` and `iat`
+- `nonce`: only when the request carried one, which only an authentication
+  request does. An exchange never carries one
+- every claim from the identity projection described under [Claims](#claims)
+
+The projection drops the claims a3s sets itself, so a source cannot displace
+them. That matters because a source copies its whole upstream claim set into
+the identity: without it an upstream identity provider could mint a token that
+appeared to come from itself, and its ceremony nonce could surface in a token
+whose own request carried none.
+
+Nothing a3s-specific crosses over. Restrictions are left behind because an ID
+Token is not an authorization credential, and the opaque data is left behind
+because it is held for the bearer of the original token rather than for the
+party the evidence addresses. Source provenance goes with the rest of the
+derived claims, so a relying party cannot tell from an ID Token which source
+authenticated the user.
+
+No `sub` is synthesized, for the reason given under [Claims](#claims). An
+identity whose source names none, as MTLS and LDAP do not, yields an ID Token
+without `sub`. Such a token is not conformant and a relying party will reject
+it, which is the intended outcome: failing at the client beats binding accounts
+to an identifier a3s invented.
+
+The token exchange marks its response `token_type: N_A`, per
+[RFC 8693 section 2.2.1](https://www.rfc-editor.org/rfc/rfc8693.html#section-2.2.1),
+because an ID Token must never be presented as an access token. `userinfo`
+enforces the same rule from the other side: an ID Token is flat, so it does not
+parse as an a3s identity token at all and cannot authenticate a userinfo
+request.
 
 ## Dynamic Client Registration Compatibility
 
@@ -489,6 +711,8 @@ Explicitly deferred for v1 unless later required:
 - Dynamic Client Registration
 - Client ID Metadata Documents
 - refresh tokens
-- `userinfo`
 - introspection
-- full OIDC provider parity
+- the parts of OpenID Connect listed under
+  [OpenID Configuration Discovery](#openid-configuration-discovery), chiefly
+  `max_age` and `prompt`, deriving the authentication-context claims, request
+  objects, session management and logout
