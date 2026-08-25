@@ -270,7 +270,7 @@ func (h *HTTPHandler) handleToken(w http.ResponseWriter, req *http.Request, name
 			writeOAuthError(w, http.StatusBadRequest, "invalid_request", "multiple client authentication methods used")
 			return
 		}
-		clientID = basicClientID
+		clientID = decodeBasicClientID(basicClientID)
 		clientSecret = basicClientSecret
 		clientAuthMethod = api.OAuthClientTokenEndpointAuthMethodClientSecretBasic
 	} else if clientSecret != "" {
@@ -519,4 +519,23 @@ func (h *HTTPHandler) buildContinueURL(authorizeContext *AuthorizeContext) strin
 	}
 	u.RawQuery = query.Encode()
 	return u.String()
+}
+
+// decodeBasicClientID percent-decodes the user-id of an HTTP Basic credential.
+//
+// RFC 7617 section 2 makes a raw ":" invalid in the user-id, since Basic splits
+// on the first one, so RFC 6749 section 2.3.1 has the client percent-encode the
+// client identifier and the secret before base64 encoding them. Decoding here
+// is what lets a client identifier hold a ":" at all.
+//
+// A value that fails to decode is used verbatim, because clients that skip the
+// encoding are common and their credential must keep working. For the same
+// reason this only undoes percent escapes and leaves "+" alone.
+func decodeBasicClientID(value string) string {
+	decoded, err := url.PathUnescape(value)
+	if err != nil {
+		return value
+	}
+
+	return decoded
 }
