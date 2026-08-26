@@ -1560,7 +1560,7 @@
             "type": "array"
           },
           "scopes": {
-            "description": "Scopes allowed for the client.",
+            "description": "Optional list of scopes the client may request. If omitted or empty, any\nscope the client requests is accepted. If present, a request naming a\nscope outside the list is refused rather than reduced to the ones it\nallows.",
             "example": [
               "openid",
               "profile"

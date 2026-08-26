@@ -133,7 +133,10 @@ type OAuthClient struct {
 	// List of allowed redirect URIs for the client.
 	RedirectURIs []string `json:"redirectURIs" msgpack:"redirectURIs" bson:"redirecturis" mapstructure:"redirectURIs,omitempty"`
 
-	// Scopes allowed for the client.
+	// Optional list of scopes the client may request. If omitted or empty, any
+	// scope the client requests is accepted. If present, a request naming a
+	// scope outside the list is refused rather than reduced to the ones it
+	// allows.
 	Scopes []string `json:"scopes" msgpack:"scopes" bson:"scopes" mapstructure:"scopes,omitempty"`
 
 	// How the client authenticates to the token endpoint. ClientSecretBasic and
@@ -761,12 +764,15 @@ same import operation.`,
 		AllowedChoices: []string{},
 		BSONFieldName:  "scopes",
 		ConvertedName:  "Scopes",
-		Description:    `Scopes allowed for the client.`,
-		Exposed:        true,
-		Name:           "scopes",
-		Stored:         true,
-		SubType:        "string",
-		Type:           "list",
+		Description: `Optional list of scopes the client may request. If omitted or empty, any
+scope the client requests is accepted. If present, a request naming a
+scope outside the list is refused rather than reduced to the ones it
+allows.`,
+		Exposed: true,
+		Name:    "scopes",
+		Stored:  true,
+		SubType: "string",
+		Type:    "list",
 	},
 	"TokenEndpointAuthMethod": {
 		AllowedChoices: []string{"ClientSecretBasic", "ClientSecretPost", "ClientSecretAny", "None"},
@@ -965,12 +971,15 @@ same import operation.`,
 		AllowedChoices: []string{},
 		BSONFieldName:  "scopes",
 		ConvertedName:  "Scopes",
-		Description:    `Scopes allowed for the client.`,
-		Exposed:        true,
-		Name:           "scopes",
-		Stored:         true,
-		SubType:        "string",
-		Type:           "list",
+		Description: `Optional list of scopes the client may request. If omitted or empty, any
+scope the client requests is accepted. If present, a request naming a
+scope outside the list is refused rather than reduced to the ones it
+allows.`,
+		Exposed: true,
+		Name:    "scopes",
+		Stored:  true,
+		SubType: "string",
+		Type:    "list",
 	},
 	"tokenendpointauthmethod": {
 		AllowedChoices: []string{"ClientSecretBasic", "ClientSecretPost", "ClientSecretAny", "None"},
@@ -1125,7 +1134,10 @@ type SparseOAuthClient struct {
 	// List of allowed redirect URIs for the client.
 	RedirectURIs *[]string `json:"redirectURIs,omitempty" msgpack:"redirectURIs,omitempty" bson:"redirecturis,omitempty" mapstructure:"redirectURIs,omitempty"`
 
-	// Scopes allowed for the client.
+	// Optional list of scopes the client may request. If omitted or empty, any
+	// scope the client requests is accepted. If present, a request naming a
+	// scope outside the list is refused rather than reduced to the ones it
+	// allows.
 	Scopes *[]string `json:"scopes,omitempty" msgpack:"scopes,omitempty" bson:"scopes,omitempty" mapstructure:"scopes,omitempty"`
 
 	// How the client authenticates to the token endpoint. ClientSecretBasic and

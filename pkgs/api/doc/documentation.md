@@ -249,7 +249,10 @@ List of allowed redirect URIs for the client.
 
 Type: `[]string`
 
-Scopes allowed for the client.
+Optional list of scopes the client may request. If omitted or empty, any
+scope the client requests is accepted. If present, a request naming a
+scope outside the list is refused rather than reduced to the ones it
+allows.
 
 ##### `tokenEndpointAuthMethod` [`required`]
 
