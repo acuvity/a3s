@@ -157,7 +157,7 @@ func (j *JWKS) AppendWithPrivate(cert *x509.Certificate, private crypto.PrivateK
 	k := &JWKSKey{
 		KTY:     "EC",
 		KID:     kid,
-		Use:     "sign",
+		Use:     "sig",
 		CRV:     public.Curve.Params().Name,
 		X:       base64.RawURLEncoding.EncodeToString(public.X.Bytes()),
 		x:       public.X,

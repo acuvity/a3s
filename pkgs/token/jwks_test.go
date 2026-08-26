@@ -64,7 +64,7 @@ func TestJWKSCrud(t *testing.T) {
 				Convey("The generated JWSKey should be correct", func() {
 					ecdsakey := cert1.PublicKey.(*ecdsa.PublicKey)
 					So(kk.KID, ShouldEqual, kid1)
-					So(kk.Use, ShouldEqual, "sign")
+					So(kk.Use, ShouldEqual, "sig")
 					So(kk.Curve(), ShouldResemble, elliptic.P256())
 					So(kk.KTY, ShouldEqual, "EC")
 					So(kk.x.String(), ShouldEqual, ecdsakey.X.String())
