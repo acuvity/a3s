@@ -163,7 +163,7 @@ func buildAuthorizeRequest(namespace string, client *api.OAuthClient, requestPar
 	if client.TokenEndpointAuthMethod == api.OAuthClientTokenEndpointAuthMethodNone && codeChallenge == "" {
 		return nil, newProtocolError("invalid_request", "PKCE is required")
 	}
-	if len(requestedScopes) > 0 && !containsAll(client.Scopes, requestedScopes) {
+	if len(client.Scopes) > 0 && len(requestedScopes) > 0 && !containsAll(client.Scopes, requestedScopes) {
 		return nil, newProtocolError("invalid_scope", "invalid scope")
 	}
 

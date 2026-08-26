@@ -211,7 +211,7 @@ func (h *HTTPHandler) handleAuthorize(w http.ResponseWriter, req *http.Request, 
 
 	if len(authorizeRequest.RequestedScopes) == 0 {
 		authorizeRequest.RequestedScopes = append([]string{}, app.DefaultScopes...)
-		if !containsAll(client.Scopes, authorizeRequest.RequestedScopes) {
+		if len(client.Scopes) > 0 && !containsAll(client.Scopes, authorizeRequest.RequestedScopes) {
 			redirectAuthorizeError(w, req, redirectURI, "invalid_scope", "invalid scope", state)
 			return
 		}

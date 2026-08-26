@@ -227,6 +227,93 @@ func TestAuthorizationCodeGrantOmitsNonceWhenRequestSentNone(t *testing.T) {
 	}
 }
 
+func TestAuthorizeScopeAllowlistAppliesOnlyWhenTheClientListsScopes(t *testing.T) {
+	for _, test := range []struct {
+		name          string
+		clientScopes  []string
+		defaultScopes []string
+		scope         string
+		wantError     string
+	}{
+		{
+			name:         "an absent list accepts any requested scope",
+			clientScopes: nil,
+			scope:        "openid email mcp",
+		},
+		{
+			// An empty list means the same as an absent one: null and [] are
+			// swapped by any number of round trips.
+			name:         "an empty list accepts any requested scope",
+			clientScopes: []string{},
+			scope:        "openid email mcp",
+		},
+		{
+			name:         "a list accepts the scopes it names",
+			clientScopes: []string{"openid", "email"},
+			scope:        "openid email",
+		},
+		{
+			name:         "a list refuses a scope it omits",
+			clientScopes: []string{"openid"},
+			scope:        "openid email",
+			wantError:    "invalid_scope",
+		},
+		{
+			// The same rule covers the scopes the application falls back to
+			// when the client requests none.
+			name:          "an absent list accepts any default scope",
+			clientScopes:  nil,
+			defaultScopes: []string{"openid", "mcp"},
+		},
+		{
+			name:          "a list refuses a default scope it omits",
+			clientScopes:  []string{"openid"},
+			defaultScopes: []string{"openid", "mcp"},
+			wantError:     "invalid_scope",
+		},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			fixture := newTokenExchangeFixture(t)
+			fixture.client.Scopes = test.clientScopes
+			fixture.app.DefaultScopes = test.defaultScopes
+
+			params := fixture.authorizeParams(test.scope)
+			params.Set("state", "state-1")
+			if test.scope == "" {
+				params.Del("scope")
+			}
+
+			request := httptest.NewRequest(http.MethodGet, "/oauth/authorize?"+params.Encode(), nil)
+			recorder := httptest.NewRecorder()
+			fixture.handler.ServeHTTP(recorder, request)
+
+			if recorder.Code != http.StatusFound {
+				t.Fatalf("status = %d, want %d: %s", recorder.Code, http.StatusFound, recorder.Body.String())
+			}
+
+			location, err := url.Parse(recorder.Header().Get("Location"))
+			if err != nil {
+				t.Fatalf("parse Location: %v", err)
+			}
+
+			if test.wantError == "" {
+				if got := location.Query().Get("authorizeRequestID"); got == "" {
+					t.Fatalf("request was refused: %s", recorder.Header().Get("Location"))
+				}
+				return
+			}
+
+			// A refusal goes back to the client, carrying its state.
+			if got := location.Query().Get("error"); got != test.wantError {
+				t.Errorf("error = %q, want %q", got, test.wantError)
+			}
+			if got := location.Query().Get("state"); got != "state-1" {
+				t.Errorf("state = %q, want %q", got, "state-1")
+			}
+		})
+	}
+}
+
 func TestAuthorizationCodeGrantOmitsSubWhenSourceNamesNone(t *testing.T) {
 	// a3s does not invent a subject, so a source that names none yields an ID
 	// Token without one and the relying party fails on the missing claim.
