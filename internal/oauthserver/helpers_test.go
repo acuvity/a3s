@@ -84,13 +84,13 @@ type fakeManipulator struct {
 	app    *api.OAuthApplication
 }
 
-func (f *fakeManipulator) RetrieveMany(_ manipulate.Context, dest elemental.Identifiables) error {
+func (f *fakeManipulator) RetrieveMany(mctx manipulate.Context, dest elemental.Identifiables) error {
 	clients, ok := dest.(*api.OAuthClientsList)
 	if !ok {
 		return errors.New("unexpected RetrieveMany destination")
 	}
 
-	if f.client == nil {
+	if f.client == nil || !matchesClientIDFilter(mctx, f.client.ClientID) {
 		*clients = nil
 		return nil
 	}
@@ -98,6 +98,30 @@ func (f *fakeManipulator) RetrieveMany(_ manipulate.Context, dest elemental.Iden
 	copyClient := *f.client
 	*clients = api.OAuthClientsList{&copyClient}
 	return nil
+}
+
+// matchesClientIDFilter reports whether a clientid filter selects the given
+// identifier, so the fake answers a lookup the way the store does rather than
+// returning its client whatever was asked for.
+func matchesClientIDFilter(mctx manipulate.Context, clientID string) bool {
+	filter := mctx.Filter()
+	if filter == nil {
+		return true
+	}
+
+	for i, key := range filter.Keys() {
+		if key != "clientid" {
+			continue
+		}
+		for _, value := range filter.Values()[i] {
+			if value == clientID {
+				return true
+			}
+		}
+		return false
+	}
+
+	return true
 }
 
 func (f *fakeManipulator) Retrieve(_ manipulate.Context, object elemental.Identifiable) error {
