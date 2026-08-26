@@ -626,7 +626,7 @@ func newTokenExchangeFixture(t *testing.T) *tokenExchangeFixture {
 
 	a3sIssuer := "https://issuer.example"
 	manipulator := &fakeManipulator{client: client, app: app}
-	oauth, err := NewOAuth(nil, manipulator, jwks, a3sIssuer, testA3SAudience, 5*time.Minute)
+	oauth, err := NewOAuth(newFakeStore(), manipulator, jwks, a3sIssuer, testA3SAudience, 5*time.Minute)
 	if err != nil {
 		t.Fatalf("NewOAuth() error = %v", err)
 	}
