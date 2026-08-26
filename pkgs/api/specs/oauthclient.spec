@@ -82,7 +82,11 @@ attributes:
 
   - name: scopes
     friendly_name: Scopes
-    description: Scopes allowed for the client.
+    description: |-
+      Optional list of scopes the client may request. If omitted or empty, any
+      scope the client requests is accepted. If present, a request naming a
+      scope outside the list is refused rather than reduced to the ones it
+      allows.
     type: list
     exposed: true
     subtype: string
