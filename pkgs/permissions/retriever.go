@@ -217,6 +217,7 @@ func (a *retriever) resolvePoliciesMatchingClaims(ctx context.Context, claims []
 		ctx,
 		manipulate.ContextOptionNamespace(ns),
 		manipulate.ContextOptionPropagated(true),
+		manipulate.ContextOptionPropagatedHidden(true),
 		manipulate.ContextOptionFilter(
 			makeAPIAuthorizationPolicyRetrieveFilter(claims, label),
 		),
