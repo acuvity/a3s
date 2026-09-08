@@ -375,8 +375,8 @@ go.acuvity.ai/bahamut v0.0.0-20260723202549-89ec2755a37e h1:joSPhSluYo/nSsdxyI/B
 go.acuvity.ai/bahamut v0.0.0-20260723202549-89ec2755a37e/go.mod h1:zr8hR8gzDUqEEVf2VpeRnZe113xTtxH8td/XdFNVwBU=
 go.acuvity.ai/elemental v0.0.0-20260723202512-a9644d6bbbb1 h1:9D3daagQffNLArbjmiiFoCJhQMOHUe3RlNzqY5eDc8s=
 go.acuvity.ai/elemental v0.0.0-20260723202512-a9644d6bbbb1/go.mod h1:h7PHJlKDt5zeG8EqqzlZf2cJpMBa9UA5njXZazwz6rQ=
-go.acuvity.ai/manipulate v0.0.0-20260723202531-8b61616946f0 h1:sLOxwZX/PyVOu7ZnBWABbxtcBN2OR9eZBGCMdIory3M=
-go.acuvity.ai/manipulate v0.0.0-20260723202531-8b61616946f0/go.mod h1:QN3s17UAxY3fDYWe3LylTVJZL/tAl0kHIjq6FVWs+qA=
+go.acuvity.ai/manipulate v0.0.0-20260908164431-c9d13c525755 h1:4uhc6P18fV0MgH0nipzUR8RYJwc4HVx31c7prjAoZe8=
+go.acuvity.ai/manipulate v0.0.0-20260908164431-c9d13c525755/go.mod h1:QN3s17UAxY3fDYWe3LylTVJZL/tAl0kHIjq6FVWs+qA=
 go.acuvity.ai/regolithe v0.0.0-20260723001905-94d204bf1aa4 h1:Twx5zdZEtk/Jbpa78GdxTmBaQZh1A7GeYmDDneYVup8=
 go.acuvity.ai/regolithe v0.0.0-20260723001905-94d204bf1aa4/go.mod h1:KuX0NAZzZX76xCIhsDcnKk73XDQBrNrJMXorokwCMto=
 go.acuvity.ai/tg v1.0.1-0.20260708162706-306a91e4d7dd h1:mNHaN6Es8aWBrGIuhJ6b97wHNCq0GqrHMlPQiqk7sa8=
