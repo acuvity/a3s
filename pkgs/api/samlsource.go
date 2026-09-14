@@ -156,6 +156,14 @@ type SAMLSource struct {
 	// If true, the issue request won't check the ResponseSignatureValidated.
 	SkipResponseSignatureCheck bool `json:"skipResponseSignatureCheck" msgpack:"skipResponseSignatureCheck" bson:"skipresponsesignaturecheck" mapstructure:"skipResponseSignatureCheck,omitempty"`
 
+	// The name of the identity claim naming the subject this source
+	// authenticates. a3s derives the OpenID Connect `sub` claim of its ID Tokens
+	// and userinfo responses from that claim's value. It defaults to `sub` for
+	// OIDC sources and `nameid` for SAML sources. A source where it resolves to
+	// nothing cannot serve an OpenID Connect request, as a3s has no subject to
+	// name.
+	SubClaim string `json:"subClaim,omitempty" msgpack:"subClaim,omitempty" bson:"subclaim,omitempty" mapstructure:"subClaim,omitempty"`
+
 	// Last update date of the object.
 	UpdateTime time.Time `json:"updateTime" msgpack:"updateTime" bson:"updatetime" mapstructure:"updateTime,omitempty"`
 
@@ -226,6 +234,7 @@ func (o *SAMLSource) GetBSON() (any, error) {
 	s.Namespace = o.Namespace
 	s.ServiceProviderIssuer = o.ServiceProviderIssuer
 	s.SkipResponseSignatureCheck = o.SkipResponseSignatureCheck
+	s.SubClaim = o.SubClaim
 	s.UpdateTime = o.UpdateTime
 	s.ZHash = o.ZHash
 	s.Zone = o.Zone
@@ -264,6 +273,7 @@ func (o *SAMLSource) SetBSON(raw bson.Raw) error {
 	o.Namespace = s.Namespace
 	o.ServiceProviderIssuer = s.ServiceProviderIssuer
 	o.SkipResponseSignatureCheck = s.SkipResponseSignatureCheck
+	o.SubClaim = s.SubClaim
 	o.UpdateTime = s.UpdateTime
 	o.ZHash = s.ZHash
 	o.Zone = s.Zone
@@ -360,6 +370,12 @@ func (o *SAMLSource) SetNamespace(namespace string) {
 	o.Namespace = namespace
 }
 
+// GetSubClaim returns the SubClaim of the receiver.
+func (o *SAMLSource) GetSubClaim() string {
+
+	return o.SubClaim
+}
+
 // GetUpdateTime returns the UpdateTime of the receiver.
 func (o *SAMLSource) GetUpdateTime() time.Time {
 
@@ -422,6 +438,7 @@ func (o *SAMLSource) ToSparse(fields ...string) elemental.SparseIdentifiable {
 			Namespace:                  &o.Namespace,
 			ServiceProviderIssuer:      &o.ServiceProviderIssuer,
 			SkipResponseSignatureCheck: &o.SkipResponseSignatureCheck,
+			SubClaim:                   &o.SubClaim,
 			UpdateTime:                 &o.UpdateTime,
 			ZHash:                      &o.ZHash,
 			Zone:                       &o.Zone,
@@ -469,6 +486,8 @@ func (o *SAMLSource) ToSparse(fields ...string) elemental.SparseIdentifiable {
 			sp.ServiceProviderIssuer = &(o.ServiceProviderIssuer)
 		case "skipResponseSignatureCheck":
 			sp.SkipResponseSignatureCheck = &(o.SkipResponseSignatureCheck)
+		case "subClaim":
+			sp.SubClaim = &(o.SubClaim)
 		case "updateTime":
 			sp.UpdateTime = &(o.UpdateTime)
 		case "zHash":
@@ -544,6 +563,9 @@ func (o *SAMLSource) Patch(sparse elemental.SparseIdentifiable) {
 	}
 	if so.SkipResponseSignatureCheck != nil {
 		o.SkipResponseSignatureCheck = *so.SkipResponseSignatureCheck
+	}
+	if so.SubClaim != nil {
+		o.SubClaim = *so.SubClaim
 	}
 	if so.UpdateTime != nil {
 		o.UpdateTime = *so.UpdateTime
@@ -715,6 +737,8 @@ func (o *SAMLSource) ValueForAttribute(name string) any {
 		return o.ServiceProviderIssuer
 	case "skipResponseSignatureCheck":
 		return o.SkipResponseSignatureCheck
+	case "subClaim":
+		return o.SubClaim
 	case "updateTime":
 		return o.UpdateTime
 	case "zHash":
@@ -957,6 +981,22 @@ provided, the issuer URL will be sent.`,
 		Name:           "skipResponseSignatureCheck",
 		Stored:         true,
 		Type:           "boolean",
+	},
+	"SubClaim": {
+		AllowedChoices: []string{},
+		BSONFieldName:  "subclaim",
+		ConvertedName:  "SubClaim",
+		Description: `The name of the identity claim naming the subject this source
+authenticates. a3s derives the OpenID Connect ` + "`" + `sub` + "`" + ` claim of its ID Tokens
+and userinfo responses from that claim's value. It defaults to ` + "`" + `sub` + "`" + ` for
+OIDC sources and ` + "`" + `nameid` + "`" + ` for SAML sources. A source where it resolves to
+nothing cannot serve an OpenID Connect request, as a3s has no subject to
+name.`,
+		Exposed: true,
+		Getter:  true,
+		Name:    "subClaim",
+		Stored:  true,
+		Type:    "string",
 	},
 	"UpdateTime": {
 		AllowedChoices: []string{},
@@ -1234,6 +1274,22 @@ provided, the issuer URL will be sent.`,
 		Stored:         true,
 		Type:           "boolean",
 	},
+	"subclaim": {
+		AllowedChoices: []string{},
+		BSONFieldName:  "subclaim",
+		ConvertedName:  "SubClaim",
+		Description: `The name of the identity claim naming the subject this source
+authenticates. a3s derives the OpenID Connect ` + "`" + `sub` + "`" + ` claim of its ID Tokens
+and userinfo responses from that claim's value. It defaults to ` + "`" + `sub` + "`" + ` for
+OIDC sources and ` + "`" + `nameid` + "`" + ` for SAML sources. A source where it resolves to
+nothing cannot serve an OpenID Connect request, as a3s has no subject to
+name.`,
+		Exposed: true,
+		Getter:  true,
+		Name:    "subClaim",
+		Stored:  true,
+		Type:    "string",
+	},
 	"updatetime": {
 		AllowedChoices: []string{},
 		Autogenerated:  true,
@@ -1412,6 +1468,14 @@ type SparseSAMLSource struct {
 	// If true, the issue request won't check the ResponseSignatureValidated.
 	SkipResponseSignatureCheck *bool `json:"skipResponseSignatureCheck,omitempty" msgpack:"skipResponseSignatureCheck,omitempty" bson:"skipresponsesignaturecheck,omitempty" mapstructure:"skipResponseSignatureCheck,omitempty"`
 
+	// The name of the identity claim naming the subject this source
+	// authenticates. a3s derives the OpenID Connect `sub` claim of its ID Tokens
+	// and userinfo responses from that claim's value. It defaults to `sub` for
+	// OIDC sources and `nameid` for SAML sources. A source where it resolves to
+	// nothing cannot serve an OpenID Connect request, as a3s has no subject to
+	// name.
+	SubClaim *string `json:"subClaim,omitempty" msgpack:"subClaim,omitempty" bson:"subclaim,omitempty" mapstructure:"subClaim,omitempty"`
+
 	// Last update date of the object.
 	UpdateTime *time.Time `json:"updateTime,omitempty" msgpack:"updateTime,omitempty" bson:"updatetime,omitempty" mapstructure:"updateTime,omitempty"`
 
@@ -1518,6 +1582,9 @@ func (o *SparseSAMLSource) GetBSON() (any, error) {
 	if o.SkipResponseSignatureCheck != nil {
 		s.SkipResponseSignatureCheck = o.SkipResponseSignatureCheck
 	}
+	if o.SubClaim != nil {
+		s.SubClaim = o.SubClaim
+	}
 	if o.UpdateTime != nil {
 		s.UpdateTime = o.UpdateTime
 	}
@@ -1596,6 +1663,9 @@ func (o *SparseSAMLSource) SetBSON(raw bson.Raw) error {
 	}
 	if s.SkipResponseSignatureCheck != nil {
 		o.SkipResponseSignatureCheck = s.SkipResponseSignatureCheck
+	}
+	if s.SubClaim != nil {
+		o.SubClaim = s.SubClaim
 	}
 	if s.UpdateTime != nil {
 		o.UpdateTime = s.UpdateTime
@@ -1676,6 +1746,9 @@ func (o *SparseSAMLSource) ToPlain() elemental.PlainIdentifiable {
 	}
 	if o.SkipResponseSignatureCheck != nil {
 		out.SkipResponseSignatureCheck = *o.SkipResponseSignatureCheck
+	}
+	if o.SubClaim != nil {
+		out.SubClaim = *o.SubClaim
 	}
 	if o.UpdateTime != nil {
 		out.UpdateTime = *o.UpdateTime
@@ -1798,6 +1871,16 @@ func (o *SparseSAMLSource) SetNamespace(namespace string) {
 	o.Namespace = &namespace
 }
 
+// GetSubClaim returns the SubClaim of the receiver.
+func (o *SparseSAMLSource) GetSubClaim() (out string) {
+
+	if o.SubClaim == nil {
+		return
+	}
+
+	return *o.SubClaim
+}
+
 // GetUpdateTime returns the UpdateTime of the receiver.
 func (o *SparseSAMLSource) GetUpdateTime() (out time.Time) {
 
@@ -1889,6 +1972,7 @@ type mongoAttributesSAMLSource struct {
 	Namespace                  string            `bson:"namespace,omitempty"`
 	ServiceProviderIssuer      string            `bson:"serviceproviderissuer"`
 	SkipResponseSignatureCheck bool              `bson:"skipresponsesignaturecheck"`
+	SubClaim                   string            `bson:"subclaim,omitempty"`
 	UpdateTime                 time.Time         `bson:"updatetime"`
 	ZHash                      int               `bson:"zhash"`
 	Zone                       int               `bson:"zone"`
@@ -1912,6 +1996,7 @@ type mongoAttributesSparseSAMLSource struct {
 	Namespace                  *string           `bson:"namespace,omitempty"`
 	ServiceProviderIssuer      *string           `bson:"serviceproviderissuer,omitempty"`
 	SkipResponseSignatureCheck *bool             `bson:"skipresponsesignaturecheck,omitempty"`
+	SubClaim                   *string           `bson:"subclaim,omitempty"`
 	UpdateTime                 *time.Time        `bson:"updatetime,omitempty"`
 	ZHash                      *int              `bson:"zhash,omitempty"`
 	Zone                       *int              `bson:"zone,omitempty"`

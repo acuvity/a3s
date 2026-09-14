@@ -4,7 +4,8 @@
     "@identifiable",
     "@importable",
     "@timed",
-    "@claimfilter"
+    "@claimfilter",
+    "@openidsource"
   ],
   "$friendlyName": "SAML Source",
   "$friendlyNamePlural": "SAML Sources",
@@ -189,6 +190,15 @@
       "title": "skipResponseSignatureCheck",
       "type": [
         "boolean",
+        "null"
+      ]
+    },
+    "subClaim": {
+      "$friendlyName": "Sub Claim",
+      "description": "The name of the identity claim naming the subject this source authenticates. a3s derives the OpenID Connect `sub` claim of its ID Tokens and userinfo responses from that claim's value. It defaults to `sub` for OIDC sources and `nameid` for SAML sources. A source where it resolves to nothing cannot serve an OpenID Connect request, as a3s has no subject to name.",
+      "title": "subClaim",
+      "type": [
+        "string",
         "null"
       ]
     },
