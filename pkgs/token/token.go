@@ -2,13 +2,18 @@ package token
 
 import (
 	"crypto"
+	"crypto/sha256"
+	"encoding/base64"
+	"encoding/binary"
 	"fmt"
+	"slices"
 	"sort"
 	"strings"
 	"time"
 
 	"github.com/gofrs/uuid"
 	"github.com/golang-jwt/jwt/v5"
+	"go.acuvity.ai/a3s/pkgs/api"
 	"go.acuvity.ai/a3s/pkgs/permissions"
 )
 
@@ -283,4 +288,75 @@ func (t *IdentityToken) Restrict(restrictions permissions.Restrictions) (err err
 	}
 
 	return nil
+}
+
+// A SubClaimer nominates the identity claim naming the subject it
+// authenticates. Every authentication source implements it.
+type SubClaimer interface {
+	GetSubClaim() string
+}
+
+// DeriveSubjectClaim sets sub to the OpenID Connect subject identifier naming
+// the bearer, taken from the given claim, or leaves it empty when the identity
+// names no subject. An empty subClaim falls back to the default for the source
+// type.
+func (t *IdentityToken) DeriveSubjectClaim(subClaim string) {
+
+	if subClaim == "" {
+		switch {
+		case strings.EqualFold(t.Source.Type, string(api.IssueSourceTypeOIDC)):
+			subClaim = "sub"
+		case strings.EqualFold(t.Source.Type, string(api.IssueSourceTypeSAML)):
+			subClaim = "nameid"
+		}
+	}
+
+	if subClaim == "" || t.Source.Type == "" || t.Source.Namespace == "" || t.Source.Name == "" {
+		return
+	}
+
+	var values []string
+	for _, value := range t.Map()[subClaim] {
+		if value != "" {
+			values = append(values, value)
+		}
+	}
+
+	if len(values) == 0 {
+		return
+	}
+
+	// A repeated claim reaches here in a different order depending on the
+	// path, since JWT sorts the identity as it signs it. Sort so one identity
+	// names one subject however its token was obtained.
+	slices.Sort(values)
+	t.Subject = hashSubject(t.Source, values...)
+}
+
+const subjectHashVer = "a3s/oidc-sub/v1"
+
+// hashSubject returns the subject identifier naming the given claim values
+// inside the subject space of the given source.
+func hashSubject(source Source, values ...string) string {
+
+	h := sha256.New()
+	h.Write([]byte(subjectHashVer))
+
+	fields := append([]string{
+		strings.ToLower(source.Type),
+		source.Namespace,
+		source.Name,
+	}, values...)
+
+	for _, field := range fields {
+		// Length prefix each field, or a source named "a" holding the value
+		// "b/c" would hash the same as one named "a/b" holding "c".
+		var length [4]byte
+		binary.BigEndian.PutUint32(length[:], uint32(len(field)))
+		h.Write(length[:])
+		h.Write([]byte(field))
+	}
+
+	// 43 characters, inside the 255 ASCII OIDC Core section 2 allows for sub.
+	return base64.RawURLEncoding.EncodeToString(h.Sum(nil))
 }
