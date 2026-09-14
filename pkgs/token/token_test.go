@@ -716,3 +716,119 @@ func TestIdentityToken_Restrict(t *testing.T) {
 		})
 	}
 }
+
+func TestHashSubject(t *testing.T) {
+
+	source := Source{Type: "oidc", Namespace: "/", Name: "corp"}
+
+	// A relying party keys an account on the subject permanently, so the
+	// scheme cannot drift without orphaning every one of them.
+	if got, want := hashSubject(source, "1234"), "oc1YY0z1aA9Dffdbwvv3GihE6p68jbX63MoMMamHZR0"; got != want {
+		t.Errorf("hashSubject() = %q, want %q", got, want)
+	}
+
+	// Length prefixing is what keeps a value from borrowing characters from
+	// the field beside it to reach into another source's subject space.
+	collisions := [][2]string{
+		{"a", "b/c"},
+		{"a/b", "c"},
+	}
+	first := hashSubject(Source{Type: "oidc", Namespace: "/", Name: collisions[0][0]}, collisions[0][1])
+	second := hashSubject(Source{Type: "oidc", Namespace: "/", Name: collisions[1][0]}, collisions[1][1])
+	if first == second {
+		t.Errorf("%v and %v both named the subject %q", collisions[0], collisions[1], first)
+	}
+
+	// It keeps the values of a repeated claim apart from each other too, so
+	// two people cannot share a subject by holding the same characters split
+	// differently.
+	if got, other := hashSubject(source, "a", "bc"), hashSubject(source, "ab", "c"); got == other {
+		t.Errorf(`["a" "bc"] and ["ab" "c"] both named the subject %q`, got)
+	}
+}
+
+func TestDeriveSubjectClaim(t *testing.T) {
+
+	testCases := []struct {
+		name       string
+		source     Source
+		subClaim   string
+		identity   []string
+		wantValues []string
+	}{
+		{
+			name:       "oidc defaults to sub",
+			source:     Source{Type: "oidc", Namespace: "/", Name: "corp"},
+			identity:   []string{"sub=1234", "email=user@example.com"},
+			wantValues: []string{"1234"},
+		},
+		{
+			name:       "saml defaults to nameid",
+			source:     Source{Type: "saml", Namespace: "/", Name: "adfs"},
+			identity:   []string{"nameid=user@example.com"},
+			wantValues: []string{"user@example.com"},
+		},
+		{
+			name:       "a nomination wins over the default",
+			source:     Source{Type: "oidc", Namespace: "/", Name: "corp"},
+			subClaim:   "oid",
+			identity:   []string{"sub=1234", "oid=stable-guid"},
+			wantValues: []string{"stable-guid"},
+		},
+		{
+			name:       "a type with no default takes the nomination",
+			source:     Source{Type: "mtls", Namespace: "/", Name: "pki"},
+			subClaim:   "serialnumber",
+			identity:   []string{"commonname=some-cert", "serialnumber=42"},
+			wantValues: []string{"42"},
+		},
+		{
+			// Every value names the subject, and JWT sorts the identity as it
+			// signs it, so the code grant and an exchange see them in
+			// different orders and must still agree.
+			name:       "a repeated claim hashes every value, in order",
+			source:     Source{Type: "oidc", Namespace: "/", Name: "corp"},
+			identity:   []string{"sub=zzz", "sub=aaa"},
+			wantValues: []string{"aaa", "zzz"},
+		},
+		{
+			name:     "no nomination and no default for the type",
+			source:   Source{Type: "mtls", Namespace: "/", Name: "pki"},
+			identity: []string{"commonname=some-cert", "serialnumber=42"},
+		},
+		{
+			name:     "the nominated claim is absent",
+			source:   Source{Type: "mtls", Namespace: "/", Name: "pki"},
+			subClaim: "serialnumber",
+			identity: []string{"commonname=some-cert"},
+		},
+		{
+			name:     "the nominated claim is empty",
+			source:   Source{Type: "oidc", Namespace: "/", Name: "corp"},
+			identity: []string{"sub="},
+		},
+		{
+			name:     "the identity names no source",
+			source:   Source{Type: "aws"},
+			identity: []string{"sub=1234"},
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.name, func(t *testing.T) {
+
+			idt := NewIdentityToken(testCase.source)
+			idt.Identity = testCase.identity
+			idt.DeriveSubjectClaim(testCase.subClaim)
+
+			var want string
+			if len(testCase.wantValues) > 0 {
+				want = hashSubject(testCase.source, testCase.wantValues...)
+			}
+
+			if idt.Subject != want {
+				t.Errorf("sub = %q, want %q (from %q)", idt.Subject, want, testCase.wantValues)
+			}
+		})
+	}
+}
