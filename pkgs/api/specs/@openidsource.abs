@@ -1,0 +1,18 @@
+# Attributes
+attributes:
+  v1:
+  - name: subClaim
+    friendly_name: Sub Claim
+    description: |-
+      The name of the identity claim naming the subject this source
+      authenticates. a3s derives the OpenID Connect `sub` claim of its ID Tokens
+      and userinfo responses from that claim's value. It defaults to `sub` for
+      OIDC sources and `nameid` for SAML sources. A source where it resolves to
+      nothing cannot serve an OpenID Connect request, as a3s has no subject to
+      name.
+    type: string
+    exposed: true
+    stored: true
+    omit_empty: true
+    getter: true
+    example_value: sub
