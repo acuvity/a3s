@@ -174,6 +174,14 @@ type MTLSSource struct {
 	// The X.509 field to look for to extract the user principal name.
 	PrincipalUserX509Field MTLSSourcePrincipalUserX509FieldValue `json:"principalUserX509Field" msgpack:"principalUserX509Field" bson:"principaluserx509field" mapstructure:"principalUserX509Field,omitempty"`
 
+	// The name of the identity claim naming the subject this source
+	// authenticates. a3s derives the OpenID Connect `sub` claim of its ID Tokens
+	// and userinfo responses from that claim's value. It defaults to `sub` for
+	// OIDC sources and `nameid` for SAML sources. A source where it resolves to
+	// nothing cannot serve an OpenID Connect request, as a3s has no subject to
+	// name.
+	SubClaim string `json:"subClaim,omitempty" msgpack:"subClaim,omitempty" bson:"subclaim,omitempty" mapstructure:"subClaim,omitempty"`
+
 	// Value of the CAs X.509 SubjectKeyIDs in the chain.
 	SubjectKeyIDs []string `json:"subjectKeyIDs" msgpack:"subjectKeyIDs" bson:"subjectkeyids" mapstructure:"subjectKeyIDs,omitempty"`
 
@@ -250,6 +258,7 @@ func (o *MTLSSource) GetBSON() (any, error) {
 	s.Namespace = o.Namespace
 	s.OktaApplicationCredentials = o.OktaApplicationCredentials
 	s.PrincipalUserX509Field = o.PrincipalUserX509Field
+	s.SubClaim = o.SubClaim
 	s.SubjectKeyIDs = o.SubjectKeyIDs
 	s.UpdateTime = o.UpdateTime
 	s.ZHash = o.ZHash
@@ -288,6 +297,7 @@ func (o *MTLSSource) SetBSON(raw bson.Raw) error {
 	o.Namespace = s.Namespace
 	o.OktaApplicationCredentials = s.OktaApplicationCredentials
 	o.PrincipalUserX509Field = s.PrincipalUserX509Field
+	o.SubClaim = s.SubClaim
 	o.SubjectKeyIDs = s.SubjectKeyIDs
 	o.UpdateTime = s.UpdateTime
 	o.ZHash = s.ZHash
@@ -385,6 +395,12 @@ func (o *MTLSSource) SetNamespace(namespace string) {
 	o.Namespace = namespace
 }
 
+// GetSubClaim returns the SubClaim of the receiver.
+func (o *MTLSSource) GetSubClaim() string {
+
+	return o.SubClaim
+}
+
 // GetUpdateTime returns the UpdateTime of the receiver.
 func (o *MTLSSource) GetUpdateTime() time.Time {
 
@@ -445,6 +461,7 @@ func (o *MTLSSource) ToSparse(fields ...string) elemental.SparseIdentifiable {
 			Namespace:                             &o.Namespace,
 			OktaApplicationCredentials:            o.OktaApplicationCredentials,
 			PrincipalUserX509Field:                &o.PrincipalUserX509Field,
+			SubClaim:                              &o.SubClaim,
 			SubjectKeyIDs:                         &o.SubjectKeyIDs,
 			UpdateTime:                            &o.UpdateTime,
 			ZHash:                                 &o.ZHash,
@@ -489,6 +506,8 @@ func (o *MTLSSource) ToSparse(fields ...string) elemental.SparseIdentifiable {
 			sp.OktaApplicationCredentials = o.OktaApplicationCredentials
 		case "principalUserX509Field":
 			sp.PrincipalUserX509Field = &(o.PrincipalUserX509Field)
+		case "subClaim":
+			sp.SubClaim = &(o.SubClaim)
 		case "subjectKeyIDs":
 			sp.SubjectKeyIDs = &(o.SubjectKeyIDs)
 		case "updateTime":
@@ -560,6 +579,9 @@ func (o *MTLSSource) Patch(sparse elemental.SparseIdentifiable) {
 	}
 	if so.PrincipalUserX509Field != nil {
 		o.PrincipalUserX509Field = *so.PrincipalUserX509Field
+	}
+	if so.SubClaim != nil {
+		o.SubClaim = *so.SubClaim
 	}
 	if so.SubjectKeyIDs != nil {
 		o.SubjectKeyIDs = *so.SubjectKeyIDs
@@ -796,6 +818,8 @@ func (o *MTLSSource) ValueForAttribute(name string) any {
 		return o.OktaApplicationCredentials
 	case "principalUserX509Field":
 		return o.PrincipalUserX509Field
+	case "subClaim":
+		return o.SubClaim
 	case "subjectKeyIDs":
 		return o.SubjectKeyIDs
 	case "updateTime":
@@ -1024,6 +1048,22 @@ the claims that are about to be delivered using this authentication source.`,
 		Name:           "principalUserX509Field",
 		Stored:         true,
 		Type:           "enum",
+	},
+	"SubClaim": {
+		AllowedChoices: []string{},
+		BSONFieldName:  "subclaim",
+		ConvertedName:  "SubClaim",
+		Description: `The name of the identity claim naming the subject this source
+authenticates. a3s derives the OpenID Connect ` + "`" + `sub` + "`" + ` claim of its ID Tokens
+and userinfo responses from that claim's value. It defaults to ` + "`" + `sub` + "`" + ` for
+OIDC sources and ` + "`" + `nameid` + "`" + ` for SAML sources. A source where it resolves to
+nothing cannot serve an OpenID Connect request, as a3s has no subject to
+name.`,
+		Exposed: true,
+		Getter:  true,
+		Name:    "subClaim",
+		Stored:  true,
+		Type:    "string",
 	},
 	"SubjectKeyIDs": {
 		AllowedChoices: []string{},
@@ -1298,6 +1338,22 @@ the claims that are about to be delivered using this authentication source.`,
 		Stored:         true,
 		Type:           "enum",
 	},
+	"subclaim": {
+		AllowedChoices: []string{},
+		BSONFieldName:  "subclaim",
+		ConvertedName:  "SubClaim",
+		Description: `The name of the identity claim naming the subject this source
+authenticates. a3s derives the OpenID Connect ` + "`" + `sub` + "`" + ` claim of its ID Tokens
+and userinfo responses from that claim's value. It defaults to ` + "`" + `sub` + "`" + ` for
+OIDC sources and ` + "`" + `nameid` + "`" + ` for SAML sources. A source where it resolves to
+nothing cannot serve an OpenID Connect request, as a3s has no subject to
+name.`,
+		Exposed: true,
+		Getter:  true,
+		Name:    "subClaim",
+		Stored:  true,
+		Type:    "string",
+	},
 	"subjectkeyids": {
 		AllowedChoices: []string{},
 		Autogenerated:  true,
@@ -1476,6 +1532,14 @@ type SparseMTLSSource struct {
 	// The X.509 field to look for to extract the user principal name.
 	PrincipalUserX509Field *MTLSSourcePrincipalUserX509FieldValue `json:"principalUserX509Field,omitempty" msgpack:"principalUserX509Field,omitempty" bson:"principaluserx509field,omitempty" mapstructure:"principalUserX509Field,omitempty"`
 
+	// The name of the identity claim naming the subject this source
+	// authenticates. a3s derives the OpenID Connect `sub` claim of its ID Tokens
+	// and userinfo responses from that claim's value. It defaults to `sub` for
+	// OIDC sources and `nameid` for SAML sources. A source where it resolves to
+	// nothing cannot serve an OpenID Connect request, as a3s has no subject to
+	// name.
+	SubClaim *string `json:"subClaim,omitempty" msgpack:"subClaim,omitempty" bson:"subclaim,omitempty" mapstructure:"subClaim,omitempty"`
+
 	// Value of the CAs X.509 SubjectKeyIDs in the chain.
 	SubjectKeyIDs *[]string `json:"subjectKeyIDs,omitempty" msgpack:"subjectKeyIDs,omitempty" bson:"subjectkeyids,omitempty" mapstructure:"subjectKeyIDs,omitempty"`
 
@@ -1582,6 +1646,9 @@ func (o *SparseMTLSSource) GetBSON() (any, error) {
 	if o.PrincipalUserX509Field != nil {
 		s.PrincipalUserX509Field = o.PrincipalUserX509Field
 	}
+	if o.SubClaim != nil {
+		s.SubClaim = o.SubClaim
+	}
 	if o.SubjectKeyIDs != nil {
 		s.SubjectKeyIDs = o.SubjectKeyIDs
 	}
@@ -1661,6 +1728,9 @@ func (o *SparseMTLSSource) SetBSON(raw bson.Raw) error {
 	if s.PrincipalUserX509Field != nil {
 		o.PrincipalUserX509Field = s.PrincipalUserX509Field
 	}
+	if s.SubClaim != nil {
+		o.SubClaim = s.SubClaim
+	}
 	if s.SubjectKeyIDs != nil {
 		o.SubjectKeyIDs = s.SubjectKeyIDs
 	}
@@ -1737,6 +1807,9 @@ func (o *SparseMTLSSource) ToPlain() elemental.PlainIdentifiable {
 	}
 	if o.PrincipalUserX509Field != nil {
 		out.PrincipalUserX509Field = *o.PrincipalUserX509Field
+	}
+	if o.SubClaim != nil {
+		out.SubClaim = *o.SubClaim
 	}
 	if o.SubjectKeyIDs != nil {
 		out.SubjectKeyIDs = *o.SubjectKeyIDs
@@ -1898,6 +1971,16 @@ func (o *SparseMTLSSource) SetNamespace(namespace string) {
 	o.Namespace = &namespace
 }
 
+// GetSubClaim returns the SubClaim of the receiver.
+func (o *SparseMTLSSource) GetSubClaim() (out string) {
+
+	if o.SubClaim == nil {
+		return
+	}
+
+	return *o.SubClaim
+}
+
 // GetUpdateTime returns the UpdateTime of the receiver.
 func (o *SparseMTLSSource) GetUpdateTime() (out time.Time) {
 
@@ -1988,6 +2071,7 @@ type mongoAttributesMTLSSource struct {
 	Namespace                             string                                `bson:"namespace,omitempty"`
 	OktaApplicationCredentials            *MTLSSourceOkta                       `bson:"oktaapplicationcredentials"`
 	PrincipalUserX509Field                MTLSSourcePrincipalUserX509FieldValue `bson:"principaluserx509field"`
+	SubClaim                              string                                `bson:"subclaim,omitempty"`
 	SubjectKeyIDs                         []string                              `bson:"subjectkeyids"`
 	UpdateTime                            time.Time                             `bson:"updatetime"`
 	ZHash                                 int                                   `bson:"zhash"`
@@ -2011,6 +2095,7 @@ type mongoAttributesSparseMTLSSource struct {
 	Namespace                             *string                                `bson:"namespace,omitempty"`
 	OktaApplicationCredentials            *MTLSSourceOkta                        `bson:"oktaapplicationcredentials,omitempty"`
 	PrincipalUserX509Field                *MTLSSourcePrincipalUserX509FieldValue `bson:"principaluserx509field,omitempty"`
+	SubClaim                              *string                                `bson:"subclaim,omitempty"`
 	SubjectKeyIDs                         *[]string                              `bson:"subjectkeyids,omitempty"`
 	UpdateTime                            *time.Time                             `bson:"updatetime,omitempty"`
 	ZHash                                 *int                                   `bson:"zhash,omitempty"`

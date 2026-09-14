@@ -71,6 +71,11 @@
             "readOnly": true,
             "type": "string"
           },
+          "subClaim": {
+            "description": "The name of the identity claim naming the subject this source\nauthenticates. a3s derives the OpenID Connect `sub` claim of its ID Tokens\nand userinfo responses from that claim's value. It defaults to `sub` for\nOIDC sources and `nameid` for SAML sources. A source where it resolves to\nnothing cannot serve an OpenID Connect request, as a3s has no subject to\nname.",
+            "example": "sub",
+            "type": "string"
+          },
           "updateTime": {
             "description": "Last update date of the object.",
             "format": "date-time",
@@ -398,6 +403,11 @@
           "namespace": {
             "description": "The namespace of the object.",
             "readOnly": true,
+            "type": "string"
+          },
+          "subClaim": {
+            "description": "The name of the identity claim naming the subject this source\nauthenticates. a3s derives the OpenID Connect `sub` claim of its ID Tokens\nand userinfo responses from that claim's value. It defaults to `sub` for\nOIDC sources and `nameid` for SAML sources. A source where it resolves to\nnothing cannot serve an OpenID Connect request, as a3s has no subject to\nname.",
+            "example": "sub",
             "type": "string"
           },
           "updateTime": {
@@ -1012,6 +1022,11 @@
               "None"
             ]
           },
+          "subClaim": {
+            "description": "The name of the identity claim naming the subject this source\nauthenticates. a3s derives the OpenID Connect `sub` claim of its ID Tokens\nand userinfo responses from that claim's value. It defaults to `sub` for\nOIDC sources and `nameid` for SAML sources. A source where it resolves to\nnothing cannot serve an OpenID Connect request, as a3s has no subject to\nname.",
+            "example": "sub",
+            "type": "string"
+          },
           "updateTime": {
             "description": "Last update date of the object.",
             "format": "date-time",
@@ -1125,6 +1140,11 @@
               "Email",
               "MicrosoftUPN"
             ]
+          },
+          "subClaim": {
+            "description": "The name of the identity claim naming the subject this source\nauthenticates. a3s derives the OpenID Connect `sub` claim of its ID Tokens\nand userinfo responses from that claim's value. It defaults to `sub` for\nOIDC sources and `nameid` for SAML sources. A source where it resolves to\nnothing cannot serve an OpenID Connect request, as a3s has no subject to\nname.",
+            "example": "sub",
+            "type": "string"
           },
           "subjectKeyIDs": {
             "description": "Value of the CAs X.509 SubjectKeyIDs in the chain.",
@@ -1408,6 +1428,11 @@
             },
             "type": "array"
           },
+          "subClaim": {
+            "description": "The name of the identity claim naming the subject this source\nauthenticates. a3s derives the OpenID Connect `sub` claim of its ID Tokens\nand userinfo responses from that claim's value. It defaults to `sub` for\nOIDC sources and `nameid` for SAML sources. A source where it resolves to\nnothing cannot serve an OpenID Connect request, as a3s has no subject to\nname.",
+            "example": "sub",
+            "type": "string"
+          },
           "updateTime": {
             "description": "Last update date of the object.",
             "format": "date-time",
@@ -1677,6 +1702,11 @@
               "type": "string"
             },
             "type": "array"
+          },
+          "subClaim": {
+            "description": "The name of the identity claim naming the subject this source\nauthenticates. a3s derives the OpenID Connect `sub` claim of its ID Tokens\nand userinfo responses from that claim's value. It defaults to `sub` for\nOIDC sources and `nameid` for SAML sources. A source where it resolves to\nnothing cannot serve an OpenID Connect request, as a3s has no subject to\nname.",
+            "example": "sub",
+            "type": "string"
           },
           "updateTime": {
             "description": "Last update date of the object.",
@@ -1977,6 +2007,11 @@
           "skipResponseSignatureCheck": {
             "description": "If true, the issue request won't check the ResponseSignatureValidated.",
             "type": "boolean"
+          },
+          "subClaim": {
+            "description": "The name of the identity claim naming the subject this source\nauthenticates. a3s derives the OpenID Connect `sub` claim of its ID Tokens\nand userinfo responses from that claim's value. It defaults to `sub` for\nOIDC sources and `nameid` for SAML sources. A source where it resolves to\nnothing cannot serve an OpenID Connect request, as a3s has no subject to\nname.",
+            "example": "sub",
+            "type": "string"
           },
           "updateTime": {
             "description": "Last update date of the object.",
