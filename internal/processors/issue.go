@@ -403,6 +403,14 @@ func (p *IssueProcessor) ProcessCreate(bctx bahamut.Context) (err error) {
 	}
 	idt.Identity = cleaned
 
+	if source != nil && idt.OAuthApplication.ID != "" {
+		var subClaim string
+		if s, ok := source.(token.SubClaimer); ok {
+			subClaim = s.GetSubClaim()
+		}
+		idt.DeriveSubjectClaim(subClaim)
+	}
+
 	k := p.jwks.GetLastWithPrivate()
 	if authorizeContext != nil {
 		if err := p.completeAuthorizeIssue(bctx, req, idt, authorizeContext, oauthClient, oauthApplication, exp); err != nil {
