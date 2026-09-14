@@ -19,6 +19,7 @@ model:
   - '@importable'
   - '@timed'
   - '@claimfilter'
+  - '@openidsource'
   validations:
   - $mtlssource
 

@@ -20,6 +20,7 @@ model:
   - '@importable'
   - '@timed'
   - '@claimfilter'
+  - '@openidsource'
 
 # Indexes
 indexes:
