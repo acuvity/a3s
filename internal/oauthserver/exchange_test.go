@@ -63,9 +63,11 @@ func TestOAuthTokenExchangeMintsIDTokenFromOAuthAccessToken(t *testing.T) {
 	}
 
 	assertIDTokenClaims(t, claims, map[string]any{
-		"iss":   fixture.oauthIssuer(),
-		"aud":   "https://partner.example",
-		"sub":   "1234",
+		"iss": fixture.oauthIssuer(),
+		"aud": "https://partner.example",
+		// Derived from the upstream sub rather than copied from it, so the
+		// subject names this source inside this namespace.
+		"sub":   testSubject,
 		"email": "user@example.com",
 		"org":   "acme",
 	})
@@ -92,7 +94,11 @@ func TestOAuthTokenExchangeMintsIDTokenFromOAuthAccessToken(t *testing.T) {
 }
 
 func TestOAuthTokenExchangeAcceptsNativeA3SToken(t *testing.T) {
+	// A native a3s token is not minted through an oauthapplication, so it
+	// names no subject. The exchange asserts what its subject token carried
+	// rather than refusing, and the relying party fails on the missing claim.
 	fixture := newTokenExchangeFixture(t)
+	fixture.withoutSubject()
 
 	subjectToken := fixture.mintSubjectToken(t, fixture.a3sIssuer, testA3SAudience, nil)
 
@@ -107,8 +113,6 @@ func TestOAuthTokenExchangeAcceptsNativeA3SToken(t *testing.T) {
 		t.Fatalf("status = %d (%s), want %d", response.status, response.body, http.StatusOK)
 	}
 
-	// A native a3s token names no oauth application, so it is checked against
-	// the a3s audience instead.
 	claims := fixture.parseIDToken(t, response.payload["access_token"].(string), "partner")
 
 	assertIDTokenClaims(t, claims, map[string]any{
@@ -117,9 +121,6 @@ func TestOAuthTokenExchangeAcceptsNativeA3SToken(t *testing.T) {
 		"email": "user@example.com",
 	})
 
-	// This identity names no subject, and a3s does not invent one. The ID
-	// Token is still issued, so the relying party fails on the missing claim
-	// rather than trusting an identifier a3s made up.
 	if got, ok := claims["sub"]; ok {
 		t.Errorf("sub = %#v, want absent", got)
 	}
@@ -596,6 +597,20 @@ type tokenExchangeFixture struct {
 	client      *api.OAuthClient
 	app         *api.OAuthApplication
 	a3sIssuer   string
+
+	// identitySource is stamped on every identity token the fixture mints.
+	identitySource token.Source
+
+	// subject is the sub those tokens carry. The issue flow derives it from
+	// the source subClaim before a token reaches this surface, so these tests
+	// set it rather than deriving it.
+	subject string
+}
+
+// withoutSubject mints identities the way a source naming no subject does,
+// which is what an OpenID Connect request has to be refused over.
+func (f *tokenExchangeFixture) withoutSubject() {
+	f.subject = ""
 }
 
 func newTokenExchangeFixture(t *testing.T) *tokenExchangeFixture {
@@ -639,8 +654,21 @@ func newTokenExchangeFixture(t *testing.T) *tokenExchangeFixture {
 		client:      client,
 		app:         app,
 		a3sIssuer:   a3sIssuer,
+
+		identitySource: testIdentitySource,
+		subject:        testSubject,
 	}
 }
+
+var (
+	// testIdentitySource is the source every identity in these tests
+	// authenticates against.
+	testIdentitySource = token.Source{Type: "oidc", Namespace: "/", Name: "corp"}
+
+	// testSubject stands in for whatever the issue flow derived. This surface
+	// only carries the subject, so its value is opaque here.
+	testSubject = "bTPRfrEEAbtEEyAqKcQMdBiCyBtVFzqxXFRnmCZhGkY"
+)
 
 func (f *tokenExchangeFixture) oauthIssuer() string {
 	return f.oauth.issuerForNamespace("/")
@@ -656,8 +684,9 @@ func (f *tokenExchangeFixture) mintSubjectToken(
 ) string {
 	t.Helper()
 
-	idt := token.NewIdentityToken(token.Source{Type: "OIDC", Namespace: "/", Name: "corp"})
-	idt.Identity = []string{"email=user@example.com"}
+	idt := token.NewIdentityToken(f.identitySource)
+	idt.Identity = []string{"sub=1234", "email=user@example.com"}
+	idt.Subject = f.subject
 	idt.OAuthApplication = token.OAuthApplication{ID: f.app.ID, Namespace: f.app.Namespace, Name: f.app.Name}
 	idt.OAuthClient = token.OAuthClient{ClientID: f.client.ClientID, Namespace: f.client.Namespace}
 	idt.ExpiresAt = jwt.NewNumericDate(time.Now().UTC().Add(time.Hour))

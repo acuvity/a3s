@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 
@@ -32,8 +33,9 @@ func getUserinfo(t *testing.T, handler *HTTPHandler, authorization string) *http
 func (f *tokenExchangeFixture) mintUserinfoToken(t *testing.T, identity []string) string {
 	t.Helper()
 
-	idt := token.NewIdentityToken(token.Source{Type: "oidc", Namespace: "/", Name: "corp"})
+	idt := token.NewIdentityToken(f.identitySource)
 	idt.Identity = identity
+	idt.Subject = f.subject
 	idt.OAuthApplication = token.OAuthApplication{
 		ID:        f.app.ID,
 		Namespace: f.app.Namespace,
@@ -77,7 +79,7 @@ func TestUserinfoReturnsIdentityClaims(t *testing.T) {
 	}
 
 	for field, want := range map[string]any{
-		"sub":   "1234",
+		"sub":   testSubject,
 		"email": "user@example.com",
 		"name":  "Some One",
 	} {
@@ -153,9 +155,10 @@ func TestUserinfoDropsUpstreamProtocolClaims(t *testing.T) {
 	// copies, and OIDC Core section 2 types auth_time as a number, so a
 	// relying party rejects the token rather than the claim.
 
-	// The subject and the ordinary claims still come through.
+	// The ordinary claims still come through, and the subject is derived from
+	// the upstream sub that was dropped with the rest of them.
 	for field, want := range map[string]any{
-		"sub":   "1234",
+		"sub":   testSubject,
 		"email": "user@example.com",
 	} {
 		if got := claims[field]; got != want {
@@ -164,28 +167,25 @@ func TestUserinfoDropsUpstreamProtocolClaims(t *testing.T) {
 	}
 }
 
-func TestUserinfoOmitsSubWhenSourceNamesNone(t *testing.T) {
-	// a3s must not invent a subject: an OIDC client keys accounts on it
-	// permanently, so a source that names none has to fail the client.
+func TestUserinfoFailsWhenSourceNamesNoSubClaim(t *testing.T) {
+	// OIDC Core section 5.3.2 makes sub the one claim a userinfo response must
+	// always carry, so a source that names no subject fails the request rather
+	// than answering with a body no relying party could accept.
 	fixture := newTokenExchangeFixture(t)
+	fixture.withoutSubject()
+
 	accessToken := fixture.mintUserinfoToken(t, []string{"commonname=some-cert"})
 
 	recorder := getUserinfo(t, fixture.handler, "Bearer "+accessToken)
 
-	if recorder.Code != http.StatusOK {
-		t.Fatalf("status = %d, want %d: %s", recorder.Code, http.StatusOK, recorder.Body.String())
+	if recorder.Code == http.StatusOK {
+		t.Fatalf("status = %d, want a failure: %s", recorder.Code, recorder.Body.String())
 	}
-
-	claims := map[string]any{}
-	if err := json.Unmarshal(recorder.Body.Bytes(), &claims); err != nil {
-		t.Fatalf("decode response JSON: %v", err)
+	if got := recorder.Header().Get("WWW-Authenticate"); !strings.Contains(got, "invalid_request") {
+		t.Errorf("WWW-Authenticate = %q, want it to name invalid_request", got)
 	}
-
-	if _, ok := claims["sub"]; ok {
-		t.Errorf("response invented a sub claim: %#v", claims)
-	}
-	if got := claims["commonname"]; got != "some-cert" {
-		t.Errorf("commonname = %#v, want %q", got, "some-cert")
+	if strings.Contains(recorder.Body.String(), "some-cert") {
+		t.Errorf("a refused request must not leak identity claims: %s", recorder.Body.String())
 	}
 }
 

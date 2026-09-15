@@ -110,8 +110,9 @@ func (f *tokenExchangeFixture) codeFor(t *testing.T, params url.Values, identity
 		t.Fatalf("LoadAuthorizeContext() error = %v", err)
 	}
 
-	idt := token.NewIdentityToken(token.Source{Type: "oidc", Namespace: "/", Name: "corp"})
+	idt := token.NewIdentityToken(f.identitySource)
 	idt.Identity = identity
+	idt.Subject = f.subject
 	idt.ExpiresAt = jwt.NewNumericDate(time.Now().UTC().Add(time.Hour))
 
 	redirectURL, err := f.oauth.CompleteAuthorize(idt, authorizeContext, oauthClient, oauthApplication)
@@ -177,9 +178,11 @@ func TestAuthorizationCodeGrantIssuesIDTokenForOpenIDScope(t *testing.T) {
 
 	claims := fixture.parseIDToken(t, rawIDToken, fixture.client.ClientID)
 	assertIDTokenClaims(t, claims, map[string]any{
-		"iss":   fixture.oauthIssuer(),
-		"aud":   fixture.client.ClientID,
-		"sub":   "1234",
+		"iss": fixture.oauthIssuer(),
+		"aud": fixture.client.ClientID,
+		// Derived when the identity was authenticated, from the claim the
+		// source nominates, rather than copied from the upstream sub.
+		"sub":   testSubject,
 		"email": "user@example.com",
 		"name":  "Some One",
 		"nonce": "nonce-1",
@@ -314,20 +317,24 @@ func TestAuthorizeScopeAllowlistAppliesOnlyWhenTheClientListsScopes(t *testing.T
 	}
 }
 
-func TestAuthorizationCodeGrantOmitsSubWhenSourceNamesNone(t *testing.T) {
-	// a3s does not invent a subject, so a source that names none yields an ID
-	// Token without one and the relying party fails on the missing claim.
+func TestAuthorizationCodeGrantFailsWhenIdentityNamesNoSubject(t *testing.T) {
+	// A source naming no subject leaves the identity without one, and OIDC
+	// Core section 2 makes sub required in an ID Token. The request is refused
+	// rather than answered with a token no relying party could accept.
 	fixture := newTokenExchangeFixture(t)
+	fixture.withoutSubject()
 
 	code := fixture.codeFor(t, fixture.authorizeParams("openid"), []string{"commonname=some-cert"})
 
 	response := fixture.redeemCode(t, code)
-	claims := fixture.parseIDToken(t, response.payload["id_token"].(string), fixture.client.ClientID)
 
-	if got, ok := claims["sub"]; ok {
-		t.Errorf("sub = %#v, want absent", got)
+	if response.status != http.StatusBadRequest {
+		t.Fatalf("status = %d (%s), want %d", response.status, response.body, http.StatusBadRequest)
 	}
-	if got := claims["commonname"]; got != "some-cert" {
-		t.Errorf("commonname = %#v, want %q", got, "some-cert")
+	if response.payload["error"] != "invalid_request" {
+		t.Errorf("error = %v, want %q", response.payload["error"], "invalid_request")
+	}
+	if _, ok := response.payload["id_token"]; ok {
+		t.Error("a refused request must not carry an id_token")
 	}
 }
