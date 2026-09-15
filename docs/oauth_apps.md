@@ -150,8 +150,8 @@ Conformance stops short of the whole specification. a3s does not implement:
 - request objects, the `claims` request parameter, or `display` and `ui_locales`
 - ID Token encryption, signed userinfo responses, or algorithms besides ES256
 - session management, front-channel or back-channel logout
-- a `sub` for identities whose source names none, as described under
-  [ID Token](#id-token)
+- pairwise subject identifiers. a3s advertises `public`, so every client sees
+  the same `sub` for a given user, as described under [Subject](#subject)
 - typed claims. A source flattens every claim it copies into a string, so
   `email_verified` is `"true"` rather than `true` and `updated_at` is a string
   rather than a number, where OIDC Core section 5.1 types them as a boolean and
@@ -215,7 +215,8 @@ same projection builds the ID Token, so both describe an identity the same way:
 - `auth_time` goes with them, for the reason given in the conformance list
   above: the value a source carries is a string, and a relying party rejects
   the token over it
-- `sub` is deliberately kept: it names the subject the source authenticated
+- `sub` goes with them: a3s sets the subject itself, as described under
+  [Subject](#subject)
 - everything else a source carries is kept, including `acr` and `amr`, which
   arrive correctly typed and describe the upstream login rather than binding
   its token. A relying party reading them is reading the source's word for how
@@ -224,24 +225,64 @@ same projection builds the ID Token, so both describe an identity the same way:
   claims such as groups as repeated entries
 - every other claim is a string
 
-No `sub` is synthesized. Sources authenticating through OIDC carry the
-upstream `sub` into the token, and it surfaces here like any other claim.
-A source that names no subject, such as MTLS or LDAP, therefore produces a
-response with no `sub`, and an OIDC client will reject it. That is intended:
-clients key user accounts on `sub` permanently, and an identifier a3s invented
-would bind those accounts to an a3s implementation detail.
+### Subject
 
-Passing `sub` through has a consequence an operator has to plan around. A
-relying party identifies a user by the `iss` and `sub` pair, but the two are
-scoped differently here: `iss` is the namespace, identical for every source in
-it, while `sub` comes from whichever source authenticated. Two sources in one
-namespace can therefore issue the same `sub` for two different people, and the
-relying party merges them into a single account. Nothing in the flow detects
-it.
+A relying party identifies a user by the `iss` and `sub` pair, and keys its
+local account on it permanently. `iss` here is the namespace, identical for
+every source in it, so a subject must be unique across every source that
+namespace holds: two sources naming one subject for two different people would
+be merged into a single account, with nothing in the flow detecting it.
 
-Namespaces, not sources, are what isolate subjects. A namespace whose sources
-do not share a subject space needs either one source, or sources whose subject
-values cannot collide.
+a3s therefore derives the subject, when the identity is authenticated through
+an `oauthapplication`, by hashing the source that authenticated it together
+with the value of the claim that source nominates:
+
+```
+sub = base64url(sha256("a3s/oidc-sub/v1" || type || namespace || name || value))
+```
+
+Each field is length prefixed, so a source named `a` holding the value `b/c`
+cannot collide with a source named `a/b` holding `c`. Every source in a
+namespace gets its own subject space, which is what keeps a subject unique
+across the namespace. The result is 43 characters, inside the 255 ASCII the
+[OIDC Core section 2](https://openid.net/specs/openid-connect-core-1_0.html#IDToken)
+`sub` claim allows.
+
+The hash holds no secret. a3s keeps no identity state, so a salt would be a
+value that could never be rotated or lost without orphaning every account at
+every relying party. OIDC Core section 8 asks a `public` subject type to be
+unique and never reassigned, not unguessable.
+
+The subject is derived once, when the identity is authenticated, and carried
+from then on as the `sub` of the access token. An a3s token renewed from
+another therefore keeps the subject the original was minted with.
+
+#### subClaim
+
+Which claim names the subject is per source, through its `subClaim` field:
+
+| Source | Default `subClaim` |
+| --- | --- |
+| `oidcsource` | `sub`, the subject the upstream named |
+| `samlsource` | `nameid`, the assertion `NameID` |
+| every other source | none: the operator has to nominate one |
+
+An LDAP, MTLS, HTTP, OAuth2 or A3S source authenticates a subject it does not
+name by convention, so `subClaim` has to be set before it can serve an OpenID
+Connect request. Nominate a claim whose value the source never reassigns:
+`entryuuid` rather than `dn` for LDAP, `serialnumber` for MTLS. A reassigned
+value hands a new person an existing account, and a value that changes between
+logins silently orphans one.
+
+An identity whose `subClaim` resolves to nothing carries no subject, and a3s
+refuses to answer an OpenID Connect request with it, rather than issuing an ID
+Token or a userinfo response no relying party could accept. Only the OpenID
+Connect surface refuses: such a source still authenticates, and still gets an
+access token, one simply carrying no `sub`.
+
+Changing `subClaim` on a live source changes the subject of everyone who
+authenticates through it afterwards, and relying parties will treat them as new
+users. Tokens already issued keep the subject they were minted with.
 
 ## UI Model
 
@@ -583,6 +624,16 @@ access token:
 Those claims are added alongside the existing `@source:*` and `@issuer=*`
 claims.
 
+The access token also carries `sub`, the subject described under
+[Subject](#subject), as a registered JWT claim rather than an identity claim.
+It is set only for tokens minted through an `oauthapplication`, and only when
+the source names a subject. a3s does not read it itself: an a3s token names
+its bearer through the identity claims, while `sub` names them to a relying
+party of the OAuth surface. That is the value
+[RFC 9068 section 2.2](https://www.rfc-editor.org/rfc/rfc9068.html#section-2.2)
+asks a JWT access token to carry, though a3s does not otherwise follow that
+profile and does not type its access tokens `at+jwt`.
+
 ## ID Token
 
 An ID Token is a different artifact from an access token that happens to share
@@ -602,7 +653,8 @@ The claim set is:
 
 - `iss`: the OAuth issuer of the namespace
 - `aud`: as above
-- `sub`: the subject the source authenticated, when it names one
+- `sub`: the subject a3s derives for the source that authenticated the
+  identity, as described under [Subject](#subject)
 - `exp` and `iat`
 - `nonce`: only when the request carried one, which only an authentication
   request does. An exchange never carries one
@@ -621,11 +673,18 @@ party the evidence addresses. Source provenance goes with the rest of the
 derived claims, so a relying party cannot tell from an ID Token which source
 authenticated the user.
 
-No `sub` is synthesized, for the reason given under [Claims](#claims). An
-identity whose source names none, as MTLS and LDAP do not, yields an ID Token
-without `sub`. Such a token is not conformant and a relying party will reject
-it, which is the intended outcome: failing at the client beats binding accounts
-to an identifier a3s invented.
+An identity carries no subject when its source nominates no `subClaim`, when
+the claim it nominates resolved to nothing, or when the identity was minted
+outside an `oauthapplication`, since a3s derives the subject only for the flows
+that pass through one. See [Subject](#subject).
+
+The two grants answer that differently. An authentication request is refused:
+OIDC Core section 2 makes `sub` required, so the ID Token would be rejected by
+the relying party anyway, and failing at the token endpoint says why. An
+exchange is not an authentication request. It asserts what its subject token
+carried, so it issues the ID Token without a `sub`, and the relying party fails
+on the missing claim. That is what lets a native a3s token, which never passes
+through an `oauthapplication`, still be exchanged.
 
 The token exchange marks its response `token_type: N_A`, per
 [RFC 8693 section 2.2.1](https://www.rfc-editor.org/rfc/rfc8693.html#section-2.2.1),
