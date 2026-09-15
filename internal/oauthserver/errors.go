@@ -10,6 +10,13 @@ var (
 	ErrNotFound                 = errors.New("not found")
 )
 
+// errNoSubject refuses an identity a3s cannot name to a relying party.
+var errNoSubject = newProtocolError(
+	"invalid_request",
+	"the source that authenticated this identity names no subject, "+
+		"so it cannot serve an openid connect request",
+)
+
 type protocolError struct {
 	code        string
 	description string

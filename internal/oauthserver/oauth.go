@@ -357,6 +357,13 @@ func (o *OAuth) redeemAuthorizationCode(client *api.OAuthClient, tokenRequest To
 	// The openid scope makes this an authentication request, which OIDC Core
 	// section 3.1.3.3 answers with an ID Token beside the access token.
 	if slices.Contains(session.OAuthTokenData.Scopes, scopeOpenID) {
+
+		// An authentication request is answered with an ID Token, which OIDC
+		// Core section 2 requires to name its subject.
+		if session.OAuthTokenData.IdentityToken.Subject == "" {
+			return nil, errNoSubject
+		}
+
 		idToken, _, err := o.signIDToken(
 			session.Namespace,
 			session.OAuthTokenData.IdentityToken,
@@ -519,12 +526,22 @@ func (o *OAuth) userinfo(namespace string, accessToken string) (map[string]any, 
 		return nil, newProtocolError("invalid_token", "access token names no oauth application")
 	}
 
+	// OIDC Core section 5.3.2 makes sub the one claim a userinfo response must
+	// always carry.
+	if idt.Subject == "" {
+		return nil, errNoSubject
+	}
+
 	return userinfoClaims(idt), nil
 }
 
 func userinfoClaims(idt *token.IdentityToken) map[string]any {
 
 	claims := map[string]any{}
+
+	if idt.Subject != "" {
+		claims["sub"] = idt.Subject
+	}
 
 	for _, claim := range idt.Identity {
 
@@ -540,9 +557,8 @@ func userinfoClaims(idt *token.IdentityToken) map[string]any {
 
 		// No need for the upstream's own registered claims. A source copies
 		// its whole claim set in, so these would read as if they were ours.
-		// sub is kept: it names the subject the source authenticated.
 		switch key {
-		case "iss", "aud", "exp", "nbf", "iat", "jti", "nonce",
+		case "iss", "sub", "aud", "exp", "nbf", "iat", "jti", "nonce",
 			"azp", "at_hash", "c_hash", "sid", "auth_time":
 			continue
 		}
