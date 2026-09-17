@@ -13,6 +13,6 @@ attributes:
     type: string
     exposed: true
     stored: true
-    omit_empty: true
-    getter: true
     example_value: sub
+    getter: true
+    omit_empty: true
