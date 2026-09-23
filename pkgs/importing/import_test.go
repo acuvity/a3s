@@ -50,6 +50,7 @@ func TestImport(t *testing.T) {
 				context.Background(),
 				api.Manager(),
 				m,
+				m,
 				"",
 				"",
 				nil,
@@ -65,6 +66,7 @@ func TestImport(t *testing.T) {
 			err := Import(
 				context.Background(),
 				api.Manager(),
+				m,
 				m,
 				"ns",
 				"",
@@ -82,6 +84,7 @@ func TestImport(t *testing.T) {
 				context.Background(),
 				api.Manager(),
 				m,
+				m,
 				"ns",
 				"label",
 				api.NamespaceDeletionRecordsList{api.NewNamespaceDeletionRecord()},
@@ -97,6 +100,7 @@ func TestImport(t *testing.T) {
 			err := Import(
 				context.Background(),
 				nil,
+				m,
 				m,
 				"ns",
 				"label",
@@ -129,7 +133,7 @@ func TestImport(t *testing.T) {
 					},
 				}
 
-				err := Import(context.Background(), api.Manager(), m, "/ns", "label", objs, false, false, nil)
+				err := Import(context.Background(), api.Manager(), m, m, "/ns", "label", objs, false, false, nil)
 				So(err, ShouldNotBeNil)
 				So(err.Error(), ShouldEqual, "unable to retrieve list of current authorizations: boom")
 			}
@@ -179,7 +183,7 @@ func TestImport(t *testing.T) {
 				},
 			}
 
-			err := Import(context.Background(), api.Manager(), m, "/ns", "label", objs, false, false, nil)
+			err := Import(context.Background(), api.Manager(), m, m, "/ns", "label", objs, false, false, nil)
 			So(err, ShouldNotBeNil)
 			So(err.Error(), ShouldEqual, "unable to delete existing authorization: paf")
 		})
@@ -232,7 +236,7 @@ func TestImport(t *testing.T) {
 				},
 			}
 
-			err := Import(context.Background(), api.Manager(), m, "/ns", "label", objs, false, false, nil)
+			err := Import(context.Background(), api.Manager(), m, m, "/ns", "label", objs, false, false, nil)
 			So(err, ShouldNotBeNil)
 			So(err.Error(), ShouldEqual, "unable to create object 'authorization': bim")
 		})
@@ -299,7 +303,7 @@ func TestImport(t *testing.T) {
 				},
 			}
 
-			err := Import(context.Background(), api.Manager(), m, "/ns", "label", objs, false, false, nil)
+			err := Import(context.Background(), api.Manager(), m, m, "/ns", "label", objs, false, false, nil)
 			So(err, ShouldBeNil)
 
 			sort.Slice(toDelete, func(i, j int) bool {
@@ -371,7 +375,7 @@ func TestImport(t *testing.T) {
 				},
 			}
 
-			err := Import(context.Background(), api.Manager(), m, "/ns", "label", objs, true, false, nil)
+			err := Import(context.Background(), api.Manager(), m, m, "/ns", "label", objs, true, false, nil)
 			So(err, ShouldBeNil)
 
 			sort.Slice(toDelete, func(i, j int) bool {
@@ -439,7 +443,7 @@ func TestImport(t *testing.T) {
 				},
 			}
 
-			err := Import(context.Background(), api.Manager(), m, "/ns", "label", objs, false, false, nil)
+			err := Import(context.Background(), api.Manager(), m, m, "/ns", "label", objs, false, false, nil)
 			So(err, ShouldBeNil)
 
 			sort.Slice(toDelete, func(i, j int) bool {
@@ -504,7 +508,7 @@ func TestImport(t *testing.T) {
 				},
 			}
 
-			err := Import(context.Background(), api.Manager(), m, "/ns", "label", objs, false, false, nil)
+			err := Import(context.Background(), api.Manager(), m, m, "/ns", "label", objs, false, false, nil)
 			So(err, ShouldNotBeNil)
 			So(err.Error(), ShouldEqual, "object '<Identity authorization|authorizations>[2] has a non relative namespace set: /not/a/relative/ns")
 		})
@@ -556,7 +560,7 @@ func TestImport(t *testing.T) {
 			slices.Sort(deleteNamespaces)
 			slices.Sort(createNamespaces)
 
-			err := Import(context.Background(), api.Manager(), m, "/ns", "label", objs, false, false, nil)
+			err := Import(context.Background(), api.Manager(), m, m, "/ns", "label", objs, false, false, nil)
 			So(err, ShouldBeNil)
 			So(objs[1].Namespace, ShouldEqual, "")
 			So(deleteNamespaces, ShouldResemble, []string{"", ""}) // empty means default manip namespace.
@@ -612,7 +616,7 @@ func TestImport(t *testing.T) {
 			slices.Sort(deleteNamespaces)
 			slices.Sort(createNamespaces)
 
-			err := Import(context.Background(), api.Manager(), m, "/", "label", objs, false, false, nil)
+			err := Import(context.Background(), api.Manager(), m, m, "/", "label", objs, false, false, nil)
 			So(err, ShouldBeNil)
 			So(objs[1].Namespace, ShouldEqual, "")
 			So(deleteNamespaces, ShouldResemble, []string{"", ""}) // empty means default manip namespace.
@@ -627,6 +631,7 @@ func TestImport(t *testing.T) {
 			err := Import(
 				context.Background(),
 				api.Manager(),
+				m,
 				m,
 				"",
 				"",
@@ -644,6 +649,7 @@ func TestImport(t *testing.T) {
 				context.Background(),
 				api.Manager(),
 				m,
+				m,
 				"ns",
 				"",
 				nil,
@@ -660,6 +666,7 @@ func TestImport(t *testing.T) {
 				context.Background(),
 				api.Manager(),
 				m,
+				m,
 				"ns",
 				"label",
 				api.NamespaceDeletionRecordsList{api.NewNamespaceDeletionRecord()},
@@ -675,6 +682,7 @@ func TestImport(t *testing.T) {
 			err := Import(
 				context.Background(),
 				nil,
+				m,
 				m,
 				"ns",
 				"label",
@@ -707,7 +715,7 @@ func TestImport(t *testing.T) {
 					},
 				}
 
-				err := Import(context.Background(), api.Manager(), m, "/ns", "label", objs, false, true, testHasher{})
+				err := Import(context.Background(), api.Manager(), m, m, "/ns", "label", objs, false, true, testHasher{})
 				So(err, ShouldNotBeNil)
 				So(err.Error(), ShouldEqual, "unable to retrieve list of current authorizations: boom")
 			}
@@ -757,7 +765,7 @@ func TestImport(t *testing.T) {
 				},
 			}
 
-			err := Import(context.Background(), api.Manager(), m, "/ns", "label", objs, false, true, testHasher{})
+			err := Import(context.Background(), api.Manager(), m, m, "/ns", "label", objs, false, true, testHasher{})
 			So(err, ShouldNotBeNil)
 			So(err.Error(), ShouldEqual, "unable to update objects: unable to delete existing authorization: paf")
 		})
@@ -789,7 +797,7 @@ func TestImport(t *testing.T) {
 				},
 			}
 
-			err := Import(context.Background(), api.Manager(), m, "/ns", "label", objs, false, true, testHasher{})
+			err := Import(context.Background(), api.Manager(), m, m, "/ns", "label", objs, false, true, testHasher{})
 			So(err, ShouldNotBeNil)
 			So(err.Error(), ShouldEqual, "unable to update objects: unable to update authorization during import: bam")
 		})
@@ -863,7 +871,7 @@ func TestImport(t *testing.T) {
 				},
 			}
 
-			err := Import(context.Background(), api.Manager(), m, "/ns", "label", objs, false, true, testHasher{})
+			err := Import(context.Background(), api.Manager(), m, m, "/ns", "label", objs, false, true, testHasher{})
 			So(err, ShouldBeNil)
 
 			sort.Slice(toUpdate, func(i, j int) bool {
@@ -919,7 +927,7 @@ func TestImport(t *testing.T) {
 				},
 			}
 
-			err := Import(context.Background(), api.Manager(), m, "/ns", "label", objs, false, true, testHasher{})
+			err := Import(context.Background(), api.Manager(), m, m, "/ns", "label", objs, false, true, testHasher{})
 			So(err, ShouldBeNil)
 			So(updated, ShouldBeFalse)
 			So(created, ShouldBeFalse)
@@ -966,7 +974,7 @@ func TestImport(t *testing.T) {
 				},
 			}
 
-			err := Import(context.Background(), api.Manager(), m, "/ns", "label", objs, false, true, testHasher{})
+			err := Import(context.Background(), api.Manager(), m, m, "/ns", "label", objs, false, true, testHasher{})
 			So(err, ShouldBeNil)
 			So(updated, ShouldBeFalse)
 			So(created, ShouldBeFalse)
@@ -992,7 +1000,7 @@ func TestImport(t *testing.T) {
 				},
 			}
 
-			err := Import(context.Background(), api.Manager(), m, "/ns", "label", objs, false, true, testHasher{})
+			err := Import(context.Background(), api.Manager(), m, m, "/ns", "label", objs, false, true, testHasher{})
 			So(err, ShouldNotBeNil)
 			So(err.Error(), ShouldEqual, "object '<Identity authorization|authorizations>[1] has a non relative namespace set: /not/a/relative/ns")
 		})
@@ -1044,7 +1052,7 @@ func TestImport(t *testing.T) {
 			slices.Sort(deleteNamespaces)
 			slices.Sort(createNamespaces)
 
-			err := Import(context.Background(), api.Manager(), m, "/ns", "label", objs, false, true, testHasher{})
+			err := Import(context.Background(), api.Manager(), m, m, "/ns", "label", objs, false, true, testHasher{})
 			So(err, ShouldBeNil)
 			So(objs[1].Namespace, ShouldEqual, "")
 			So(deleteNamespaces, ShouldResemble, []string{"", ""}) // empty means default manip namespace.
@@ -1097,7 +1105,7 @@ func TestImport(t *testing.T) {
 				},
 			}
 
-			err := Import(context.Background(), api.Manager(), m, "/", "label", objs, false, true, testHasher{})
+			err := Import(context.Background(), api.Manager(), m, m, "/", "label", objs, false, true, testHasher{})
 			So(err, ShouldBeNil)
 			So(objs[1].Namespace, ShouldEqual, "")
 
@@ -1149,7 +1157,7 @@ func TestImport(t *testing.T) {
 				},
 			}
 
-			err := Import(context.Background(), testmodel.Manager(), m, "/ns", "label", objs, false, true, testHasher{})
+			err := Import(context.Background(), testmodel.Manager(), m, m, "/ns", "label", objs, false, true, testHasher{})
 			So(err, ShouldBeNil)
 			So(len(toCreate), ShouldEqual, 1)
 			So(toCreate[0].(*testmodel.List).Name, ShouldEqual, "1")
@@ -1213,7 +1221,7 @@ func TestImport(t *testing.T) {
 				},
 			}
 
-			err := Import(context.Background(), testmodel.Manager(), m, "/ns", "label", objs, false, true, testHasher{})
+			err := Import(context.Background(), testmodel.Manager(), m, m, "/ns", "label", objs, false, true, testHasher{})
 			So(err, ShouldBeNil)
 			So(updated, ShouldBeFalse)
 			So(created, ShouldBeFalse)
@@ -1277,7 +1285,7 @@ func TestImport(t *testing.T) {
 				},
 			}
 
-			err := Import(context.Background(), testmodel.Manager(), m, "/ns", "label", objs, false, true, testHasher{})
+			err := Import(context.Background(), testmodel.Manager(), m, m, "/ns", "label", objs, false, true, testHasher{})
 			So(err, ShouldBeNil)
 			So(len(toUpdate), ShouldEqual, 1)
 			So(toUpdate[0].(*testmodel.List).Name, ShouldEqual, "1")
@@ -1351,7 +1359,7 @@ func TestImport(t *testing.T) {
 				},
 			}
 
-			err := Import(context.Background(), testmodel.Manager(), m, "/ns", "label", objs, false, true, testHasher{})
+			err := Import(context.Background(), testmodel.Manager(), m, m, "/ns", "label", objs, false, true, testHasher{})
 			So(err, ShouldBeNil)
 			So(updated, ShouldBeFalse)
 			So(len(toDelete), ShouldEqual, 1)
@@ -1360,6 +1368,96 @@ func TestImport(t *testing.T) {
 			So(len(toCreate), ShouldEqual, 1)
 			So(toCreate[0].(*testmodel.List).Name, ShouldEqual, "1")
 			So(createNamespaces, ShouldResemble, []string{"/ns/subns"})
+		})
+
+		Convey("When sm finds objects in two namespaces, reads use sm and writes use m", func() {
+
+			sm := maniptest.NewTestManipulator()
+
+			// sm (system manipulator) returns two pre-existing objects sharing
+			// the same import label but living in different namespaces.
+			sm.MockRetrieveMany(t, func(mctx manipulate.Context, dest elemental.Identifiables) error {
+				*dest.(*api.AuthorizationsList) = append(
+					*dest.(*api.AuthorizationsList),
+					&api.Authorization{
+						ID:          "existing-1",
+						Name:        "1",
+						Namespace:   "/ns",
+						ImportHash:  "stale",
+						ImportLabel: "label",
+					},
+					&api.Authorization{
+						ID:          "existing-2",
+						Name:        "2",
+						Namespace:   "/ns/other",
+						ImportHash:  "stale",
+						ImportLabel: "label",
+					},
+				)
+				return nil
+			})
+
+			// m must never be called for reads.
+			m.MockRetrieveMany(t, func(mctx manipulate.Context, dest elemental.Identifiables) error {
+				panic("bearer manipulator must not be used for reads")
+			})
+
+			toDelete := elemental.IdentifiablesList{}
+			m.MockDelete(t, func(mctx manipulate.Context, object elemental.Identifiable) error {
+				toDelete = append(toDelete, object)
+				return nil
+			})
+
+			// Import an empty set: all pre-existing objects found by sm should be deleted via m.
+			objs := api.AuthorizationsList{}
+
+			err := Import(context.Background(), api.Manager(), m, sm, "/ns", "label", objs, false, false, nil)
+			So(err, ShouldBeNil)
+			So(len(toDelete), ShouldEqual, 2)
+		})
+
+		Convey("When sm finds objects in two namespaces and the bearer delete fails, it should error on write not on read", func() {
+
+			sm := maniptest.NewTestManipulator()
+
+			sm.MockRetrieveMany(t, func(mctx manipulate.Context, dest elemental.Identifiables) error {
+				*dest.(*api.AuthorizationsList) = append(
+					*dest.(*api.AuthorizationsList),
+					&api.Authorization{
+						ID:          "existing-1",
+						Name:        "1",
+						Namespace:   "/ns",
+						ImportHash:  "stale",
+						ImportLabel: "label",
+					},
+					&api.Authorization{
+						ID:          "existing-2",
+						Name:        "2",
+						Namespace:   "/ns/other",
+						ImportHash:  "stale",
+						ImportLabel: "label",
+					},
+				)
+				return nil
+			})
+
+			m.MockRetrieveMany(t, func(mctx manipulate.Context, dest elemental.Identifiables) error {
+				panic("bearer manipulator must not be used for reads")
+			})
+
+			deleteCount := 0
+			m.MockDelete(t, func(mctx manipulate.Context, object elemental.Identifiable) error {
+				deleteCount++
+				return fmt.Errorf("permission denied")
+			})
+
+			objs := api.AuthorizationsList{}
+
+			err := Import(context.Background(), api.Manager(), m, sm, "/ns", "label", objs, false, false, nil)
+			So(err, ShouldNotBeNil)
+			So(err.Error(), ShouldEqual, "unable to delete existing authorization: permission denied")
+			// Fails on first delete, stops immediately.
+			So(deleteCount, ShouldEqual, 1)
 		})
 	})
 

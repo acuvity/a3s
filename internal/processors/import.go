@@ -13,19 +13,22 @@ import (
 	"go.acuvity.ai/a3s/pkgs/token"
 	"go.acuvity.ai/bahamut"
 	"go.acuvity.ai/elemental"
+	"go.acuvity.ai/manipulate"
 )
 
 // A ImportProcessor is a bahamut processor for Import.
 type ImportProcessor struct {
 	bmanipMaker bearermanip.MakerFunc
+	sm          manipulate.Manipulator
 	authz       authorizer.Authorizer
 	hasher      sharder.Hasher
 }
 
 // NewImportProcessor returns a new ImportProcessor .
-func NewImportProcessor(bmanipMaker bearermanip.MakerFunc, authz authorizer.Authorizer, hasher sharder.Hasher) *ImportProcessor {
+func NewImportProcessor(bmanipMaker bearermanip.MakerFunc, sm manipulate.Manipulator, authz authorizer.Authorizer, hasher sharder.Hasher) *ImportProcessor {
 	return &ImportProcessor{
 		bmanipMaker: bmanipMaker,
+		sm:          sm,
 		authz:       authz,
 		hasher:      hasher,
 	}
@@ -104,6 +107,7 @@ func (p *ImportProcessor) ProcessCreate(bctx bahamut.Context) error {
 			bctx.Context(),
 			api.Manager(),
 			p.bmanipMaker(bctx),
+			p.sm,
 			ns,
 			req.Label,
 			lst,

@@ -44,10 +44,14 @@ import (
 // exist somehow (either already existing, of created earlier in the import)
 // This function does not make any permission check, and will
 // fail if the given manipulator does not bear sufficient permissions.
+//
+// sm is a system-level manipulator used only for read operations (checking
+// for pre-existing objects). All write operations use m.
 func Import(
 	ctx context.Context,
 	manager elemental.ModelManager,
 	m manipulate.Manipulator,
+	sm manipulate.Manipulator,
 	namespace string,
 	label string,
 	objects elemental.Identifiables,
@@ -66,6 +70,10 @@ func Import(
 
 	if manager == nil {
 		return fmt.Errorf("manager must not be nil")
+	}
+
+	if sm == nil {
+		return fmt.Errorf("system manipulator must not be nil")
 	}
 
 	lst := objects.List()
@@ -115,7 +123,7 @@ func Import(
 	if r, ok := manager.Relationships()[objects.Identity()]; ok && len(r.RetrieveMany) > 0 && len(r.Delete) > 0 {
 
 		currentObjects := manager.Identifiables(objects.Identity())
-		if err := m.RetrieveMany(
+		if err := sm.RetrieveMany(
 			manipulate.NewContext(
 				ctx,
 				manipulate.ContextOptionNamespace(namespace),

@@ -593,7 +593,7 @@ func main() {
 	bahamut.RegisterProcessorOrDie(server, processors.NewNamespacesProcessor(m, pubsub), api.NamespaceIdentity)
 	bahamut.RegisterProcessorOrDie(server, processors.NewNamespaceDeletionRecordsProcessor(m), api.NamespaceDeletionRecordIdentity)
 	bahamut.RegisterProcessorOrDie(server, processors.NewAuthorizationProcessor(m, pubsub, retriever, cfg.JWT.JWTIssuer), api.AuthorizationIdentity)
-	bahamut.RegisterProcessorOrDie(server, processors.NewImportProcessor(bmanipMaker, pauthz, &hasher.Hasher{}), api.ImportIdentity)
+	bahamut.RegisterProcessorOrDie(server, processors.NewImportProcessor(bmanipMaker, m, pauthz, &hasher.Hasher{}), api.ImportIdentity)
 	bahamut.RegisterProcessorOrDie(server, processors.NewRevocationsProcessor(m, pubsub), api.RevocationIdentity)
 	bahamut.RegisterProcessorOrDie(server, processors.NewGroupProcessor(m, pubsub), api.GroupIdentity)
 	bahamut.RegisterProcessorOrDie(server, processors.NewLogoutProcessor(m, pubsub, cookiePolicy, cookieDomain), api.LogoutIdentity)
@@ -1006,6 +1006,7 @@ func initData(ctx context.Context, m manipulate.Manipulator, dataPath string, h 
 		if err := importing.Import(
 			ctx,
 			api.Manager(),
+			m,
 			m,
 			"/",
 			"a3s:init:data",
