@@ -6,6 +6,9 @@ import (
 	"fmt"
 	"net"
 	"strings"
+
+	"go.acuvity.ai/a3s/pkgs/api"
+	"go.acuvity.ai/elemental"
 )
 
 // encodeNamespace converts a namespace into a reversible slash-free path
@@ -68,4 +71,26 @@ func containsAll(items []string, wanted []string) bool {
 func isLoopbackIP(host string) bool {
 	ip := net.ParseIP(host)
 	return ip != nil && ip.IsLoopback()
+}
+
+// SourceAllowed reports whether the oauth application admits the given
+// source through its allowedSources filters. An application without filters
+// admits any source.
+func SourceAllowed(app *api.OAuthApplication, source elemental.AttributeSpecifiable) (bool, error) {
+	for _, allowed := range app.AllowedSources {
+		filter, err := elemental.NewFilterFromString(allowed)
+		if err != nil {
+			return false, fmt.Errorf("invalid allowedSources filter %q on oauth application %q: %w", allowed, app.Name, err)
+		}
+
+		matched, err := elemental.MatchesFilter(source, filter)
+		if err != nil {
+			return false, fmt.Errorf("unable to evaluate allowedSources filter %q on oauth application %q: %w", allowed, app.Name, err)
+		}
+		if matched {
+			return true, nil
+		}
+	}
+
+	return len(app.AllowedSources) == 0, nil
 }

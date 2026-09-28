@@ -1053,19 +1053,12 @@ func validateAuthorizeIssueSource(req *api.Issue, source elemental.Identifiable,
 		return fmt.Errorf("source %T does not support attribute-based matching", source)
 	}
 
-	for _, allowed := range app.AllowedSources {
-		filter, err := elemental.NewFilterFromString(allowed)
-		if err != nil {
-			return fmt.Errorf("invalid allowedSources filter %q on oauth application %q: %w", allowed, app.Name, err)
-		}
-
-		matched, err := elemental.MatchesFilter(attrSource, filter)
-		if err != nil {
-			return fmt.Errorf("unable to evaluate allowedSources filter %q on oauth application %q: %w", allowed, app.Name, err)
-		}
-		if matched {
-			return nil
-		}
+	allowed, err := oauthserver.SourceAllowed(app, attrSource)
+	if err != nil {
+		return err
+	}
+	if allowed {
+		return nil
 	}
 
 	return elemental.NewError(
