@@ -338,12 +338,30 @@ func (o *OAuth) redeemAuthorizationCode(client *api.OAuthClient, tokenRequest To
 		expiration = session.OAuthTokenData.ExpiresAt.UTC()
 	}
 
-	accessToken, expiresIn, err := o.signToken(
+	return o.issueGrant(
 		session.Namespace,
 		session.OAuthTokenData.IdentityToken,
-		jwt.ClaimStrings{session.OAuthTokenData.Audience},
+		session.OAuthTokenData.Audience,
+		session.ClientID,
+		session.OAuthTokenData.Scopes,
+		session.Nonce,
 		expiration,
+		!session.ScopeIncluded,
 	)
+}
+
+func (o *OAuth) issueGrant(
+	namespace string,
+	idt *token.IdentityToken,
+	audience string,
+	clientID string,
+	scopes []string,
+	nonce string,
+	expiration time.Time,
+	advertiseScope bool,
+) (*TokenResponse, error) {
+
+	accessToken, expiresIn, err := o.signToken(namespace, idt, jwt.ClaimStrings{audience}, expiration)
 	if err != nil {
 		return nil, err
 	}
@@ -356,31 +374,23 @@ func (o *OAuth) redeemAuthorizationCode(client *api.OAuthClient, tokenRequest To
 
 	// The openid scope makes this an authentication request, which OIDC Core
 	// section 3.1.3.3 answers with an ID Token beside the access token.
-	if slices.Contains(session.OAuthTokenData.Scopes, scopeOpenID) {
+	if slices.Contains(scopes, scopeOpenID) {
 
 		// An authentication request is answered with an ID Token, which OIDC
 		// Core section 2 requires to name its subject.
-		if session.OAuthTokenData.IdentityToken.Subject == "" {
+		if idt.Subject == "" {
 			return nil, errNoSubject
 		}
 
-		idToken, _, err := o.signIDToken(
-			session.Namespace,
-			session.OAuthTokenData.IdentityToken,
-			session.ClientID,
-			session.Nonce,
-			expiration,
-		)
+		idToken, _, err := o.signIDToken(namespace, idt, clientID, nonce, expiration)
 		if err != nil {
 			return nil, err
 		}
 		response.IDToken = idToken
 	}
 
-	// The client did not ask for scopes, so the granted ones may surprise
-	// it and must be advertised.
-	if !session.ScopeIncluded {
-		response.Scope = strings.Join(session.OAuthTokenData.Scopes, " ")
+	if advertiseScope {
+		response.Scope = strings.Join(scopes, " ")
 	}
 
 	return response, nil
