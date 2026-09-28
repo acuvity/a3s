@@ -38,6 +38,10 @@ $pem:
   elemental:
     name: ValidatePEM
 
+$positive_duration:
+  elemental:
+    name: ValidatePositiveDuration
+
 $revocation:
   elemental:
     name: ValidateRevocation

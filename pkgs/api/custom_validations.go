@@ -28,6 +28,21 @@ func ValidateDuration(attribute string, duration string) error {
 	return nil
 }
 
+// ValidatePositiveDuration validates the given string is a parseable positive Go duration.
+func ValidatePositiveDuration(attribute string, duration string) error {
+
+	if duration == "" {
+		return nil
+	}
+
+	d, err := time.ParseDuration(duration)
+	if err != nil || d <= 0 {
+		return makeErr(attribute, fmt.Sprintf("Attribute '%s' must be a positive duration", attribute))
+	}
+
+	return nil
+}
+
 // ValidateCIDR validates a CIDR.
 func ValidateCIDR(attribute string, network string) error {
 

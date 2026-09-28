@@ -89,3 +89,15 @@ attributes:
     required: true
     creation_only: true
     example_value: my-app
+
+  - name: refreshTokenValidity
+    friendly_name: Refresh Token Validity
+    description: |-
+      Validity of the refresh tokens issued alongside access tokens, using
+      Golang duration syntax. If omitted, the server default is used.
+    type: string
+    exposed: true
+    stored: true
+    example_value: 1440h
+    validations:
+    - $positive_duration

@@ -1134,6 +1134,37 @@ func TestValidateDuration(t *testing.T) {
 	}
 }
 
+func TestValidatePositiveDuration(t *testing.T) {
+	tests := []struct {
+		name     string
+		duration string
+		wantErr  bool
+	}{
+		{"valid", "10s", false},
+		{"empty", "", false},
+		{"invalid", "frog", true},
+		{"zero", "0s", true},
+		{"negative", "-1h", true},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := ValidatePositiveDuration("attr", tt.duration)
+
+			if (err != nil) != tt.wantErr {
+				t.Fatalf("ValidatePositiveDuration error = %v, wantErr: %t", err, tt.wantErr)
+			}
+
+			if err != nil {
+				wanted := "error 422 (a3s): Validation Error: Attribute 'attr' must be a positive duration"
+				if err.Error() != wanted {
+					t.Fatalf("wanted %s but got %s", wanted, err)
+				}
+			}
+		})
+	}
+}
+
 func TestValidateURL(t *testing.T) {
 	type args struct {
 		attribute string
