@@ -121,6 +121,15 @@
         "null"
       ]
     },
+    "refreshTokenValidity": {
+      "$friendlyName": "Refresh Token Validity",
+      "description": "Validity of the refresh tokens issued alongside access tokens, using Golang duration syntax. If omitted, the server default is used.",
+      "title": "refreshTokenValidity",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
     "updateTime": {
       "$friendlyName": "UpdateTime",
       "$readOnly": true,

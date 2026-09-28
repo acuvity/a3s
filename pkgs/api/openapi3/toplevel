@@ -1515,6 +1515,11 @@
             "readOnly": true,
             "type": "string"
           },
+          "refreshTokenValidity": {
+            "description": "Validity of the refresh tokens issued alongside access tokens, using\nGolang duration syntax. If omitted, the server default is used.",
+            "example": "1440h",
+            "type": "string"
+          },
           "updateTime": {
             "description": "Last update date of the object.",
             "format": "date-time",
