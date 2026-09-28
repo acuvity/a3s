@@ -336,6 +336,7 @@ Minimal intended fields:
 - `audience`
 - `allowedSources`
 - `defaultScopes`
+- `refreshTokenValidity`
 
 Notes:
 
@@ -400,7 +401,7 @@ Notes:
 - `oauthApplicationID` is `creation_only`
 - `clientID` is `creation_only`
 - clients and oauth applications always live in the same namespace
-- v1 supports only `authorization_code`
+- the client-facing grants are `authorization_code` and `refresh_token`
 - v1 supports only `response_type=code`
 - the protocol layer supports `client_secret_basic`, `client_secret_post`, and
   `none`
@@ -633,6 +634,60 @@ party of the OAuth surface. That is the value
 [RFC 9068 section 2.2](https://www.rfc-editor.org/rfc/rfc9068.html#section-2.2)
 asks a JWT access token to carry, though a3s does not otherwise follow that
 profile and does not type its access tokens `at+jwt`.
+
+## Refresh Tokens
+
+The `authorization_code` grant returns a `refresh_token` beside the access
+token. The `refresh_token` grant of
+[RFC 6749 section 6](https://www.rfc-editor.org/rfc/rfc6749.html#section-6)
+redeems it for a new access token, and for a new ID Token when the grant
+includes `openid`.
+
+A refresh token is an ordinary a3s token carrying the existing `refresh` flag,
+which the authenticator, `userinfo` and the token exchange all refuse. It is
+signed by the namespace OAuth issuer and addressed to that issuer, rather than
+to the application audience, so no resource server accepts it as an access
+token. It also carries the granted scopes in its `scope` claim.
+
+Its lifetime is the application's `refreshTokenValidity`, or when that is
+unset the server's `--oauth-refresh-token-validity`, which defaults to 1440h
+(60 days). The lifetime does not depend on the authentication that produced
+the refresh token, because outliving that authentication is what a refresh
+token is for. The lifetime is fixed when the authorization completes, so
+changing `refreshTokenValidity` only affects later logins. A lifetime that has
+already run out by the time the authorization code is redeemed yields no
+refresh token.
+
+The `refresh_token` grant:
+
+- requires client authentication, the same way `authorization_code` does
+- accepts only a refresh token issued by this namespace to the requesting
+  client and its `oauthapplication`
+- resolves the `oauthapplication` again, so that disabling it, or changing
+  its `audience` or `allowedSources`, applies to the next refresh. A refresh
+  token issued for another `oauthapplication` than the one the client now
+  serves is refused
+- checks the granted scopes against the client's `scopes` again, so that
+  narrowing them applies to the next refresh
+- checks the refresh token against revocations, by its `jti` and by its
+  identity claims, the same way the authorizer checks access tokens. A refresh
+  token never reaches the authorizer, so without this check a revoked
+  identity could keep minting access tokens until its refresh token expired
+- accepts an optional `scope`, which may narrow the original grant but never
+  widen it
+- caps the access token at the refresh token's own expiration
+- answers with the same response as `authorization_code`, except that it
+  returns no new refresh token
+
+Refresh tokens are not rotated: the client keeps presenting the one it holds
+until it expires. A refresh token therefore cannot be invalidated
+individually except through a `tokenID` revocation, and a revocation's
+`issuedBefore` is compared with the time of the original login.
+
+The ID Token returned by a refresh follows
+[OIDC Core section 12.2](https://openid.net/specs/openid-connect-core-1_0.html#RefreshTokenResponse):
+it keeps the `iss`, `sub` and `aud` of the original ID Token and carries no
+`nonce`.
 
 ## ID Token
 
