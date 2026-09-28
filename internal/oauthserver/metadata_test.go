@@ -31,6 +31,7 @@ func TestOpenIDConfigurationServedOnBothDiscoveryPaths(t *testing.T) {
 			assertOAuthJSONField(t, recorder, http.StatusOK, "response_types_supported", []any{"code"})
 			assertOAuthJSONField(t, recorder, http.StatusOK, "grant_types_supported", []any{
 				"authorization_code",
+				"refresh_token",
 				"urn:ietf:params:oauth:grant-type:token-exchange",
 			})
 			assertOAuthJSONField(t, recorder, http.StatusOK, "code_challenge_methods_supported", []any{"S256"})

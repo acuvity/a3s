@@ -16,6 +16,10 @@ import (
 
 const testA3SAudience = "a3s"
 
+// testRefreshValidity is the server default refresh token lifetime of the
+// test engines.
+const testRefreshValidity = 24 * time.Hour
+
 func TestOAuthTokenExchangeMintsIDTokenFromOAuthAccessToken(t *testing.T) {
 	fixture := newTokenExchangeFixture(t)
 
@@ -584,6 +588,7 @@ func TestOAuthMetadataAdvertisesTokenExchange(t *testing.T) {
 
 	assertOAuthJSONField(t, recorder, http.StatusOK, "grant_types_supported", []any{
 		"authorization_code",
+		"refresh_token",
 		"urn:ietf:params:oauth:grant-type:token-exchange",
 	})
 }
@@ -594,6 +599,7 @@ type tokenExchangeFixture struct {
 	handler     *HTTPHandler
 	jwks        *token.JWKS
 	manipulator *fakeManipulator
+	revocations *fakeRevocations
 	client      *api.OAuthClient
 	app         *api.OAuthApplication
 	a3sIssuer   string
@@ -641,7 +647,8 @@ func newTokenExchangeFixture(t *testing.T) *tokenExchangeFixture {
 
 	a3sIssuer := "https://issuer.example"
 	manipulator := &fakeManipulator{client: client, app: app}
-	oauth, err := NewOAuth(newFakeStore(), manipulator, jwks, a3sIssuer, testA3SAudience, 5*time.Minute)
+	revocations := &fakeRevocations{}
+	oauth, err := NewOAuth(newFakeStore(), manipulator, jwks, a3sIssuer, testA3SAudience, 5*time.Minute, testRefreshValidity, revocations)
 	if err != nil {
 		t.Fatalf("NewOAuth() error = %v", err)
 	}
@@ -651,6 +658,7 @@ func newTokenExchangeFixture(t *testing.T) *tokenExchangeFixture {
 		handler:     NewHTTPHandler(oauth, ""),
 		jwks:        jwks,
 		manipulator: manipulator,
+		revocations: revocations,
 		client:      client,
 		app:         app,
 		a3sIssuer:   a3sIssuer,

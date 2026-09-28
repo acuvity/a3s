@@ -1,6 +1,7 @@
 package oauthserver
 
 import (
+	"context"
 	"crypto"
 	"crypto/ecdsa"
 	"crypto/elliptic"
@@ -24,7 +25,7 @@ func newOAuthHTTPHandlerForTest(t *testing.T) *HTTPHandler {
 	t.Helper()
 
 	baseURL := "https://issuer.example"
-	oauth, _ := NewOAuth(nil, &fakeManipulator{}, token.NewJWKS(), baseURL, testA3SAudience, 5*time.Minute)
+	oauth, _ := NewOAuth(nil, &fakeManipulator{}, token.NewJWKS(), baseURL, testA3SAudience, 5*time.Minute, testRefreshValidity, &fakeRevocations{})
 
 	return NewHTTPHandler(oauth, "")
 }
@@ -79,12 +80,35 @@ func jsonNewDecoder(data []byte, dest any) error {
 	return json.Unmarshal(data, dest)
 }
 
+// fakeRevocations answers revocation checks with the given function, and
+// reports nothing revoked when it has none.
+type fakeRevocations struct {
+	revoked func(namespace string, tokenID string, claims []string, iat time.Time) (bool, error)
+}
+
+func (f *fakeRevocations) Revoked(_ context.Context, namespace string, tokenID string, claims []string, iat time.Time) (bool, error) {
+	if f.revoked == nil {
+		return false, nil
+	}
+	return f.revoked(namespace, tokenID, claims, iat)
+}
+
 type fakeManipulator struct {
 	client *api.OAuthClient
 	app    *api.OAuthApplication
+	oidc   *api.OIDCSource
 }
 
 func (f *fakeManipulator) RetrieveMany(mctx manipulate.Context, dest elemental.Identifiables) error {
+	if sources, ok := dest.(*api.OIDCSourcesList); ok {
+		*sources = nil
+		if f.oidc != nil {
+			copySource := *f.oidc
+			*sources = api.OIDCSourcesList{&copySource}
+		}
+		return nil
+	}
+
 	clients, ok := dest.(*api.OAuthClientsList)
 	if !ok {
 		return errors.New("unexpected RetrieveMany destination")

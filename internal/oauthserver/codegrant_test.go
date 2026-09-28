@@ -115,6 +115,18 @@ func (f *tokenExchangeFixture) codeFor(t *testing.T, params url.Values, identity
 	idt.Subject = f.subject
 	idt.ExpiresAt = jwt.NewNumericDate(time.Now().UTC().Add(time.Hour))
 
+	// /issue names the application and client on the identity before it
+	// completes the authorization.
+	idt.OAuthApplication = token.OAuthApplication{
+		ID:        oauthApplication.ID,
+		Namespace: oauthApplication.Namespace,
+		Name:      oauthApplication.Name,
+	}
+	idt.OAuthClient = token.OAuthClient{
+		ClientID:  oauthClient.ClientID,
+		Namespace: oauthClient.Namespace,
+	}
+
 	redirectURL, err := f.oauth.CompleteAuthorize(idt, authorizeContext, oauthClient, oauthApplication)
 	if err != nil {
 		t.Fatalf("CompleteAuthorize() error = %v", err)

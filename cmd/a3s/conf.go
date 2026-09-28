@@ -123,7 +123,8 @@ type JWTConf struct {
 
 // OAuthConf holds the configuration related to the embedded OAuth server.
 type OAuthConf struct {
-	OAuthUIEndpoint string `mapstructure:"oauth-ui-endpoint" desc:"Optional external UI endpoint used as the authorize continuation page. Defaults to the bundled /ui/request.html page"`
+	OAuthRefreshTokenValidity time.Duration `mapstructure:"oauth-refresh-token-validity" desc:"Default validity of the refresh tokens issued by the OAuth server, used for oauth applications that do not set their own" default:"1440h"`
+	OAuthUIEndpoint           string        `mapstructure:"oauth-ui-endpoint" desc:"Optional external UI endpoint used as the authorize continuation page. Defaults to the bundled /ui/request.html page"`
 }
 
 // JWTCertificate returns the certificate used to verify JWTs.

@@ -55,6 +55,11 @@ type IdentityToken struct {
 	// with a longer expiration time.
 	Refresh bool `json:"refresh,omitempty"`
 
+	// The space delimited OAuth scopes granted to the bearer. It is only
+	// set on refresh tokens issued by the OAuth surface, which must remember
+	// the grant they can renew.
+	Scope string `json:"scope,omitempty"`
+
 	// Opaque user information transmitted in the token.
 	Opaque map[string]string `json:"opaque,omitempty"`
 

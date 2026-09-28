@@ -286,6 +286,9 @@ func (h *HTTPHandler) handleToken(w http.ResponseWriter, req *http.Request, name
 		ClientAuthMethod: clientAuthMethod,
 		CodeVerifier:     req.PostForm.Get("code_verifier"),
 
+		RefreshToken: req.PostForm.Get("refresh_token"),
+		Scope:        req.PostForm.Get("scope"),
+
 		SubjectToken:       req.PostForm.Get("subject_token"),
 		SubjectTokenType:   req.PostForm.Get("subject_token_type"),
 		RequestedTokenType: req.PostForm.Get("requested_token_type"),
@@ -417,7 +420,7 @@ func (h *HTTPHandler) serverMetadata(namespace string) authorizationServerMetada
 		JWKSURI:                       jwksURI.String(),
 		ResponseTypesSupported:        []string{oauthResponseTypeCode},
 		ResponseModesSupported:        []string{"query"},
-		GrantTypesSupported:           []string{oauthGrantTypeAuthorizationCode, oauthGrantTypeTokenExchange},
+		GrantTypesSupported:           []string{oauthGrantTypeAuthorizationCode, oauthGrantTypeRefreshToken, oauthGrantTypeTokenExchange},
 		CodeChallengeMethodsSupported: []string{pkceMethodS256},
 		TokenEndpointAuthMethodsSupported: []string{
 			"client_secret_basic",

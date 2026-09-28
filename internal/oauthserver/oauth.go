@@ -23,13 +23,21 @@ import (
 
 // OAuth implements the embedded OAuth authorization-code flow used by a3s.
 type OAuth struct {
-	store       oauthStore
-	m           manipulate.Manipulator
-	jwks        *token.JWKS
-	issuerURL   *url.URL
-	a3sIssuer   string
-	a3sAudience string
-	validity    time.Duration
+	store           oauthStore
+	m               manipulate.Manipulator
+	jwks            *token.JWKS
+	issuerURL       *url.URL
+	a3sIssuer       string
+	a3sAudience     string
+	validity        time.Duration
+	refreshValidity time.Duration
+	revocations     revocationChecker
+}
+
+// revocationChecker reports whether a token is covered by a revocation. It is
+// the subset of permissions.Retriever the refresh grant needs.
+type revocationChecker interface {
+	Revoked(ctx context.Context, namespace string, tokenID string, claims []string, iat time.Time) (bool, error)
 }
 
 type oauthStore interface {
@@ -43,6 +51,7 @@ type oauthStore interface {
 const (
 	oauthGrantTypeAuthorizationCode = "authorization_code"
 	oauthGrantTypeTokenExchange     = "urn:ietf:params:oauth:grant-type:token-exchange"
+	oauthGrantTypeRefreshToken      = "refresh_token"
 	oauthResponseTypeCode           = "code"
 	pkceMethodS256                  = "S256"
 	// OAuth state has no RFC-defined size limit. This cap is arbitrary but
@@ -73,7 +82,16 @@ const (
 // NewOAuth returns a new OAuth engine. baseURL is the a3s issuer, and audience
 // the a3s audience. Both are needed to accept native a3s tokens as the subject
 // of a token exchange.
-func NewOAuth(store oauthStore, manipulator manipulate.Manipulator, jwks *token.JWKS, baseURL string, audience string, validity time.Duration) (*OAuth, error) {
+func NewOAuth(
+	store oauthStore,
+	manipulator manipulate.Manipulator,
+	jwks *token.JWKS,
+	baseURL string,
+	audience string,
+	validity time.Duration,
+	refreshValidity time.Duration,
+	revocations revocationChecker,
+) (*OAuth, error) {
 	issuerURL, err := url.Parse(baseURL)
 	if err != nil {
 		return nil, err
@@ -83,13 +101,15 @@ func NewOAuth(store oauthStore, manipulator manipulate.Manipulator, jwks *token.
 	issuerURL.RawQuery = ""
 	issuerURL.Fragment = ""
 	return &OAuth{
-		store:       store,
-		m:           manipulator,
-		jwks:        jwks,
-		issuerURL:   issuerURL,
-		a3sIssuer:   baseURL,
-		a3sAudience: audience,
-		validity:    validity,
+		store:           store,
+		m:               manipulator,
+		jwks:            jwks,
+		issuerURL:       issuerURL,
+		a3sIssuer:       baseURL,
+		a3sAudience:     audience,
+		validity:        validity,
+		refreshValidity: refreshValidity,
+		revocations:     revocations,
 	}, nil
 }
 
@@ -226,14 +246,20 @@ func (o *OAuth) CompleteAuthorize(
 		expiresAt = idt.ExpiresAt.Time
 	}
 
+	// The session identity signs the access token, so it must not carry the
+	// refresh flag an /issue request asking for a refresh token type sets.
+	// The refresh token is minted separately by this surface.
+	idt.Refresh = false
+
 	code, err := o.issueAuthorizationCode(
 		oauthClient,
 		authorizeContext,
 		&OAuthTokenData{
-			IdentityToken: idt,
-			Audience:      oauthApplication.Audience,
-			Scopes:        append([]string{}, authorizeContext.RequestedScopes...),
-			ExpiresAt:     expiresAt,
+			IdentityToken:         idt,
+			Audience:              oauthApplication.Audience,
+			Scopes:                append([]string{}, authorizeContext.RequestedScopes...),
+			ExpiresAt:             expiresAt,
+			RefreshTokenExpiresAt: time.Now().UTC().Add(o.refreshTokenValidity(oauthApplication)),
 		},
 	)
 	if err != nil {
@@ -282,6 +308,8 @@ func (o *OAuth) exchangeToken(ctx context.Context, namespace string, tokenReques
 		return o.redeemAuthorizationCode(client, tokenRequest)
 	case oauthGrantTypeTokenExchange:
 		return o.exchangeSubjectToken(ctx, namespace, tokenRequest)
+	case oauthGrantTypeRefreshToken:
+		return o.redeemRefreshToken(ctx, namespace, client, tokenRequest)
 	default:
 		return nil, newProtocolError("unsupported_grant_type", fmt.Sprintf("unsupported grant type %q", tokenRequest.GrantType))
 	}
@@ -346,6 +374,7 @@ func (o *OAuth) redeemAuthorizationCode(client *api.OAuthClient, tokenRequest To
 		session.OAuthTokenData.Scopes,
 		session.Nonce,
 		expiration,
+		session.OAuthTokenData.RefreshTokenExpiresAt,
 		!session.ScopeIncluded,
 	)
 }
@@ -358,8 +387,19 @@ func (o *OAuth) issueGrant(
 	scopes []string,
 	nonce string,
 	expiration time.Time,
+	refreshExpiration time.Time,
 	advertiseScope bool,
 ) (*TokenResponse, error) {
+
+	// The refresh token is signed first, as signing the access token adds
+	// the derived claims to the identity.
+	var refreshToken string
+	if refreshExpiration.After(time.Now()) {
+		var err error
+		if refreshToken, err = o.signRefreshToken(namespace, idt, scopes, refreshExpiration); err != nil {
+			return nil, err
+		}
+	}
 
 	accessToken, expiresIn, err := o.signToken(namespace, idt, jwt.ClaimStrings{audience}, expiration)
 	if err != nil {
@@ -367,9 +407,10 @@ func (o *OAuth) issueGrant(
 	}
 
 	response := &TokenResponse{
-		Token:     accessToken,
-		TokenType: tokenTypeBearer,
-		ExpiresIn: expiresIn,
+		Token:        accessToken,
+		TokenType:    tokenTypeBearer,
+		ExpiresIn:    expiresIn,
+		RefreshToken: refreshToken,
 	}
 
 	// The openid scope makes this an authentication request, which OIDC Core
@@ -394,6 +435,181 @@ func (o *OAuth) issueGrant(
 	}
 
 	return response, nil
+}
+
+// redeemRefreshToken implements the RFC 6749 section 6 refresh_token grant.
+// It mints a new access token, and an ID Token for an OpenID grant, from a
+// refresh token issued by this namespace to the requesting client.
+//
+// Refresh tokens are not rotated: the response carries none, so the client
+// keeps the one it holds until that one expires.
+func (o *OAuth) redeemRefreshToken(ctx context.Context, namespace string, client *api.OAuthClient, tokenRequest TokenRequest) (*TokenResponse, error) {
+
+	if tokenRequest.RefreshToken == "" {
+		return nil, newProtocolError("invalid_request", "missing refresh_token")
+	}
+
+	issuer := o.issuerForNamespace(namespace)
+
+	// A refresh token is addressed to the authorization server itself, so
+	// the audience check keeps any other token of this issuer out.
+	idt, err := token.Parse(tokenRequest.RefreshToken, o.jwks, issuer, issuer)
+	if err != nil {
+		return nil, newProtocolError("invalid_grant", "invalid refresh token")
+	}
+	if !idt.Refresh {
+		return nil, newProtocolError("invalid_grant", "invalid refresh token")
+	}
+
+	// A refresh token never reaches the authorizer, which is where access
+	// tokens meet revocations, so the grant runs the same check itself.
+	revoked, err := o.revocations.Revoked(ctx, namespace, idt.ID, idt.Identity, idt.IssuedAt.Time)
+	if err != nil {
+		return nil, fmt.Errorf("unable to check refresh token revocation: %w", err)
+	}
+	if revoked {
+		return nil, newProtocolError("invalid_grant", "refresh token has been revoked")
+	}
+
+	// RFC 6749 section 6 binds the refresh token to the client it was issued
+	// to.
+	if idt.OAuthClient.ClientID != client.ClientID || idt.OAuthClient.Namespace != client.Namespace {
+		return nil, newProtocolError("invalid_grant", "refresh token was not issued for this client")
+	}
+
+	// The client may since have been pointed at another application, whose
+	// audience the refresh token was never granted.
+	if idt.OAuthApplication.ID != client.OauthApplicationID {
+		return nil, newProtocolError("invalid_grant", "refresh token was not issued for this oauth application")
+	}
+
+	app, err := o.getOAuthApplication(ctx, client.Namespace, client.OauthApplicationID)
+	if err != nil {
+		if errors.Is(err, ErrNotFound) {
+			return nil, newProtocolError("invalid_grant", "unknown oauth application")
+		}
+		return nil, err
+	}
+	if app.Disabled {
+		return nil, newProtocolError("invalid_grant", ErrOAuthApplicationDisabled.Error())
+	}
+	if err := o.validateRefreshSource(ctx, app, idt.Source); err != nil {
+		return nil, err
+	}
+
+	// RFC 6749 section 6 lets the client narrow the original grant
+	grantedScopes := splitScopes(idt.Scope)
+	scopes := grantedScopes
+	if tokenRequest.Scope != "" {
+		scopes = splitScopes(tokenRequest.Scope)
+		if !containsAll(grantedScopes, scopes) {
+			return nil, newProtocolError("invalid_scope", "requested scope exceeds the original grant")
+		}
+	}
+
+	// The client scopes are checked again, so that narrowing them applies to
+	// the next refresh, as it does to the next authorization.
+	if len(client.Scopes) > 0 && !containsAll(client.Scopes, scopes) {
+		return nil, newProtocolError("invalid_scope", "scope is no longer allowed for this client")
+	}
+
+	// The access token must not outlive the grant it was renewed from.
+	expiration := time.Now().UTC().Add(o.validity)
+	if idt.ExpiresAt.Before(expiration) {
+		expiration = idt.ExpiresAt.UTC()
+	}
+
+	idt.StripDerivedClaims()
+	idt.Refresh = false
+	idt.Scope = ""
+
+	// No nonce, as OIDC Core section 12.2 has a refreshed ID Token carry
+	// none, and no refresh token, as they are not rotated.
+	return o.issueGrant(
+		namespace,
+		idt,
+		app.Audience,
+		client.ClientID,
+		scopes,
+		"",
+		expiration,
+		time.Time{},
+		tokenRequest.Scope == "",
+	)
+}
+
+// validateRefreshSource checks the source the refresh token was
+// authenticated against with the application allowedSources, so that
+// narrowing them applies to the next refresh, as it does to the next login.
+func (o *OAuth) validateRefreshSource(ctx context.Context, app *api.OAuthApplication, src token.Source) error {
+
+	if len(app.AllowedSources) == 0 {
+		return nil
+	}
+
+	var identity elemental.Identity
+	switch {
+	case strings.EqualFold(src.Type, string(api.IssueSourceTypeMTLS)):
+		identity = api.MTLSSourceIdentity
+	case strings.EqualFold(src.Type, string(api.IssueSourceTypeOIDC)):
+		identity = api.OIDCSourceIdentity
+	case strings.EqualFold(src.Type, string(api.IssueSourceTypeOAuth2)):
+		identity = api.OAuth2SourceIdentity
+	case strings.EqualFold(src.Type, string(api.IssueSourceTypeSAML)):
+		identity = api.SAMLSourceIdentity
+	default:
+		return newProtocolError("invalid_grant", "refresh token names an unsupported source")
+	}
+
+	mctx := manipulate.NewContext(
+		ctx,
+		manipulate.ContextOptionNamespace(src.Namespace),
+		manipulate.ContextOptionFilter(
+			elemental.NewFilterComposer().WithKey("name").Equals(src.Name).Done(),
+		),
+	)
+
+	sources := api.Manager().IdentifiablesFromString(identity.Name)
+	if err := o.m.RetrieveMany(mctx, sources); err != nil {
+		return err
+	}
+
+	lst := sources.List()
+	switch len(lst) {
+	case 0:
+		return newProtocolError("invalid_grant", "refresh token names an unknown source")
+	case 1:
+	default:
+		return fmt.Errorf("more than one auth source found")
+	}
+
+	attrSource, ok := lst[0].(elemental.AttributeSpecifiable)
+	if !ok {
+		return fmt.Errorf("source %T does not support attribute-based matching", lst[0])
+	}
+
+	allowed, err := SourceAllowed(app, attrSource)
+	if err != nil {
+		return err
+	}
+	if !allowed {
+		return newProtocolError("invalid_grant", "source is no longer allowed for this oauth application")
+	}
+
+	return nil
+}
+
+func (o *OAuth) signRefreshToken(namespace string, idt *token.IdentityToken, scopes []string, expiration time.Time) (string, error) {
+
+	refresh := *idt
+	refresh.Identity = slices.Clone(idt.Identity)
+	refresh.Refresh = true
+	refresh.Scope = strings.Join(scopes, " ")
+
+	issuer := o.issuerForNamespace(namespace)
+	signed, _, err := o.signToken(namespace, &refresh, jwt.ClaimStrings{issuer}, expiration)
+
+	return signed, err
 }
 
 // signIDToken mints an OpenID Connect ID Token, which carries flat OIDC claims
@@ -922,4 +1138,19 @@ func generateAuthorizationCode() (string, error) {
 		return "", fmt.Errorf("oauthserver: generate authorization code: %w", err)
 	}
 	return base64.RawURLEncoding.EncodeToString(buf), nil
+}
+
+func (o *OAuth) refreshTokenValidity(app *api.OAuthApplication) time.Duration {
+	if app.RefreshTokenValidity == "" {
+		return o.refreshValidity
+	}
+
+	// The API validation keeps unparsable values out, but a bad one falls
+	// back to the default rather than minting refresh tokens already expired.
+	validity, err := time.ParseDuration(app.RefreshTokenValidity)
+	if err != nil || validity <= 0 {
+		return o.refreshValidity
+	}
+
+	return validity
 }

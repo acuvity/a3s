@@ -33,10 +33,11 @@ type AuthorizeContext struct {
 // OAuthTokenData is the frozen authorization result stored behind an auth code
 // and later used to mint the final a3s access token.
 type OAuthTokenData struct {
-	IdentityToken *token.IdentityToken `json:"identitytoken,omitempty"`
-	Audience      string               `json:"audience,omitempty"`
-	Scopes        []string             `json:"scopes,omitempty"`
-	ExpiresAt     time.Time            `json:"expiresat,omitempty"`
+	IdentityToken         *token.IdentityToken `json:"identitytoken,omitempty"`
+	Audience              string               `json:"audience,omitempty"`
+	Scopes                []string             `json:"scopes,omitempty"`
+	ExpiresAt             time.Time            `json:"expiresat,omitempty"`
+	RefreshTokenExpiresAt time.Time            `json:"refreshtokenexpiresat,omitempty"`
 }
 
 type authorizationServerMetadata struct {
@@ -86,6 +87,10 @@ type TokenRequest struct {
 	ClientAuthMethod api.OAuthClientTokenEndpointAuthMethodValue
 	CodeVerifier     string
 
+	// RFC 6749 section 6 refresh parameters.
+	RefreshToken string
+	Scope        string
+
 	// RFC 8693 token exchange parameters.
 	SubjectToken       string
 	SubjectTokenType   string
@@ -104,6 +109,8 @@ type TokenResponse struct {
 	TokenType string `json:"token_type"`
 
 	ExpiresIn int64 `json:"expires_in"`
+
+	RefreshToken string `json:"refresh_token,omitempty"`
 
 	// IDToken is the OpenID Connect ID Token, present when the request was
 	// an authentication request, meaning the granted scopes include openid.
