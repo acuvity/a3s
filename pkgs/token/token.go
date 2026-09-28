@@ -218,37 +218,7 @@ func (t *IdentityToken) JWT(key crypto.PrivateKey, kid string, issuer string, au
 		return "", fmt.Errorf("invalid identity token: missing source type")
 	}
 
-	t.Identity = append(t.Identity, fmt.Sprintf("@source:type=%s", t.Source.Type))
-
-	if t.Source.Namespace != "" {
-		t.Identity = append(t.Identity, fmt.Sprintf("@source:namespace=%s", t.Source.Namespace))
-	}
-
-	if t.Source.Name != "" {
-		t.Identity = append(t.Identity, fmt.Sprintf("@source:name=%s", t.Source.Name))
-	}
-
-	if t.OAuthApplication.ID != "" {
-		t.Identity = append(t.Identity, fmt.Sprintf("@oauthapp:id=%s", t.OAuthApplication.ID))
-	}
-
-	if t.OAuthApplication.Namespace != "" {
-		t.Identity = append(t.Identity, fmt.Sprintf("@oauthapp:namespace=%s", t.OAuthApplication.Namespace))
-	}
-
-	if t.OAuthApplication.Name != "" {
-		t.Identity = append(t.Identity, fmt.Sprintf("@oauthapp:name=%s", t.OAuthApplication.Name))
-	}
-
-	if t.OAuthClient.ClientID != "" {
-		t.Identity = append(t.Identity, fmt.Sprintf("@oauthclient:clientid=%s", t.OAuthClient.ClientID))
-	}
-
-	if t.OAuthClient.Namespace != "" {
-		t.Identity = append(t.Identity, fmt.Sprintf("@oauthclient:namespace=%s", t.OAuthClient.Namespace))
-	}
-
-	t.Identity = append(t.Identity, fmt.Sprintf("@issuer=%s", t.Issuer))
+	t.Identity = append(t.Identity, t.derivedClaims()...)
 
 	j := jwt.NewWithClaims(jwt.SigningMethodES256, t)
 
@@ -259,6 +229,56 @@ func (t *IdentityToken) JWT(key crypto.PrivateKey, kid string, issuer string, au
 	sort.Strings(t.Identity)
 
 	return j.SignedString(key)
+}
+
+// derivedClaims returns the @ claims JWT derives from the token fields. It
+// is the only place they are built, so that StripDerivedClaims removes
+// exactly what JWT adds.
+func (t *IdentityToken) derivedClaims() []string {
+
+	claims := []string{fmt.Sprintf("@source:type=%s", t.Source.Type)}
+
+	if t.Source.Namespace != "" {
+		claims = append(claims, fmt.Sprintf("@source:namespace=%s", t.Source.Namespace))
+	}
+
+	if t.Source.Name != "" {
+		claims = append(claims, fmt.Sprintf("@source:name=%s", t.Source.Name))
+	}
+
+	if t.OAuthApplication.ID != "" {
+		claims = append(claims, fmt.Sprintf("@oauthapp:id=%s", t.OAuthApplication.ID))
+	}
+
+	if t.OAuthApplication.Namespace != "" {
+		claims = append(claims, fmt.Sprintf("@oauthapp:namespace=%s", t.OAuthApplication.Namespace))
+	}
+
+	if t.OAuthApplication.Name != "" {
+		claims = append(claims, fmt.Sprintf("@oauthapp:name=%s", t.OAuthApplication.Name))
+	}
+
+	if t.OAuthClient.ClientID != "" {
+		claims = append(claims, fmt.Sprintf("@oauthclient:clientid=%s", t.OAuthClient.ClientID))
+	}
+
+	if t.OAuthClient.Namespace != "" {
+		claims = append(claims, fmt.Sprintf("@oauthclient:namespace=%s", t.OAuthClient.Namespace))
+	}
+
+	claims = append(claims, fmt.Sprintf("@issuer=%s", t.Issuer))
+
+	return claims
+}
+
+// StripDerivedClaims removes the @ claims JWT derives from the token fields,
+// so a parsed token can be signed again without doubling them. Other @ claims,
+// such as those a plugin adds, are kept, as nothing would add them back.
+func (t *IdentityToken) StripDerivedClaims() {
+	derived := t.derivedClaims()
+	t.Identity = slices.DeleteFunc(slices.Clone(t.Identity), func(claim string) bool {
+		return slices.Contains(derived, claim)
+	})
 }
 
 // Restrict applies the given permissions to the token. If the token is not already restricted

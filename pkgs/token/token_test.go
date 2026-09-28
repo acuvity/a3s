@@ -421,6 +421,105 @@ func TestParseUnverified(t *testing.T) {
 	})
 }
 
+func TestIdentityToken_StripDerivedClaims(t *testing.T) {
+
+	Convey("Given a token parsed back after signing", t, func() {
+
+		cert, key := getECCert()
+		keychain := NewJWKS()
+		_ = keychain.Append(cert)
+
+		idt := NewIdentityToken(Source{Type: "oidc", Namespace: "/", Name: "corp"})
+		// @org stands for an @ claim a plugin adds, which JWT does not derive.
+		idt.Identity = []string{"@org=acme", "email=user@example.com", "group=admins"}
+		idt.OAuthApplication = OAuthApplication{ID: "app-1", Namespace: "/apps", Name: "portal"}
+		idt.OAuthClient = OAuthClient{ClientID: "client-1", Namespace: "/apps"}
+
+		kid := keychain.GetLast().KID
+		signed, err := idt.JWT(key, kid, "iss", jwt.ClaimStrings{"aud"}, time.Now().Add(time.Hour), nil)
+		So(err, ShouldBeNil)
+
+		parsed, err := Parse(signed, keychain, "iss", "aud")
+		So(err, ShouldBeNil)
+
+		Convey("When I strip the derived claims", func() {
+
+			parsed.StripDerivedClaims()
+
+			Convey("Then only the identity claims should remain", func() {
+				So(parsed.Identity, ShouldResemble, []string{"@org=acme", "email=user@example.com", "group=admins"})
+			})
+
+			Convey("Then the fields they were derived from should be kept", func() {
+				So(parsed.Source, ShouldResemble, idt.Source)
+				So(parsed.OAuthApplication, ShouldResemble, idt.OAuthApplication)
+				So(parsed.OAuthClient, ShouldResemble, idt.OAuthClient)
+			})
+
+			Convey("Then signing it again should not double them", func() {
+				resigned, err := parsed.JWT(key, kid, "iss", jwt.ClaimStrings{"aud"}, time.Now().Add(time.Hour), nil)
+				So(err, ShouldBeNil)
+
+				reparsed, err := Parse(resigned, keychain, "iss", "aud")
+				So(err, ShouldBeNil)
+				So(reparsed.Identity, ShouldResemble, idt.Identity)
+			})
+		})
+	})
+}
+
+// fillStrings sets every exported string field of v, recursing into nested
+// structs, to a value naming the field.
+func fillStrings(v reflect.Value) {
+	for i := range v.NumField() {
+		field := v.Field(i)
+		if !v.Type().Field(i).IsExported() {
+			continue
+		}
+		switch field.Kind() {
+		case reflect.String:
+			field.SetString("value-" + v.Type().Field(i).Name)
+		case reflect.Struct:
+			fillStrings(field)
+		}
+	}
+}
+
+// Every @ claim JWT adds must come from derivedClaims, or StripDerivedClaims
+// would leave it behind and signing again would double it. Filling every
+// field covers claims derived from fields added later.
+func TestIdentityToken_JWTOnlyAddsDerivedClaims(t *testing.T) {
+
+	Convey("Given a token with every field set and no identity claims", t, func() {
+
+		cert, key := getECCert()
+		keychain := NewJWKS()
+		_ = keychain.Append(cert)
+
+		idt := &IdentityToken{}
+		fillStrings(reflect.ValueOf(idt).Elem())
+
+		kid := keychain.GetLast().KID
+		signed, err := idt.JWT(key, kid, "iss", jwt.ClaimStrings{"aud"}, time.Now().Add(time.Hour), nil)
+		So(err, ShouldBeNil)
+
+		parsed, err := Parse(signed, keychain, "iss", "aud")
+		So(err, ShouldBeNil)
+
+		Convey("Then parsing should restore the fields the claims derive from", func() {
+			So(parsed.Source, ShouldResemble, idt.Source)
+			So(parsed.OAuthApplication, ShouldResemble, idt.OAuthApplication)
+			So(parsed.OAuthClient, ShouldResemble, idt.OAuthClient)
+		})
+
+		Convey("Then stripping the derived claims should leave none", func() {
+			So(parsed.Identity, ShouldNotBeEmpty)
+			parsed.StripDerivedClaims()
+			So(parsed.Identity, ShouldBeEmpty)
+		})
+	})
+}
+
 func TestIdentityToken_Restrict(t *testing.T) {
 	type args struct {
 		restrictions permissions.Restrictions
