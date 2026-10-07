@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"go.acuvity.ai/a3s/pkgs/api"
+	"go.acuvity.ai/a3s/pkgs/namespace"
 	"go.acuvity.ai/elemental"
 	"go.acuvity.ai/manipulate"
 )
@@ -89,11 +90,11 @@ func DeleteOrphanedObjects(
 
 	for i, deletionRecord := range deletionRecords {
 
-		namespace := *(deletionRecord.(*api.SparseNamespaceDeletionRecord).Namespace)
+		ns := *(deletionRecord.(*api.SparseNamespaceDeletionRecord).Namespace)
 		deletionDate := *(deletionRecord.(*api.SparseNamespaceDeletionRecord).DeleteTime)
 
 		filters = append(filters, elemental.NewFilterComposer().And(
-			manipulate.NewNamespaceFilter(namespace, true),
+			namespace.NewSubtreeFilter(ns),
 			elemental.NewFilterComposer().Or(
 				elemental.NewFilterComposer().WithKey("createTime").NotExists().Done(),
 				elemental.NewFilterComposer().WithKey("createTime").LesserThan(deletionDate).Done(),
