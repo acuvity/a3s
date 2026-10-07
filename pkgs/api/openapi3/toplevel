@@ -1340,6 +1340,22 @@
         },
         "type": "object"
       },
+      "namespacelifecycle": {
+        "description": "Private non-expiring namespace lifecycle coordination. This model has no public\nCRUD route. Its identifier binds the native namespace incarnation, not its name.",
+        "properties": {
+          "ID": {
+            "description": "ID is the identifier of the object.",
+            "readOnly": true,
+            "type": "string"
+          },
+          "namespace": {
+            "description": "The namespace of the object.",
+            "readOnly": true,
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
       "oauth2source": {
         "description": "An Oauth Auth source can be used to issue tokens based on supported OAuth2\nproviders. accounts.",
         "properties": {

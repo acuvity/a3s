@@ -156,6 +156,12 @@
       },
       "type": "array"
     },
+    "namespacelifecycles": {
+      "items": {
+        "$ref": "namespacelifecycle.json"
+      },
+      "type": "array"
+    },
     "namespaces": {
       "items": {
         "$ref": "namespace.json"

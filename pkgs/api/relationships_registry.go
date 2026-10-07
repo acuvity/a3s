@@ -432,6 +432,8 @@ func init() {
 		},
 	}
 
+	relationshipsRegistry[NamespaceLifecycleIdentity] = &elemental.Relationship{}
+
 	relationshipsRegistry[OAuth2SourceIdentity] = &elemental.Relationship{
 		Create: map[string]*elemental.RelationshipInfo{
 			"root": {},
