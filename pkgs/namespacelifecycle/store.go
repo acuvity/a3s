@@ -68,6 +68,11 @@ func (s *Store) Initialize(ctx context.Context, ref Namespace, ancestors []Names
 	if state.Ancestors == nil {
 		state.Ancestors = []Namespace{}
 	}
+	return s.initialize(ctx, state)
+}
+
+func (s *Store) initialize(ctx context.Context, state State) (State, error) {
+	ref := state.Namespace
 	data, err := encode(state)
 	if err != nil {
 		return State{}, err

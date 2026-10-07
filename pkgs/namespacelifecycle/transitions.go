@@ -14,7 +14,7 @@ func (s *Store) Admit(ctx context.Context, expected State, pin Pin) (State, bool
 	if !validState(expected) || !validPin(pin, expected.Namespace) || pin.Terminal != nil {
 		return State{}, false, ErrInvalid
 	}
-	if expected.Phase != "open" {
+	if expected.Phase != "open" || expected.Deletion != nil {
 		return State{}, false, nil
 	}
 	if len(expected.Pins) >= MaxPins {
@@ -94,6 +94,9 @@ func (s *Store) Seal(ctx context.Context, expected State, intent Intent) (State,
 	if !validState(expected) || expected.Namespace.Name == "/" || !validIntent(intent) {
 		return State{}, false, ErrInvalid
 	}
+	if expected.Creation != nil {
+		return State{}, false, ErrPending // Source-owned namespaces use Begin/SealOwnedDeletion.
+	}
 	if expected.Intent != nil {
 		if !reflect.DeepEqual(*expected.Intent, intent) {
 			return State{}, false, ErrConflict
@@ -158,6 +161,9 @@ func (s *Store) ConfirmDeleted(ctx context.Context, expected State) (State, bool
 	}
 	if expected.Phase == "deleted" {
 		return State{}, false, nil
+	}
+	if expected.Deletion != nil {
+		return State{}, false, ErrPending // Exact live native result must be retained.
 	}
 	if expected.Phase != "attempted" {
 		return State{}, false, ErrConflict

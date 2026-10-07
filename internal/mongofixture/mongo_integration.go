@@ -117,7 +117,7 @@ func New(t *testing.T) manipulate.Manipulator {
 		}
 		time.Sleep(25 * time.Millisecond)
 	}
-	m, err := manipmongo.New(fmt.Sprintf("mongodb://127.0.0.1:%d/?directConnection=true", port), "namespace_lifecycle_qualification",
+	m, err := manipmongo.New(fmt.Sprintf("mongodb://127.0.0.1:%d/?directConnection=true&retryWrites=false", port), "namespace_lifecycle_qualification",
 		manipmongo.OptionSharder(sharder.New(&hasher.Hasher{})),
 		manipmongo.OptionTranslateKeysFromModelManager(api.Manager()),
 		manipmongo.OptionConnectionTimeout(5*time.Second),

@@ -76,14 +76,16 @@ type DrainProof struct {
 
 // State is a detached snapshot. Reading it never restores execution authority.
 type State struct {
-	Version   string       `json:"version"`
-	Namespace Namespace    `json:"namespace"`
-	Ancestors []Namespace  `json:"ancestors"`
-	Revision  int64        `json:"revision"`
-	Phase     string       `json:"phase"`
-	Pins      []Pin        `json:"pins"`
-	Intent    *Intent      `json:"intent,omitempty"`
-	Drains    []DrainProof `json:"drains"`
+	Version   string         `json:"version"`
+	Namespace Namespace      `json:"namespace"`
+	Ancestors []Namespace    `json:"ancestors"`
+	Revision  int64          `json:"revision"`
+	Phase     string         `json:"phase"`
+	Pins      []Pin          `json:"pins"`
+	Intent    *Intent        `json:"intent,omitempty"`
+	Drains    []DrainProof   `json:"drains"`
+	Creation  *Creation      `json:"creation,omitempty"`
+	Deletion  *OwnedDeletion `json:"deletion,omitempty"`
 }
 
 func validNamespace(ref Namespace) bool {
@@ -125,7 +127,7 @@ func validTerminal(proof TerminalProof) bool {
 }
 
 func validState(s State) bool {
-	if s.Version != "namespace-lifecycle.v1" || !validNamespace(s.Namespace) || s.Revision < 1 || s.Revision > maxRevision || len(s.Ancestors) >= MaxDepth || len(s.Pins) > MaxPins || len(s.Drains) > MaxParticipants {
+	if (s.Version != "namespace-lifecycle.v1" && s.Version != "namespace-lifecycle.v2") || !validNamespace(s.Namespace) || s.Revision < 1 || s.Revision > maxRevision || len(s.Ancestors) >= MaxDepth || len(s.Pins) > MaxPins || len(s.Drains) > MaxParticipants {
 		return false
 	}
 	previous := Namespace{}
@@ -143,13 +145,19 @@ func validState(s State) bool {
 	} else if len(s.Ancestors) == 0 || path.Dir(s.Namespace.Name) != previous.Name {
 		return false
 	}
+	if !validCreation(s) || !validOwnedDeletion(s) {
+		return false
+	}
+	if s.Phase == "forming" {
+		return s.Version == "namespace-lifecycle.v2"
+	}
 	for i, pin := range s.Pins {
 		if !validPin(pin, s.Namespace) || i > 0 && pin.ID <= s.Pins[i-1].ID {
 			return false
 		}
 	}
 	if s.Phase == "open" {
-		return s.Intent == nil && len(s.Drains) == 0
+		return len(s.Drains) == 0 && (s.Intent == nil || s.Deletion != nil)
 	}
 	if s.Namespace.Name == "/" || s.Intent == nil || !validIntent(*s.Intent) {
 		return false
@@ -216,7 +224,22 @@ func admissionFits(s State) bool {
 	// Deliberately a sizing envelope: pins and final proofs cannot coexist in a
 	// real attempted state. Do not pass this envelope through state validation.
 	encoded, err := json.Marshal(future)
-	return err == nil && len(encoded) <= MaxStateBytes
+	reserved := 0
+	if future.Creation != nil {
+		owner, ownerErr := json.Marshal(future.Creation)
+		if ownerErr != nil || len(owner) > maxCreationBytes {
+			return false
+		}
+		reserved = maxCreationBytes - len(owner) + maxOwnedDeletionBytes
+		if future.Deletion != nil {
+			deletion, err := json.Marshal(future.Deletion)
+			if err != nil || len(deletion) > maxOwnedDeletionBytes {
+				return false
+			}
+			reserved -= len(deletion)
+		}
+	}
+	return err == nil && len(encoded)+reserved <= MaxStateBytes
 }
 
 // Every accepted transition reserves the remaining monotonic path, including
@@ -230,12 +253,32 @@ func progressRevisions(s State) int64 {
 		}
 	}
 	switch s.Phase {
+	case "forming":
+		// Reserve bounded source/ancestor/enrollment progress before ownership.
+		needed += 5*MaxDepth + 3*MaxParticipants + 8
 	case "open":
 		needed += 1 + MaxParticipants + 2 // seal, proofs, attempt, confirm
+		if s.Creation != nil {
+			needed += 5*MaxDepth + 4 // retained source deletion ownership
+		}
 	case "closing":
 		needed += int64(len(s.Intent.Participants)-len(s.Drains)) + 2
 	case "attempted":
 		needed++
+	}
+	if s.Deletion != nil {
+		for _, phase := range s.Deletion.Acquisitions {
+			switch phase {
+			case "planned":
+				needed += 4
+			case "attempted":
+				needed += 3
+			case "held":
+				needed += 2
+			case "terminal":
+				needed++
+			}
+		}
 	}
 	return needed
 }
