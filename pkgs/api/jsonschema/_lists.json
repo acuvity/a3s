@@ -162,6 +162,12 @@
       },
       "type": "array"
     },
+    "namespaceparticipations": {
+      "items": {
+        "$ref": "namespaceparticipation.json"
+      },
+      "type": "array"
+    },
     "namespaces": {
       "items": {
         "$ref": "namespace.json"
