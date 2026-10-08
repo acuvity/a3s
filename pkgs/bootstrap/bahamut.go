@@ -212,6 +212,11 @@ func MakeBahamutGatewayNotifier(
 		nopts = append([]push.NotifierOption{push.OptionNotifierAnnounceRateLimits(rls)}, nopts...)
 	}
 
+	anouncedRegion := c.GWAnnouncedRegion
+	if anouncedRegion != "" {
+		nopts = append([]push.NotifierOption{push.OptionNotifierAnnounceRegion(anouncedRegion)}, nopts...)
+	}
+
 	nw := push.NewNotifier(
 		pubsub,
 		gatewayTopic,
@@ -229,6 +234,7 @@ func MakeBahamutGatewayNotifier(
 		"Gateway topic set",
 		"topic", gatewayTopic,
 		"service", serviceName,
+		"region", anouncedRegion,
 	)
 
 	return opts
