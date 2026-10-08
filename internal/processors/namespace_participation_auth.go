@@ -32,6 +32,10 @@ func NewNamespaceParticipationAuthorizer(authn *authenticator.Authenticator, ret
 }
 
 func (a *NamespaceParticipationAuthorizer) bind(bctx bahamut.Context, command namespaceParticipationCommand) (func() error, error) {
+	return a.bindContext(bctx.Context(), bctx, command)
+}
+
+func (a *NamespaceParticipationAuthorizer) bindContext(ctx context.Context, bctx bahamut.Context, command namespaceParticipationCommand) (func() error, error) {
 	original := bctx.Request()
 	namespace, ip, bearer := original.Namespace, original.ClientIP, token.FromRequest(original)
 	data := bytes.Clone(original.Data)
@@ -44,7 +48,7 @@ func (a *NamespaceParticipationAuthorizer) bind(bctx bahamut.Context, command na
 		return err == nil && current == command
 	}
 	check := func() error {
-		return a.checkNative(bctx.Context(), namespace, original.ObjectID, ip, bearer, api.NamespaceParticipationIdentity, elemental.OperationCreate, bound)
+		return a.checkNative(ctx, namespace, original.ObjectID, ip, bearer, api.NamespaceParticipationIdentity, elemental.OperationCreate, bound)
 	}
 	if err := check(); err != nil {
 		return nil, err

@@ -34,6 +34,7 @@ type NamespaceParticipationStore interface {
 type NamespaceParticipationProcessor struct {
 	store      NamespaceParticipationStore
 	authorizer *NamespaceParticipationAuthorizer
+	capture    *namespacelifecycle.CaptureInspector
 }
 
 func NewNamespaceParticipationProcessor(store NamespaceParticipationStore, authorizer *NamespaceParticipationAuthorizer) (*NamespaceParticipationProcessor, error) {
@@ -103,10 +104,20 @@ func participationCommand(r *elemental.Request) (namespaceParticipationCommand, 
 		*field = text
 		delete(fields, name)
 	}
-	if end, err := d.Token(); err != nil || end != json.Delim('}') || len(fields) > 1 || len(fields) == 1 && fields["deletionIntentID"] == nil {
+	if end, err := d.Token(); err != nil || end != json.Delim('}') {
 		return out, bad
 	}
 	if _, err := d.Token(); err != io.EOF {
+		return out, bad
+	}
+	if out.Action == "CaptureScope" {
+		// No client namespace/operation/registry assertions, even empty ones.
+		if len(fields) != 4 || fields["action"] != nil || fields["participant"] != nil || out.Participant != "hanni" {
+			return out, bad
+		}
+		return out, nil
+	}
+	if len(fields) > 1 || len(fields) == 1 && fields["deletionIntentID"] == nil {
 		return out, bad
 	}
 	if (out.Action != "Inspect" && out.Action != "ClaimEnrollment" && out.Action != "InspectDeletion") || !participationID.MatchString(out.NamespaceID) || out.NamespaceID == strings.Repeat("0", 24) ||
@@ -127,6 +138,9 @@ func (p *NamespaceParticipationProcessor) ProcessCreate(bctx bahamut.Context) er
 	command, err := participationCommand(bctx.Request())
 	if err != nil {
 		return err
+	}
+	if command.Action == "CaptureScope" {
+		return p.processCapture(bctx, command)
 	}
 	check, err := p.authorizer.bind(bctx, command)
 	if err != nil {

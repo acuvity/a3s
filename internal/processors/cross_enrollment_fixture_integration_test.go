@@ -78,6 +78,7 @@ type crossFixture struct {
 	kid                          string
 	dropClaim                    atomic.Bool
 	policyReads, revocationReads atomic.Int64
+	participationRequests        atomic.Int64
 }
 
 func crossMust(t *testing.T, err error) {
@@ -173,8 +174,11 @@ func newCrossFixture(t *testing.T, ctx context.Context, dir string) *crossFixtur
 	bound, err := NewNamespaceParticipationAuthorizer(authn, retriever)
 	crossMust(t, err)
 	f.claims = &crossClaims{Store: f.store}
-	participation, err := NewNamespaceParticipationProcessor(f.claims, bound)
+	participation, err := NewNamespaceCaptureProcessor(f.store, f.native, bound)
 	crossMust(t, err)
+	// Preserve the real enrollment CAS observer; capture keeps its concrete
+	// source/native inspector and never acquires a claim through this hook.
+	participation.store = f.claims
 	policy := NewPermissionsProcessor(retriever)
 	revocations := NewRevocationsProcessor(f.m, nil)
 	f.server = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, h *http.Request) {
@@ -183,6 +187,9 @@ func newCrossFixture(t *testing.T, ctx context.Context, dir string) *crossFixtur
 		if err != nil {
 			http.Error(w, "invalid", http.StatusUnprocessableEntity)
 			return
+		}
+		if h.URL.Path == "/namespaceparticipations" {
+			f.participationRequests.Add(1)
 		}
 		b := bahamut.NewContext(h.Context(), r)
 		if action, err := authn.AuthenticateRequest(b); err != nil || action != bahamut.AuthActionContinue {

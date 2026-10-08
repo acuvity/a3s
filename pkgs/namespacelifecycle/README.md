@@ -36,6 +36,12 @@ The explicit `/namespaceparticipations` processor inspects current owner state a
 
 The bounded Hanni adapters use trusted configured endpoints and token providers, refuse redirects/retries, and validate exact source/enrollment/drain bindings. Read-only inspection never initializes a missing gate. Enrollment proof and publication-only drain proof remain distinct. No caller-supplied Boolean or digest establishes writer/cleaner coverage.
 
+## Read-only original producer capture (W1)
+
+`CaptureScope` is a separately explicit action under `NewNamespaceCaptureProcessor`; normal participation/runtime construction still does not enable it. At a genuine live producer boundary it resolves a canonical namespace name to the exact current ID/name/ordered ancestry, then verifies ready/open owner state, native creation markers and confirmed Hanni enrollment throughout that chain. It reuses the bounded `namespace-enrollment.v1` snapshot and returns `granted:false`. No pin, creation/deletion claim, enrollment, registration or write grant is consumed.
+
+The action uses current native participation token verification, ID/IAT revocation, uncached resource/IP/restriction permissions and request binding. Missing, replaced, incomplete or closing scopes hold. Consumers may compare this evidence with a retained original binding, never substitute current lookup results during historical replay. This does not establish the observation-time incarnation of previously buffered client reports. Signed owned Mongo/HTTP tests and the real two-process native client tracer cover Capture/Verify and denial without changing owner/native counters or rows.
+
 ## Bounds
 
 - At most 64 topology pins, 32 namespace levels, 16 participants and 64 KiB canonical lifecycle JSON. Hanni's development registration profile is narrower: at most 16 ancestors and 128 lifetime registrations; unsupported inputs hold.
