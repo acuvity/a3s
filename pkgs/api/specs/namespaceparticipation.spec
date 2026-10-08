@@ -15,12 +15,13 @@ attributes:
   v1:
   - name: action
     friendly_name: Action
-    description: Inspect retained enrollment or claim one live enrollment attempt.
+    description: Inspect retained metadata, claim enrollment, or capture current owner scope without writer authority.
     type: enum
     allowed_choices:
     - Inspect
     - ClaimEnrollment
     - InspectDeletion
+    - CaptureScope
     exposed: true
     required: true
     example_value: Inspect
@@ -34,18 +35,18 @@ attributes:
 
   - name: namespaceID
     friendly_name: NamespaceID
-    description: Exact native namespace incarnation.
+    description: Exact native namespace incarnation. Required except for CaptureScope, which forbids this field.
     type: string
     exposed: true
-    required: true
+    omit_empty: true
     example_value: '111111111111111111111111'
 
   - name: operationID
     friendly_name: OperationID
-    description: Exact source-owned creation operation.
+    description: Exact source-owned creation operation. Required except for CaptureScope, which forbids this field.
     type: string
     exposed: true
-    required: true
+    omit_empty: true
     example_value: owner-operation
 
   - name: participant
@@ -58,10 +59,10 @@ attributes:
 
   - name: registryID
     friendly_name: RegistryID
-    description: Exact participant registry ID, equal to namespaceID.
+    description: Exact participant registry ID, equal to namespaceID. Required except for CaptureScope, which forbids this field.
     type: string
     exposed: true
-    required: true
+    omit_empty: true
     example_value: '111111111111111111111111'
 
   - name: granted

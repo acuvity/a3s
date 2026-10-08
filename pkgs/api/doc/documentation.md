@@ -3077,9 +3077,9 @@ Inspect or claim namespace enrollment through explicit development composition.
 
 ##### `action` [`required`]
 
-Type: `enum(Inspect | ClaimEnrollment | InspectDeletion)`
+Type: `enum(Inspect | ClaimEnrollment | InspectDeletion | CaptureScope)`
 
-Inspect retained enrollment or claim one live enrollment attempt.
+Inspect retained metadata, claim enrollment, or capture current owner scope without writer authority.
 
 ##### `deletionIntentID`
 
@@ -3093,17 +3093,17 @@ Type: `boolean`
 
 True only for an acknowledged live attempted-to-claimed CAS.
 
-##### `namespaceID` [`required`]
+##### `namespaceID`
 
 Type: `string`
 
-Exact native namespace incarnation.
+Exact native namespace incarnation. Required except for CaptureScope, which forbids this field.
 
-##### `operationID` [`required`]
+##### `operationID`
 
 Type: `string`
 
-Exact source-owned creation operation.
+Exact source-owned creation operation. Required except for CaptureScope, which forbids this field.
 
 ##### `participant` [`required`]
 
@@ -3111,11 +3111,11 @@ Type: `string`
 
 Trusted participant identifier, currently hanni.
 
-##### `registryID` [`required`]
+##### `registryID`
 
 Type: `string`
 
-Exact participant registry ID, equal to namespaceID.
+Exact participant registry ID, equal to namespaceID. Required except for CaptureScope, which forbids this field.
 
 ##### `snapshot` [`read_only`]
 

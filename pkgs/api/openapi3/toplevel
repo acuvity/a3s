@@ -1360,11 +1360,12 @@
         "description": "Explicit development-only namespace enrollment command. No normal processor\nregistration enables this resource. All actions require current Create permission.",
         "properties": {
           "action": {
-            "description": "Inspect retained enrollment or claim one live enrollment attempt.",
+            "description": "Inspect retained metadata, claim enrollment, or capture current owner scope without writer authority.",
             "enum": [
               "Inspect",
               "ClaimEnrollment",
-              "InspectDeletion"
+              "InspectDeletion",
+              "CaptureScope"
             ],
             "example": "Inspect"
           },
@@ -1378,12 +1379,12 @@
             "type": "boolean"
           },
           "namespaceID": {
-            "description": "Exact native namespace incarnation.",
+            "description": "Exact native namespace incarnation. Required except for CaptureScope, which forbids this field.",
             "example": "111111111111111111111111",
             "type": "string"
           },
           "operationID": {
-            "description": "Exact source-owned creation operation.",
+            "description": "Exact source-owned creation operation. Required except for CaptureScope, which forbids this field.",
             "example": "owner-operation",
             "type": "string"
           },
@@ -1393,7 +1394,7 @@
             "type": "string"
           },
           "registryID": {
-            "description": "Exact participant registry ID, equal to namespaceID.",
+            "description": "Exact participant registry ID, equal to namespaceID. Required except for CaptureScope, which forbids this field.",
             "example": "111111111111111111111111",
             "type": "string"
           },
@@ -1408,10 +1409,7 @@
         },
         "required": [
           "action",
-          "namespaceID",
-          "operationID",
-          "participant",
-          "registryID"
+          "participant"
         ],
         "type": "object"
       },

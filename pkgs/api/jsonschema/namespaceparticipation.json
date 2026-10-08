@@ -12,11 +12,12 @@
     "action": {
       "$friendlyName": "Action",
       "$required": true,
-      "description": "Inspect retained enrollment or claim one live enrollment attempt.",
+      "description": "Inspect retained metadata, claim enrollment, or capture current owner scope without writer authority.",
       "enum": [
         "Inspect",
         "ClaimEnrollment",
-        "InspectDeletion"
+        "InspectDeletion",
+        "CaptureScope"
       ],
       "title": "action"
     },
@@ -41,17 +42,21 @@
     },
     "namespaceID": {
       "$friendlyName": "NamespaceID",
-      "$required": true,
-      "description": "Exact native namespace incarnation.",
+      "description": "Exact native namespace incarnation. Required except for CaptureScope, which forbids this field.",
       "title": "namespaceID",
-      "type": "string"
+      "type": [
+        "string",
+        "null"
+      ]
     },
     "operationID": {
       "$friendlyName": "OperationID",
-      "$required": true,
-      "description": "Exact source-owned creation operation.",
+      "description": "Exact source-owned creation operation. Required except for CaptureScope, which forbids this field.",
       "title": "operationID",
-      "type": "string"
+      "type": [
+        "string",
+        "null"
+      ]
     },
     "participant": {
       "$friendlyName": "Participant",
@@ -62,10 +67,12 @@
     },
     "registryID": {
       "$friendlyName": "RegistryID",
-      "$required": true,
-      "description": "Exact participant registry ID, equal to namespaceID.",
+      "description": "Exact participant registry ID, equal to namespaceID. Required except for CaptureScope, which forbids this field.",
       "title": "registryID",
-      "type": "string"
+      "type": [
+        "string",
+        "null"
+      ]
     },
     "snapshot": {
       "$friendlyName": "Snapshot",
@@ -78,10 +85,7 @@
   },
   "required": [
     "action",
-    "namespaceID",
-    "operationID",
-    "participant",
-    "registryID"
+    "participant"
   ],
   "title": "NamespaceParticipation",
   "type": "object"

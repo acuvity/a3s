@@ -16,6 +16,9 @@ import (
 type NamespaceParticipationActionValue string
 
 const (
+	// NamespaceParticipationActionCaptureScope represents the value CaptureScope.
+	NamespaceParticipationActionCaptureScope NamespaceParticipationActionValue = "CaptureScope"
+
 	// NamespaceParticipationActionClaimEnrollment represents the value ClaimEnrollment.
 	NamespaceParticipationActionClaimEnrollment NamespaceParticipationActionValue = "ClaimEnrollment"
 
@@ -98,7 +101,7 @@ func (o NamespaceParticipationsList) Version() int {
 
 // NamespaceParticipation represents the model of a namespaceparticipation
 type NamespaceParticipation struct {
-	// Inspect retained enrollment or claim one live enrollment attempt.
+	// Inspect retained metadata, claim enrollment, or capture current owner scope without writer authority.
 	Action NamespaceParticipationActionValue `json:"action" msgpack:"action" bson:"-" mapstructure:"action,omitempty"`
 
 	// Exact retained deletion intent for InspectDeletion only.
@@ -107,17 +110,17 @@ type NamespaceParticipation struct {
 	// True only for an acknowledged live attempted-to-claimed CAS.
 	Granted bool `json:"granted" msgpack:"granted" bson:"-" mapstructure:"granted,omitempty"`
 
-	// Exact native namespace incarnation.
-	NamespaceID string `json:"namespaceID" msgpack:"namespaceID" bson:"-" mapstructure:"namespaceID,omitempty"`
+	// Exact native namespace incarnation. Required except for CaptureScope, which forbids this field.
+	NamespaceID string `json:"namespaceID,omitempty" msgpack:"namespaceID,omitempty" bson:"-" mapstructure:"namespaceID,omitempty"`
 
-	// Exact source-owned creation operation.
-	OperationID string `json:"operationID" msgpack:"operationID" bson:"-" mapstructure:"operationID,omitempty"`
+	// Exact source-owned creation operation. Required except for CaptureScope, which forbids this field.
+	OperationID string `json:"operationID,omitempty" msgpack:"operationID,omitempty" bson:"-" mapstructure:"operationID,omitempty"`
 
 	// Trusted participant identifier, currently hanni.
 	Participant string `json:"participant" msgpack:"participant" bson:"-" mapstructure:"participant,omitempty"`
 
-	// Exact participant registry ID, equal to namespaceID.
-	RegistryID string `json:"registryID" msgpack:"registryID" bson:"-" mapstructure:"registryID,omitempty"`
+	// Exact participant registry ID, equal to namespaceID. Required except for CaptureScope, which forbids this field.
+	RegistryID string `json:"registryID,omitempty" msgpack:"registryID,omitempty" bson:"-" mapstructure:"registryID,omitempty"`
 
 	// Validated source-owned namespace-enrollment.v1 metadata, never caller authority.
 	Snapshot map[string]any `json:"snapshot" msgpack:"snapshot" bson:"-" mapstructure:"snapshot,omitempty"`
@@ -334,23 +337,11 @@ func (o *NamespaceParticipation) Validate() error {
 		requiredErrors = requiredErrors.Append(err)
 	}
 
-	if err := elemental.ValidateStringInList("action", string(o.Action), []string{"Inspect", "ClaimEnrollment", "InspectDeletion"}, false); err != nil {
+	if err := elemental.ValidateStringInList("action", string(o.Action), []string{"Inspect", "ClaimEnrollment", "InspectDeletion", "CaptureScope"}, false); err != nil {
 		errors = errors.Append(err)
 	}
 
-	if err := elemental.ValidateRequiredString("namespaceID", o.NamespaceID); err != nil {
-		requiredErrors = requiredErrors.Append(err)
-	}
-
-	if err := elemental.ValidateRequiredString("operationID", o.OperationID); err != nil {
-		requiredErrors = requiredErrors.Append(err)
-	}
-
 	if err := elemental.ValidateRequiredString("participant", o.Participant); err != nil {
-		requiredErrors = requiredErrors.Append(err)
-	}
-
-	if err := elemental.ValidateRequiredString("registryID", o.RegistryID); err != nil {
 		requiredErrors = requiredErrors.Append(err)
 	}
 
@@ -412,9 +403,9 @@ func (o *NamespaceParticipation) ValueForAttribute(name string) any {
 // NamespaceParticipationAttributesMap represents the map of attribute for NamespaceParticipation.
 var NamespaceParticipationAttributesMap = map[string]elemental.AttributeSpecification{
 	"Action": {
-		AllowedChoices: []string{"Inspect", "ClaimEnrollment", "InspectDeletion"},
+		AllowedChoices: []string{"Inspect", "ClaimEnrollment", "InspectDeletion", "CaptureScope"},
 		ConvertedName:  "Action",
-		Description:    `Inspect retained enrollment or claim one live enrollment attempt.`,
+		Description:    `Inspect retained metadata, claim enrollment, or capture current owner scope without writer authority.`,
 		Exposed:        true,
 		Name:           "action",
 		Required:       true,
@@ -440,19 +431,17 @@ var NamespaceParticipationAttributesMap = map[string]elemental.AttributeSpecific
 	"NamespaceID": {
 		AllowedChoices: []string{},
 		ConvertedName:  "NamespaceID",
-		Description:    `Exact native namespace incarnation.`,
+		Description:    `Exact native namespace incarnation. Required except for CaptureScope, which forbids this field.`,
 		Exposed:        true,
 		Name:           "namespaceID",
-		Required:       true,
 		Type:           "string",
 	},
 	"OperationID": {
 		AllowedChoices: []string{},
 		ConvertedName:  "OperationID",
-		Description:    `Exact source-owned creation operation.`,
+		Description:    `Exact source-owned creation operation. Required except for CaptureScope, which forbids this field.`,
 		Exposed:        true,
 		Name:           "operationID",
-		Required:       true,
 		Type:           "string",
 	},
 	"Participant": {
@@ -467,10 +456,9 @@ var NamespaceParticipationAttributesMap = map[string]elemental.AttributeSpecific
 	"RegistryID": {
 		AllowedChoices: []string{},
 		ConvertedName:  "RegistryID",
-		Description:    `Exact participant registry ID, equal to namespaceID.`,
+		Description:    `Exact participant registry ID, equal to namespaceID. Required except for CaptureScope, which forbids this field.`,
 		Exposed:        true,
 		Name:           "registryID",
-		Required:       true,
 		Type:           "string",
 	},
 	"Snapshot": {
@@ -488,9 +476,9 @@ var NamespaceParticipationAttributesMap = map[string]elemental.AttributeSpecific
 // NamespaceParticipationLowerCaseAttributesMap represents the map of attribute for NamespaceParticipation.
 var NamespaceParticipationLowerCaseAttributesMap = map[string]elemental.AttributeSpecification{
 	"action": {
-		AllowedChoices: []string{"Inspect", "ClaimEnrollment", "InspectDeletion"},
+		AllowedChoices: []string{"Inspect", "ClaimEnrollment", "InspectDeletion", "CaptureScope"},
 		ConvertedName:  "Action",
-		Description:    `Inspect retained enrollment or claim one live enrollment attempt.`,
+		Description:    `Inspect retained metadata, claim enrollment, or capture current owner scope without writer authority.`,
 		Exposed:        true,
 		Name:           "action",
 		Required:       true,
@@ -516,19 +504,17 @@ var NamespaceParticipationLowerCaseAttributesMap = map[string]elemental.Attribut
 	"namespaceid": {
 		AllowedChoices: []string{},
 		ConvertedName:  "NamespaceID",
-		Description:    `Exact native namespace incarnation.`,
+		Description:    `Exact native namespace incarnation. Required except for CaptureScope, which forbids this field.`,
 		Exposed:        true,
 		Name:           "namespaceID",
-		Required:       true,
 		Type:           "string",
 	},
 	"operationid": {
 		AllowedChoices: []string{},
 		ConvertedName:  "OperationID",
-		Description:    `Exact source-owned creation operation.`,
+		Description:    `Exact source-owned creation operation. Required except for CaptureScope, which forbids this field.`,
 		Exposed:        true,
 		Name:           "operationID",
-		Required:       true,
 		Type:           "string",
 	},
 	"participant": {
@@ -543,10 +529,9 @@ var NamespaceParticipationLowerCaseAttributesMap = map[string]elemental.Attribut
 	"registryid": {
 		AllowedChoices: []string{},
 		ConvertedName:  "RegistryID",
-		Description:    `Exact participant registry ID, equal to namespaceID.`,
+		Description:    `Exact participant registry ID, equal to namespaceID. Required except for CaptureScope, which forbids this field.`,
 		Exposed:        true,
 		Name:           "registryID",
-		Required:       true,
 		Type:           "string",
 	},
 	"snapshot": {
@@ -624,7 +609,7 @@ func (o SparseNamespaceParticipationsList) Version() int {
 
 // SparseNamespaceParticipation represents the sparse version of a namespaceparticipation.
 type SparseNamespaceParticipation struct {
-	// Inspect retained enrollment or claim one live enrollment attempt.
+	// Inspect retained metadata, claim enrollment, or capture current owner scope without writer authority.
 	Action *NamespaceParticipationActionValue `json:"action,omitempty" msgpack:"action,omitempty" bson:"-" mapstructure:"action,omitempty"`
 
 	// Exact retained deletion intent for InspectDeletion only.
@@ -633,16 +618,16 @@ type SparseNamespaceParticipation struct {
 	// True only for an acknowledged live attempted-to-claimed CAS.
 	Granted *bool `json:"granted,omitempty" msgpack:"granted,omitempty" bson:"-" mapstructure:"granted,omitempty"`
 
-	// Exact native namespace incarnation.
+	// Exact native namespace incarnation. Required except for CaptureScope, which forbids this field.
 	NamespaceID *string `json:"namespaceID,omitempty" msgpack:"namespaceID,omitempty" bson:"-" mapstructure:"namespaceID,omitempty"`
 
-	// Exact source-owned creation operation.
+	// Exact source-owned creation operation. Required except for CaptureScope, which forbids this field.
 	OperationID *string `json:"operationID,omitempty" msgpack:"operationID,omitempty" bson:"-" mapstructure:"operationID,omitempty"`
 
 	// Trusted participant identifier, currently hanni.
 	Participant *string `json:"participant,omitempty" msgpack:"participant,omitempty" bson:"-" mapstructure:"participant,omitempty"`
 
-	// Exact participant registry ID, equal to namespaceID.
+	// Exact participant registry ID, equal to namespaceID. Required except for CaptureScope, which forbids this field.
 	RegistryID *string `json:"registryID,omitempty" msgpack:"registryID,omitempty" bson:"-" mapstructure:"registryID,omitempty"`
 
 	// Validated source-owned namespace-enrollment.v1 metadata, never caller authority.
