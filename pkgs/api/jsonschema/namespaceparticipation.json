@@ -1,0 +1,92 @@
+{
+  "$extends": [],
+  "$friendlyName": "NamespaceParticipation",
+  "$friendlyNamePlural": "NamespaceParticipations",
+  "$modelName": "NamespaceParticipation",
+  "$modelPackage": "a3s",
+  "$modelResourceName": "namespaceparticipations",
+  "$modelRestName": "namespaceparticipation",
+  "additionalProperties": false,
+  "description": "Explicit development-only namespace enrollment command. No normal processor registration enables this resource. All actions require current Create permission.",
+  "properties": {
+    "action": {
+      "$friendlyName": "Action",
+      "$required": true,
+      "description": "Inspect retained metadata, claim enrollment, or capture current owner scope without writer authority.",
+      "enum": [
+        "Inspect",
+        "ClaimEnrollment",
+        "InspectDeletion",
+        "CaptureScope"
+      ],
+      "title": "action"
+    },
+    "deletionIntentID": {
+      "$friendlyName": "DeletionIntentID",
+      "description": "Exact retained deletion intent for InspectDeletion only.",
+      "title": "deletionIntentID",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "granted": {
+      "$friendlyName": "Granted",
+      "$readOnly": true,
+      "description": "True only for an acknowledged live attempted-to-claimed CAS.",
+      "title": "granted",
+      "type": [
+        "boolean",
+        "null"
+      ]
+    },
+    "namespaceID": {
+      "$friendlyName": "NamespaceID",
+      "description": "Exact native namespace incarnation. Required except for CaptureScope, which forbids this field.",
+      "title": "namespaceID",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "operationID": {
+      "$friendlyName": "OperationID",
+      "description": "Exact source-owned creation operation. Required except for CaptureScope, which forbids this field.",
+      "title": "operationID",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "participant": {
+      "$friendlyName": "Participant",
+      "$required": true,
+      "description": "Trusted participant identifier, currently hanni.",
+      "title": "participant",
+      "type": "string"
+    },
+    "registryID": {
+      "$friendlyName": "RegistryID",
+      "description": "Exact participant registry ID, equal to namespaceID. Required except for CaptureScope, which forbids this field.",
+      "title": "registryID",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "snapshot": {
+      "$friendlyName": "Snapshot",
+      "$readOnly": true,
+      "additionalProperties": true,
+      "description": "Validated source-owned namespace-enrollment.v1 metadata, never caller authority.",
+      "title": "snapshot",
+      "type": "object"
+    }
+  },
+  "required": [
+    "action",
+    "participant"
+  ],
+  "title": "NamespaceParticipation",
+  "type": "object"
+}

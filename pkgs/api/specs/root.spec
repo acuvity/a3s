@@ -102,6 +102,10 @@ relations:
   create:
     description: Creates a new namespace.
 
+- rest_name: namespaceparticipation
+  create:
+    description: Inspect or claim namespace enrollment through explicit development composition.
+
 - rest_name: namespacedeletionrecord
   get:
     description: Retrieves the list of namespace deletion records.

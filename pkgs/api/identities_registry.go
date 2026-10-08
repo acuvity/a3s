@@ -23,6 +23,8 @@ var (
 
 		"namespace":               NamespaceIdentity,
 		"namespacedeletionrecord": NamespaceDeletionRecordIdentity,
+		"namespacelifecycle":      NamespaceLifecycleIdentity,
+		"namespaceparticipation":  NamespaceParticipationIdentity,
 		"oauth2source":            OAuth2SourceIdentity,
 		"oauthapplication":        OAuthApplicationIdentity,
 		"oauthclient":             OAuthClientIdentity,
@@ -51,6 +53,8 @@ var (
 
 		"namespaces":               NamespaceIdentity,
 		"namespacedeletionrecords": NamespaceDeletionRecordIdentity,
+		"namespacelifecycles":      NamespaceLifecycleIdentity,
+		"namespaceparticipations":  NamespaceParticipationIdentity,
 		"oauth2sources":            OAuth2SourceIdentity,
 		"oauthapplications":        OAuthApplicationIdentity,
 		"oauthclients":             OAuthClientIdentity,
@@ -134,6 +138,13 @@ var (
 			{"namespace"},
 			{"namespace", "ID"},
 		},
+		"namespacelifecycle": {
+			{":shard", ":unique", "zone", "zHash"},
+			{"namespace"},
+			{"namespace", "ID"},
+			{"namespaceName"},
+		},
+		"namespaceparticipation": nil,
 		"oauth2source": {
 			{":shard", ":unique", "zone", "zHash"},
 			{"namespace"},
@@ -251,6 +262,10 @@ func (f modelManager) Identifiable(identity elemental.Identity) elemental.Identi
 		return NewNamespace()
 	case NamespaceDeletionRecordIdentity:
 		return NewNamespaceDeletionRecord()
+	case NamespaceLifecycleIdentity:
+		return NewNamespaceLifecycle()
+	case NamespaceParticipationIdentity:
+		return NewNamespaceParticipation()
 	case OAuth2SourceIdentity:
 		return NewOAuth2Source()
 	case OAuthApplicationIdentity:
@@ -306,6 +321,10 @@ func (f modelManager) SparseIdentifiable(identity elemental.Identity) elemental.
 		return NewSparseNamespace()
 	case NamespaceDeletionRecordIdentity:
 		return NewSparseNamespaceDeletionRecord()
+	case NamespaceLifecycleIdentity:
+		return NewSparseNamespaceLifecycle()
+	case NamespaceParticipationIdentity:
+		return NewSparseNamespaceParticipation()
 	case OAuth2SourceIdentity:
 		return NewSparseOAuth2Source()
 	case OAuthApplicationIdentity:
@@ -369,6 +388,10 @@ func (f modelManager) Identifiables(identity elemental.Identity) elemental.Ident
 		return &NamespacesList{}
 	case NamespaceDeletionRecordIdentity:
 		return &NamespaceDeletionRecordsList{}
+	case NamespaceLifecycleIdentity:
+		return &NamespaceLifecyclesList{}
+	case NamespaceParticipationIdentity:
+		return &NamespaceParticipationsList{}
 	case OAuth2SourceIdentity:
 		return &OAuth2SourcesList{}
 	case OAuthApplicationIdentity:
@@ -422,6 +445,10 @@ func (f modelManager) SparseIdentifiables(identity elemental.Identity) elemental
 		return &SparseNamespacesList{}
 	case NamespaceDeletionRecordIdentity:
 		return &SparseNamespaceDeletionRecordsList{}
+	case NamespaceLifecycleIdentity:
+		return &SparseNamespaceLifecyclesList{}
+	case NamespaceParticipationIdentity:
+		return &SparseNamespaceParticipationsList{}
 	case OAuth2SourceIdentity:
 		return &SparseOAuth2SourcesList{}
 	case OAuthApplicationIdentity:
@@ -515,6 +542,8 @@ func AllIdentities() []elemental.Identity {
 		MTLSSourceIdentity,
 		NamespaceIdentity,
 		NamespaceDeletionRecordIdentity,
+		NamespaceLifecycleIdentity,
+		NamespaceParticipationIdentity,
 		OAuth2SourceIdentity,
 		OAuthApplicationIdentity,
 		OAuthClientIdentity,
@@ -558,6 +587,10 @@ func AliasesForIdentity(identity elemental.Identity) []string {
 	case NamespaceIdentity:
 		return []string{}
 	case NamespaceDeletionRecordIdentity:
+		return []string{}
+	case NamespaceLifecycleIdentity:
+		return []string{}
+	case NamespaceParticipationIdentity:
 		return []string{}
 	case OAuth2SourceIdentity:
 		return []string{}

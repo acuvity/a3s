@@ -1340,6 +1340,79 @@
         },
         "type": "object"
       },
+      "namespacelifecycle": {
+        "description": "Private non-expiring namespace lifecycle coordination. This model has no public\nCRUD route. Its identifier binds the native namespace incarnation, not its name.",
+        "properties": {
+          "ID": {
+            "description": "ID is the identifier of the object.",
+            "readOnly": true,
+            "type": "string"
+          },
+          "namespace": {
+            "description": "The namespace of the object.",
+            "readOnly": true,
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "namespaceparticipation": {
+        "description": "Explicit development-only namespace enrollment command. No normal processor\nregistration enables this resource. All actions require current Create permission.",
+        "properties": {
+          "action": {
+            "description": "Inspect retained metadata, claim enrollment, or capture current owner scope without writer authority.",
+            "enum": [
+              "Inspect",
+              "ClaimEnrollment",
+              "InspectDeletion",
+              "CaptureScope"
+            ],
+            "example": "Inspect"
+          },
+          "deletionIntentID": {
+            "description": "Exact retained deletion intent for InspectDeletion only.",
+            "type": "string"
+          },
+          "granted": {
+            "description": "True only for an acknowledged live attempted-to-claimed CAS.",
+            "readOnly": true,
+            "type": "boolean"
+          },
+          "namespaceID": {
+            "description": "Exact native namespace incarnation. Required except for CaptureScope, which forbids this field.",
+            "example": "111111111111111111111111",
+            "type": "string"
+          },
+          "operationID": {
+            "description": "Exact source-owned creation operation. Required except for CaptureScope, which forbids this field.",
+            "example": "owner-operation",
+            "type": "string"
+          },
+          "participant": {
+            "description": "Trusted participant identifier, currently hanni.",
+            "example": "hanni",
+            "type": "string"
+          },
+          "registryID": {
+            "description": "Exact participant registry ID, equal to namespaceID. Required except for CaptureScope, which forbids this field.",
+            "example": "111111111111111111111111",
+            "type": "string"
+          },
+          "snapshot": {
+            "additionalProperties": {
+              "type": "object"
+            },
+            "description": "Validated source-owned namespace-enrollment.v1 metadata, never caller authority.",
+            "readOnly": true,
+            "type": "object"
+          }
+        },
+        "required": [
+          "action",
+          "participant"
+        ],
+        "type": "object"
+      },
       "oauth2source": {
         "description": "An Oauth Auth source can be used to issue tokens based on supported OAuth2\nproviders. accounts.",
         "properties": {
@@ -3177,6 +3250,37 @@
                     "$ref": "#/components/schemas/namespacedeletionrecord"
                   },
                   "type": "array"
+                }
+              }
+            },
+            "description": "n/a"
+          }
+        },
+        "tags": [
+          "core"
+        ]
+      }
+    },
+    "/namespaceparticipations": {
+      "post": {
+        "description": "Inspect or claim namespace enrollment through explicit development composition.",
+        "operationId": "create-NamespaceParticipation",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/namespaceparticipation"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/namespaceparticipation"
                 }
               }
             },

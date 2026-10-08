@@ -20,6 +20,7 @@ import (
 type NamespacesProcessor struct {
 	manipulator manipulate.Manipulator
 	pubsub      bahamut.PubSubClient
+	owner       *NamespaceOwnerOptions
 }
 
 // NewNamespacesProcessor returns a new NamespacesProcessor.
@@ -42,6 +43,9 @@ func (p *NamespacesProcessor) ProcessCreate(bctx bahamut.Context) error {
 	}
 
 	ns.Name = name
+	if p.owner != nil {
+		return p.createOwnedNamespace(bctx, ns)
+	}
 
 	return crud.Create(bctx, p.manipulator, ns, crud.OptionPostWriteHook(p.makeNotify(bctx.Request().Operation)))
 }
@@ -65,6 +69,9 @@ func (p *NamespacesProcessor) ProcessUpdate(bctx bahamut.Context) error {
 
 // ProcessDelete handles the delete requests for Namespaces.
 func (p *NamespacesProcessor) ProcessDelete(bctx bahamut.Context) error {
+	if p.owner != nil {
+		return p.deleteOwnedNamespace(bctx)
+	}
 	return crud.Delete(bctx, p.manipulator, api.NewNamespace(),
 		crud.OptionPostWriteHook(func(obj elemental.Identifiable) {
 

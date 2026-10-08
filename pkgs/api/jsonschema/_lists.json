@@ -156,6 +156,18 @@
       },
       "type": "array"
     },
+    "namespacelifecycles": {
+      "items": {
+        "$ref": "namespacelifecycle.json"
+      },
+      "type": "array"
+    },
+    "namespaceparticipations": {
+      "items": {
+        "$ref": "namespaceparticipation.json"
+      },
+      "type": "array"
+    },
     "namespaces": {
       "items": {
         "$ref": "namespace.json"

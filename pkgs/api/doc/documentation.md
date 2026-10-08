@@ -3049,6 +3049,80 @@ Type: `string`
 
 Namespace that got deleted.
 
+### NamespaceParticipation
+
+Explicit development-only namespace enrollment command. No normal processor
+registration enables this resource. All actions require current Create permission.
+
+#### Example
+
+```json
+{
+  "action": "Inspect",
+  "granted": false,
+  "namespaceID": "111111111111111111111111",
+  "operationID": "owner-operation",
+  "participant": "hanni",
+  "registryID": "111111111111111111111111"
+}
+```
+
+#### Relations
+
+##### `POST /namespaceparticipations`
+
+Inspect or claim namespace enrollment through explicit development composition.
+
+#### Attributes
+
+##### `action` [`required`]
+
+Type: `enum(Inspect | ClaimEnrollment | InspectDeletion | CaptureScope)`
+
+Inspect retained metadata, claim enrollment, or capture current owner scope without writer authority.
+
+##### `deletionIntentID`
+
+Type: `string`
+
+Exact retained deletion intent for InspectDeletion only.
+
+##### `granted` [`read_only`]
+
+Type: `boolean`
+
+True only for an acknowledged live attempted-to-claimed CAS.
+
+##### `namespaceID`
+
+Type: `string`
+
+Exact native namespace incarnation. Required except for CaptureScope, which forbids this field.
+
+##### `operationID`
+
+Type: `string`
+
+Exact source-owned creation operation. Required except for CaptureScope, which forbids this field.
+
+##### `participant` [`required`]
+
+Type: `string`
+
+Trusted participant identifier, currently hanni.
+
+##### `registryID`
+
+Type: `string`
+
+Exact participant registry ID, equal to namespaceID. Required except for CaptureScope, which forbids this field.
+
+##### `snapshot` [`read_only`]
+
+Type: `map[string]any`
+
+Validated source-owned namespace-enrollment.v1 metadata, never caller authority.
+
 ### Revocation
 
 A Revocation allows to mark a token as revoked based on its ID (jti).

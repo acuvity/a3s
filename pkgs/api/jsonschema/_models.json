@@ -81,6 +81,12 @@
     "namespacedeletionrecord": {
       "$ref": "namespacedeletionrecord.json"
     },
+    "namespacelifecycle": {
+      "$ref": "namespacelifecycle.json"
+    },
+    "namespaceparticipation": {
+      "$ref": "namespaceparticipation.json"
+    },
     "oauth2source": {
       "$ref": "oauth2source.json"
     },

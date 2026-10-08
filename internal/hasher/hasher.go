@@ -31,6 +31,11 @@ func (t *Hasher) Hash(z sharder.Shardable) error {
 	case *api.SparseNamespace:
 		z.SetZHash(hash(*oo.Name))
 
+	case *api.NamespaceLifecycle:
+		z.SetZHash(hash(oo.NamespaceName))
+	case *api.SparseNamespaceLifecycle:
+		z.SetZHash(hash(*oo.NamespaceName))
+
 	case *api.MTLSSource:
 		z.SetZHash(hash(fmt.Sprintf("%s:%s", oo.Namespace, oo.Name)))
 	case *api.SparseMTLSSource:

@@ -63,14 +63,18 @@ func TestJWKSCrud(t *testing.T) {
 
 				Convey("The generated JWSKey should be correct", func() {
 					ecdsakey := cert1.PublicKey.(*ecdsa.PublicKey)
+					point, err := ecdsakey.Bytes()
+					So(err, ShouldBeNil)
+					size := (len(point) - 1) / 2
+					x := new(big.Int).SetBytes(point[1 : 1+size])
+					y := new(big.Int).SetBytes(point[1+size:])
 					So(kk.KID, ShouldEqual, kid1)
 					So(kk.Use, ShouldEqual, "sig")
 					So(kk.Curve(), ShouldResemble, elliptic.P256())
 					So(kk.KTY, ShouldEqual, "EC")
-					So(kk.x.String(), ShouldEqual, ecdsakey.X.String())
-					So(kk.y.String(), ShouldEqual, ecdsakey.Y.String())
-					So(kk.X, ShouldEqual, base64.RawURLEncoding.EncodeToString(ecdsakey.X.Bytes()))
-					So(kk.Y, ShouldEqual, base64.RawURLEncoding.EncodeToString(ecdsakey.Y.Bytes()))
+					So(kk.PublicKey().(*ecdsa.PublicKey).Equal(ecdsakey), ShouldBeTrue)
+					So(kk.X, ShouldEqual, base64.RawURLEncoding.EncodeToString(x.Bytes()))
+					So(kk.Y, ShouldEqual, base64.RawURLEncoding.EncodeToString(y.Bytes()))
 				})
 			})
 
@@ -259,15 +263,20 @@ func TestJWKSKeyCurve(t *testing.T) {
 
 func TestJWKSKeyPublicKey(t *testing.T) {
 
-	Convey("Calling PublicKey with CRV set to EC should work", t, func() {
+	Convey("Calling PublicKey with a valid EC point should work", t, func() {
+		scalar := make([]byte, 28)
+		scalar[len(scalar)-1] = 1
+		private, err := ecdsa.ParseRawPrivateKey(elliptic.P224(), scalar)
+		So(err, ShouldBeNil)
+		point, err := private.PublicKey.Bytes()
+		So(err, ShouldBeNil)
 		k := &JWKSKey{
 			KTY: "EC",
 			CRV: "P-224",
-			x:   big.NewInt(42),
-			y:   big.NewInt(42),
+			x:   new(big.Int).SetBytes(point[1:29]),
+			y:   new(big.Int).SetBytes(point[29:]),
 		}
-		So(k.PublicKey().(*ecdsa.PublicKey).X.String(), ShouldEqual, k.x.String())
-		So(k.PublicKey().(*ecdsa.PublicKey).Y.String(), ShouldResemble, k.y.String())
+		So(k.PublicKey().(*ecdsa.PublicKey).Equal(private.Public()), ShouldBeTrue)
 	})
 
 	Convey("Calling PublicKey with CRV set to something else should fail", t, func() {
