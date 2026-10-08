@@ -56,6 +56,17 @@ func (d *Deleter) Delete(ctx context.Context, ref Namespace, operationID string)
 		if err != nil {
 			return state, err
 		}
+		// Refuse an already-observed nonleaf before consuming its single-use
+		// claim or ancestor pins. This read is not a topology fence: the
+		// post-seal leaf checks remain authoritative. Retained deletion/replay
+		// paths must not require a native row that may already be deleted.
+		if d.source.Verify(ctx, copyState(state)) != nil {
+			return state, ErrPending
+		}
+		children, err := d.source.HasChildren(ctx, state.Namespace)
+		if err != nil || children {
+			return state, ErrPending
+		}
 		var won bool
 		state, won, err = d.store.BeginOwnedDeletion(ctx, state, intent)
 		if err != nil {

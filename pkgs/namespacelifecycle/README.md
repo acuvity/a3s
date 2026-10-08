@@ -20,7 +20,9 @@ The Hanni recipient consumes a separate acknowledged `attempted → claimed` enr
 
 ## Deletion
 
-`BeginOwnedDeletion` records one immutable intent and denies new topology admission while preserving accepted pins. Its live owner acquires ancestor pins, seals the target, and checks the exact native source and leaf topology. Root, nonleaf and unqualified cases remain Held.
+A fresh DELETE verifies the exact source and rejects an already-observed nonleaf **before** consuming its deletion claim, intent or ancestor pins. That refusal leaves independently authorized child leaf deletion possible. It does not turn the preflight into a topology fence: `BeginOwnedDeletion` still records one immutable intent and denies new topology admission while preserving accepted pins, followed by ancestor acquisition, sealing and authoritative source/leaf checks.
+
+A child racing the preflight can still leave the admitted parent Held with retained intent/pins; no automatic unseal, release or recursive deletion is inferred. Existing retained nonleaf intents are not repaired or reset. Retained deletion/terminal replay does not require a native row that may already have been deleted. Root and unqualified cases remain Held.
 
 Participants must first fence their new registrations and prove every accepted writer terminal. Their exact retained proofs are recorded before the native-delete stage. A currently authorized subsequent DELETE may claim that **still-unattempted** stage through a fresh acknowledged `closing → attempted` CAS; reading an attempted state can never repeat native deletion. The separate `Reconcile` entry point never dispatches a native delete or prepares participants.
 
