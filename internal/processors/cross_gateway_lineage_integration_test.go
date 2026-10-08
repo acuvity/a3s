@@ -24,6 +24,7 @@ import (
 // stay in the independently built Go 1.27.1 Hanni process.
 type crossGatewayResult struct {
 	Conf    json.RawMessage
+	Record  json.RawMessage
 	Lineage struct {
 		Namespace crossOriginalNamespace
 		Sources   []struct {
@@ -31,16 +32,18 @@ type crossGatewayResult struct {
 			Namespace              namespacelifecycle.Namespace
 		}
 	}
-	Verified bool
+	Verified       bool
+	InputsVerified bool
 }
 
-func (f *crossFixture) gateway(h crossHelper, action string, conf json.RawMessage, bearer *string) (crossGatewayResult, int) {
+func (f *crossFixture) gateway(h crossHelper, action string, conf, record json.RawMessage, bearer *string) (crossGatewayResult, int) {
 	f.t.Helper()
 	data, err := json.Marshal(struct {
 		Action      string
 		Conf        json.RawMessage
+		Record      json.RawMessage
 		SourceToken *string
-	}{action, conf, bearer})
+	}{action, conf, record, bearer})
 	crossMust(f.t, err)
 	r, err := http.NewRequestWithContext(f.ctx, http.MethodPost, h.URL+"/_cross/gateway", bytes.NewReader(data))
 	crossMust(f.t, err)
@@ -147,8 +150,8 @@ func TestCrossGatewayLineageHTTP(t *testing.T) {
 	if code != http.StatusOK || wire.Granted || !reflect.DeepEqual(wire.Snapshot, snapshot) {
 		t.Fatal("capture endpoint returned a grant or substituted owner")
 	}
-	captured, status := f.gateway(h, "exercise", nil, nil)
-	if status != http.StatusOK || !captured.Verified || !reflect.DeepEqual(captured.Lineage.Namespace, expected) || len(captured.Lineage.Sources) != 5 {
+	captured, status := f.gateway(h, "exercise", nil, nil, nil)
+	if status != http.StatusOK || !captured.Verified || !captured.InputsVerified || len(captured.Record) == 0 || !reflect.DeepEqual(captured.Lineage.Namespace, expected) || len(captured.Lineage.Sources) != 5 {
 		t.Fatalf("native source exercise/binding failed: status=%d result=%+v", status, captured.Lineage)
 	}
 	for i, source := range captured.Lineage.Sources {
@@ -167,8 +170,8 @@ func TestCrossGatewayLineageHTTP(t *testing.T) {
 	verify := func(bearer *string, want int) {
 		t.Helper()
 		check := unchanged()
-		out, status := f.gateway(h, "verify", captured.Conf, bearer)
-		if status != want || out.Verified != (want == http.StatusOK) || !bytes.Equal(out.Conf, captured.Conf) {
+		out, status := f.gateway(h, "verify", captured.Conf, captured.Record, bearer)
+		if status != want || out.Verified != (want == http.StatusOK) || out.InputsVerified != (want == http.StatusOK) || !bytes.Equal(out.Record, captured.Record) || !bytes.Equal(out.Conf, captured.Conf) {
 			t.Fatalf("retained verify status=%d verified=%v; want=%d, original config must remain byte-identical", status, out.Verified, want)
 		}
 		if want == http.StatusOK {
@@ -229,5 +232,6 @@ func TestCrossGatewayLineageHTTP(t *testing.T) {
 	if f.participationRequests.Load() <= before+2 || f.policyReads.Load() == 0 || f.revocationReads.Load() == 0 {
 		t.Fatal("did not cross actual signed capture/permission/revocation boundaries")
 	}
+	t.Log("PASS captured native inputs through real helper: signed current-owner checks, retained observation bytes, baseline/source drift and wrong-ID Holds, nested detachment; no owner/native read-time writes or admission claims")
 	t.Logf("PASS owned cross-gateway lineage: signed CaptureScope/Verify requests=%d, exact original owner/ordered native IDs, drift/secret/unbound Held, no capture claim or write; Mongo source reads are not native API HTTP source-read authorization; component-only, no production coverage", f.participationRequests.Load()-before)
 }
