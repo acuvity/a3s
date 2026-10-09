@@ -75,6 +75,7 @@ type crossFixture struct {
 	owner                        *NamespacesProcessor // assigned before the first /namespaces request
 	ownerAuthority               NamespaceOwnerAuthorityFactory
 	key                          crypto.PrivateKey
+	rights                       map[string][]string
 	kid                          string
 	dropClaim                    atomic.Bool
 	policyReads, revocationReads atomic.Int64
@@ -97,7 +98,7 @@ func (f *crossFixture) bearer(role, variant string) string {
 	now := time.Now()
 	idt := &token.IdentityToken{
 		Identity:         crossIdentity(role),
-		Restrictions:     &permissions.Restrictions{Namespace: "/", Networks: []string{"127.0.0.0/8"}, Permissions: crossRights[role]},
+		Restrictions:     &permissions.Restrictions{Namespace: "/", Networks: []string{"127.0.0.0/8"}, Permissions: f.rights[role]},
 		RegisteredClaims: jwt.RegisteredClaims{ID: bson.NewObjectID().Hex(), Issuer: crossIssuer, Audience: jwt.ClaimStrings{crossAudience}, IssuedAt: jwt.NewNumericDate(now.Add(-time.Minute)), ExpiresAt: jwt.NewNumericDate(now.Add(5 * time.Minute))},
 	}
 	switch variant {
@@ -121,7 +122,18 @@ func (f *crossFixture) bearer(role, variant string) string {
 
 func newCrossFixture(t *testing.T, ctx context.Context, dir string) *crossFixture {
 	t.Helper()
-	f := &crossFixture{t: t, ctx: ctx, dir: dir, m: mongofixture.New(t)}
+	return newCrossFixtureWithRights(t, ctx, dir, crossRights)
+}
+
+// Test-owned role grants are fixed before authentication/namespace creation.
+// Existing enrollment tracers retain exactly their original rights.
+func newCrossFixtureWithRights(t *testing.T, ctx context.Context, dir string, rights map[string][]string) *crossFixture {
+	t.Helper()
+	owned := make(map[string][]string, len(rights))
+	for role, grants := range rights {
+		owned[role] = append([]string(nil), grants...)
+	}
+	f := &crossFixture{t: t, ctx: ctx, dir: dir, m: mongofixture.New(t), rights: owned}
 	var err error
 	f.db, err = manipmongo.GetDatabase(f.m)
 	crossMust(t, err)
@@ -144,7 +156,7 @@ func newCrossFixture(t *testing.T, ctx context.Context, dir string) *crossFixtur
 	crossMust(t, err)
 	// All native namespace IDs come from the prebound adapter/bootstrap and
 	// owner Create. manipulator.Create is used only for policy fixture rows.
-	for role, rights := range crossRights {
+	for role, rights := range f.rights {
 		p := api.NewAuthorization()
 		p.Name, p.Namespace = "cross-"+role, "/"
 		p.Subject = [][]string{crossIdentity(role)}
