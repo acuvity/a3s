@@ -214,7 +214,13 @@ func MakeBahamutGatewayNotifier(
 
 	anouncedRegion := c.GWAnnouncedRegion
 	if anouncedRegion != "" {
-		nopts = append([]push.NotifierOption{push.OptionNotifierAnnounceRegion(anouncedRegion)}, nopts...)
+		nopts = append(
+			[]push.NotifierOption{
+				push.OptionNotifierAnnounceRegion(anouncedRegion),
+				push.OptionNotifierAnnounceForeignEndpoint(c.GWAnnouncedForeignAddress),
+			},
+			nopts...,
+		)
 	}
 
 	nw := push.NewNotifier(
@@ -235,6 +241,8 @@ func MakeBahamutGatewayNotifier(
 		"topic", gatewayTopic,
 		"service", serviceName,
 		"region", anouncedRegion,
+		"addr", anouncedAddress,
+		"foreign-addr", c.GWAnnouncedForeignAddress,
 	)
 
 	return opts
