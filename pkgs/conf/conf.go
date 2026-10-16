@@ -523,13 +523,14 @@ func (c *A3SClientConf) SystemCAPool() (*x509.CertPool, error) {
 
 // GatewayConf holds the configuration for the bahamut gateway behaviors.
 type GatewayConf struct {
-	GWAPIsHidden       []string `mapstructure:"gw-hidden-api" desc:"Set the list of api that will be completely hidden to the gateway."`
-	GWAnnouncePrefix   string   `mapstructure:"gw-announce-prefix" desc:"Sets the prefix to use for the bahaamut gateway announcement"`
-	GWAnnouncedAddress string   `mapstructure:"gw-announce-address" desc:"If set, announce as the service address to the gateway"`
-	GWAnnouncedRegion  string   `mapstructure:"gw-announce-region" desc:"Sets the region to be announced to the gateway for regional routing." default:"main"`
-	GWOverridePrivate  []string `mapstructure:"gw-override-private" desc:"Overrides the api public/private. In form <name>:<override>. namespace:private makes namespaces api private on the gateway"`
-	GWPerAPIRateLimit  []string `mapstructure:"gw-api-rate-limit" desc:"list of per-identity rate limit, expressed as 'identity.name:rps:bust'"`
-	GWTopic            string   `mapstructure:"gw-topic" desc:"Topic to use for gateway services discovery"`
+	GWAPIsHidden              []string `mapstructure:"gw-hidden-api" desc:"Set the list of api that will be completely hidden to the gateway."`
+	GWAnnouncePrefix          string   `mapstructure:"gw-announce-prefix" desc:"Sets the prefix to use for the bahaamut gateway announcement"`
+	GWAnnouncedAddress        string   `mapstructure:"gw-announce-address" desc:"If set, announce as the service address to the gateway"`
+	GWAnnouncedForeignAddress string   `mapstructure:"gw-announce-foreign-address" desc:"If set, announce as the service foreign address to the gateway"`
+	GWAnnouncedRegion         string   `mapstructure:"gw-announce-region" desc:"Sets the region to be announced to the gateway for regional routing." default:"main"`
+	GWOverridePrivate         []string `mapstructure:"gw-override-private" desc:"Overrides the api public/private. In form <name>:<override>. namespace:private makes namespaces api private on the gateway"`
+	GWPerAPIRateLimit         []string `mapstructure:"gw-api-rate-limit" desc:"list of per-identity rate limit, expressed as 'identity.name:rps:bust'"`
+	GWTopic                   string   `mapstructure:"gw-topic" desc:"Topic to use for gateway services discovery"`
 }
 
 // GWPrivateOverrides returns the private overrides in the needed format.
