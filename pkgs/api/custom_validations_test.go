@@ -1165,6 +1165,179 @@ func TestValidatePositiveDuration(t *testing.T) {
 	}
 }
 
+func TestValidateHostname(t *testing.T) {
+	type args struct {
+		attribute string
+		h         string
+	}
+	tests := []struct {
+		name string
+		args func(t *testing.T) args
+
+		wantErr    bool
+		inspectErr func(err error, t *testing.T) //use for more precise error evaluation after test
+	}{
+		{
+			"valid hostname",
+			func(t *testing.T) args {
+				return args{
+					"attr",
+					"api-xxxxxxxx.duosecurity.com",
+				}
+			},
+			false,
+			nil,
+		},
+		{
+			"valid federal hostname",
+			func(t *testing.T) args {
+				return args{
+					"attr",
+					"api-xxxxxxxx.duofederal.com",
+				}
+			},
+			false,
+			nil,
+		},
+		{
+			"valid hostname with port",
+			func(t *testing.T) args {
+				return args{
+					"attr",
+					"127.0.0.1:8443",
+				}
+			},
+			false,
+			nil,
+		},
+		{
+			"empty",
+			func(t *testing.T) args {
+				return args{
+					"attr",
+					"",
+				}
+			},
+			false,
+			nil,
+		},
+		{
+			"with https scheme",
+			func(t *testing.T) args {
+				return args{
+					"attr",
+					"https://api-xxxxxxxx.duosecurity.com",
+				}
+			},
+			true,
+			nil,
+		},
+		{
+			"with http scheme",
+			func(t *testing.T) args {
+				return args{
+					"attr",
+					"http://api-xxxxxxxx.duosecurity.com",
+				}
+			},
+			true,
+			nil,
+		},
+		{
+			"with trailing slash",
+			func(t *testing.T) args {
+				return args{
+					"attr",
+					"api-xxxxxxxx.duosecurity.com/",
+				}
+			},
+			true,
+			nil,
+		},
+		{
+			"with path",
+			func(t *testing.T) args {
+				return args{
+					"attr",
+					"api-xxxxxxxx.duosecurity.com/admin/v1",
+				}
+			},
+			true,
+			nil,
+		},
+		{
+			"with query",
+			func(t *testing.T) args {
+				return args{
+					"attr",
+					"api-xxxxxxxx.duosecurity.com?a=b",
+				}
+			},
+			true,
+			nil,
+		},
+		{
+			"with user info",
+			func(t *testing.T) args {
+				return args{
+					"attr",
+					"user@api-xxxxxxxx.duosecurity.com",
+				}
+			},
+			true,
+			nil,
+		},
+		{
+			"with space",
+			func(t *testing.T) args {
+				return args{
+					"attr",
+					"api-xxxxxxxx .duosecurity.com",
+				}
+			},
+			true,
+			nil,
+		},
+		{
+			"invalid port",
+			func(t *testing.T) args {
+				return args{
+					"attr",
+					"api-xxxxxxxx.duosecurity.com:abc",
+				}
+			},
+			true,
+			nil,
+		},
+		{
+			"port only",
+			func(t *testing.T) args {
+				return args{
+					"attr",
+					":8443",
+				}
+			},
+			true,
+			nil,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tArgs := tt.args(t)
+
+			err := ValidateHostname(tArgs.attribute, tArgs.h)
+
+			if (err != nil) != tt.wantErr {
+				t.Fatalf("ValidateHostname error = %v, wantErr: %t", err, tt.wantErr)
+			}
+
+			if tt.inspectErr != nil {
+				tt.inspectErr(err, t)
+			}
+		})
+	}
+}
+
 func TestValidateURL(t *testing.T) {
 	type args struct {
 		attribute string
@@ -2279,6 +2452,129 @@ func TestValidateMTLSSource(t *testing.T) {
 						ClaimsRetrievalMode:                   MTLSSourceClaimsRetrievalModeEntra,
 						EntraApplicationCredentials:           &MTLSSourceEntra{},
 						GoogleWorkspaceApplicationCredentials: &MTLSSourceGoogle{},
+					},
+				}
+			},
+			true,
+			nil,
+		},
+
+		{
+			"CiscoDuo nothing set",
+			func(*testing.T) args {
+				return args{
+					source: &MTLSSource{
+						ClaimsRetrievalMode: MTLSSourceClaimsRetrievalModeCiscoDuo,
+					},
+				}
+			},
+			true,
+			nil,
+		},
+		{
+			"CiscoDuo ciscoduo set",
+			func(*testing.T) args {
+				return args{
+					source: &MTLSSource{
+						ClaimsRetrievalMode:            MTLSSourceClaimsRetrievalModeCiscoDuo,
+						CiscoDuoApplicationCredentials: &MTLSSourceCiscoDuo{},
+					},
+				}
+			},
+			false,
+			nil,
+		},
+		{
+			"CiscoDuo entra set",
+			func(*testing.T) args {
+				return args{
+					source: &MTLSSource{
+						ClaimsRetrievalMode:            MTLSSourceClaimsRetrievalModeCiscoDuo,
+						CiscoDuoApplicationCredentials: &MTLSSourceCiscoDuo{},
+						EntraApplicationCredentials:    &MTLSSourceEntra{},
+					},
+				}
+			},
+			true,
+			nil,
+		},
+		{
+			"CiscoDuo google set",
+			func(*testing.T) args {
+				return args{
+					source: &MTLSSource{
+						ClaimsRetrievalMode:                   MTLSSourceClaimsRetrievalModeCiscoDuo,
+						CiscoDuoApplicationCredentials:        &MTLSSourceCiscoDuo{},
+						GoogleWorkspaceApplicationCredentials: &MTLSSourceGoogle{},
+					},
+				}
+			},
+			true,
+			nil,
+		},
+		{
+			"CiscoDuo okta set",
+			func(*testing.T) args {
+				return args{
+					source: &MTLSSource{
+						ClaimsRetrievalMode:            MTLSSourceClaimsRetrievalModeCiscoDuo,
+						CiscoDuoApplicationCredentials: &MTLSSourceCiscoDuo{},
+						OktaApplicationCredentials:     &MTLSSourceOkta{},
+					},
+				}
+			},
+			true,
+			nil,
+		},
+		{
+			"x509 ciscoduo set",
+			func(*testing.T) args {
+				return args{
+					source: &MTLSSource{
+						ClaimsRetrievalMode:            MTLSSourceClaimsRetrievalModeX509,
+						CiscoDuoApplicationCredentials: &MTLSSourceCiscoDuo{},
+					},
+				}
+			},
+			true,
+			nil,
+		},
+		{
+			"Entra ciscoduo set",
+			func(*testing.T) args {
+				return args{
+					source: &MTLSSource{
+						ClaimsRetrievalMode:            MTLSSourceClaimsRetrievalModeEntra,
+						EntraApplicationCredentials:    &MTLSSourceEntra{},
+						CiscoDuoApplicationCredentials: &MTLSSourceCiscoDuo{},
+					},
+				}
+			},
+			true,
+			nil,
+		},
+		{
+			"Okta ciscoduo set",
+			func(*testing.T) args {
+				return args{
+					source: &MTLSSource{
+						ClaimsRetrievalMode:            MTLSSourceClaimsRetrievalModeOkta,
+						OktaApplicationCredentials:     &MTLSSourceOkta{},
+						CiscoDuoApplicationCredentials: &MTLSSourceCiscoDuo{},
+					},
+				}
+			},
+			true,
+			nil,
+		},
+		{
+			"GoogleWorkspace ciscoduo set",
+			func(*testing.T) args {
+				return args{
+					source: &MTLSSource{
+						ClaimsRetrievalMode:                   MTLSSourceClaimsRetrievalModeGoogleWorkspace,
+						GoogleWorkspaceApplicationCredentials: &MTLSSourceGoogle{},
+						CiscoDuoApplicationCredentials:        &MTLSSourceCiscoDuo{},
 					},
 				}
 			},

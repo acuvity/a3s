@@ -232,6 +232,28 @@ func ValidateURL(attribute string, u string) error {
 	return nil
 }
 
+// ValidateHostname validates the given value is a bare hostname, optionally
+// followed by a port, without any scheme, path, query or user info.
+func ValidateHostname(attribute string, h string) error {
+
+	if h == "" {
+		return nil
+	}
+
+	invalid := makeErr(attribute, fmt.Sprintf("invalid hostname '%s': must be a hostname such as api.example.com, without scheme or path", h))
+
+	if strings.ContainsAny(h, " /?#@\\") {
+		return invalid
+	}
+
+	uu, err := url.Parse("https://" + h)
+	if err != nil || uu.Host != h || uu.Hostname() == "" {
+		return invalid
+	}
+
+	return nil
+}
+
 // ValidateURLs validates the given value is a list of correct urls with any scheme.
 func ValidateURLs(attribute string, u []string) error {
 
@@ -295,6 +317,19 @@ func ValidateFilters(attribute string, values []string) error {
 func ValidateMTLSSource(source *MTLSSource) error {
 
 	switch source.ClaimsRetrievalMode {
+	case MTLSSourceClaimsRetrievalModeCiscoDuo:
+		if source.CiscoDuoApplicationCredentials == nil {
+			return makeErr("ciscoDuoApplicationCredentials", "ciscoDuoApplicationCredentials must be set when retrieval mode is 'CiscoDuo'")
+		}
+		if source.EntraApplicationCredentials != nil {
+			return makeErr("entraApplicationCredentials", "entraApplicationCredentials must not be set when retrieval mode is 'CiscoDuo'")
+		}
+		if source.GoogleWorkspaceApplicationCredentials != nil {
+			return makeErr("googleWorkspaceApplicationCredentials", "googleWorkspaceApplicationCredentials must not be set when retrieval mode is 'CiscoDuo'")
+		}
+		if source.OktaApplicationCredentials != nil {
+			return makeErr("oktaApplicationCredentials", "oktaApplicationCredentials must not be set when retrieval mode is 'CiscoDuo'")
+		}
 	case MTLSSourceClaimsRetrievalModeEntra:
 		if source.EntraApplicationCredentials == nil {
 			return makeErr("entraApplicationCredentials", "entraApplicationCredentials must be set when retrieval mode is 'Entra'")
@@ -304,6 +339,9 @@ func ValidateMTLSSource(source *MTLSSource) error {
 		}
 		if source.GoogleWorkspaceApplicationCredentials != nil {
 			return makeErr("googleWorkspaceApplicationCredentials", "googleWorkspaceApplicationCredentials must not be set when retrieval mode is 'Entra'")
+		}
+		if source.CiscoDuoApplicationCredentials != nil {
+			return makeErr("ciscoDuoApplicationCredentials", "ciscoDuoApplicationCredentials must not be set when retrieval mode is 'Entra'")
 		}
 	case MTLSSourceClaimsRetrievalModeGoogleWorkspace:
 		if source.GoogleWorkspaceApplicationCredentials == nil {
@@ -315,6 +353,9 @@ func ValidateMTLSSource(source *MTLSSource) error {
 		if source.OktaApplicationCredentials != nil {
 			return makeErr("oktaApplicationCredentials", "oktaApplicationCredentials must not be set when retrieval mode is 'GoogleWorkspace'")
 		}
+		if source.CiscoDuoApplicationCredentials != nil {
+			return makeErr("ciscoDuoApplicationCredentials", "ciscoDuoApplicationCredentials must not be set when retrieval mode is 'GoogleWorkspace'")
+		}
 	case MTLSSourceClaimsRetrievalModeOkta:
 		if source.OktaApplicationCredentials == nil {
 			return makeErr("oktaApplicationCredentials", "oktaApplicationCredentials must be set when retrieval mode is 'Okta'")
@@ -325,6 +366,9 @@ func ValidateMTLSSource(source *MTLSSource) error {
 		if source.GoogleWorkspaceApplicationCredentials != nil {
 			return makeErr("googleWorkspaceApplicationCredentials", "googleWorkspaceApplicationCredentials must not be set when retrieval mode is 'Okta'")
 		}
+		if source.CiscoDuoApplicationCredentials != nil {
+			return makeErr("ciscoDuoApplicationCredentials", "ciscoDuoApplicationCredentials must not be set when retrieval mode is 'Okta'")
+		}
 	default:
 		if source.EntraApplicationCredentials != nil {
 			return makeErr("entraApplicationCredentials", "entraApplicationCredentials must not be set when retrieval mode is 'X509'")
@@ -334,6 +378,9 @@ func ValidateMTLSSource(source *MTLSSource) error {
 		}
 		if source.GoogleWorkspaceApplicationCredentials != nil {
 			return makeErr("googleWorkspaceApplicationCredentials", "googleWorkspaceApplicationCredentials must not be set when retrieval mode is 'X509'")
+		}
+		if source.CiscoDuoApplicationCredentials != nil {
+			return makeErr("ciscoDuoApplicationCredentials", "ciscoDuoApplicationCredentials must not be set when retrieval mode is 'X509'")
 		}
 	}
 

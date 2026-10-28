@@ -66,6 +66,9 @@
     "mtlssource": {
       "$ref": "mtlssource.json"
     },
+    "mtlssourceciscoduo": {
+      "$ref": "mtlssourceciscoduo.json"
+    },
     "mtlssourceentra": {
       "$ref": "mtlssourceentra.json"
     },

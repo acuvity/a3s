@@ -126,6 +126,12 @@
       },
       "type": "array"
     },
+    "mtlssourceciscoduo": {
+      "items": {
+        "$ref": "mtlssourceciscoduo.json"
+      },
+      "type": "array"
+    },
     "mtlssourceentra": {
       "items": {
         "$ref": "mtlssourceentra.json"

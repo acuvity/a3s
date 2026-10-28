@@ -1,0 +1,41 @@
+{
+  "$extends": [],
+  "$friendlyName": "MTLS Source Cisco Duo",
+  "$friendlyNamePlural": "MTLS Source Cisco Duos",
+  "$modelName": "MTLSSourceCiscoDuo",
+  "$modelPackage": "a3s",
+  "$modelResourceName": "mtlssourceciscoduo",
+  "$modelRestName": "mtlssourceciscoduo",
+  "additionalProperties": false,
+  "description": "Additional authentication information for MTLS source getting information from Cisco Duo.  You will need a Duo Admin API application with the Grant resource - Read permission.",
+  "properties": {
+    "APIHostname": {
+      "$friendlyName": "API Hostname",
+      "$required": true,
+      "description": "The API hostname of the Duo Admin API application.",
+      "title": "APIHostname",
+      "type": "string"
+    },
+    "integrationKey": {
+      "$friendlyName": "Integration Key",
+      "$required": true,
+      "description": "The integration key of the Duo Admin API application.",
+      "title": "integrationKey",
+      "type": "string"
+    },
+    "secretKey": {
+      "$friendlyName": "Secret Key",
+      "$required": true,
+      "description": "The secret key of the Duo Admin API application.",
+      "title": "secretKey",
+      "type": "string"
+    }
+  },
+  "required": [
+    "APIHostname",
+    "integrationKey",
+    "secretKey"
+  ],
+  "title": "MTLSSourceCiscoDuo",
+  "type": "object"
+}

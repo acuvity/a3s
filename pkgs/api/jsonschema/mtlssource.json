@@ -33,11 +33,18 @@
         "null"
       ]
     },
+    "ciscoDuoApplicationCredentials": {
+      "$friendlyName": "Cisco Duo Application Credentials",
+      "$ref": "mtlssourceciscoduo.json",
+      "description": "Additional information required when claims retrieval mode is set to CiscoDuo.",
+      "title": "ciscoDuoApplicationCredentials"
+    },
     "claimsRetrievalMode": {
       "$defaultValue": "X509",
       "$friendlyName": "Claims Retrieval Mode",
       "description": "Defines if and how you want to enable auto login with client certificates.",
       "enum": [
+        "CiscoDuo",
         "Entra",
         "GoogleWorkspace",
         "Okta",

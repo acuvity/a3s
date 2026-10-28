@@ -22,6 +22,10 @@ $filters:
   elemental:
     name: ValidateFilters
 
+$hostname:
+  elemental:
+    name: ValidateHostname
+
 $issue:
   elemental:
     name: ValidateIssue

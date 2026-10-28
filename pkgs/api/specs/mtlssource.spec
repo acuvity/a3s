@@ -55,6 +55,18 @@ attributes:
     validations:
     - $cert
 
+  - name: ciscoDuoApplicationCredentials
+    friendly_name: Cisco Duo Application Credentials
+    description: Additional information required when claims retrieval mode is set
+      to CiscoDuo.
+    type: ref
+    exposed: true
+    subtype: mtlssourceciscoduo
+    stored: true
+    extensions:
+      noInit: true
+      refMode: pointer
+
   - name: claimsRetrievalMode
     friendly_name: Claims Retrieval Mode
     description: Defines if and how you want to enable auto login with client certificates.
@@ -62,6 +74,7 @@ attributes:
     exposed: true
     stored: true
     allowed_choices:
+    - CiscoDuo
     - Entra
     - GoogleWorkspace
     - Okta

@@ -1060,10 +1060,14 @@
             "readOnly": true,
             "type": "string"
           },
+          "ciscoDuoApplicationCredentials": {
+            "$ref": "#/components/schemas/mtlssourceciscoduo"
+          },
           "claimsRetrievalMode": {
             "default": "X509",
             "description": "Defines if and how you want to enable auto login with client certificates.",
             "enum": [
+              "CiscoDuo",
               "Entra",
               "GoogleWorkspace",
               "Okta",
@@ -1164,6 +1168,32 @@
         "required": [
           "CA",
           "name"
+        ],
+        "type": "object"
+      },
+      "mtlssourceciscoduo": {
+        "description": "Additional authentication information for MTLS source getting information from\nCisco Duo.\n\nYou will need a Duo Admin API application with the Grant resource - Read\npermission.",
+        "properties": {
+          "APIHostname": {
+            "description": "The API hostname of the Duo Admin API application.",
+            "example": "api-xxxxxxxx.duosecurity.com",
+            "type": "string"
+          },
+          "integrationKey": {
+            "description": "The integration key of the Duo Admin API application.",
+            "example": "DIWJ8X6AEYOR5OMC6TQ1",
+            "type": "string"
+          },
+          "secretKey": {
+            "description": "The secret key of the Duo Admin API application.",
+            "example": "Zh5eGmUq9zpfQnyUIu5OL9iWoMMv5ZNmk3zLJ4Ep",
+            "type": "string"
+          }
+        },
+        "required": [
+          "APIHostname",
+          "integrationKey",
+          "secretKey"
         ],
         "type": "object"
       },

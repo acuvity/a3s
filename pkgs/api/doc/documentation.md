@@ -872,6 +872,44 @@ to have a3s remove the secure cookie.
 
 Makes browser delete the secure cookie.
 
+### MTLSSourceCiscoDuo
+
+Additional authentication information for MTLS source getting information from
+Cisco Duo.
+
+You will need a Duo Admin API application with the Grant resource - Read
+permission.
+
+#### Example
+
+```json
+{
+  "APIHostname": "api-xxxxxxxx.duosecurity.com",
+  "integrationKey": "DIWJ8X6AEYOR5OMC6TQ1",
+  "secretKey": "Zh5eGmUq9zpfQnyUIu5OL9iWoMMv5ZNmk3zLJ4Ep"
+}
+```
+
+#### Attributes
+
+##### `APIHostname` [`required`]
+
+Type: `string`
+
+The API hostname of the Duo Admin API application.
+
+##### `integrationKey` [`required`]
+
+Type: `string`
+
+The integration key of the Duo Admin API application.
+
+##### `secretKey` [`required`]
+
+Type: `string`
+
+The secret key of the Duo Admin API application.
+
 ### MTLSSourceEntra
 
 Additional authentication information for MTLS source getting information from
@@ -1698,9 +1736,15 @@ Type: `string`
 
 ID is the identifier of the object.
 
+##### `ciscoDuoApplicationCredentials`
+
+Type: [`mtlssourceciscoduo`](#mtlssourceciscoduo)
+
+Additional information required when claims retrieval mode is set to CiscoDuo.
+
 ##### `claimsRetrievalMode`
 
-Type: `enum(Entra | GoogleWorkspace | Okta | X509)`
+Type: `enum(CiscoDuo | Entra | GoogleWorkspace | Okta | X509)`
 
 Defines if and how you want to enable auto login with client certificates.
 

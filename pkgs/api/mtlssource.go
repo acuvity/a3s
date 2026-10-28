@@ -17,6 +17,9 @@ import (
 type MTLSSourceClaimsRetrievalModeValue string
 
 const (
+	// MTLSSourceClaimsRetrievalModeCiscoDuo represents the value CiscoDuo.
+	MTLSSourceClaimsRetrievalModeCiscoDuo MTLSSourceClaimsRetrievalModeValue = "CiscoDuo"
+
 	// MTLSSourceClaimsRetrievalModeEntra represents the value Entra.
 	MTLSSourceClaimsRetrievalModeEntra MTLSSourceClaimsRetrievalModeValue = "Entra"
 
@@ -121,6 +124,9 @@ type MTLSSource struct {
 
 	// ID is the identifier of the object.
 	ID string `json:"ID,omitempty" msgpack:"ID,omitempty" bson:"-" mapstructure:"ID,omitempty"`
+
+	// Additional information required when claims retrieval mode is set to CiscoDuo.
+	CiscoDuoApplicationCredentials *MTLSSourceCiscoDuo `json:"ciscoDuoApplicationCredentials" msgpack:"ciscoDuoApplicationCredentials" bson:"ciscoduoapplicationcredentials" mapstructure:"ciscoDuoApplicationCredentials,omitempty"`
 
 	// Defines if and how you want to enable auto login with client certificates.
 	ClaimsRetrievalMode MTLSSourceClaimsRetrievalModeValue `json:"claimsRetrievalMode,omitempty" msgpack:"claimsRetrievalMode,omitempty" bson:"claimsretrievalmode,omitempty" mapstructure:"claimsRetrievalMode,omitempty"`
@@ -243,6 +249,7 @@ func (o *MTLSSource) GetBSON() (any, error) {
 	if o.ID != "" {
 		s.ID = bson.ObjectIdHex(o.ID)
 	}
+	s.CiscoDuoApplicationCredentials = o.CiscoDuoApplicationCredentials
 	s.ClaimsRetrievalMode = o.ClaimsRetrievalMode
 	s.CreateTime = o.CreateTime
 	s.Description = o.Description
@@ -282,6 +289,7 @@ func (o *MTLSSource) SetBSON(raw bson.Raw) error {
 
 	o.CA = s.CA
 	o.ID = s.ID.Hex()
+	o.CiscoDuoApplicationCredentials = s.CiscoDuoApplicationCredentials
 	o.ClaimsRetrievalMode = s.ClaimsRetrievalMode
 	o.CreateTime = s.CreateTime
 	o.Description = s.Description
@@ -446,6 +454,7 @@ func (o *MTLSSource) ToSparse(fields ...string) elemental.SparseIdentifiable {
 		return &SparseMTLSSource{
 			CA:                                    &o.CA,
 			ID:                                    &o.ID,
+			CiscoDuoApplicationCredentials:        o.CiscoDuoApplicationCredentials,
 			ClaimsRetrievalMode:                   &o.ClaimsRetrievalMode,
 			CreateTime:                            &o.CreateTime,
 			Description:                           &o.Description,
@@ -476,6 +485,8 @@ func (o *MTLSSource) ToSparse(fields ...string) elemental.SparseIdentifiable {
 			sp.CA = &(o.CA)
 		case "ID":
 			sp.ID = &(o.ID)
+		case "ciscoDuoApplicationCredentials":
+			sp.CiscoDuoApplicationCredentials = o.CiscoDuoApplicationCredentials
 		case "claimsRetrievalMode":
 			sp.ClaimsRetrievalMode = &(o.ClaimsRetrievalMode)
 		case "createTime":
@@ -534,6 +545,9 @@ func (o *MTLSSource) Patch(sparse elemental.SparseIdentifiable) {
 	}
 	if so.ID != nil {
 		o.ID = *so.ID
+	}
+	if so.CiscoDuoApplicationCredentials != nil {
+		o.CiscoDuoApplicationCredentials = so.CiscoDuoApplicationCredentials
 	}
 	if so.ClaimsRetrievalMode != nil {
 		o.ClaimsRetrievalMode = *so.ClaimsRetrievalMode
@@ -600,6 +614,12 @@ func (o *MTLSSource) Patch(sparse elemental.SparseIdentifiable) {
 // EncryptAttributes encrypts the attributes marked as `encrypted` using the given encrypter.
 func (o *MTLSSource) EncryptAttributes(encrypter elemental.AttributeEncrypter) (err error) {
 
+	if o.CiscoDuoApplicationCredentials != nil {
+		if err := o.CiscoDuoApplicationCredentials.EncryptAttributes(encrypter); err != nil {
+			return fmt.Errorf("unable to encrypt ref attribute 'CiscoDuoApplicationCredentials' for 'MTLSSource' (%s): %w", o.Identifier(), err)
+		}
+	}
+
 	if o.EntraApplicationCredentials != nil {
 		if err := o.EntraApplicationCredentials.EncryptAttributes(encrypter); err != nil {
 			return fmt.Errorf("unable to encrypt ref attribute 'EntraApplicationCredentials' for 'MTLSSource' (%s): %w", o.Identifier(), err)
@@ -629,6 +649,12 @@ func (o *MTLSSource) EncryptAttributes(encrypter elemental.AttributeEncrypter) (
 
 // DecryptAttributes decrypts the attributes marked as `encrypted` using the given decrypter.
 func (o *MTLSSource) DecryptAttributes(encrypter elemental.AttributeEncrypter) (err error) {
+
+	if o.CiscoDuoApplicationCredentials != nil {
+		if err := o.CiscoDuoApplicationCredentials.DecryptAttributes(encrypter); err != nil {
+			return fmt.Errorf("unable to decrypt ref attribute 'CiscoDuoApplicationCredentials' for 'MTLSSource' (%s): %w", o.Identifier(), err)
+		}
+	}
 
 	if o.EntraApplicationCredentials != nil {
 		if err := o.EntraApplicationCredentials.DecryptAttributes(encrypter); err != nil {
@@ -697,7 +723,14 @@ func (o *MTLSSource) Validate() error {
 		errors = errors.Append(err)
 	}
 
-	if err := elemental.ValidateStringInList("claimsRetrievalMode", string(o.ClaimsRetrievalMode), []string{"Entra", "GoogleWorkspace", "Okta", "X509"}, false); err != nil {
+	if o.CiscoDuoApplicationCredentials != nil {
+		if err := o.CiscoDuoApplicationCredentials.Validate(); err != nil {
+			errors = errors.Append(err)
+			elemental.InjectAttributePath(errors, "ciscoDuoApplicationCredentials")
+		}
+	}
+
+	if err := elemental.ValidateStringInList("claimsRetrievalMode", string(o.ClaimsRetrievalMode), []string{"CiscoDuo", "Entra", "GoogleWorkspace", "Okta", "X509"}, false); err != nil {
 		errors = errors.Append(err)
 	}
 
@@ -788,6 +821,8 @@ func (o *MTLSSource) ValueForAttribute(name string) any {
 		return o.CA
 	case "ID":
 		return o.ID
+	case "ciscoDuoApplicationCredentials":
+		return o.CiscoDuoApplicationCredentials
 	case "claimsRetrievalMode":
 		return o.ClaimsRetrievalMode
 	case "createTime":
@@ -861,8 +896,19 @@ var MTLSSourceAttributesMap = map[string]elemental.AttributeSpecification{
 		Stored:         true,
 		Type:           "string",
 	},
+	"CiscoDuoApplicationCredentials": {
+		AllowedChoices: []string{},
+		BSONFieldName:  "ciscoduoapplicationcredentials",
+		ConvertedName:  "CiscoDuoApplicationCredentials",
+		Description:    `Additional information required when claims retrieval mode is set to CiscoDuo.`,
+		Exposed:        true,
+		Name:           "ciscoDuoApplicationCredentials",
+		Stored:         true,
+		SubType:        "mtlssourceciscoduo",
+		Type:           "ref",
+	},
 	"ClaimsRetrievalMode": {
-		AllowedChoices: []string{"Entra", "GoogleWorkspace", "Okta", "X509"},
+		AllowedChoices: []string{"CiscoDuo", "Entra", "GoogleWorkspace", "Okta", "X509"},
 		BSONFieldName:  "claimsretrievalmode",
 		ConvertedName:  "ClaimsRetrievalMode",
 		DefaultValue:   MTLSSourceClaimsRetrievalModeX509,
@@ -1150,8 +1196,19 @@ var MTLSSourceLowerCaseAttributesMap = map[string]elemental.AttributeSpecificati
 		Stored:         true,
 		Type:           "string",
 	},
+	"ciscoduoapplicationcredentials": {
+		AllowedChoices: []string{},
+		BSONFieldName:  "ciscoduoapplicationcredentials",
+		ConvertedName:  "CiscoDuoApplicationCredentials",
+		Description:    `Additional information required when claims retrieval mode is set to CiscoDuo.`,
+		Exposed:        true,
+		Name:           "ciscoDuoApplicationCredentials",
+		Stored:         true,
+		SubType:        "mtlssourceciscoduo",
+		Type:           "ref",
+	},
 	"claimsretrievalmode": {
-		AllowedChoices: []string{"Entra", "GoogleWorkspace", "Okta", "X509"},
+		AllowedChoices: []string{"CiscoDuo", "Entra", "GoogleWorkspace", "Okta", "X509"},
 		BSONFieldName:  "claimsretrievalmode",
 		ConvertedName:  "ClaimsRetrievalMode",
 		DefaultValue:   MTLSSourceClaimsRetrievalModeX509,
@@ -1480,6 +1537,9 @@ type SparseMTLSSource struct {
 	// ID is the identifier of the object.
 	ID *string `json:"ID,omitempty" msgpack:"ID,omitempty" bson:"-" mapstructure:"ID,omitempty"`
 
+	// Additional information required when claims retrieval mode is set to CiscoDuo.
+	CiscoDuoApplicationCredentials *MTLSSourceCiscoDuo `json:"ciscoDuoApplicationCredentials,omitempty" msgpack:"ciscoDuoApplicationCredentials,omitempty" bson:"ciscoduoapplicationcredentials,omitempty" mapstructure:"ciscoDuoApplicationCredentials,omitempty"`
+
 	// Defines if and how you want to enable auto login with client certificates.
 	ClaimsRetrievalMode *MTLSSourceClaimsRetrievalModeValue `json:"claimsRetrievalMode,omitempty" msgpack:"claimsRetrievalMode,omitempty" bson:"claimsretrievalmode,omitempty" mapstructure:"claimsRetrievalMode,omitempty"`
 
@@ -1601,6 +1661,9 @@ func (o *SparseMTLSSource) GetBSON() (any, error) {
 	if o.ID != nil {
 		s.ID = bson.ObjectIdHex(*o.ID)
 	}
+	if o.CiscoDuoApplicationCredentials != nil {
+		s.CiscoDuoApplicationCredentials = o.CiscoDuoApplicationCredentials
+	}
 	if o.ClaimsRetrievalMode != nil {
 		s.ClaimsRetrievalMode = o.ClaimsRetrievalMode
 	}
@@ -1683,6 +1746,9 @@ func (o *SparseMTLSSource) SetBSON(raw bson.Raw) error {
 	}
 	id := s.ID.Hex()
 	o.ID = &id
+	if s.CiscoDuoApplicationCredentials != nil {
+		o.CiscoDuoApplicationCredentials = s.CiscoDuoApplicationCredentials
+	}
 	if s.ClaimsRetrievalMode != nil {
 		o.ClaimsRetrievalMode = s.ClaimsRetrievalMode
 	}
@@ -1763,6 +1829,9 @@ func (o *SparseMTLSSource) ToPlain() elemental.PlainIdentifiable {
 	if o.ID != nil {
 		out.ID = *o.ID
 	}
+	if o.CiscoDuoApplicationCredentials != nil {
+		out.CiscoDuoApplicationCredentials = o.CiscoDuoApplicationCredentials
+	}
 	if o.ClaimsRetrievalMode != nil {
 		out.ClaimsRetrievalMode = *o.ClaimsRetrievalMode
 	}
@@ -1830,6 +1899,12 @@ func (o *SparseMTLSSource) ToPlain() elemental.PlainIdentifiable {
 // EncryptAttributes encrypts the attributes marked as `encrypted` using the given encrypter.
 func (o *SparseMTLSSource) EncryptAttributes(encrypter elemental.AttributeEncrypter) (err error) {
 
+	if o.CiscoDuoApplicationCredentials != nil {
+		if err := o.CiscoDuoApplicationCredentials.EncryptAttributes(encrypter); err != nil {
+			return fmt.Errorf("unable to encrypt ref attribute 'CiscoDuoApplicationCredentials' for 'MTLSSource' (%s): %w", o.Identifier(), err)
+		}
+	}
+
 	if o.EntraApplicationCredentials != nil {
 		if err := o.EntraApplicationCredentials.EncryptAttributes(encrypter); err != nil {
 			return fmt.Errorf("unable to encrypt ref attribute 'EntraApplicationCredentials' for 'MTLSSource' (%s): %w", o.Identifier(), err)
@@ -1859,6 +1934,12 @@ func (o *SparseMTLSSource) EncryptAttributes(encrypter elemental.AttributeEncryp
 
 // DecryptAttributes decrypts the attributes marked as `encrypted` using the given decrypter.
 func (o *SparseMTLSSource) DecryptAttributes(encrypter elemental.AttributeEncrypter) (err error) {
+
+	if o.CiscoDuoApplicationCredentials != nil {
+		if err := o.CiscoDuoApplicationCredentials.DecryptAttributes(encrypter); err != nil {
+			return fmt.Errorf("unable to decrypt ref attribute 'CiscoDuoApplicationCredentials' for 'MTLSSource' (%s): %w", o.Identifier(), err)
+		}
+	}
 
 	if o.EntraApplicationCredentials != nil {
 		if err := o.EntraApplicationCredentials.DecryptAttributes(encrypter); err != nil {
@@ -2056,6 +2137,7 @@ func (o *SparseMTLSSource) DeepCopyInto(out *SparseMTLSSource) {
 type mongoAttributesMTLSSource struct {
 	CA                                    string                                `bson:"ca"`
 	ID                                    bson.ObjectId                         `bson:"_id,omitempty"`
+	CiscoDuoApplicationCredentials        *MTLSSourceCiscoDuo                   `bson:"ciscoduoapplicationcredentials"`
 	ClaimsRetrievalMode                   MTLSSourceClaimsRetrievalModeValue    `bson:"claimsretrievalmode,omitempty"`
 	CreateTime                            time.Time                             `bson:"createtime"`
 	Description                           string                                `bson:"description"`
@@ -2080,6 +2162,7 @@ type mongoAttributesMTLSSource struct {
 type mongoAttributesSparseMTLSSource struct {
 	CA                                    *string                                `bson:"ca,omitempty"`
 	ID                                    bson.ObjectId                          `bson:"_id,omitempty"`
+	CiscoDuoApplicationCredentials        *MTLSSourceCiscoDuo                    `bson:"ciscoduoapplicationcredentials,omitempty"`
 	ClaimsRetrievalMode                   *MTLSSourceClaimsRetrievalModeValue    `bson:"claimsretrievalmode,omitempty"`
 	CreateTime                            *time.Time                             `bson:"createtime,omitempty"`
 	Description                           *string                                `bson:"description,omitempty"`
