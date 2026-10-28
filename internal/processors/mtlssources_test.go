@@ -52,6 +52,34 @@ func TestInsertEntraSecrets(t *testing.T) {
 		So(len(src.EntraApplicationCredentials.GraphSubscriptionIDs), ShouldEqual, 0)
 	})
 
+	Convey("Creating a CiscoDuo source with other providers credentials set", t, func() {
+
+		src := api.NewMTLSSource()
+		src.ClaimsRetrievalMode = api.MTLSSourceClaimsRetrievalModeCiscoDuo
+		src.CiscoDuoApplicationCredentials = api.NewMTLSSourceCiscoDuo()
+		src.EntraApplicationCredentials = api.NewMTLSSourceEntra()
+		src.GoogleWorkspaceApplicationCredentials = api.NewMTLSSourceGoogle()
+		src.OktaApplicationCredentials = api.NewMTLSSourceOkta()
+
+		insertEntraSecrets(src, nil)
+
+		So(src.CiscoDuoApplicationCredentials, ShouldNotBeNil)
+		So(src.EntraApplicationCredentials, ShouldBeNil)
+		So(src.GoogleWorkspaceApplicationCredentials, ShouldBeNil)
+		So(src.OktaApplicationCredentials, ShouldBeNil)
+	})
+
+	Convey("Creating a non CiscoDuo source with Cisco Duo credentials set", t, func() {
+
+		src := api.NewMTLSSource()
+		src.ClaimsRetrievalMode = api.MTLSSourceClaimsRetrievalModeX509
+		src.CiscoDuoApplicationCredentials = api.NewMTLSSourceCiscoDuo()
+
+		insertEntraSecrets(src, nil)
+
+		So(src.CiscoDuoApplicationCredentials, ShouldBeNil)
+	})
+
 	Convey("Creating a new source with graph event nil", t, func() {
 
 		src := api.NewMTLSSource()

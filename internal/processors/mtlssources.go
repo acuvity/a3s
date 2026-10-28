@@ -154,19 +154,27 @@ func insertTLSReferences(src *api.MTLSSource) error {
 func insertEntraSecrets(src *api.MTLSSource, orig *api.MTLSSource) {
 
 	switch src.ClaimsRetrievalMode {
+	case api.MTLSSourceClaimsRetrievalModeCiscoDuo:
+		src.EntraApplicationCredentials = nil
+		src.GoogleWorkspaceApplicationCredentials = nil
+		src.OktaApplicationCredentials = nil
 	case api.MTLSSourceClaimsRetrievalModeEntra:
 		src.OktaApplicationCredentials = nil
 		src.GoogleWorkspaceApplicationCredentials = nil
+		src.CiscoDuoApplicationCredentials = nil
 	case api.MTLSSourceClaimsRetrievalModeGoogleWorkspace:
 		src.EntraApplicationCredentials = nil
 		src.OktaApplicationCredentials = nil
+		src.CiscoDuoApplicationCredentials = nil
 	case api.MTLSSourceClaimsRetrievalModeOkta:
 		src.EntraApplicationCredentials = nil
 		src.GoogleWorkspaceApplicationCredentials = nil
+		src.CiscoDuoApplicationCredentials = nil
 	default:
 		src.OktaApplicationCredentials = nil
 		src.EntraApplicationCredentials = nil
 		src.GoogleWorkspaceApplicationCredentials = nil
+		src.CiscoDuoApplicationCredentials = nil
 	}
 
 	installGraphEvents := func() {

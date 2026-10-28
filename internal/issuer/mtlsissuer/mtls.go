@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"go.acuvity.ai/a3s/internal/identitymodifier"
+	"go.acuvity.ai/a3s/internal/idp/ciscoduo"
 	"go.acuvity.ai/a3s/internal/idp/entra"
 	"go.acuvity.ai/a3s/internal/idp/google"
 	"go.acuvity.ai/a3s/internal/idp/okta"
@@ -16,10 +17,10 @@ import (
 )
 
 // New returns a new MTLS issuer.
-func New(ctx context.Context, source *api.MTLSSource, cert *x509.Certificate, entraManager *entra.Manager, oktaManager *okta.Manager, googleManager *google.Manager, requestMaker netsafe.RequestMaker) (token.Issuer, error) {
+func New(ctx context.Context, source *api.MTLSSource, cert *x509.Certificate, entraManager *entra.Manager, oktaManager *okta.Manager, googleManager *google.Manager, ciscoDuoManager *ciscoduo.Manager, requestMaker netsafe.RequestMaker) (token.Issuer, error) {
 
 	c := newMTLSIssuer(source, requestMaker)
-	if err := c.fromCertificate(ctx, cert, entraManager, oktaManager, googleManager); err != nil {
+	if err := c.fromCertificate(ctx, cert, entraManager, oktaManager, googleManager, ciscoDuoManager); err != nil {
 		return nil, err
 	}
 
@@ -45,7 +46,7 @@ func newMTLSIssuer(source *api.MTLSSource, requestMaker netsafe.RequestMaker) *m
 	}
 }
 
-func (c *mtlsIssuer) fromCertificate(ctx context.Context, cert *x509.Certificate, entraManager *entra.Manager, oktaManager *okta.Manager, googleManager *google.Manager) error {
+func (c *mtlsIssuer) fromCertificate(ctx context.Context, cert *x509.Certificate, entraManager *entra.Manager, oktaManager *okta.Manager, googleManager *google.Manager, ciscoDuoManager *ciscoduo.Manager) error {
 
 	pool := x509.NewCertPool()
 	if !pool.AppendCertsFromPEM([]byte(c.source.CA)) {
@@ -75,6 +76,12 @@ func (c *mtlsIssuer) fromCertificate(ctx context.Context, cert *x509.Certificate
 	}
 
 	switch c.source.ClaimsRetrievalMode {
+
+	case api.MTLSSourceClaimsRetrievalModeCiscoDuo:
+
+		if err := handleCiscoDuoAutologin(ctx, c, cert, ciscoDuoManager); err != nil {
+			return fmt.Errorf("unable to perform ciscoduo additional claims retrieval: %w", err)
+		}
 
 	case api.MTLSSourceClaimsRetrievalModeEntra:
 

@@ -14,6 +14,7 @@ import (
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
+	"go.acuvity.ai/a3s/internal/idp/ciscoduo"
 	"go.acuvity.ai/a3s/internal/idp/google"
 	"go.acuvity.ai/a3s/pkgs/api"
 	"go.acuvity.ai/a3s/pkgs/netsafe"
@@ -102,7 +103,7 @@ func TestMTLSIssuer(t *testing.T) {
 
 			Convey("Calling FromCertificate with a source missing a CA", func() {
 				src.CA = ""
-				_, err := New(context.Background(), src, usercert2, nil, nil, nil, rm)
+				_, err := New(context.Background(), src, usercert2, nil, nil, nil, nil, rm)
 				So(err, ShouldNotBeNil)
 				So(err.Error(), ShouldStartWith, "unable to prepare x509 verifier: could not append cert from source.CA")
 			})
@@ -118,14 +119,29 @@ func TestMTLSIssuer(t *testing.T) {
 				}
 
 				gmgr := google.NewManager(&http.Client{}, rm)
-				_, err := New(context.Background(), src, usercert1, nil, nil, gmgr, rm)
+				_, err := New(context.Background(), src, usercert1, nil, nil, gmgr, nil, rm)
 				So(err, ShouldNotBeNil)
 				So(err.Error(), ShouldStartWith, "unable to perform google additional claims retrieval")
 			})
 
+			Convey("Calling FromCertificate in CiscoDuo mode should route to the Cisco Duo handler", func() {
+
+				src.ClaimsRetrievalMode = api.MTLSSourceClaimsRetrievalModeCiscoDuo
+				src.CiscoDuoApplicationCredentials = &api.MTLSSourceCiscoDuo{
+					APIHostname:    "11.0.0.1",
+					IntegrationKey: "ikey",
+					SecretKey:      "skey",
+				}
+
+				cmgr := ciscoduo.NewManager(&http.Client{}, rm)
+				_, err := New(context.Background(), src, usercert1, nil, nil, nil, cmgr, rm)
+				So(err, ShouldNotBeNil)
+				So(err.Error(), ShouldStartWith, "unable to perform ciscoduo additional claims retrieval")
+			})
+
 			Convey("Calling FromCertificate with a valid user cert should work", func() {
 
-				iss, err := New(context.Background(), src, usercert1, nil, nil, nil, rm)
+				iss, err := New(context.Background(), src, usercert1, nil, nil, nil, nil, rm)
 				So(err, ShouldBeNil)
 
 				idt := iss.Issue()
@@ -170,7 +186,7 @@ func TestMTLSIssuer(t *testing.T) {
 				src.Modifier.Certificate = string(pem.EncodeToMemory(certb))
 				src.Modifier.Key = string(pem.EncodeToMemory(keyb))
 
-				iss, err := New(context.Background(), src, usercert1, nil, nil, nil, rm)
+				iss, err := New(context.Background(), src, usercert1, nil, nil, nil, nil, rm)
 				So(err, ShouldBeNil)
 
 				idt := iss.Issue()
@@ -193,7 +209,7 @@ func TestMTLSIssuer(t *testing.T) {
 				src.Modifier.CA = string(pem.EncodeToMemory(cab))
 				src.Modifier.URL = ts.URL
 
-				err := iss.fromCertificate(context.Background(), usercert1, nil, nil, nil)
+				err := iss.fromCertificate(context.Background(), usercert1, nil, nil, nil, nil)
 				So(err, ShouldNotBeNil)
 				So(err.Error(), ShouldEqual, `unable to prepare source modifier: unable to create certificate: could not read key data from bytes: ''`)
 			})
@@ -214,14 +230,14 @@ func TestMTLSIssuer(t *testing.T) {
 				src.Modifier.Certificate = string(pem.EncodeToMemory(certb))
 				src.Modifier.Key = string(pem.EncodeToMemory(keyb))
 
-				err := iss.fromCertificate(context.Background(), usercert1, nil, nil, nil)
+				err := iss.fromCertificate(context.Background(), usercert1, nil, nil, nil, nil)
 				So(err, ShouldNotBeNil)
 				So(err.Error(), ShouldEqual, `unable to call modifier: service returned an error: 403 Forbidden`)
 			})
 
 			Convey("Calling FromCertificate with a invalid user cert should work", func() {
 
-				err := iss.fromCertificate(context.Background(), usercert2, nil, nil, nil)
+				err := iss.fromCertificate(context.Background(), usercert2, nil, nil, nil, nil)
 				So(err, ShouldNotBeNil)
 				So(err.Error(), ShouldStartWith, "unable to verify certificate: x509: certificate signed by unknown authority")
 			})
