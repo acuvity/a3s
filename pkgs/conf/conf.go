@@ -486,6 +486,7 @@ type MTLSHeaderConf struct {
 
 // A3SClientConf holds a3s config.
 type A3SClientConf struct {
+	A3SAuthRegion           string `mapstructure:"a3s-auth-region" desc:"Use the given region to retrieve the token."`
 	A3SCertificateAuthority string `mapstructure:"a3s-cacert" desc:"Path to the CA certificate" secret:"true" file:"true"`
 	A3SClientCert           string `mapstructure:"a3s-cert" desc:"Path to the client certificate" secret:"true" file:"true"`
 	A3SClientKey            string `mapstructure:"a3s-key" desc:"Path to the client key" secret:"true" file:"true"`

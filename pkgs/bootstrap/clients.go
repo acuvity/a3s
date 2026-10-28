@@ -185,6 +185,11 @@ func MakeA3SManipulator(ctx context.Context, a3sConfig conf.A3SClientConf) (mani
 		Certificates: []tls.Certificate{clientCert},
 	}
 
+	opts := []authlib.Option{}
+	if a3sConfig.A3SAuthRegion != "" {
+		opts = append(opts, authlib.OptOpaque(map[string]string{"region": a3sConfig.A3SAuthRegion}))
+	}
+
 	m, err := maniphttp.New(
 		ctx,
 		a3sConfig.A3SURL,
@@ -193,6 +198,7 @@ func MakeA3SManipulator(ctx context.Context, a3sConfig conf.A3SClientConf) (mani
 			authlib.NewX509TokenManager(
 				a3sConfig.A3SNamespace,
 				a3sConfig.A3SourceName,
+				opts...,
 			),
 		),
 		maniphttp.OptionTLSConfig(tlsConfig),
@@ -215,6 +221,13 @@ func MakeA3SManipulator(ctx context.Context, a3sConfig conf.A3SClientConf) (mani
 			err,
 		)
 	}
+
+	slog.Info("A3S configured",
+		"url", a3sConfig.A3SURL,
+		"ns", a3sConfig.A3SNamespace,
+		"source", a3sConfig.A3SourceName,
+		"region", a3sConfig.A3SAuthRegion,
+	)
 
 	return m, nil
 }
