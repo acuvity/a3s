@@ -13,7 +13,7 @@ import (
 
 // IssueA3S represents the model of a issuea3s
 type IssueA3S struct {
-	// The original token.
+	// The original token. Optional when the token is provided as a cookie.
 	Token string `json:"token" msgpack:"token" bson:"-" mapstructure:"token,omitempty"`
 
 	ModelVersion int `json:"-" msgpack:"-" bson:"_modelversion"`
@@ -129,10 +129,6 @@ func (o *IssueA3S) Validate() error {
 	errors := elemental.Errors{}
 	requiredErrors := elemental.Errors{}
 
-	if err := elemental.ValidateRequiredString("token", o.Token); err != nil {
-		requiredErrors = requiredErrors.Append(err)
-	}
-
 	if len(requiredErrors) > 0 {
 		return requiredErrors
 	}
@@ -179,10 +175,9 @@ var IssueA3SAttributesMap = map[string]elemental.AttributeSpecification{
 	"Token": {
 		AllowedChoices: []string{},
 		ConvertedName:  "Token",
-		Description:    `The original token.`,
+		Description:    `The original token. Optional when the token is provided as a cookie.`,
 		Exposed:        true,
 		Name:           "token",
-		Required:       true,
 		Type:           "string",
 	},
 }
@@ -192,10 +187,9 @@ var IssueA3SLowerCaseAttributesMap = map[string]elemental.AttributeSpecification
 	"token": {
 		AllowedChoices: []string{},
 		ConvertedName:  "Token",
-		Description:    `The original token.`,
+		Description:    `The original token. Optional when the token is provided as a cookie.`,
 		Exposed:        true,
 		Name:           "token",
-		Required:       true,
 		Type:           "string",
 	},
 }

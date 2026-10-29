@@ -11,15 +11,15 @@
   "properties": {
     "token": {
       "$friendlyName": "Token",
-      "$required": true,
-      "description": "The original token.",
+      "description": "The original token. Optional when the token is provided as a cookie.",
       "title": "token",
-      "type": "string"
+      "type": [
+        "string",
+        "null"
+      ]
     }
   },
-  "required": [
-    "token"
-  ],
+  "required": [],
   "title": "IssueA3S",
   "type": "object"
 }
