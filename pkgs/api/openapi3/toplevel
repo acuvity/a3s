@@ -710,14 +710,11 @@
         "description": "Additional issuing information for A3S token source.",
         "properties": {
           "token": {
-            "description": "The original token.",
+            "description": "The original token. Optional when the token is provided as a cookie.",
             "example": "valid.jwt.token",
             "type": "string"
           }
         },
-        "required": [
-          "token"
-        ],
         "type": "object"
       },
       "issueaws": {

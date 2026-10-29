@@ -541,11 +541,11 @@ Additional issuing information for A3S token source.
 
 #### Attributes
 
-##### `token` [`required`]
+##### `token`
 
 Type: `string`
 
-The original token.
+The original token. Optional when the token is provided as a cookie.
 
 ### IssueAWS
 
