@@ -261,7 +261,7 @@ func (p *IssueProcessor) ProcessCreate(bctx bahamut.Context) (err error) {
 		if req.Validity == "" {
 			validity = 0
 		}
-		issuer, err = p.handleTokenIssue(req, validity, audience)
+		issuer, err = p.handleTokenIssue(bctx, req, validity, audience)
 		// we reset to 0 to skip setting exp during issuing of the token
 		// as the token issers already caps it.
 		if p.waiveSecret != req.WaiveValiditySecret {
@@ -543,10 +543,15 @@ func (p *IssueProcessor) handleGCPIssue(req *api.Issue) (token.Issuer, error) {
 	return iss, nil
 }
 
-func (p *IssueProcessor) handleTokenIssue(req *api.Issue, validity time.Duration, audience []string) (token.Issuer, error) {
+func (p *IssueProcessor) handleTokenIssue(bctx bahamut.Context, req *api.Issue, validity time.Duration, audience []string) (token.Issuer, error) {
+
+	tok := req.InputA3S.Token
+	if tok == "" {
+		tok = token.FromRequest(bctx.Request())
+	}
 
 	iss, err := a3sissuer.New(
-		req.InputA3S.Token,
+		tok,
 		p.jwks,
 		p.issuer,
 		audience,

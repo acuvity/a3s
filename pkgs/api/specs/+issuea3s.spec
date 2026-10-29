@@ -14,8 +14,7 @@ attributes:
   v1:
   - name: token
     friendly_name: Token
-    description: The original token.
+    description: The original token. Optional when the token is provided as a cookie.
     type: string
     exposed: true
-    required: true
     example_value: valid.jwt.token

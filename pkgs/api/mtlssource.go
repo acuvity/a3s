@@ -703,15 +703,15 @@ func (o *MTLSSource) Validate() error {
 
 	if o.EntraApplicationCredentials != nil {
 		if err := o.EntraApplicationCredentials.Validate(); err != nil {
+			elemental.InjectAttributePath(err, "entraApplicationCredentials")
 			errors = errors.Append(err)
-			elemental.InjectAttributePath(errors, "entraApplicationCredentials")
 		}
 	}
 
 	if o.GoogleWorkspaceApplicationCredentials != nil {
 		if err := o.GoogleWorkspaceApplicationCredentials.Validate(); err != nil {
+			elemental.InjectAttributePath(err, "googleWorkspaceApplicationCredentials")
 			errors = errors.Append(err)
-			elemental.InjectAttributePath(errors, "googleWorkspaceApplicationCredentials")
 		}
 	}
 
@@ -725,8 +725,8 @@ func (o *MTLSSource) Validate() error {
 
 	if o.Modifier != nil {
 		if err := o.Modifier.Validate(); err != nil {
+			elemental.InjectAttributePath(err, "modifier")
 			errors = errors.Append(err)
-			elemental.InjectAttributePath(errors, "modifier")
 		}
 	}
 
@@ -736,8 +736,8 @@ func (o *MTLSSource) Validate() error {
 
 	if o.OktaApplicationCredentials != nil {
 		if err := o.OktaApplicationCredentials.Validate(); err != nil {
+			elemental.InjectAttributePath(err, "oktaApplicationCredentials")
 			errors = errors.Append(err)
-			elemental.InjectAttributePath(errors, "oktaApplicationCredentials")
 		}
 	}
 
