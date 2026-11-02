@@ -4,6 +4,7 @@ import (
 	"context"
 	"log/slog"
 
+	"go.acuvity.ai/a3s/pkgs/namespace"
 	"go.acuvity.ai/elemental"
 	"go.acuvity.ai/manipulate"
 )
@@ -35,6 +36,7 @@ func MakeNamespaceCleaner(ctx context.Context, m manipulate.Manipulator, manager
 				ctx,
 				manipulate.ContextOptionNamespace(ns),
 				manipulate.ContextOptionRecursive(true),
+				manipulate.ContextOptionFilter(namespace.NewSubtreeFilter(ns)),
 			)
 
 			if err := m.DeleteMany(mctx, i); err != nil {

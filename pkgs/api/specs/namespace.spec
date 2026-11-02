@@ -38,6 +38,15 @@ indexes:
 # Attributes
 attributes:
   v1:
+  - name: creationMarker
+    friendly_name: Creation Marker
+    description: Private immutable binding to the namespace owner creation operation.
+    type: string
+    exposed: false
+    stored: true
+    read_only: true
+    omit_empty: true
+
   - name: description
     friendly_name: Description
     description: The description of the object.

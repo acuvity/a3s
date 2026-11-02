@@ -23,6 +23,7 @@ import (
 var (
 	ErrJWKSNotFound    = errors.New("kid not found in JWKS")
 	ErrJWKSInvalidType = errors.New("certificate must be ecdsa")
+	ErrJWKSInvalidKey  = errors.New("invalid ecdsa public key")
 	ErrJWKSKeyExists   = errors.New("key with the same kid already exists")
 	mTry               = 20
 )
@@ -109,6 +110,9 @@ func NewRemoteJWKS(ctx context.Context, client *http.Client, url string) (*JWKS,
 
 	for _, k := range jwks.Keys {
 
+		if k == nil {
+			return nil, ErrJWKSRemote{Err: ErrJWKSInvalidKey}
+		}
 		jwks.keyMap[k.KID] = k
 
 		if k.X != "" && k.Y != "" {
@@ -127,6 +131,9 @@ func NewRemoteJWKS(ctx context.Context, client *http.Client, url string) (*JWKS,
 			k.y = &big.Int{}
 			k.y.SetBytes(y)
 		}
+		// Prepare before publishing the set: concurrent verification is read-only.
+		// Unknown/invalid entries remain loadable but cannot provide an EC key.
+		k.public = k.parsePublicKey()
 	}
 
 	return jwks, nil
@@ -143,8 +150,11 @@ func (j *JWKS) AppendWithPrivate(cert *x509.Certificate, private crypto.PrivateK
 	j.Lock()
 	defer j.Unlock()
 
+	if cert == nil {
+		return ErrJWKSInvalidType
+	}
 	public, ok := cert.PublicKey.(*ecdsa.PublicKey)
-	if !ok {
+	if !ok || public == nil {
 		return ErrJWKSInvalidType
 	}
 
@@ -154,22 +164,50 @@ func (j *JWKS) AppendWithPrivate(cert *x509.Certificate, private crypto.PrivateK
 		return ErrJWKSKeyExists
 	}
 
+	point, err := encodeECDSAPublicKey(public)
+	if err != nil {
+		return err
+	}
+	size := (len(point) - 1) / 2
+	x := new(big.Int).SetBytes(point[1 : 1+size])
+	y := new(big.Int).SetBytes(point[1+size:])
 	k := &JWKSKey{
-		KTY:     "EC",
-		KID:     kid,
-		Use:     "sig",
-		CRV:     public.Curve.Params().Name,
-		X:       base64.RawURLEncoding.EncodeToString(public.X.Bytes()),
-		x:       public.X,
-		Y:       base64.RawURLEncoding.EncodeToString(public.Y.Bytes()),
-		y:       public.Y,
+		KTY: "EC",
+		KID: kid,
+		Use: "sig",
+		CRV: public.Curve.Params().Name,
+		// Preserve the existing minimal-width JWK encoding, not SEC 1 padding.
+		X:       base64.RawURLEncoding.EncodeToString(x.Bytes()),
+		x:       x,
+		Y:       base64.RawURLEncoding.EncodeToString(y.Bytes()),
+		y:       y,
 		private: private,
+	}
+	k.public = k.parsePublicKey()
+	if k.public == nil {
+		return ErrJWKSInvalidKey
 	}
 
 	j.Keys = append(j.Keys, k)
 	j.keyMap[kid] = k
 
 	return nil
+}
+
+// encodeECDSAPublicKey contains only the standard-library encoding call. Go 1.26
+// Bytes reports malformed points as errors but panics on nil affine coordinates;
+// a malformed caller-supplied certificate must fail closed instead of panicking.
+func encodeECDSAPublicKey(public *ecdsa.PublicKey) (point []byte, err error) {
+	defer func() {
+		if recover() != nil {
+			point, err = nil, ErrJWKSInvalidKey
+		}
+	}()
+	point, err = public.Bytes()
+	if err != nil {
+		return nil, ErrJWKSInvalidKey
+	}
+	return point, nil
 }
 
 // Get returns the key with the given ID.
@@ -246,8 +284,8 @@ func (j *JWKS) Del(kid string) bool {
 	return true
 }
 
-// JWKSKey represents a single key stored in
-// a JWKS.
+// JWKSKey represents a single key stored in a JWKS. Keys and returned public
+// keys are shared read-only values after publication; callers must not mutate them.
 type JWKSKey struct {
 	KTY string `json:"kty"`
 	KID string `json:"kid"`
@@ -281,24 +319,38 @@ func (k *JWKSKey) Curve() elliptic.Curve {
 	}
 }
 
-// PublicKey returns a ready to use crypto.PublicKey.
+// PublicKey returns a ready to use crypto.PublicKey, or nil for an invalid key.
+// Preparation finishes before publication; reads never populate a cache.
 func (k *JWKSKey) PublicKey() crypto.PublicKey {
 
+	if k == nil {
+		return nil
+	}
 	if k.public != nil {
 		return k.public
 	}
+	return k.parsePublicKey()
+}
 
-	switch k.KTY {
-	case "EC":
-		k.public = &ecdsa.PublicKey{
-			X:     k.x,
-			Y:     k.y,
-			Curve: k.Curve(),
-		}
-		return k.public
-	default:
+func (k *JWKSKey) parsePublicKey() crypto.PublicKey {
+	curve := k.Curve()
+	if k.KTY != "EC" || curve == nil || k.x == nil || k.y == nil || k.x.Sign() < 0 || k.y.Sign() < 0 {
 		return nil
 	}
+	bits := curve.Params().BitSize
+	if k.x.BitLen() > bits || k.y.BitLen() > bits {
+		return nil
+	}
+	size := (bits + 7) / 8
+	point := make([]byte, 1+2*size)
+	point[0] = 4 // SEC 1 uncompressed point; coordinates are fixed-width here.
+	k.x.FillBytes(point[1 : 1+size])
+	k.y.FillBytes(point[1+size:])
+	public, err := ecdsa.ParseUncompressedPublicKey(curve, point)
+	if err != nil {
+		return nil
+	}
+	return public
 }
 
 // PrivateKey returns the crypto.PrivateKey associated to

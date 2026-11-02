@@ -91,6 +91,9 @@ type Namespace struct {
 	// Creation date of the object.
 	CreateTime time.Time `json:"createTime" msgpack:"createTime" bson:"createtime" mapstructure:"createTime,omitempty"`
 
+	// Private immutable binding to the namespace owner creation operation.
+	CreationMarker string `json:"-" msgpack:"-" bson:"creationmarker,omitempty" mapstructure:"-,omitempty"`
+
 	// The description of the object.
 	Description string `json:"description" msgpack:"description" bson:"description" mapstructure:"description,omitempty"`
 
@@ -166,6 +169,7 @@ func (o *Namespace) GetBSON() (any, error) {
 		s.ID = bson.ObjectIdHex(o.ID)
 	}
 	s.CreateTime = o.CreateTime
+	s.CreationMarker = o.CreationMarker
 	s.Description = o.Description
 	s.ImportHash = o.ImportHash
 	s.ImportLabel = o.ImportLabel
@@ -195,6 +199,7 @@ func (o *Namespace) SetBSON(raw bson.Raw) error {
 
 	o.ID = s.ID.Hex()
 	o.CreateTime = s.CreateTime
+	o.CreationMarker = s.CreationMarker
 	o.Description = s.Description
 	o.ImportHash = s.ImportHash
 	o.ImportLabel = s.ImportLabel
@@ -342,18 +347,19 @@ func (o *Namespace) ToSparse(fields ...string) elemental.SparseIdentifiable {
 	if len(fields) == 0 {
 		// nolint: goimports
 		return &SparseNamespace{
-			ID:          &o.ID,
-			CreateTime:  &o.CreateTime,
-			Description: &o.Description,
-			ImportHash:  &o.ImportHash,
-			ImportLabel: &o.ImportLabel,
-			Label:       &o.Label,
-			Name:        &o.Name,
-			Namespace:   &o.Namespace,
-			Opaque:      &o.Opaque,
-			UpdateTime:  &o.UpdateTime,
-			ZHash:       &o.ZHash,
-			Zone:        &o.Zone,
+			ID:             &o.ID,
+			CreateTime:     &o.CreateTime,
+			CreationMarker: &o.CreationMarker,
+			Description:    &o.Description,
+			ImportHash:     &o.ImportHash,
+			ImportLabel:    &o.ImportLabel,
+			Label:          &o.Label,
+			Name:           &o.Name,
+			Namespace:      &o.Namespace,
+			Opaque:         &o.Opaque,
+			UpdateTime:     &o.UpdateTime,
+			ZHash:          &o.ZHash,
+			Zone:           &o.Zone,
 		}
 	}
 
@@ -364,6 +370,8 @@ func (o *Namespace) ToSparse(fields ...string) elemental.SparseIdentifiable {
 			sp.ID = &(o.ID)
 		case "createTime":
 			sp.CreateTime = &(o.CreateTime)
+		case "creationMarker":
+			sp.CreationMarker = &(o.CreationMarker)
 		case "description":
 			sp.Description = &(o.Description)
 		case "importHash":
@@ -402,6 +410,9 @@ func (o *Namespace) Patch(sparse elemental.SparseIdentifiable) {
 	}
 	if so.CreateTime != nil {
 		o.CreateTime = *so.CreateTime
+	}
+	if so.CreationMarker != nil {
+		o.CreationMarker = *so.CreationMarker
 	}
 	if so.Description != nil {
 		o.Description = *so.Description
@@ -525,6 +536,8 @@ func (o *Namespace) ValueForAttribute(name string) any {
 		return o.ID
 	case "createTime":
 		return o.CreateTime
+	case "creationMarker":
+		return o.CreationMarker
 	case "description":
 		return o.Description
 	case "importHash":
@@ -581,6 +594,16 @@ var NamespaceAttributesMap = map[string]elemental.AttributeSpecification{
 		Setter:         true,
 		Stored:         true,
 		Type:           "time",
+	},
+	"CreationMarker": {
+		AllowedChoices: []string{},
+		BSONFieldName:  "creationmarker",
+		ConvertedName:  "CreationMarker",
+		Description:    `Private immutable binding to the namespace owner creation operation.`,
+		Name:           "creationMarker",
+		ReadOnly:       true,
+		Stored:         true,
+		Type:           "string",
 	},
 	"Description": {
 		AllowedChoices: []string{},
@@ -748,6 +771,16 @@ var NamespaceLowerCaseAttributesMap = map[string]elemental.AttributeSpecificatio
 		Setter:         true,
 		Stored:         true,
 		Type:           "time",
+	},
+	"creationmarker": {
+		AllowedChoices: []string{},
+		BSONFieldName:  "creationmarker",
+		ConvertedName:  "CreationMarker",
+		Description:    `Private immutable binding to the namespace owner creation operation.`,
+		Name:           "creationMarker",
+		ReadOnly:       true,
+		Stored:         true,
+		Type:           "string",
 	},
 	"description": {
 		AllowedChoices: []string{},
@@ -953,6 +986,9 @@ type SparseNamespace struct {
 	// Creation date of the object.
 	CreateTime *time.Time `json:"createTime,omitempty" msgpack:"createTime,omitempty" bson:"createtime,omitempty" mapstructure:"createTime,omitempty"`
 
+	// Private immutable binding to the namespace owner creation operation.
+	CreationMarker *string `json:"-" msgpack:"-" bson:"creationmarker,omitempty" mapstructure:"-,omitempty"`
+
 	// The description of the object.
 	Description *string `json:"description,omitempty" msgpack:"description,omitempty" bson:"description,omitempty" mapstructure:"description,omitempty"`
 
@@ -1034,6 +1070,9 @@ func (o *SparseNamespace) GetBSON() (any, error) {
 	if o.CreateTime != nil {
 		s.CreateTime = o.CreateTime
 	}
+	if o.CreationMarker != nil {
+		s.CreationMarker = o.CreationMarker
+	}
 	if o.Description != nil {
 		s.Description = o.Description
 	}
@@ -1086,6 +1125,9 @@ func (o *SparseNamespace) SetBSON(raw bson.Raw) error {
 	if s.CreateTime != nil {
 		o.CreateTime = s.CreateTime
 	}
+	if s.CreationMarker != nil {
+		o.CreationMarker = s.CreationMarker
+	}
 	if s.Description != nil {
 		o.Description = s.Description
 	}
@@ -1135,6 +1177,9 @@ func (o *SparseNamespace) ToPlain() elemental.PlainIdentifiable {
 	}
 	if o.CreateTime != nil {
 		out.CreateTime = *o.CreateTime
+	}
+	if o.CreationMarker != nil {
+		out.CreationMarker = *o.CreationMarker
 	}
 	if o.Description != nil {
 		out.Description = *o.Description
@@ -1335,30 +1380,32 @@ func (o *SparseNamespace) DeepCopyInto(out *SparseNamespace) {
 }
 
 type mongoAttributesNamespace struct {
-	ID          bson.ObjectId  `bson:"_id,omitempty"`
-	CreateTime  time.Time      `bson:"createtime"`
-	Description string         `bson:"description"`
-	ImportHash  string         `bson:"importhash,omitempty"`
-	ImportLabel string         `bson:"importlabel,omitempty"`
-	Label       string         `bson:"label,omitempty"`
-	Name        string         `bson:"name"`
-	Namespace   string         `bson:"namespace,omitempty"`
-	Opaque      map[string]any `bson:"opaque,omitempty"`
-	UpdateTime  time.Time      `bson:"updatetime"`
-	ZHash       int            `bson:"zhash"`
-	Zone        int            `bson:"zone"`
+	ID             bson.ObjectId  `bson:"_id,omitempty"`
+	CreateTime     time.Time      `bson:"createtime"`
+	CreationMarker string         `bson:"creationmarker,omitempty"`
+	Description    string         `bson:"description"`
+	ImportHash     string         `bson:"importhash,omitempty"`
+	ImportLabel    string         `bson:"importlabel,omitempty"`
+	Label          string         `bson:"label,omitempty"`
+	Name           string         `bson:"name"`
+	Namespace      string         `bson:"namespace,omitempty"`
+	Opaque         map[string]any `bson:"opaque,omitempty"`
+	UpdateTime     time.Time      `bson:"updatetime"`
+	ZHash          int            `bson:"zhash"`
+	Zone           int            `bson:"zone"`
 }
 type mongoAttributesSparseNamespace struct {
-	ID          bson.ObjectId   `bson:"_id,omitempty"`
-	CreateTime  *time.Time      `bson:"createtime,omitempty"`
-	Description *string         `bson:"description,omitempty"`
-	ImportHash  *string         `bson:"importhash,omitempty"`
-	ImportLabel *string         `bson:"importlabel,omitempty"`
-	Label       *string         `bson:"label,omitempty"`
-	Name        *string         `bson:"name,omitempty"`
-	Namespace   *string         `bson:"namespace,omitempty"`
-	Opaque      *map[string]any `bson:"opaque,omitempty"`
-	UpdateTime  *time.Time      `bson:"updatetime,omitempty"`
-	ZHash       *int            `bson:"zhash,omitempty"`
-	Zone        *int            `bson:"zone,omitempty"`
+	ID             bson.ObjectId   `bson:"_id,omitempty"`
+	CreateTime     *time.Time      `bson:"createtime,omitempty"`
+	CreationMarker *string         `bson:"creationmarker,omitempty"`
+	Description    *string         `bson:"description,omitempty"`
+	ImportHash     *string         `bson:"importhash,omitempty"`
+	ImportLabel    *string         `bson:"importlabel,omitempty"`
+	Label          *string         `bson:"label,omitempty"`
+	Name           *string         `bson:"name,omitempty"`
+	Namespace      *string         `bson:"namespace,omitempty"`
+	Opaque         *map[string]any `bson:"opaque,omitempty"`
+	UpdateTime     *time.Time      `bson:"updatetime,omitempty"`
+	ZHash          *int            `bson:"zhash,omitempty"`
+	Zone           *int            `bson:"zone,omitempty"`
 }

@@ -1,0 +1,39 @@
+{
+  "$extends": [
+    "@sharded",
+    "@identifiable"
+  ],
+  "$friendlyName": "NamespaceLifecycle",
+  "$friendlyNamePlural": "NamespaceLifecycles",
+  "$modelName": "NamespaceLifecycle",
+  "$modelPackage": "a3s",
+  "$modelResourceName": "namespacelifecycles",
+  "$modelRestName": "namespacelifecycle",
+  "additionalProperties": false,
+  "description": "Private non-expiring namespace lifecycle coordination. This model has no public CRUD route. Its identifier binds the native namespace incarnation, not its name.",
+  "properties": {
+    "ID": {
+      "$friendlyName": "ID",
+      "$readOnly": true,
+      "description": "ID is the identifier of the object.",
+      "title": "ID",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "namespace": {
+      "$friendlyName": "Namespace",
+      "$readOnly": true,
+      "description": "The namespace of the object.",
+      "title": "namespace",
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  },
+  "required": [],
+  "title": "NamespaceLifecycle",
+  "type": "object"
+}

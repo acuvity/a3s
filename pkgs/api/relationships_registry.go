@@ -432,6 +432,14 @@ func init() {
 		},
 	}
 
+	relationshipsRegistry[NamespaceLifecycleIdentity] = &elemental.Relationship{}
+
+	relationshipsRegistry[NamespaceParticipationIdentity] = &elemental.Relationship{
+		Create: map[string]*elemental.RelationshipInfo{
+			"root": {},
+		},
+	}
+
 	relationshipsRegistry[OAuth2SourceIdentity] = &elemental.Relationship{
 		Create: map[string]*elemental.RelationshipInfo{
 			"root": {},
