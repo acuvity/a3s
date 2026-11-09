@@ -10,6 +10,7 @@ import (
 	"log/slog"
 	"os"
 	"os/exec"
+	"sync"
 	"time"
 
 	"github.com/fatih/structs"
@@ -69,6 +70,10 @@ type Modifier struct {
 	args     []string
 	encoding elemental.EncodingType
 	hash     string
+
+	// mu runs one request/response exchange at a time: responses carry no
+	// request id, so concurrent Writes could read each other's response.
+	mu sync.Mutex
 }
 
 // New returns a new Modifier.
@@ -132,7 +137,9 @@ func (b *Modifier) Run(ctx context.Context) error {
 		scanner := bufio.NewScanner(stdout)
 		for scanner.Scan() {
 
-			data := scanner.Bytes()
+			// Copy: the scanner reuses its buffer on the next Scan, which
+			// would overwrite a line still waiting in the channel.
+			data := bytes.Clone(scanner.Bytes())
 			slog.Debug("Binary modifier: scanned stdout", "data", string(data))
 
 			select {
@@ -148,7 +155,7 @@ func (b *Modifier) Run(ctx context.Context) error {
 		scanner := bufio.NewScanner(stderr)
 		for scanner.Scan() {
 
-			data := scanner.Bytes()
+			data := bytes.Clone(scanner.Bytes())
 			slog.Warn("Binary modifier: message from plugin", "data", string(data))
 
 			select {
@@ -193,6 +200,19 @@ func (b *Modifier) Write(ctx context.Context, idt *token.IdentityToken, issuer s
 	data, err := elemental.Encode(b.encoding, Request{Token: idt, Issuer: issuer})
 	if err != nil {
 		return nil, fmt.Errorf("unable to encode idt: %w", err)
+	}
+
+	b.mu.Lock()
+	defer b.mu.Unlock()
+
+	// Drop a response that arrived after its Write timed out, so it is not
+	// taken for the answer to this one.
+	for drained := false; !drained; {
+		select {
+		case <-b.stdout:
+		default:
+			drained = true
+		}
 	}
 
 	select {

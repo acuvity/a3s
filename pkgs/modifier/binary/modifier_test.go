@@ -3,6 +3,7 @@ package binary
 import (
 	"context"
 	"fmt"
+	"sync"
 	"testing"
 	"time"
 
@@ -99,5 +100,73 @@ func TestBinaryModifier(t *testing.T) {
 		So(err, ShouldBeNil)
 		So(nidt, ShouldNotBeNil)
 		So(nidt.Identity, ShouldResemble, []string{"z=z"})
+	})
+}
+
+func TestBinaryModifierConcurrentWrites(t *testing.T) {
+
+	hash, _ := computeHash("fixtures/modifier-echo.sh")
+
+	Convey("I have a running binary.Modifier that answers each token with its own identity", t, func() {
+
+		m, err := New("fixtures/modifier-echo.sh", hash, conf.MongoConf{MongoURL: "mongodb://127.0.0.1"})
+		So(err, ShouldBeNil)
+		m.encoding = elemental.EncodingTypeJSON
+
+		ctx, cancel := context.WithCancel(context.Background())
+		defer cancel()
+		So(m.Run(ctx), ShouldBeNil)
+		time.Sleep(time.Second)
+
+		Convey("When 50 tokens are written at the same time", func() {
+
+			const n = 50
+			type result struct {
+				identity []string
+				err      error
+			}
+			results := make([]result, n)
+
+			var wg sync.WaitGroup
+			for i := range n {
+				wg.Go(func() {
+					idt := &token.IdentityToken{Identity: []string{fmt.Sprintf("n=%d", i)}}
+					nidt, err := m.Write(context.Background(), idt, "iss")
+					if err != nil {
+						results[i] = result{err: err}
+						return
+					}
+					results[i] = result{identity: nidt.Identity}
+				})
+			}
+			wg.Wait()
+
+			Convey("Then each caller gets the answer to its own token", func() {
+				for i, r := range results {
+					So(r.err, ShouldBeNil)
+					So(r.identity, ShouldResemble, []string{fmt.Sprintf("n=%d", i), "m=m"})
+				}
+			})
+		})
+
+		Convey("When the answer to a token comes after the modifier stopped waiting", func() {
+
+			slow, err := m.Write(context.Background(), &token.IdentityToken{Identity: []string{"slow=slow"}}, "iss")
+			So(err, ShouldBeNil)
+
+			// Let the late answer arrive before the next write.
+			time.Sleep(time.Second)
+
+			next, err := m.Write(context.Background(), &token.IdentityToken{Identity: []string{"n=next"}}, "iss")
+
+			Convey("Then that token is returned unmodified", func() {
+				So(slow.Identity, ShouldResemble, []string{"slow=slow"})
+			})
+
+			Convey("Then the next token gets its own answer, not the late one", func() {
+				So(err, ShouldBeNil)
+				So(next.Identity, ShouldResemble, []string{"n=next", "m=m"})
+			})
+		})
 	})
 }
