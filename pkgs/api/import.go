@@ -87,6 +87,9 @@ type Import struct {
 	// A3S sources to import.
 	A3SSources A3SSourcesList `json:"A3SSources,omitempty" msgpack:"A3SSources,omitempty" bson:"-" mapstructure:"A3SSources,omitempty"`
 
+	// Entra sources to import.
+	EntraSources EntraSourcesList `json:"EntraSources,omitempty" msgpack:"EntraSources,omitempty" bson:"-" mapstructure:"EntraSources,omitempty"`
+
 	// HTTP sources to import.
 	HTTPSources HTTPSourcesList `json:"HTTPSources,omitempty" msgpack:"HTTPSources,omitempty" bson:"-" mapstructure:"HTTPSources,omitempty"`
 
@@ -121,6 +124,7 @@ func NewImport() *Import {
 	return &Import{
 		ModelVersion:   1,
 		A3SSources:     A3SSourcesList{},
+		EntraSources:   EntraSourcesList{},
 		HTTPSources:    HTTPSourcesList{},
 		LDAPSources:    LDAPSourcesList{},
 		MTLSSources:    MTLSSourcesList{},
@@ -214,6 +218,7 @@ func (o *Import) ToSparse(fields ...string) elemental.SparseIdentifiable {
 		// nolint: goimports
 		return &SparseImport{
 			A3SSources:     &o.A3SSources,
+			EntraSources:   &o.EntraSources,
 			HTTPSources:    &o.HTTPSources,
 			LDAPSources:    &o.LDAPSources,
 			MTLSSources:    &o.MTLSSources,
@@ -230,6 +235,8 @@ func (o *Import) ToSparse(fields ...string) elemental.SparseIdentifiable {
 		switch f {
 		case "A3SSources":
 			sp.A3SSources = &(o.A3SSources)
+		case "EntraSources":
+			sp.EntraSources = &(o.EntraSources)
 		case "HTTPSources":
 			sp.HTTPSources = &(o.HTTPSources)
 		case "LDAPSources":
@@ -261,6 +268,9 @@ func (o *Import) Patch(sparse elemental.SparseIdentifiable) {
 	so := sparse.(*SparseImport)
 	if so.A3SSources != nil {
 		o.A3SSources = *so.A3SSources
+	}
+	if so.EntraSources != nil {
+		o.EntraSources = *so.EntraSources
 	}
 	if so.HTTPSources != nil {
 		o.HTTPSources = *so.HTTPSources
@@ -297,6 +307,15 @@ func (o *Import) EncryptAttributes(encrypter elemental.AttributeEncrypter) (err 
 		}
 		if err := sub.EncryptAttributes(encrypter); err != nil {
 			return fmt.Errorf("unable to encrypt refList/refMap attribute 'A3SSources' for 'Import' (%s): %s", o.Identifier(), err)
+		}
+	}
+
+	for _, sub := range o.EntraSources {
+		if sub == nil {
+			continue
+		}
+		if err := sub.EncryptAttributes(encrypter); err != nil {
+			return fmt.Errorf("unable to encrypt refList/refMap attribute 'EntraSources' for 'Import' (%s): %s", o.Identifier(), err)
 		}
 	}
 
@@ -375,6 +394,15 @@ func (o *Import) DecryptAttributes(encrypter elemental.AttributeEncrypter) (err 
 		}
 		if err := sub.DecryptAttributes(encrypter); err != nil {
 			return fmt.Errorf("unable to decrypt refList/refMap attribute 'A3SSources' for 'Import' (%s): %w", o.Identifier(), err)
+		}
+	}
+
+	for _, sub := range o.EntraSources {
+		if sub == nil {
+			continue
+		}
+		if err := sub.DecryptAttributes(encrypter); err != nil {
+			return fmt.Errorf("unable to decrypt refList/refMap attribute 'EntraSources' for 'Import' (%s): %w", o.Identifier(), err)
 		}
 	}
 
@@ -482,6 +510,16 @@ func (o *Import) Validate() error {
 		}
 		if err := sub.Validate(); err != nil {
 			elemental.InjectAttributePath(err, fmt.Sprintf("%s/%v", "A3SSources", i))
+			errors = errors.Append(err)
+		}
+	}
+
+	for i, sub := range o.EntraSources {
+		if sub == nil {
+			continue
+		}
+		if err := sub.Validate(); err != nil {
+			elemental.InjectAttributePath(err, fmt.Sprintf("%s/%v", "EntraSources", i))
 			errors = errors.Append(err)
 		}
 	}
@@ -596,6 +634,8 @@ func (o *Import) ValueForAttribute(name string) any {
 	switch name {
 	case "A3SSources":
 		return o.A3SSources
+	case "EntraSources":
+		return o.EntraSources
 	case "HTTPSources":
 		return o.HTTPSources
 	case "LDAPSources":
@@ -626,6 +666,15 @@ var ImportAttributesMap = map[string]elemental.AttributeSpecification{
 		Exposed:        true,
 		Name:           "A3SSources",
 		SubType:        "a3ssource",
+		Type:           "refList",
+	},
+	"EntraSources": {
+		AllowedChoices: []string{},
+		ConvertedName:  "EntraSources",
+		Description:    `Entra sources to import.`,
+		Exposed:        true,
+		Name:           "EntraSources",
+		SubType:        "entrasource",
 		Type:           "refList",
 	},
 	"HTTPSources": {
@@ -712,6 +761,15 @@ var ImportLowerCaseAttributesMap = map[string]elemental.AttributeSpecification{
 		Exposed:        true,
 		Name:           "A3SSources",
 		SubType:        "a3ssource",
+		Type:           "refList",
+	},
+	"entrasources": {
+		AllowedChoices: []string{},
+		ConvertedName:  "EntraSources",
+		Description:    `Entra sources to import.`,
+		Exposed:        true,
+		Name:           "EntraSources",
+		SubType:        "entrasource",
 		Type:           "refList",
 	},
 	"httpsources": {
@@ -855,6 +913,9 @@ type SparseImport struct {
 	// A3S sources to import.
 	A3SSources *A3SSourcesList `json:"A3SSources,omitempty" msgpack:"A3SSources,omitempty" bson:"-" mapstructure:"A3SSources,omitempty"`
 
+	// Entra sources to import.
+	EntraSources *EntraSourcesList `json:"EntraSources,omitempty" msgpack:"EntraSources,omitempty" bson:"-" mapstructure:"EntraSources,omitempty"`
+
 	// HTTP sources to import.
 	HTTPSources *HTTPSourcesList `json:"HTTPSources,omitempty" msgpack:"HTTPSources,omitempty" bson:"-" mapstructure:"HTTPSources,omitempty"`
 
@@ -947,6 +1008,9 @@ func (o *SparseImport) ToPlain() elemental.PlainIdentifiable {
 	if o.A3SSources != nil {
 		out.A3SSources = *o.A3SSources
 	}
+	if o.EntraSources != nil {
+		out.EntraSources = *o.EntraSources
+	}
 	if o.HTTPSources != nil {
 		out.HTTPSources = *o.HTTPSources
 	}
@@ -985,6 +1049,17 @@ func (o *SparseImport) EncryptAttributes(encrypter elemental.AttributeEncrypter)
 			}
 			if err := sub.EncryptAttributes(encrypter); err != nil {
 				return fmt.Errorf("unable to encrypt refList/refMap attribute 'A3SSources' for 'Import' (%s): %w", o.Identifier(), err)
+			}
+		}
+	}
+
+	if o.EntraSources != nil {
+		for _, sub := range *o.EntraSources {
+			if sub == nil {
+				continue
+			}
+			if err := sub.EncryptAttributes(encrypter); err != nil {
+				return fmt.Errorf("unable to encrypt refList/refMap attribute 'EntraSources' for 'Import' (%s): %w", o.Identifier(), err)
 			}
 		}
 	}
@@ -1079,6 +1154,17 @@ func (o *SparseImport) DecryptAttributes(encrypter elemental.AttributeEncrypter)
 			}
 			if err := sub.DecryptAttributes(encrypter); err != nil {
 				return fmt.Errorf("unable to decrypt refList/refMap attribute 'A3SSources' for 'Import' (%s): %w", o.Identifier(), err)
+			}
+		}
+	}
+
+	if o.EntraSources != nil {
+		for _, sub := range *o.EntraSources {
+			if sub == nil {
+				continue
+			}
+			if err := sub.DecryptAttributes(encrypter); err != nil {
+				return fmt.Errorf("unable to decrypt refList/refMap attribute 'EntraSources' for 'Import' (%s): %w", o.Identifier(), err)
 			}
 		}
 	}

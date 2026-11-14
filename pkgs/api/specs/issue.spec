@@ -115,6 +115,17 @@ attributes:
       noInit: true
       refMode: pointer
 
+  - name: inputEntra
+    friendly_name: InputEntra
+    description: Contains additional information for an Entra source.
+    type: ref
+    exposed: true
+    subtype: issueentra
+    omit_empty: true
+    extensions:
+      noInit: true
+      refMode: pointer
+
   - name: inputGCP
     friendly_name: InputGCP
     description: Contains additional information for an GCP token source.
@@ -287,6 +298,7 @@ attributes:
     - A3S
     - AWS
     - Azure
+    - Entra
     - GCP
     - HTTP
     - LDAP

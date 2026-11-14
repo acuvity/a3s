@@ -138,9 +138,9 @@ type A3SSource struct {
 	// The name of the identity claim naming the subject this source
 	// authenticates. a3s derives the OpenID Connect `sub` claim of its ID Tokens
 	// and userinfo responses from that claim's value. It defaults to `sub` for
-	// OIDC sources and `nameid` for SAML sources. A source where it resolves to
-	// nothing cannot serve an OpenID Connect request, as a3s has no subject to
-	// name.
+	// OIDC sources, `nameid` for SAML sources and `oid` for Entra sources. A
+	// source where it resolves to nothing cannot serve an OpenID Connect
+	// request, as a3s has no subject to name.
 	SubClaim string `json:"subClaim,omitempty" msgpack:"subClaim,omitempty" bson:"subclaim,omitempty" mapstructure:"subClaim,omitempty"`
 
 	// Last update date of the object.
@@ -863,9 +863,9 @@ the claims that are about to be delivered using this authentication source.`,
 		Description: `The name of the identity claim naming the subject this source
 authenticates. a3s derives the OpenID Connect ` + "`" + `sub` + "`" + ` claim of its ID Tokens
 and userinfo responses from that claim's value. It defaults to ` + "`" + `sub` + "`" + ` for
-OIDC sources and ` + "`" + `nameid` + "`" + ` for SAML sources. A source where it resolves to
-nothing cannot serve an OpenID Connect request, as a3s has no subject to
-name.`,
+OIDC sources, ` + "`" + `nameid` + "`" + ` for SAML sources and ` + "`" + `oid` + "`" + ` for Entra sources. A
+source where it resolves to nothing cannot serve an OpenID Connect
+request, as a3s has no subject to name.`,
 		Exposed: true,
 		Getter:  true,
 		Name:    "subClaim",
@@ -1102,9 +1102,9 @@ the claims that are about to be delivered using this authentication source.`,
 		Description: `The name of the identity claim naming the subject this source
 authenticates. a3s derives the OpenID Connect ` + "`" + `sub` + "`" + ` claim of its ID Tokens
 and userinfo responses from that claim's value. It defaults to ` + "`" + `sub` + "`" + ` for
-OIDC sources and ` + "`" + `nameid` + "`" + ` for SAML sources. A source where it resolves to
-nothing cannot serve an OpenID Connect request, as a3s has no subject to
-name.`,
+OIDC sources, ` + "`" + `nameid` + "`" + ` for SAML sources and ` + "`" + `oid` + "`" + ` for Entra sources. A
+source where it resolves to nothing cannot serve an OpenID Connect
+request, as a3s has no subject to name.`,
 		Exposed: true,
 		Getter:  true,
 		Name:    "subClaim",
@@ -1271,9 +1271,9 @@ type SparseA3SSource struct {
 	// The name of the identity claim naming the subject this source
 	// authenticates. a3s derives the OpenID Connect `sub` claim of its ID Tokens
 	// and userinfo responses from that claim's value. It defaults to `sub` for
-	// OIDC sources and `nameid` for SAML sources. A source where it resolves to
-	// nothing cannot serve an OpenID Connect request, as a3s has no subject to
-	// name.
+	// OIDC sources, `nameid` for SAML sources and `oid` for Entra sources. A
+	// source where it resolves to nothing cannot serve an OpenID Connect
+	// request, as a3s has no subject to name.
 	SubClaim *string `json:"subClaim,omitempty" msgpack:"subClaim,omitempty" bson:"subclaim,omitempty" mapstructure:"subClaim,omitempty"`
 
 	// Last update date of the object.

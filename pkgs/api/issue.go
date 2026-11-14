@@ -26,6 +26,9 @@ const (
 	// IssueSourceTypeAzure represents the value Azure.
 	IssueSourceTypeAzure IssueSourceTypeValue = "Azure"
 
+	// IssueSourceTypeEntra represents the value Entra.
+	IssueSourceTypeEntra IssueSourceTypeValue = "Entra"
+
 	// IssueSourceTypeGCP represents the value GCP.
 	IssueSourceTypeGCP IssueSourceTypeValue = "GCP"
 
@@ -168,6 +171,9 @@ type Issue struct {
 
 	// Contains additional information for an Azure token source.
 	InputAzure *IssueAzure `json:"inputAzure,omitempty" msgpack:"inputAzure,omitempty" bson:"-" mapstructure:"inputAzure,omitempty"`
+
+	// Contains additional information for an Entra source.
+	InputEntra *IssueEntra `json:"inputEntra,omitempty" msgpack:"inputEntra,omitempty" bson:"-" mapstructure:"inputEntra,omitempty"`
 
 	// Contains additional information for an GCP token source.
 	InputGCP *IssueGCP `json:"inputGCP,omitempty" msgpack:"inputGCP,omitempty" bson:"-" mapstructure:"inputGCP,omitempty"`
@@ -361,6 +367,7 @@ func (o *Issue) ToSparse(fields ...string) elemental.SparseIdentifiable {
 			InputA3S:              o.InputA3S,
 			InputAWS:              o.InputAWS,
 			InputAzure:            o.InputAzure,
+			InputEntra:            o.InputEntra,
 			InputGCP:              o.InputGCP,
 			InputHTTP:             o.InputHTTP,
 			InputLDAP:             o.InputLDAP,
@@ -405,6 +412,8 @@ func (o *Issue) ToSparse(fields ...string) elemental.SparseIdentifiable {
 			sp.InputAWS = o.InputAWS
 		case "inputAzure":
 			sp.InputAzure = o.InputAzure
+		case "inputEntra":
+			sp.InputEntra = o.InputEntra
 		case "inputGCP":
 			sp.InputGCP = o.InputGCP
 		case "inputHTTP":
@@ -484,6 +493,9 @@ func (o *Issue) Patch(sparse elemental.SparseIdentifiable) {
 	if so.InputAzure != nil {
 		o.InputAzure = so.InputAzure
 	}
+	if so.InputEntra != nil {
+		o.InputEntra = so.InputEntra
+	}
 	if so.InputGCP != nil {
 		o.InputGCP = so.InputGCP
 	}
@@ -561,6 +573,12 @@ func (o *Issue) EncryptAttributes(encrypter elemental.AttributeEncrypter) (err e
 		}
 	}
 
+	if o.InputEntra != nil {
+		if err := o.InputEntra.EncryptAttributes(encrypter); err != nil {
+			return fmt.Errorf("unable to encrypt ref attribute 'InputEntra' for 'Issue' (%s): %w", o.Identifier(), err)
+		}
+	}
+
 	if o.InputGCP != nil {
 		if err := o.InputGCP.EncryptAttributes(encrypter); err != nil {
 			return fmt.Errorf("unable to encrypt ref attribute 'InputGCP' for 'Issue' (%s): %w", o.Identifier(), err)
@@ -624,6 +642,12 @@ func (o *Issue) DecryptAttributes(encrypter elemental.AttributeEncrypter) (err e
 	if o.InputAzure != nil {
 		if err := o.InputAzure.DecryptAttributes(encrypter); err != nil {
 			return fmt.Errorf("unable to decrypt ref attribute 'InputAzure' for 'Issue' (%s): %w", o.Identifier(), err)
+		}
+	}
+
+	if o.InputEntra != nil {
+		if err := o.InputEntra.DecryptAttributes(encrypter); err != nil {
+			return fmt.Errorf("unable to decrypt ref attribute 'InputEntra' for 'Issue' (%s): %w", o.Identifier(), err)
 		}
 	}
 
@@ -725,6 +749,13 @@ func (o *Issue) Validate() error {
 		}
 	}
 
+	if o.InputEntra != nil {
+		if err := o.InputEntra.Validate(); err != nil {
+			elemental.InjectAttributePath(err, "inputEntra")
+			errors = errors.Append(err)
+		}
+	}
+
 	if o.InputGCP != nil {
 		if err := o.InputGCP.Validate(); err != nil {
 			elemental.InjectAttributePath(err, "inputGCP")
@@ -782,7 +813,7 @@ func (o *Issue) Validate() error {
 		requiredErrors = requiredErrors.Append(err)
 	}
 
-	if err := elemental.ValidateStringInList("sourceType", string(o.SourceType), []string{"A3S", "AWS", "Azure", "GCP", "HTTP", "LDAP", "MTLS", "OIDC", "RemoteA3S", "SAML", "OAuth2"}, false); err != nil {
+	if err := elemental.ValidateStringInList("sourceType", string(o.SourceType), []string{"A3S", "AWS", "Azure", "Entra", "GCP", "HTTP", "LDAP", "MTLS", "OIDC", "RemoteA3S", "SAML", "OAuth2"}, false); err != nil {
 		errors = errors.Append(err)
 	}
 
@@ -853,6 +884,8 @@ func (o *Issue) ValueForAttribute(name string) any {
 		return o.InputAWS
 	case "inputAzure":
 		return o.InputAzure
+	case "inputEntra":
+		return o.InputEntra
 	case "inputGCP":
 		return o.InputGCP
 	case "inputHTTP":
@@ -989,6 +1022,15 @@ know all of the claims.`,
 		Exposed:        true,
 		Name:           "inputAzure",
 		SubType:        "issueazure",
+		Type:           "ref",
+	},
+	"InputEntra": {
+		AllowedChoices: []string{},
+		ConvertedName:  "InputEntra",
+		Description:    `Contains additional information for an Entra source.`,
+		Exposed:        true,
+		Name:           "inputEntra",
+		SubType:        "issueentra",
 		Type:           "ref",
 	},
 	"InputGCP": {
@@ -1131,7 +1173,7 @@ engine has no effect and may end up making the token unusable.`,
 		Type:           "string",
 	},
 	"SourceType": {
-		AllowedChoices: []string{"A3S", "AWS", "Azure", "GCP", "HTTP", "LDAP", "MTLS", "OIDC", "RemoteA3S", "SAML", "OAuth2"},
+		AllowedChoices: []string{"A3S", "AWS", "Azure", "Entra", "GCP", "HTTP", "LDAP", "MTLS", "OIDC", "RemoteA3S", "SAML", "OAuth2"},
 		ConvertedName:  "SourceType",
 		Description: `The authentication source. This will define how to verify
 credentials from internal or external source of authentication.`,
@@ -1277,6 +1319,15 @@ know all of the claims.`,
 		SubType:        "issueazure",
 		Type:           "ref",
 	},
+	"inputentra": {
+		AllowedChoices: []string{},
+		ConvertedName:  "InputEntra",
+		Description:    `Contains additional information for an Entra source.`,
+		Exposed:        true,
+		Name:           "inputEntra",
+		SubType:        "issueentra",
+		Type:           "ref",
+	},
 	"inputgcp": {
 		AllowedChoices: []string{},
 		ConvertedName:  "InputGCP",
@@ -1417,7 +1468,7 @@ engine has no effect and may end up making the token unusable.`,
 		Type:           "string",
 	},
 	"sourcetype": {
-		AllowedChoices: []string{"A3S", "AWS", "Azure", "GCP", "HTTP", "LDAP", "MTLS", "OIDC", "RemoteA3S", "SAML", "OAuth2"},
+		AllowedChoices: []string{"A3S", "AWS", "Azure", "Entra", "GCP", "HTTP", "LDAP", "MTLS", "OIDC", "RemoteA3S", "SAML", "OAuth2"},
 		ConvertedName:  "SourceType",
 		Description: `The authentication source. This will define how to verify
 credentials from internal or external source of authentication.`,
@@ -1563,6 +1614,9 @@ type SparseIssue struct {
 
 	// Contains additional information for an Azure token source.
 	InputAzure *IssueAzure `json:"inputAzure,omitempty" msgpack:"inputAzure,omitempty" bson:"-" mapstructure:"inputAzure,omitempty"`
+
+	// Contains additional information for an Entra source.
+	InputEntra *IssueEntra `json:"inputEntra,omitempty" msgpack:"inputEntra,omitempty" bson:"-" mapstructure:"inputEntra,omitempty"`
 
 	// Contains additional information for an GCP token source.
 	InputGCP *IssueGCP `json:"inputGCP,omitempty" msgpack:"inputGCP,omitempty" bson:"-" mapstructure:"inputGCP,omitempty"`
@@ -1740,6 +1794,9 @@ func (o *SparseIssue) ToPlain() elemental.PlainIdentifiable {
 	if o.InputAzure != nil {
 		out.InputAzure = o.InputAzure
 	}
+	if o.InputEntra != nil {
+		out.InputEntra = o.InputEntra
+	}
 	if o.InputGCP != nil {
 		out.InputGCP = o.InputGCP
 	}
@@ -1819,6 +1876,12 @@ func (o *SparseIssue) EncryptAttributes(encrypter elemental.AttributeEncrypter) 
 		}
 	}
 
+	if o.InputEntra != nil {
+		if err := o.InputEntra.EncryptAttributes(encrypter); err != nil {
+			return fmt.Errorf("unable to encrypt ref attribute 'InputEntra' for 'Issue' (%s): %w", o.Identifier(), err)
+		}
+	}
+
 	if o.InputGCP != nil {
 		if err := o.InputGCP.EncryptAttributes(encrypter); err != nil {
 			return fmt.Errorf("unable to encrypt ref attribute 'InputGCP' for 'Issue' (%s): %w", o.Identifier(), err)
@@ -1882,6 +1945,12 @@ func (o *SparseIssue) DecryptAttributes(encrypter elemental.AttributeEncrypter) 
 	if o.InputAzure != nil {
 		if err := o.InputAzure.DecryptAttributes(encrypter); err != nil {
 			return fmt.Errorf("unable to decrypt ref attribute 'InputAzure' for 'Issue' (%s): %w", o.Identifier(), err)
+		}
+	}
+
+	if o.InputEntra != nil {
+		if err := o.InputEntra.DecryptAttributes(encrypter); err != nil {
+			return fmt.Errorf("unable to decrypt ref attribute 'InputEntra' for 'Issue' (%s): %w", o.Identifier(), err)
 		}
 	}
 

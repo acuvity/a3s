@@ -49,6 +49,7 @@ func (p *ImportProcessor) ProcessCreate(bctx bahamut.Context) error {
 		req.Authorizations,
 		req.SAMLSources,
 		req.OAuth2Sources,
+		req.EntraSources,
 	}
 
 	restrictions, err := permissions.GetRestrictions(token.FromRequest(bctx.Request()))

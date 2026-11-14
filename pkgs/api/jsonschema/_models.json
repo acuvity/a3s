@@ -12,6 +12,9 @@
     "entraevent": {
       "$ref": "entraevent.json"
     },
+    "entrasource": {
+      "$ref": "entrasource.json"
+    },
     "group": {
       "$ref": "group.json"
     },
@@ -35,6 +38,9 @@
     },
     "issueazure": {
       "$ref": "issueazure.json"
+    },
+    "issueentra": {
+      "$ref": "issueentra.json"
     },
     "issuegcp": {
       "$ref": "issuegcp.json"

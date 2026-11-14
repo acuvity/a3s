@@ -868,6 +868,12 @@ func TestDeriveSubjectClaim(t *testing.T) {
 			wantValues: []string{"user@example.com"},
 		},
 		{
+			name:       "entra defaults to oid",
+			source:     Source{Type: "entra", Namespace: "/", Name: "tenant"},
+			identity:   []string{"oid=36ce5c92-16da-455d-afa0-259d3c610f2b", "name=user@example.com"},
+			wantValues: []string{"36ce5c92-16da-455d-afa0-259d3c610f2b"},
+		},
+		{
 			name:       "a nomination wins over the default",
 			source:     Source{Type: "oidc", Namespace: "/", Name: "corp"},
 			subClaim:   "oid",

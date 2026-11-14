@@ -26,6 +26,16 @@ type HTTPTimeoutsConf struct {
 	TimeoutWrite time.Duration `mapstructure:"timeout-write" desc:"Write timeout for the http requests" default:"240s"`
 }
 
+// EntraConf holds the configuration of the Entra applications shared by all the
+// Entra sources. Whatever hands these app IDs to the clients that obtain the
+// Entra tokens must embed it, so it agrees with the service validating them.
+type EntraConf struct {
+	EntraAPIAppID     string   `mapstructure:"entra-api-app-id" desc:"For Entra sources. App ID of the Entra API application, expected as audience of the Entra tokens"`
+	EntraLoginURL     string   `mapstructure:"entra-login-url" desc:"For Entra sources. Entra login endpoint issuing the Entra tokens and serving the tenant signing keys" default:"https://login.microsoftonline.com"`
+	EntraNativeAppIDs []string `mapstructure:"entra-native-app-ids" desc:"For Entra sources. App IDs of the Entra native applications allowed to obtain Entra tokens"`
+	EntraScope        string   `mapstructure:"entra-scope" desc:"For Entra sources. Scope of the Entra API application required in the Entra tokens" default:"a3s.exchange"`
+}
+
 // LoggingConf is the configuration for log.
 type LoggingConf struct {
 	LogFormat    string `mapstructure:"log-format" desc:"Log format" default:"json"`

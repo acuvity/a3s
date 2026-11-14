@@ -41,6 +41,7 @@ type Conf struct {
 	OAuth OAuthConf `mapstructure:",squash"`
 
 	conf.APIServerConf       `mapstructure:",squash"`
+	conf.EntraConf           `mapstructure:",squash"`
 	conf.GatewayConf         `mapstructure:",squash"`
 	conf.HTTPTimeoutsConf    `mapstructure:",squash"`
 	conf.HealthConfiguration `mapstructure:",squash"`

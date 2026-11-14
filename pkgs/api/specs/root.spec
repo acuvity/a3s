@@ -35,6 +35,14 @@ relations:
   create:
     description: Handle a new Entra Event.
 
+- rest_name: entrasource
+  get:
+    description: Retrieves the list of entrasources.
+    global_parameters:
+    - $queryable
+  create:
+    description: Creates a new entrasource.
+
 - rest_name: group
   get:
     description: Retrieves the list of groups.

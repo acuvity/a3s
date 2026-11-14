@@ -974,6 +974,32 @@ func TestValidateIssue(t *testing.T) {
 			nil,
 		},
 		{
+			"test entra missing",
+			func(*testing.T) args {
+				return args{
+					&Issue{
+						SourceType: IssueSourceTypeEntra,
+						InputEntra: nil,
+					},
+				}
+			},
+			true,
+			nil,
+		},
+		{
+			"test entra present",
+			func(*testing.T) args {
+				return args{
+					&Issue{
+						SourceType: IssueSourceTypeEntra,
+						InputEntra: &IssueEntra{},
+					},
+				}
+			},
+			false,
+			nil,
+		},
+		{
 			"test oidc missing",
 			func(*testing.T) args {
 				return args{

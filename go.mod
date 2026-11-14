@@ -4,7 +4,7 @@ go 1.26.1
 
 require (
 	go.acuvity.ai/bahamut v0.0.0-20261110202352-6ed43d59f62e
-	go.acuvity.ai/elemental v0.0.0-20260723202512-a9644d6bbbb1
+	go.acuvity.ai/elemental v0.0.0-20261109164313-58599f90af89
 	go.acuvity.ai/manipulate v0.0.0-20260908164431-c9d13c525755
 	go.acuvity.ai/regolithe v0.0.0-20260723001905-94d204bf1aa4 // indirect
 	go.acuvity.ai/tg v1.0.1-0.20260708162706-306a91e4d7dd
@@ -106,7 +106,7 @@ require (
 	github.com/jonboulle/clockwork v0.5.0 // indirect
 	github.com/jtolds/gls v4.20.0+incompatible // indirect
 	github.com/kevinburke/ssh_config v1.2.0 // indirect
-	github.com/klauspost/compress v1.18.4 // indirect
+	github.com/klauspost/compress v1.20.2 // indirect
 	github.com/klauspost/cpuid/v2 v2.3.0 // indirect
 	github.com/lufia/plan9stats v0.0.0-20230110061619-bbe2e5e100de // indirect
 	github.com/mailgun/multibuf v0.2.0 // indirect

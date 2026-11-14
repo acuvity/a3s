@@ -24,6 +24,12 @@
       },
       "type": "array"
     },
+    "entrasources": {
+      "items": {
+        "$ref": "entrasource.json"
+      },
+      "type": "array"
+    },
     "groups": {
       "items": {
         "$ref": "group.json"
@@ -69,6 +75,12 @@
     "issueazure": {
       "items": {
         "$ref": "issueazure.json"
+      },
+      "type": "array"
+    },
+    "issueentra": {
+      "items": {
+        "$ref": "issueentra.json"
       },
       "type": "array"
     },

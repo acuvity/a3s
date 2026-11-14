@@ -63,6 +63,9 @@ particular namespace.
     * [A3S remote identity token](#a3s-remote-identity-token)
       * [Create an A3S source](#create-an-a3s-source)
       * [Obtain a token from A3S source](#obtain-a-token-from-a3s-source)
+    * [Entra access token](#entra-access-token)
+      * [Create an Entra source](#create-an-entra-source)
+      * [Obtain a token from Entra source](#obtain-a-token-from-entra-source)
     * [Amazon STS](#amazon-sts)
     * [Google Cloud Platform token](#google-cloud-platform-token)
     * [Azure token](#azure-token)
@@ -648,6 +651,62 @@ To obtain a token from the newly created source:
       --source-name my-remote-a3s-source \
       --source-namespace /tutorial \
       --input-token <token>
+
+#### Entra access token
+
+This authentication source issues tokens from Microsoft Entra ID access tokens.
+Users of an Entra tenant obtain one silently on Entra-joined machines (for
+instance Azure Virtual Desktop session hosts) through the Windows broker (WAM),
+and exchange it for an A3S token.
+
+> NOTE: This authentication source supports identity modifiers.
+
+The Entra applications are configured on the A3S server, and are shared by all
+Entra sources:
+
+    a3s \
+      --entra-api-app-id <api-app-id> \
+      --entra-native-app-ids <native-app-id> \
+      --entra-scope <scope>
+
+`--entra-scope` is the scope exposed by the API application, and defaults to
+`a3s.exchange`. `--entra-login-url` is the Entra endpoint issuing the tokens
+and serving the signing keys of the tenants. It defaults to
+`https://login.microsoftonline.com`, and can point to a mock for testing.
+
+An Entra token is accepted only if:
+
+* it is signed by the tenant of the source, and its `iss` and `tid` claims
+  match that tenant,
+* its audience is the API application,
+* it was obtained by one of the native applications (`azp` claim),
+* it holds the configured scope.
+
+The issued token contains the claims `tenantid`, `oid` (the object ID of the
+user), `name` (the user principal name, when the token holds one),
+`displayname`, `email` and one `group:id` per group. These keys follow the
+Entra claims retrieval mode of MTLS sources, without `nameid`, which only
+duplicates `oid` there. The access token carries neither the group names, the
+given name and surname, nor the app roles.
+Users in too many groups for Entra to include them in the token are rejected.
+
+##### Create an Entra source
+
+An Entra source is locked to a single tenant:
+
+    a3sctl api create entrasource \
+      --namespace /tutorial \
+      --with.name my-entra-source \
+      --with.tenant-id <tenant-id>
+
+##### Obtain a token from Entra source
+
+To obtain a token from the newly created source:
+
+    a3sctl auth entra \
+      --source-name my-entra-source \
+      --source-namespace /tutorial \
+      --access-token <entra-access-token>
 
 #### Amazon STS
 
