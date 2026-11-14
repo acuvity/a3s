@@ -166,6 +166,40 @@ func TestAuthFromRemoteA3S(t *testing.T) {
 	})
 }
 
+func TestAuthFromEntra(t *testing.T) {
+
+	Convey("The function should work", t, func() {
+
+		expectedRequest := api.NewIssue()
+
+		m := maniptest.NewTestManipulator()
+		m.MockCreate(t, func(mctx manipulate.Context, object elemental.Identifiable) error {
+			expectedRequest = object.(*api.Issue)
+			expectedRequest.Token = "yeay!"
+			return nil
+		})
+
+		cl := NewClient(m)
+
+		token, err := cl.AuthFromEntra(
+			context.Background(),
+			"token",
+			"/ns",
+			"name",
+			OptAudience("aud"),
+		)
+
+		So(err, ShouldBeNil)
+		So(expectedRequest.SourceType, ShouldEqual, api.IssueSourceTypeEntra)
+		So(expectedRequest.SourceNamespace, ShouldEqual, "/ns")
+		So(expectedRequest.SourceName, ShouldEqual, "name")
+		So(expectedRequest.Audience, ShouldResemble, []string{"aud"})
+		So(expectedRequest.Validity, ShouldEqual, time.Hour.String())
+		So(expectedRequest.InputEntra.Token, ShouldEqual, "token")
+		So(token, ShouldEqual, "yeay!")
+	})
+}
+
 func TestAuthFromAWS(t *testing.T) {
 
 	Convey("The function should work", t, func() {
