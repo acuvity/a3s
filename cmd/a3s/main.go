@@ -19,6 +19,7 @@ import (
 	"go.acuvity.ai/a3s/internal/idp/entra"
 	"go.acuvity.ai/a3s/internal/idp/google"
 	"go.acuvity.ai/a3s/internal/idp/okta"
+	"go.acuvity.ai/a3s/internal/issuer/entraissuer"
 	"go.acuvity.ai/a3s/internal/oauthserver"
 	"go.acuvity.ai/a3s/internal/processors"
 	"go.acuvity.ai/a3s/internal/ui"
@@ -590,6 +591,12 @@ func main() {
 			googleManager,
 			ciscoDuoManager,
 			noloRequestMaker,
+			entraissuer.Config{
+				LoginURL:     cfg.EntraLoginURL,
+				APIAppID:     cfg.EntraAPIAppID,
+				NativeAppIDs: cfg.EntraNativeAppIDs,
+				Scope:        cfg.EntraScope,
+			},
 		),
 		api.IssueIdentity,
 	)
@@ -598,6 +605,7 @@ func main() {
 	bahamut.RegisterProcessorOrDie(server, processors.NewOIDCSourcesProcessor(m), api.OIDCSourceIdentity)
 	bahamut.RegisterProcessorOrDie(server, processors.NewSAMLSourcesProcessor(m), api.SAMLSourceIdentity)
 	bahamut.RegisterProcessorOrDie(server, processors.NewHTTPSourcesProcessor(m), api.HTTPSourceIdentity)
+	bahamut.RegisterProcessorOrDie(server, processors.NewEntraSourcesProcessor(m), api.EntraSourceIdentity)
 	bahamut.RegisterProcessorOrDie(server, processors.NewA3SSourcesProcessor(m), api.A3SSourceIdentity)
 	bahamut.RegisterProcessorOrDie(server, processors.NewOAuth2SourcesProcessor(m), api.OAuth2SourceIdentity)
 	bahamut.RegisterProcessorOrDie(server, processors.NewPermissionsProcessor(retriever), api.PermissionsIdentity)
