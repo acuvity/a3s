@@ -173,8 +173,8 @@ github.com/karlseguin/expect v1.0.2-0.20190806010014-778a5f0c6003 h1:vJ0Snvo+SLM
 github.com/karlseguin/expect v1.0.2-0.20190806010014-778a5f0c6003/go.mod h1:zNBxMY8P21owkeogJELCLeHIt+voOSduHYTFUbwRAV8=
 github.com/kevinburke/ssh_config v1.2.0 h1:x584FjTGwHzMwvHx18PXxbBVzfnxogHaAReU4gf13a4=
 github.com/kevinburke/ssh_config v1.2.0/go.mod h1:CT57kijsi8u/K/BOFA39wgDQJ9CxiF4nAY/ojJ6r6mM=
-github.com/klauspost/compress v1.18.4 h1:RPhnKRAQ4Fh8zU2FY/6ZFDwTVTxgJ/EMydqSTzE9a2c=
-github.com/klauspost/compress v1.18.4/go.mod h1:R0h/fSBs8DE4ENlcrlib3PsXS61voFxhIs2DeRhCvJ4=
+github.com/klauspost/compress v1.20.2 h1:v5tiZvm1KGLyg5d5oXdXe3lsSPrbEUiKoXGia//I7Qo=
+github.com/klauspost/compress v1.20.2/go.mod h1:LUdAzn7YLVvxLpc7y3V1m40wESHTgc1422pwwBSKYuI=
 github.com/klauspost/cpuid/v2 v2.3.0 h1:S4CRMLnYUhGeDFDqkGriYKdfoFlDnMtqTiI/sFzhA9Y=
 github.com/klauspost/cpuid/v2 v2.3.0/go.mod h1:hqwkgyIinND0mEev00jJYCxPNVRVXFQeu1XKlok6oO0=
 github.com/kr/pretty v0.1.0/go.mod h1:dAy3ld7l9f0ibDNOQOHHMYYIIbhfbHSm3C4ZsoJORNo=
@@ -373,8 +373,8 @@ github.com/yusufpapurcu/wmi v1.2.4 h1:zFUKzehAFReQwLys1b/iSMl+JQGSCSjtVqQn9bBrPo
 github.com/yusufpapurcu/wmi v1.2.4/go.mod h1:SBZ9tNy3G9/m5Oi98Zks0QjeHVDvuK0qfxQmPyzfmi0=
 go.acuvity.ai/bahamut v0.0.0-20261110202352-6ed43d59f62e h1:wlkNOPDP2UMsjZQ0zTTmyzO8jRxwxttJg+eQdF2RsaM=
 go.acuvity.ai/bahamut v0.0.0-20261110202352-6ed43d59f62e/go.mod h1:zr8hR8gzDUqEEVf2VpeRnZe113xTtxH8td/XdFNVwBU=
-go.acuvity.ai/elemental v0.0.0-20260723202512-a9644d6bbbb1 h1:9D3daagQffNLArbjmiiFoCJhQMOHUe3RlNzqY5eDc8s=
-go.acuvity.ai/elemental v0.0.0-20260723202512-a9644d6bbbb1/go.mod h1:h7PHJlKDt5zeG8EqqzlZf2cJpMBa9UA5njXZazwz6rQ=
+go.acuvity.ai/elemental v0.0.0-20261109164313-58599f90af89 h1:cRvR5ziQToAhcrcldaZNe3XbwCY8ebPJDsjbeVPkiXk=
+go.acuvity.ai/elemental v0.0.0-20261109164313-58599f90af89/go.mod h1:h7PHJlKDt5zeG8EqqzlZf2cJpMBa9UA5njXZazwz6rQ=
 go.acuvity.ai/manipulate v0.0.0-20260908164431-c9d13c525755 h1:4uhc6P18fV0MgH0nipzUR8RYJwc4HVx31c7prjAoZe8=
 go.acuvity.ai/manipulate v0.0.0-20260908164431-c9d13c525755/go.mod h1:QN3s17UAxY3fDYWe3LylTVJZL/tAl0kHIjq6FVWs+qA=
 go.acuvity.ai/regolithe v0.0.0-20260723001905-94d204bf1aa4 h1:Twx5zdZEtk/Jbpa78GdxTmBaQZh1A7GeYmDDneYVup8=
