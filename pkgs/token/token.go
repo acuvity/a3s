@@ -333,6 +333,8 @@ func (t *IdentityToken) DeriveSubjectClaim(subClaim string) {
 			subClaim = "sub"
 		case strings.EqualFold(t.Source.Type, string(api.IssueSourceTypeSAML)):
 			subClaim = "nameid"
+		case strings.EqualFold(t.Source.Type, string(api.IssueSourceTypeEntra)):
+			subClaim = "oid"
 		}
 	}
 
