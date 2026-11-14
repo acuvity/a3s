@@ -108,6 +108,22 @@ func TestHash(t *testing.T) {
 			So(o.ZHash, ShouldEqual, hash(fmt.Sprintf("%s:%s", aString, aString)))
 		})
 
+		Convey("Then sharding an EntraSource should work", func() {
+			o := api.NewEntraSource()
+			o.Namespace = aString
+			o.Name = aString
+			So(s.Hash(o), ShouldBeNil)
+			So(o.Zone, ShouldEqual, 0)
+			So(o.ZHash, ShouldEqual, hash(fmt.Sprintf("%s:%s", aString, aString)))
+
+			so := api.NewSparseEntraSource()
+			so.Namespace = &aString
+			so.Name = &aString
+			So(s.Hash(so), ShouldBeNil)
+			So(*so.Zone, ShouldEqual, 0)
+			So(*so.ZHash, ShouldEqual, hash(fmt.Sprintf("%s:%s", aString, aString)))
+		})
+
 		Convey("Then sharding an A3SSource should work", func() {
 			o := api.NewA3SSource()
 			o.Namespace = aString
