@@ -23,6 +23,7 @@ import (
 	"go.acuvity.ai/a3s/internal/issuer/a3sissuer"
 	"go.acuvity.ai/a3s/internal/issuer/awsissuer"
 	"go.acuvity.ai/a3s/internal/issuer/azureissuer"
+	"go.acuvity.ai/a3s/internal/issuer/entraissuer"
 	"go.acuvity.ai/a3s/internal/issuer/gcpissuer"
 	"go.acuvity.ai/a3s/internal/issuer/httpissuer"
 	"go.acuvity.ai/a3s/internal/issuer/ldapissuer"
@@ -81,6 +82,7 @@ type IssueProcessor struct {
 	googleManager         *google.Manager
 	ciscoDuoManager       *ciscoduo.Manager
 	requestMaker          netsafe.RequestMaker
+	entraConfig           entraissuer.Config
 }
 
 // NewIssueProcessor returns a new IssueProcessor.
@@ -110,6 +112,7 @@ func NewIssueProcessor(
 	googleManager *google.Manager,
 	ciscoDuoManager *ciscoduo.Manager,
 	requestMaker netsafe.RequestMaker,
+	entraConfig entraissuer.Config,
 ) *IssueProcessor {
 
 	// Make a map for fast lookups.
@@ -145,6 +148,7 @@ func NewIssueProcessor(
 		googleManager:         googleManager,
 		ciscoDuoManager:       ciscoDuoManager,
 		requestMaker:          requestMaker,
+		entraConfig:           entraConfig,
 	}
 }
 
@@ -281,6 +285,9 @@ func (p *IssueProcessor) ProcessCreate(bctx bahamut.Context) (err error) {
 
 	case api.IssueSourceTypeHTTP:
 		issuer, err = p.handleHTTPIssue(bctx.Context(), source, req)
+
+	case api.IssueSourceTypeEntra:
+		issuer, err = p.handleEntraIssue(bctx.Context(), source, req)
 
 	case api.IssueSourceTypeRemoteA3S:
 		issuer, err = p.handleRemoteA3SIssue(bctx.Context(), source, req)
@@ -510,6 +517,27 @@ func (p *IssueProcessor) handleHTTPIssue(ctx context.Context, source elemental.I
 		Password: req.InputHTTP.Password,
 		TOTP:     req.InputHTTP.TOTP,
 	}, p.requestMaker)
+	if err != nil {
+		return nil, err
+	}
+
+	return iss, nil
+}
+
+func (p *IssueProcessor) handleEntraIssue(ctx context.Context, source elemental.Identifiable, req *api.Issue) (token.Issuer, error) {
+
+	if !p.entraConfig.IsEnabled() {
+		return nil, elemental.NewError(
+			"Bad Request",
+			"Entra sources are not enabled on this server",
+			"a3s:authn",
+			http.StatusBadRequest,
+		)
+	}
+
+	src := source.(*api.EntraSource)
+
+	iss, err := entraissuer.New(ctx, src, req.InputEntra.Token, p.entraConfig, p.requestMaker)
 	if err != nil {
 		return nil, err
 	}
@@ -1007,6 +1035,8 @@ func identityFromType(srcType api.IssueSourceTypeValue) elemental.Identity {
 		return api.LDAPSourceIdentity
 	case api.IssueSourceTypeHTTP:
 		return api.HTTPSourceIdentity
+	case api.IssueSourceTypeEntra:
+		return api.EntraSourceIdentity
 	case api.IssueSourceTypeRemoteA3S:
 		return api.A3SSourceIdentity
 	case api.IssueSourceTypeOIDC:
@@ -1125,6 +1155,7 @@ func clearIssueCredentialInputs(req *api.Issue) {
 	req.InputRemoteA3S = nil
 	req.InputOAuth2 = nil
 	req.InputSAML = nil
+	req.InputEntra = nil
 }
 
 func (p *IssueProcessor) extractCertificate(tlsState *tls.ConnectionState, tlsHeader string, bypassTLSState bool) ([]*x509.Certificate, error) {
