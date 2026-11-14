@@ -19,6 +19,14 @@ attributes:
     subtype: a3ssource
     omit_empty: true
 
+  - name: EntraSources
+    friendly_name: EntraSources
+    description: Entra sources to import.
+    type: refList
+    exposed: true
+    subtype: entrasource
+    omit_empty: true
+
   - name: HTTPSources
     friendly_name: HTTPSources
     description: HTTP sources to import.
