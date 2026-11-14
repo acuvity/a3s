@@ -38,6 +38,7 @@ func New(mmaker manipcli.ManipulatorMaker, help string, defaultAudience []string
 		makeLDAPCmd(mmaker, restrictions),
 		makeHTTPCmd(mmaker, restrictions),
 		makeAzureCmd(mmaker, restrictions),
+		makeEntraCmd(mmaker, restrictions),
 		makeGCPCmd(mmaker, restrictions),
 		makeAWSCmd(mmaker, restrictions),
 		makeOIDCCmd(mmaker, restrictions),

@@ -106,6 +106,29 @@ func (a *Client) AuthFromRemoteA3S(ctx context.Context, token string, sourceName
 	return a.sendRequest(ctx, req)
 }
 
+// AuthFromEntra requests a token using the provided Entra access token,
+// obtained for the A3S Entra API application, and the Entra auth source
+// identified by its namespace and name.
+func (a *Client) AuthFromEntra(ctx context.Context, token string, sourceNamespace string, sourceName string, options ...Option) (string, error) {
+
+	cfg := newConfig()
+	for _, opt := range options {
+		opt(&cfg)
+	}
+
+	req := api.NewIssue()
+	req.SourceType = api.IssueSourceTypeEntra
+	req.SourceNamespace = sourceNamespace
+	req.SourceName = sourceName
+	req.InputEntra = &api.IssueEntra{
+		Token: token,
+	}
+
+	applyOptions(req, cfg)
+
+	return a.sendRequest(ctx, req)
+}
+
 // AuthFromAWS requests a token using the provided AWS sts information. If accessKeyID, secretAccessKey and token are empty,
 // the function will assume it is running on an AWS instance and will try to retrieve them using the magic IP.
 func (a *Client) AuthFromAWS(ctx context.Context, accessKeyID, secretAccessKey, token string, options ...Option) (string, error) {
