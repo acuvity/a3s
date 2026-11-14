@@ -72,7 +72,7 @@
             "type": "string"
           },
           "subClaim": {
-            "description": "The name of the identity claim naming the subject this source\nauthenticates. a3s derives the OpenID Connect `sub` claim of its ID Tokens\nand userinfo responses from that claim's value. It defaults to `sub` for\nOIDC sources and `nameid` for SAML sources. A source where it resolves to\nnothing cannot serve an OpenID Connect request, as a3s has no subject to\nname.",
+            "description": "The name of the identity claim naming the subject this source\nauthenticates. a3s derives the OpenID Connect `sub` claim of its ID Tokens\nand userinfo responses from that claim's value. It defaults to `sub` for\nOIDC sources, `nameid` for SAML sources and `oid` for Entra sources. A\nsource where it resolves to nothing cannot serve an OpenID Connect\nrequest, as a3s has no subject to name.",
             "example": "sub",
             "type": "string"
           },
@@ -255,6 +255,82 @@
         },
         "type": "object"
       },
+      "entrasource": {
+        "description": "A source that issues tokens from Microsoft Entra ID access tokens obtained by\nusers of a given Entra tenant for the A3S Entra API application.",
+        "properties": {
+          "ID": {
+            "description": "ID is the identifier of the object.",
+            "readOnly": true,
+            "type": "string"
+          },
+          "createTime": {
+            "description": "Creation date of the object.",
+            "format": "date-time",
+            "readOnly": true,
+            "type": "string"
+          },
+          "description": {
+            "description": "The description of the object.",
+            "type": "string"
+          },
+          "ignoredKeys": {
+            "description": "A list of claims that will be filtered out from the identity token. A claim will\nbe ignored if it is prefixed with one of the items in the ignoredKeys list. This\nruns before includedKeys computation.",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "importHash": {
+            "description": "The hash of the structure used to compare with new import version.",
+            "type": "string"
+          },
+          "importLabel": {
+            "description": "The user-defined import label that allows the system to group resources from the\nsame import operation.",
+            "type": "string"
+          },
+          "includedKeys": {
+            "description": "A list of claims that defines which claims will be added to the identity\ntoken. A claim will be included if it is prefixed with one of the items in the\nincludedKeys list. This runs after ignoreddKeys computation.",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "modifier": {
+            "$ref": "#/components/schemas/identitymodifier"
+          },
+          "name": {
+            "description": "The name of the source.",
+            "example": "my-entra-source",
+            "type": "string"
+          },
+          "namespace": {
+            "description": "The namespace of the object.",
+            "readOnly": true,
+            "type": "string"
+          },
+          "subClaim": {
+            "description": "The name of the identity claim naming the subject this source\nauthenticates. a3s derives the OpenID Connect `sub` claim of its ID Tokens\nand userinfo responses from that claim's value. It defaults to `sub` for\nOIDC sources, `nameid` for SAML sources and `oid` for Entra sources. A\nsource where it resolves to nothing cannot serve an OpenID Connect\nrequest, as a3s has no subject to name.",
+            "example": "sub",
+            "type": "string"
+          },
+          "tenantID": {
+            "description": "The ID of the Entra tenant whose users can authenticate with this source.\nTokens issued by any other tenant are rejected.",
+            "example": "1ec8ce6a-2b6d-4828-b298-be4d2eeb573b",
+            "type": "string"
+          },
+          "updateTime": {
+            "description": "Last update date of the object.",
+            "format": "date-time",
+            "readOnly": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "tenantID"
+        ],
+        "type": "object"
+      },
       "group": {
         "description": "TODO.",
         "properties": {
@@ -406,7 +482,7 @@
             "type": "string"
           },
           "subClaim": {
-            "description": "The name of the identity claim naming the subject this source\nauthenticates. a3s derives the OpenID Connect `sub` claim of its ID Tokens\nand userinfo responses from that claim's value. It defaults to `sub` for\nOIDC sources and `nameid` for SAML sources. A source where it resolves to\nnothing cannot serve an OpenID Connect request, as a3s has no subject to\nname.",
+            "description": "The name of the identity claim naming the subject this source\nauthenticates. a3s derives the OpenID Connect `sub` claim of its ID Tokens\nand userinfo responses from that claim's value. It defaults to `sub` for\nOIDC sources, `nameid` for SAML sources and `oid` for Entra sources. A\nsource where it resolves to nothing cannot serve an OpenID Connect\nrequest, as a3s has no subject to name.",
             "example": "sub",
             "type": "string"
           },
@@ -475,6 +551,13 @@
             "description": "A3S sources to import.",
             "items": {
               "$ref": "#/components/schemas/a3ssource"
+            },
+            "type": "array"
+          },
+          "EntraSources": {
+            "description": "Entra sources to import.",
+            "items": {
+              "$ref": "#/components/schemas/entrasource"
             },
             "type": "array"
           },
@@ -598,6 +681,9 @@
           "inputAzure": {
             "$ref": "#/components/schemas/issueazure"
           },
+          "inputEntra": {
+            "$ref": "#/components/schemas/issueentra"
+          },
           "inputGCP": {
             "$ref": "#/components/schemas/issuegcp"
           },
@@ -668,6 +754,7 @@
               "A3S",
               "AWS",
               "Azure",
+              "Entra",
               "GCP",
               "HTTP",
               "LDAP",
@@ -748,6 +835,20 @@
         "properties": {
           "token": {
             "description": "The original token.",
+            "example": "valid.jwt.token",
+            "type": "string"
+          }
+        },
+        "required": [
+          "token"
+        ],
+        "type": "object"
+      },
+      "issueentra": {
+        "description": "Additional issuing information for the Entra source.",
+        "properties": {
+          "token": {
+            "description": "The Entra access token issued for the A3S Entra API application.",
             "example": "valid.jwt.token",
             "type": "string"
           }
@@ -1020,7 +1121,7 @@
             ]
           },
           "subClaim": {
-            "description": "The name of the identity claim naming the subject this source\nauthenticates. a3s derives the OpenID Connect `sub` claim of its ID Tokens\nand userinfo responses from that claim's value. It defaults to `sub` for\nOIDC sources and `nameid` for SAML sources. A source where it resolves to\nnothing cannot serve an OpenID Connect request, as a3s has no subject to\nname.",
+            "description": "The name of the identity claim naming the subject this source\nauthenticates. a3s derives the OpenID Connect `sub` claim of its ID Tokens\nand userinfo responses from that claim's value. It defaults to `sub` for\nOIDC sources, `nameid` for SAML sources and `oid` for Entra sources. A\nsource where it resolves to nothing cannot serve an OpenID Connect\nrequest, as a3s has no subject to name.",
             "example": "sub",
             "type": "string"
           },
@@ -1143,7 +1244,7 @@
             ]
           },
           "subClaim": {
-            "description": "The name of the identity claim naming the subject this source\nauthenticates. a3s derives the OpenID Connect `sub` claim of its ID Tokens\nand userinfo responses from that claim's value. It defaults to `sub` for\nOIDC sources and `nameid` for SAML sources. A source where it resolves to\nnothing cannot serve an OpenID Connect request, as a3s has no subject to\nname.",
+            "description": "The name of the identity claim naming the subject this source\nauthenticates. a3s derives the OpenID Connect `sub` claim of its ID Tokens\nand userinfo responses from that claim's value. It defaults to `sub` for\nOIDC sources, `nameid` for SAML sources and `oid` for Entra sources. A\nsource where it resolves to nothing cannot serve an OpenID Connect\nrequest, as a3s has no subject to name.",
             "example": "sub",
             "type": "string"
           },
@@ -1456,7 +1557,7 @@
             "type": "array"
           },
           "subClaim": {
-            "description": "The name of the identity claim naming the subject this source\nauthenticates. a3s derives the OpenID Connect `sub` claim of its ID Tokens\nand userinfo responses from that claim's value. It defaults to `sub` for\nOIDC sources and `nameid` for SAML sources. A source where it resolves to\nnothing cannot serve an OpenID Connect request, as a3s has no subject to\nname.",
+            "description": "The name of the identity claim naming the subject this source\nauthenticates. a3s derives the OpenID Connect `sub` claim of its ID Tokens\nand userinfo responses from that claim's value. It defaults to `sub` for\nOIDC sources, `nameid` for SAML sources and `oid` for Entra sources. A\nsource where it resolves to nothing cannot serve an OpenID Connect\nrequest, as a3s has no subject to name.",
             "example": "sub",
             "type": "string"
           },
@@ -1736,7 +1837,7 @@
             "type": "array"
           },
           "subClaim": {
-            "description": "The name of the identity claim naming the subject this source\nauthenticates. a3s derives the OpenID Connect `sub` claim of its ID Tokens\nand userinfo responses from that claim's value. It defaults to `sub` for\nOIDC sources and `nameid` for SAML sources. A source where it resolves to\nnothing cannot serve an OpenID Connect request, as a3s has no subject to\nname.",
+            "description": "The name of the identity claim naming the subject this source\nauthenticates. a3s derives the OpenID Connect `sub` claim of its ID Tokens\nand userinfo responses from that claim's value. It defaults to `sub` for\nOIDC sources, `nameid` for SAML sources and `oid` for Entra sources. A\nsource where it resolves to nothing cannot serve an OpenID Connect\nrequest, as a3s has no subject to name.",
             "example": "sub",
             "type": "string"
           },
@@ -2041,7 +2142,7 @@
             "type": "boolean"
           },
           "subClaim": {
-            "description": "The name of the identity claim naming the subject this source\nauthenticates. a3s derives the OpenID Connect `sub` claim of its ID Tokens\nand userinfo responses from that claim's value. It defaults to `sub` for\nOIDC sources and `nameid` for SAML sources. A source where it resolves to\nnothing cannot serve an OpenID Connect request, as a3s has no subject to\nname.",
+            "description": "The name of the identity claim naming the subject this source\nauthenticates. a3s derives the OpenID Connect `sub` claim of its ID Tokens\nand userinfo responses from that claim's value. It defaults to `sub` for\nOIDC sources, `nameid` for SAML sources and `oid` for Entra sources. A\nsource where it resolves to nothing cannot serve an OpenID Connect\nrequest, as a3s has no subject to name.",
             "example": "sub",
             "type": "string"
           },
@@ -2457,6 +2558,149 @@
         },
         "tags": [
           "authz/check"
+        ]
+      }
+    },
+    "/entrasources": {
+      "get": {
+        "description": "Retrieves the list of entrasources.",
+        "operationId": "get-all-EntraSources",
+        "parameters": [
+          {
+            "description": "This is an example.",
+            "example": "hello == world",
+            "in": "query",
+            "name": "q",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/entrasource"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "n/a"
+          }
+        },
+        "tags": [
+          "authn/source"
+        ]
+      },
+      "post": {
+        "description": "Creates a new entrasource.",
+        "operationId": "create-EntraSource",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/entrasource"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/entrasource"
+                }
+              }
+            },
+            "description": "n/a"
+          }
+        },
+        "tags": [
+          "authn/source"
+        ]
+      }
+    },
+    "/entrasources/{id}": {
+      "delete": {
+        "description": "Delete a particular entrasource object.",
+        "operationId": "delete-EntraSource",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/entrasource"
+                }
+              }
+            },
+            "description": "n/a"
+          }
+        },
+        "tags": [
+          "authn/source"
+        ]
+      },
+      "get": {
+        "description": "Get a particular entrasource object.",
+        "operationId": "get-EntraSource",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/entrasource"
+                }
+              }
+            },
+            "description": "n/a"
+          }
+        },
+        "tags": [
+          "authn/source"
+        ]
+      },
+      "parameters": [
+        {
+          "in": "path",
+          "name": "id",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "put": {
+        "description": "Update a particular entrasource object.",
+        "operationId": "update-EntraSource",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/entrasource"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/entrasource"
+                }
+              }
+            },
+            "description": "n/a"
+          }
+        },
+        "tags": [
+          "authn/source"
         ]
       }
     },

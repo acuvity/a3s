@@ -18,6 +18,15 @@
       "title": "A3SSources",
       "type": "array"
     },
+    "EntraSources": {
+      "$friendlyName": "EntraSources",
+      "description": "Entra sources to import.",
+      "items": {
+        "$ref": "entrasource.json"
+      },
+      "title": "EntraSources",
+      "type": "array"
+    },
     "HTTPSources": {
       "$friendlyName": "HTTPSources",
       "description": "HTTP sources to import.",

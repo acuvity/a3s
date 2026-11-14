@@ -101,6 +101,12 @@
       "description": "Contains additional information for an Azure token source.",
       "title": "inputAzure"
     },
+    "inputEntra": {
+      "$friendlyName": "InputEntra",
+      "$ref": "issueentra.json",
+      "description": "Contains additional information for an Entra source.",
+      "title": "inputEntra"
+    },
     "inputGCP": {
       "$friendlyName": "InputGCP",
       "$ref": "issuegcp.json",
@@ -211,6 +217,7 @@
         "A3S",
         "AWS",
         "Azure",
+        "Entra",
         "GCP",
         "HTTP",
         "LDAP",

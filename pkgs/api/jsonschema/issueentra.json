@@ -1,0 +1,25 @@
+{
+  "$extends": [],
+  "$friendlyName": "IssueEntra",
+  "$friendlyNamePlural": "IssueEntras",
+  "$modelName": "IssueEntra",
+  "$modelPackage": "a3s",
+  "$modelResourceName": "issueentra",
+  "$modelRestName": "issueentra",
+  "additionalProperties": false,
+  "description": "Additional issuing information for the Entra source.",
+  "properties": {
+    "token": {
+      "$friendlyName": "Token",
+      "$required": true,
+      "description": "The Entra access token issued for the A3S Entra API application.",
+      "title": "token",
+      "type": "string"
+    }
+  },
+  "required": [
+    "token"
+  ],
+  "title": "IssueEntra",
+  "type": "object"
+}

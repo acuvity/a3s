@@ -11,6 +11,7 @@ var (
 		"authorization":    AuthorizationIdentity,
 		"authz":            AuthzIdentity,
 		"entraevent":       EntraEventIdentity,
+		"entrasource":      EntraSourceIdentity,
 		"group":            GroupIdentity,
 		"httpsource":       HTTPSourceIdentity,
 		"identitymodifier": IdentityModifierIdentity,
@@ -39,6 +40,7 @@ var (
 		"authorizations":   AuthorizationIdentity,
 		"authz":            AuthzIdentity,
 		"entraevents":      EntraEventIdentity,
+		"entrasources":     EntraSourceIdentity,
 		"groups":           GroupIdentity,
 		"httpsources":      HTTPSourceIdentity,
 		"identitymodifier": IdentityModifierIdentity,
@@ -84,6 +86,13 @@ var (
 		},
 		"authz":      nil,
 		"entraevent": nil,
+		"entrasource": {
+			{":shard", ":unique", "zone", "zHash"},
+			{"namespace"},
+			{"namespace", "ID"},
+			{"namespace", "importLabel"},
+			{"namespace", "name"},
+		},
 		"group": {
 			{":shard", ":unique", "zone", "zHash"},
 			{"namespace"},
@@ -231,6 +240,8 @@ func (f modelManager) Identifiable(identity elemental.Identity) elemental.Identi
 		return NewAuthz()
 	case EntraEventIdentity:
 		return NewEntraEvent()
+	case EntraSourceIdentity:
+		return NewEntraSource()
 	case GroupIdentity:
 		return NewGroup()
 	case HTTPSourceIdentity:
@@ -286,6 +297,8 @@ func (f modelManager) SparseIdentifiable(identity elemental.Identity) elemental.
 		return NewSparseAuthz()
 	case EntraEventIdentity:
 		return NewSparseEntraEvent()
+	case EntraSourceIdentity:
+		return NewSparseEntraSource()
 	case GroupIdentity:
 		return NewSparseGroup()
 	case HTTPSourceIdentity:
@@ -349,6 +362,8 @@ func (f modelManager) Identifiables(identity elemental.Identity) elemental.Ident
 		return &AuthzsList{}
 	case EntraEventIdentity:
 		return &EntraEventsList{}
+	case EntraSourceIdentity:
+		return &EntraSourcesList{}
 	case GroupIdentity:
 		return &GroupsList{}
 	case HTTPSourceIdentity:
@@ -402,6 +417,8 @@ func (f modelManager) SparseIdentifiables(identity elemental.Identity) elemental
 		return &SparseAuthzsList{}
 	case EntraEventIdentity:
 		return &SparseEntraEventsList{}
+	case EntraSourceIdentity:
+		return &SparseEntraSourcesList{}
 	case GroupIdentity:
 		return &SparseGroupsList{}
 	case HTTPSourceIdentity:
@@ -467,6 +484,8 @@ func (f modelManager) DetachedFromString(name string) any {
 		return NewIssueAWS()
 	case "issueazure", "IssueAzure":
 		return NewIssueAzure()
+	case "issueentra", "IssueEntra":
+		return NewIssueEntra()
 	case "issuegcp", "IssueGCP":
 		return NewIssueGCP()
 	case "issuehttp", "IssueHTTP":
@@ -507,6 +526,7 @@ func AllIdentities() []elemental.Identity {
 		AuthorizationIdentity,
 		AuthzIdentity,
 		EntraEventIdentity,
+		EntraSourceIdentity,
 		GroupIdentity,
 		HTTPSourceIdentity,
 		IdentityModifierIdentity,
@@ -540,6 +560,8 @@ func AliasesForIdentity(identity elemental.Identity) []string {
 	case AuthzIdentity:
 		return []string{}
 	case EntraEventIdentity:
+		return []string{}
+	case EntraSourceIdentity:
 		return []string{}
 	case GroupIdentity:
 		return []string{}
