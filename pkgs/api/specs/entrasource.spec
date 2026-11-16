@@ -3,7 +3,7 @@ model:
   rest_name: entrasource
   resource_name: entrasources
   entity_name: EntraSource
-  friendly_name: EntraSource
+  friendly_name: Entra Source
   package: a3s
   group: authn/source
   description: |-
@@ -62,7 +62,7 @@ attributes:
     example_value: my-entra-source
 
   - name: tenantID
-    friendly_name: TenantID
+    friendly_name: Tenant ID
     description: |-
       The ID of the Entra tenant whose users can authenticate with this source.
       Tokens issued by any other tenant are rejected.
@@ -70,6 +70,6 @@ attributes:
     exposed: true
     stored: true
     required: true
-    example_value: 1ec8ce6a-2b6d-4828-b298-be4d2eeb573b
     allowed_chars: ^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$
     allowed_chars_message: must be a tenant ID (GUID)
+    example_value: 1ec8ce6a-2b6d-4828-b298-be4d2eeb573b
