@@ -552,8 +552,8 @@ func (o *EntraSource) Validate() error {
 
 	if o.Modifier != nil {
 		if err := o.Modifier.Validate(); err != nil {
-			elemental.InjectAttributePath(err, "modifier")
 			errors = errors.Append(err)
+			elemental.InjectAttributePath(errors, "modifier")
 		}
 	}
 
