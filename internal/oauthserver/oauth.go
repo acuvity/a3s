@@ -16,6 +16,7 @@ import (
 
 	jwt "github.com/golang-jwt/jwt/v5"
 	"go.acuvity.ai/a3s/pkgs/api"
+	"go.acuvity.ai/a3s/pkgs/oauth"
 	"go.acuvity.ai/a3s/pkgs/token"
 	"go.acuvity.ai/elemental"
 	"go.acuvity.ai/manipulate"
@@ -92,14 +93,14 @@ func NewOAuth(
 	refreshValidity time.Duration,
 	revocations revocationChecker,
 ) (*OAuth, error) {
-	issuerURL, err := url.Parse(baseURL)
+	rootIssuer, err := oauth.IssuerFor(baseURL, "/")
 	if err != nil {
 		return nil, err
 	}
-	issuerURL.Path = issuerURL.Path + "/oauth"
-	issuerURL.RawPath = ""
-	issuerURL.RawQuery = ""
-	issuerURL.Fragment = ""
+	issuerURL, err := url.Parse(rootIssuer)
+	if err != nil {
+		return nil, err
+	}
 	return &OAuth{
 		store:           store,
 		m:               manipulator,
@@ -902,13 +903,11 @@ func (o *OAuth) signToken(namespace string, idt *token.IdentityToken, audience j
 
 // issuerForNamespace returns the OAuth issuer identifier for the provided namespace.
 func (o *OAuth) issuerForNamespace(namespace string) string {
-	if namespace == "/" {
-		return o.issuerURL.String()
-	}
 
-	encodedNamespace := encodeNamespace(namespace)
+	// NewOAuth already built the root issuer from a3sIssuer, so this cannot fail.
+	issuer, _ := oauth.IssuerFor(o.a3sIssuer, namespace)
 
-	return o.issuerURL.String() + "/" + encodedNamespace
+	return issuer
 }
 
 // LoadAuthorizeContext resolves an authorize request together with its client

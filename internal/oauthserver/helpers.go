@@ -11,12 +11,6 @@ import (
 	"go.acuvity.ai/elemental"
 )
 
-// encodeNamespace converts a namespace into a reversible slash-free path
-// segment.
-func encodeNamespace(namespace string) string {
-	return base64.RawURLEncoding.EncodeToString([]byte(namespace))
-}
-
 // decodeNamespace converts an encoded namespace path segment into its
 // namespace form.
 func decodeNamespace(encoded string) (string, error) {

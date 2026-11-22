@@ -98,7 +98,7 @@ func TestOpenIDConfigurationRoutingThroughMux(t *testing.T) {
 		mux.Handle(route, http.HandlerFunc(handler.ServeHTTP))
 	}
 
-	encodedNamespace := encodeNamespace("/team")
+	encodedNamespace := "L3RlYW0"
 
 	for _, test := range []struct {
 		path       string
