@@ -953,3 +953,35 @@ func TestCountNamespace(t *testing.T) {
 		})
 	})
 }
+
+func TestPolicyIssuer(t *testing.T) {
+
+	Convey("Given the claims of a token issued to an OAuth application", t, func() {
+
+		claims := []string{"@oauthapp:id=1", "@oauthapp:namespace=/orgs/acme"}
+
+		So(policyIssuer(claims, "https://a3s.test/oauth/L29yZ3MvYWNtZQ"), ShouldEqual, "https://a3s.test")
+		So(policyIssuer(claims, "https://a3s.test/prefix/oauth/L29yZ3MvYWNtZQ"), ShouldEqual, "https://a3s.test/prefix")
+	})
+
+	Convey("Given the claims of an application of the root namespace", t, func() {
+
+		claims := []string{"@oauthapp:id=1", "@oauthapp:namespace=/"}
+
+		So(policyIssuer(claims, "https://a3s.test/oauth"), ShouldEqual, "https://a3s.test")
+	})
+
+	Convey("Given an issuer that is not the OAuth issuer of the namespace of the application", t, func() {
+
+		claims := []string{"@oauthapp:id=1", "@oauthapp:namespace=/orgs/acme"}
+
+		So(policyIssuer(claims, "https://a3s.test"), ShouldEqual, "https://a3s.test")
+		So(policyIssuer(claims, "https://a3s.test/oauth/L29yZ3Mvb3RoZXI"), ShouldEqual, "https://a3s.test/oauth/L29yZ3Mvb3RoZXI")
+	})
+
+	Convey("Given claims that name no OAuth application", t, func() {
+
+		So(policyIssuer([]string{"color=blue"}, "https://a3s.test/oauth/L29yZ3MvYWNtZQ"), ShouldEqual, "https://a3s.test/oauth/L29yZ3MvYWNtZQ")
+		So(policyIssuer([]string{"color=blue"}, "https://a3s.test"), ShouldEqual, "https://a3s.test")
+	})
+}

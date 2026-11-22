@@ -9,6 +9,7 @@ import (
 
 	mapset "github.com/deckarep/golang-set"
 	"go.acuvity.ai/a3s/pkgs/api"
+	"go.acuvity.ai/a3s/pkgs/oauth"
 	"go.acuvity.ai/elemental"
 	"go.acuvity.ai/manipulate"
 )
@@ -319,7 +320,7 @@ func makeAPIAuthorizationPolicyRetrieveFilter(claims []string, label string) *el
 
 	filter := elemental.NewFilterComposer().
 		WithKey("flattenedsubject").In(itags...).
-		WithKey("trustedissuers").Contains(issuer).
+		WithKey("trustedissuers").Contains(policyIssuer(claims, issuer)).
 		WithKey("disabled").Equals(false).
 		Done()
 
@@ -328,6 +329,20 @@ func makeAPIAuthorizationPolicyRetrieveFilter(claims []string, label string) *el
 	}
 
 	return filter
+}
+
+// policyIssuer returns the issuer the authorization policies must trust to
+// apply to the claims. OAuth application tokens are issued by
+// <a3s issuer>/oauth/<namespace>, which is a3s itself, so the policies that
+// trust the a3s issuer apply to them.
+func policyIssuer(claims []string, issuer string) string {
+
+	namespace := oauth.ApplicationFromClaims(claims).Namespace
+	if base, found := oauth.A3SIssuer(issuer, namespace); namespace != "" && found {
+		return base
+	}
+
+	return issuer
 }
 
 // makeGroupsRetrieveFilter creates a manipulate filter to
