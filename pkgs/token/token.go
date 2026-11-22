@@ -14,6 +14,7 @@ import (
 	"github.com/gofrs/uuid"
 	"github.com/golang-jwt/jwt/v5"
 	"go.acuvity.ai/a3s/pkgs/api"
+	"go.acuvity.ai/a3s/pkgs/oauth"
 	"go.acuvity.ai/a3s/pkgs/permissions"
 )
 
@@ -32,11 +33,7 @@ type Source struct {
 
 // An OAuthApplication represents the oauth application info
 // used to derive an IdentityToken.
-type OAuthApplication struct {
-	ID        string `json:"ID"`
-	Namespace string `json:"namespace,omitempty"`
-	Name      string `json:"name,omitempty"`
-}
+type OAuthApplication = oauth.Application
 
 // An OAuthClient represents the oauth client info
 // used to derive an IdentityToken.
@@ -167,18 +164,14 @@ func finalizeTokenParsing(idt *IdentityToken) error {
 			idt.Source.Namespace = strings.TrimPrefix(c, "@source:namespace=")
 		case strings.HasPrefix(c, "@source:type="):
 			idt.Source.Type = strings.TrimPrefix(c, "@source:type=")
-		case strings.HasPrefix(c, "@oauthapp:id="):
-			idt.OAuthApplication.ID = strings.TrimPrefix(c, "@oauthapp:id=")
-		case strings.HasPrefix(c, "@oauthapp:namespace="):
-			idt.OAuthApplication.Namespace = strings.TrimPrefix(c, "@oauthapp:namespace=")
-		case strings.HasPrefix(c, "@oauthapp:name="):
-			idt.OAuthApplication.Name = strings.TrimPrefix(c, "@oauthapp:name=")
 		case strings.HasPrefix(c, "@oauthclient:clientid="):
 			idt.OAuthClient.ClientID = strings.TrimPrefix(c, "@oauthclient:clientid=")
 		case strings.HasPrefix(c, "@oauthclient:namespace="):
 			idt.OAuthClient.Namespace = strings.TrimPrefix(c, "@oauthclient:namespace=")
 		}
 	}
+
+	idt.OAuthApplication = oauth.ApplicationFromClaims(idt.Identity)
 
 	if idt.Source.Type == "" {
 		return fmt.Errorf("invalid token: missing @source:type in identity claims")
