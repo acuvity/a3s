@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/karlseguin/ccache/v2"
+	"go.acuvity.ai/a3s/pkgs/oauth"
 	"go.acuvity.ai/a3s/pkgs/token"
 	"go.acuvity.ai/bahamut"
 	"go.acuvity.ai/elemental"
@@ -144,6 +145,12 @@ func (a *Authenticator) CheckAuthentication(ctx context.Context, tokenString str
 		issuer = rissuer
 	}
 
+	if rjwks == nil && cfg.issuer == "" {
+		if oauthIssuer, ok := a.oauthIssuer(tokenString); ok {
+			issuer = oauthIssuer
+		}
+	}
+
 	idt, err := token.Parse(tokenString, jwks, issuer, a.audience)
 	if err != nil {
 		return bahamut.AuthActionKO, nil, elemental.NewError(
@@ -164,6 +171,29 @@ func (a *Authenticator) CheckAuthentication(ctx context.Context, tokenString str
 	}
 
 	return bahamut.AuthActionContinue, idt, nil
+}
+
+// oauthIssuer returns the issuer a token that names an OAuth application must
+// have. The token is not verified here: what it names is only what it must then
+// prove. token.Parse rejects it unless it is signed by a3s and issued by this
+// issuer, which only the authorization server of that namespace sets.
+func (a *Authenticator) oauthIssuer(tokenString string) (string, bool) {
+
+	if a.issuer == "" {
+		return "", false
+	}
+
+	unverified, err := token.ParseUnverified(tokenString)
+	if err != nil || unverified.OAuthApplication.IsEmpty() {
+		return "", false
+	}
+
+	issuer, err := oauth.IssuerFor(a.issuer, unverified.OAuthApplication.Namespace)
+	if err != nil {
+		return "", false
+	}
+
+	return issuer, true
 }
 
 func (a *Authenticator) handleFederatedToken(ctx context.Context, tokenString string) (jwks *token.JWKS, issuer string, err error) {

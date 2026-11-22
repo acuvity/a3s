@@ -497,3 +497,118 @@ func TestHandleFederatedToken(t *testing.T) {
 		})
 	})
 }
+
+func TestOAuthApplicationTokens(t *testing.T) {
+
+	Convey("Given an authenticator and a token issued to an OAuth application", t, func() {
+
+		c, k := getECCert()
+		jwks := token.NewJWKS()
+		_ = jwks.Append(c)
+		kid := token.Fingerprint(c)
+
+		a := New(jwks, "https://a3s.test", "aud")
+
+		appToken := func(issuer string, namespace string) string {
+			return makeToken(
+				&token.IdentityToken{
+					RegisteredClaims: jwt.RegisteredClaims{Issuer: issuer},
+					Identity: []string{
+						"color=blue",
+						"@source:type=test",
+						"@oauthapp:id=1",
+						"@oauthapp:name=app",
+						"@oauthapp:namespace=" + namespace,
+					},
+				},
+				jwt.SigningMethodES256,
+				k,
+				kid,
+			)
+		}
+
+		Convey("A token issued by the OAuth issuer of the namespace of its application should work", func() {
+
+			action, idt, err := a.CheckAuthentication(
+				context.Background(),
+				appToken("https://a3s.test/oauth/L29yZ3MvYWNtZQ", "/orgs/acme"),
+			)
+
+			So(err, ShouldBeNil)
+			So(action, ShouldEqual, bahamut.AuthActionContinue)
+			So(idt.OAuthApplication.Name, ShouldEqual, "app")
+		})
+
+		Convey("A token of an application of the root namespace should work", func() {
+
+			_, _, err := a.CheckAuthentication(context.Background(), appToken("https://a3s.test/oauth", "/"))
+
+			So(err, ShouldBeNil)
+		})
+
+		Convey("A token issued by the OAuth issuer of another namespace should fail", func() {
+
+			// /orgs/other
+			_, _, err := a.CheckAuthentication(
+				context.Background(),
+				appToken("https://a3s.test/oauth/L29yZ3Mvb3RoZXI", "/orgs/acme"),
+			)
+
+			So(err, ShouldNotBeNil)
+		})
+
+		Convey("A token that names an application but has the a3s issuer should fail", func() {
+
+			_, _, err := a.CheckAuthentication(context.Background(), appToken("https://a3s.test", "/orgs/acme"))
+
+			So(err, ShouldNotBeNil)
+		})
+
+		Convey("A token signed by another key should fail", func() {
+
+			_, k2 := getECCert()
+			bad := makeToken(
+				&token.IdentityToken{
+					RegisteredClaims: jwt.RegisteredClaims{Issuer: "https://a3s.test/oauth/L29yZ3MvYWNtZQ"},
+					Identity:         []string{"@source:type=test", "@oauthapp:id=1", "@oauthapp:namespace=/orgs/acme"},
+				},
+				jwt.SigningMethodES256,
+				k2,
+				kid,
+			)
+
+			_, _, err := a.CheckAuthentication(context.Background(), bad)
+
+			So(err, ShouldNotBeNil)
+		})
+
+		Convey("A token issued by an OAuth issuer should work with an authenticator that checks no issuer", func() {
+
+			a := New(jwks, "", "aud")
+
+			_, _, err := a.CheckAuthentication(
+				context.Background(),
+				appToken("https://a3s.test/oauth/L29yZ3MvYWNtZQ", "/orgs/acme"),
+			)
+
+			So(err, ShouldBeNil)
+		})
+
+		Convey("A token that names no application keeps requiring the a3s issuer", func() {
+
+			plain := makeToken(
+				&token.IdentityToken{
+					RegisteredClaims: jwt.RegisteredClaims{Issuer: "https://a3s.test/oauth/L29yZ3MvYWNtZQ"},
+					Identity:         []string{"@source:type=test"},
+				},
+				jwt.SigningMethodES256,
+				k,
+				kid,
+			)
+
+			_, _, err := a.CheckAuthentication(context.Background(), plain)
+
+			So(err, ShouldNotBeNil)
+		})
+	})
+}

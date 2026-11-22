@@ -10,6 +10,11 @@ type Application struct {
 	Name      string `json:"name,omitempty"`
 }
 
+// IsEmpty returns true if the claims name no OAuth application.
+func (a Application) IsEmpty() bool {
+	return a == Application{}
+}
+
 // ApplicationFromClaims returns the OAuth application the identity claims name.
 // It is empty if they name none.
 func ApplicationFromClaims(claims []string) Application {
