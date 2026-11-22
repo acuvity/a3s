@@ -9,6 +9,7 @@ type config struct {
 	operationTransformer OperationTransformer
 	ignoredResources     []string
 	defaultLabel         string
+	allowedOAuthApps     []string
 }
 
 // An Option can be used to configure various options in the Authorizer.
@@ -34,6 +35,15 @@ func OptionDefaultFilterLabel(label string) Option {
 func OptionOperationTransformer(t OperationTransformer) Option {
 	return func(cfg *config) {
 		cfg.operationTransformer = t
+	}
+}
+
+// OptionAllowedOAuthApplications sets the names of the OAuth applications whose
+// tokens are authorized. A name ending with * matches by prefix. Without this
+// option, no OAuth application is allowed.
+func OptionAllowedOAuthApplications(names ...string) Option {
+	return func(cfg *config) {
+		cfg.allowedOAuthApps = names
 	}
 }
 

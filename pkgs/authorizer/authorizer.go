@@ -5,10 +5,12 @@ import (
 	"fmt"
 	"math/rand"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/spaolacci/murmur3"
 	"go.acuvity.ai/a3s/pkgs/nscache"
+	"go.acuvity.ai/a3s/pkgs/oauth"
 	"go.acuvity.ai/a3s/pkgs/permissions"
 	"go.acuvity.ai/a3s/pkgs/token"
 	"go.acuvity.ai/bahamut"
@@ -49,6 +51,13 @@ var (
 		http.StatusForbidden,
 	)
 
+	ErrOAuthApplicationNotAllowed = elemental.NewError(
+		"Forbidden",
+		"The OAuth application the token was issued to is not allowed",
+		"a3s:authorizer",
+		http.StatusForbidden,
+	)
+
 	ErrRevokedToken = elemental.NewError(
 		"Forbidden",
 		"Token is marked as revoked",
@@ -80,6 +89,7 @@ type Authorizer interface {
 type authorizer struct {
 	retriever            permissions.Retriever
 	ignoredResources     map[string]struct{}
+	allowedOAuthApps     []string
 	operationTransformer OperationTransformer
 	authCache            *nscache.NamespacedCache
 	revocationCache      *nscache.NamespacedCache
@@ -111,6 +121,7 @@ func New(ctx context.Context, retriever permissions.Retriever, pubsub bahamut.Pu
 	return &authorizer{
 		retriever:            retriever,
 		ignoredResources:     ignored,
+		allowedOAuthApps:     cfg.allowedOAuthApps,
 		operationTransformer: cfg.operationTransformer,
 		authCache:            authCache,
 		revocationCache:      revocationCache,
@@ -192,6 +203,10 @@ func (a *authorizer) CheckAuthorization(ctx context.Context, claims []string, op
 		return false, ErrInvalidNamespace
 	}
 
+	if app := oauth.ApplicationFromClaims(claims); !app.IsEmpty() && !isOAuthApplicationAllowed(app.Name, a.allowedOAuthApps) {
+		return false, ErrOAuthApplicationNotAllowed
+	}
+
 	exp := time.Hour + time.Duration(rand.Int63n(60*30))*time.Second
 
 	var key, tokenID string
@@ -257,6 +272,27 @@ func (a *authorizer) CheckAuthorization(ctx context.Context, claims []string, op
 	a.authCache.Set(ns, key, cauth, exp)
 
 	return perms.Allows(operation, resource), nil
+}
+
+// isOAuthApplicationAllowed returns true if name is one of allowed, where an
+// allowed name ending with * matches by prefix.
+func isOAuthApplicationAllowed(name string, allowed []string) bool {
+
+	if name == "" {
+		return false
+	}
+
+	for _, a := range allowed {
+		if a == name {
+			return true
+		}
+
+		if prefix, isPrefix := strings.CutSuffix(a, "*"); isPrefix && strings.HasPrefix(name, prefix) {
+			return true
+		}
+	}
+
+	return false
 }
 
 func hash(claims []string, remoteaddr string, id string, restrictions permissions.Restrictions) string {

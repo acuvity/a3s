@@ -387,3 +387,74 @@ func TestCheckPermissions(t *testing.T) {
 		})
 	})
 }
+
+func TestCheckAuthorizationOAuthApplications(t *testing.T) {
+
+	newAuthorizer := func(options ...Option) Authorizer {
+		p := bahamut.NewLocalPubSubClient()
+		_ = p.Connect(context.Background())
+		r := permissions.NewMockRetriever()
+		r.MockPermissions(t, func(context.Context, []string, string, ...permissions.RetrieverOption) (permissions.PermissionMap, error) {
+			return permissions.PermissionMap{"r0": permissions.Permissions{"retrieve-many": true}}, nil
+		})
+		return New(context.Background(), r, p, options...)
+	}
+
+	app := func(name string) []string {
+		return []string{"color=blue", "@oauthapp:id=1", "@oauthapp:namespace=/orgs/acme", "@oauthapp:name=" + name}
+	}
+
+	Convey("Given an Authorizer without allowed OAuth applications", t, func() {
+
+		a := newAuthorizer()
+
+		Convey("A token that is not issued to an OAuth application should work", func() {
+			ok, err := a.CheckAuthorization(context.Background(), []string{"color=blue"}, "retrieve-many", "/orgs/acme", "r0")
+			So(err, ShouldBeNil)
+			So(ok, ShouldBeTrue)
+		})
+
+		Convey("A token issued to an OAuth application should be denied", func() {
+			ok, err := a.CheckAuthorization(context.Background(), app("api-mcp-server:main"), "retrieve-many", "/orgs/acme", "r0")
+			So(err, ShouldResemble, ErrOAuthApplicationNotAllowed)
+			So(ok, ShouldBeFalse)
+		})
+	})
+
+	Convey("Given an Authorizer with allowed OAuth applications", t, func() {
+
+		a := newAuthorizer(OptionAllowedOAuthApplications("exact", "api-mcp-server:*"))
+
+		Convey("An application matching a name should work", func() {
+			ok, err := a.CheckAuthorization(context.Background(), app("exact"), "retrieve-many", "/orgs/acme", "r0")
+			So(err, ShouldBeNil)
+			So(ok, ShouldBeTrue)
+		})
+
+		Convey("An application matching a prefix should work", func() {
+			ok, err := a.CheckAuthorization(context.Background(), app("api-mcp-server:main"), "retrieve-many", "/orgs/acme", "r0")
+			So(err, ShouldBeNil)
+			So(ok, ShouldBeTrue)
+		})
+
+		Convey("An application that is not listed should be denied", func() {
+			for _, name := range []string{"other", "exactly", "ai-gateway:gw", "api-mcp-server"} {
+				ok, err := a.CheckAuthorization(context.Background(), app(name), "retrieve-many", "/orgs/acme", "r0")
+				So(err, ShouldResemble, ErrOAuthApplicationNotAllowed)
+				So(ok, ShouldBeFalse)
+			}
+		})
+
+		Convey("An application without a name should be denied", func() {
+			ok, err := a.CheckAuthorization(context.Background(), []string{"@oauthapp:id=1"}, "retrieve-many", "/orgs/acme", "r0")
+			So(err, ShouldResemble, ErrOAuthApplicationNotAllowed)
+			So(ok, ShouldBeFalse)
+		})
+
+		Convey("An allowed application should still be denied what it has no permission for", func() {
+			ok, err := a.CheckAuthorization(context.Background(), app("exact"), "delete", "/orgs/acme", "r0")
+			So(err, ShouldBeNil)
+			So(ok, ShouldBeFalse)
+		})
+	})
+}
