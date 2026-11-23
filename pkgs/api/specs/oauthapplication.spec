@@ -90,6 +90,22 @@ attributes:
     creation_only: true
     example_value: my-app
 
+  - name: permissions
+    friendly_name: Permissions
+    description: |-
+      Optional list of permissions the access tokens of the application are
+      restricted to. When set, the access tokens are also restricted to the
+      namespace of the application. They reduce what the policy engine grants
+      the bearer, and never extend it. If omitted or empty, the access tokens
+      are not restricted.
+    type: list
+    exposed: true
+    subtype: string
+    stored: true
+    example_value:
+    - namespace:retrieve,retrieve-many
+    - authorization:retrieve
+
   - name: refreshTokenValidity
     friendly_name: Refresh Token Validity
     description: |-
