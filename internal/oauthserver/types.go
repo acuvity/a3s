@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"go.acuvity.ai/a3s/pkgs/api"
+	"go.acuvity.ai/a3s/pkgs/permissions"
 	"go.acuvity.ai/a3s/pkgs/token"
 )
 
@@ -33,11 +34,12 @@ type AuthorizeContext struct {
 // OAuthTokenData is the frozen authorization result stored behind an auth code
 // and later used to mint the final a3s access token.
 type OAuthTokenData struct {
-	IdentityToken         *token.IdentityToken `json:"identitytoken,omitempty"`
-	Audience              string               `json:"audience,omitempty"`
-	Scopes                []string             `json:"scopes,omitempty"`
-	ExpiresAt             time.Time            `json:"expiresat,omitempty"`
-	RefreshTokenExpiresAt time.Time            `json:"refreshtokenexpiresat,omitempty"`
+	IdentityToken         *token.IdentityToken     `json:"identitytoken,omitempty"`
+	Audience              string                   `json:"audience,omitempty"`
+	Scopes                []string                 `json:"scopes,omitempty"`
+	ExpiresAt             time.Time                `json:"expiresat,omitempty"`
+	RefreshTokenExpiresAt time.Time                `json:"refreshtokenexpiresat,omitempty"`
+	Restrictions          permissions.Restrictions `json:"restrictions,omitzero"`
 }
 
 type authorizationServerMetadata struct {

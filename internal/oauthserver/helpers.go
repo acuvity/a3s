@@ -8,8 +8,57 @@ import (
 	"strings"
 
 	"go.acuvity.ai/a3s/pkgs/api"
+	"go.acuvity.ai/a3s/pkgs/permissions"
 	"go.acuvity.ai/elemental"
 )
+
+// applicationRestrictions returns the restrictions of the access tokens of the
+// application: its permissions, in its namespace.
+func applicationRestrictions(app *api.OAuthApplication) permissions.Restrictions {
+
+	if len(app.Permissions) == 0 {
+		return permissions.Restrictions{}
+	}
+
+	return permissions.Restrictions{
+		Namespace:   app.Namespace,
+		Permissions: app.Permissions,
+	}
+}
+
+// intersectRestrictions returns the restrictions within both the ones of the
+// session and the ones of the application. They can only be expressed as one
+// if, for the namespace and for the permissions, one contains the other.
+func intersectRestrictions(session *permissions.Restrictions, app permissions.Restrictions) (*permissions.Restrictions, error) {
+
+	var r permissions.Restrictions
+	if session != nil {
+		r = *session
+	}
+
+	namespace, err := r.RestrictNamespace(app.Namespace)
+	if err != nil {
+		if namespace, err = app.RestrictNamespace(r.Namespace); err != nil {
+			return nil, err
+		}
+	}
+
+	perms, err := r.RestrictPermissions(app.Permissions)
+	if err != nil {
+		if perms, err = app.RestrictPermissions(r.Permissions); err != nil {
+			return nil, err
+		}
+	}
+
+	r.Namespace = namespace
+	r.Permissions = perms
+
+	if r.Zero() {
+		return nil, nil
+	}
+
+	return &r, nil
+}
 
 // decodeNamespace converts an encoded namespace path segment into its
 // namespace form.

@@ -17,6 +17,7 @@ import (
 	jwt "github.com/golang-jwt/jwt/v5"
 	"go.acuvity.ai/a3s/pkgs/api"
 	"go.acuvity.ai/a3s/pkgs/oauth"
+	"go.acuvity.ai/a3s/pkgs/permissions"
 	"go.acuvity.ai/a3s/pkgs/token"
 	"go.acuvity.ai/elemental"
 	"go.acuvity.ai/manipulate"
@@ -242,6 +243,20 @@ func (o *OAuth) CompleteAuthorize(
 	oauthClient *api.OAuthClient,
 	oauthApplication *api.OAuthApplication,
 ) (string, error) {
+	restrictions := applicationRestrictions(oauthApplication)
+
+	// A session whose restrictions cannot be intersected with the application
+	// ones could not get its access token. It is refused now rather than when
+	// the code is redeemed.
+	if _, err := intersectRestrictions(idt.Restrictions, restrictions); err != nil {
+		return "", elemental.NewError(
+			"Forbidden",
+			err.Error(),
+			"a3s:authn",
+			http.StatusForbidden,
+		)
+	}
+
 	var expiresAt time.Time
 	if idt.ExpiresAt != nil {
 		expiresAt = idt.ExpiresAt.Time
@@ -261,6 +276,7 @@ func (o *OAuth) CompleteAuthorize(
 			Scopes:                append([]string{}, authorizeContext.RequestedScopes...),
 			ExpiresAt:             expiresAt,
 			RefreshTokenExpiresAt: time.Now().UTC().Add(o.refreshTokenValidity(oauthApplication)),
+			Restrictions:          restrictions,
 		},
 	)
 	if err != nil {
@@ -370,6 +386,7 @@ func (o *OAuth) redeemAuthorizationCode(client *api.OAuthClient, tokenRequest To
 	return o.issueGrant(
 		session.Namespace,
 		session.OAuthTokenData.IdentityToken,
+		session.OAuthTokenData.Restrictions,
 		session.OAuthTokenData.Audience,
 		session.ClientID,
 		session.OAuthTokenData.Scopes,
@@ -383,6 +400,7 @@ func (o *OAuth) redeemAuthorizationCode(client *api.OAuthClient, tokenRequest To
 func (o *OAuth) issueGrant(
 	namespace string,
 	idt *token.IdentityToken,
+	restrictions permissions.Restrictions,
 	audience string,
 	clientID string,
 	scopes []string,
@@ -401,6 +419,14 @@ func (o *OAuth) issueGrant(
 			return nil, err
 		}
 	}
+
+	// The restrictions of the application are only applied to the access token,
+	// so that each refresh applies the current ones.
+	restricted, err := intersectRestrictions(idt.Restrictions, restrictions)
+	if err != nil {
+		return nil, newProtocolError("invalid_grant", err.Error())
+	}
+	idt.Restrictions = restricted
 
 	accessToken, expiresIn, err := o.signToken(namespace, idt, jwt.ClaimStrings{audience}, expiration)
 	if err != nil {
@@ -529,6 +555,7 @@ func (o *OAuth) redeemRefreshToken(ctx context.Context, namespace string, client
 	return o.issueGrant(
 		namespace,
 		idt,
+		applicationRestrictions(app),
 		app.Audience,
 		client.ClientID,
 		scopes,
