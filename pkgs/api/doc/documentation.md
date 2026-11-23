@@ -26,6 +26,10 @@ by client registrations.
   ],
   "disabled": false,
   "name": "my-app",
+  "permissions": [
+    "namespace:retrieve,retrieve-many",
+    "authorization:retrieve"
+  ],
   "refreshTokenValidity": "1440h"
 }
 ```
@@ -127,6 +131,16 @@ The name of the OAuth application.
 Type: `string`
 
 The namespace of the object.
+
+##### `permissions`
+
+Type: `[]string`
+
+Optional list of permissions the access tokens of the application are
+restricted to. When set, the access tokens are also restricted to the
+namespace of the application. They reduce what the policy engine grants
+the bearer, and never extend it. If omitted or empty, the access tokens
+are not restricted.
 
 ##### `refreshTokenValidity`
 

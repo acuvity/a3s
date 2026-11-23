@@ -122,6 +122,13 @@ type OAuthApplication struct {
 	// The namespace of the object.
 	Namespace string `json:"namespace,omitempty" msgpack:"namespace,omitempty" bson:"namespace,omitempty" mapstructure:"namespace,omitempty"`
 
+	// Optional list of permissions the access tokens of the application are
+	// restricted to. When set, the access tokens are also restricted to the
+	// namespace of the application. They reduce what the policy engine grants
+	// the bearer, and never extend it. If omitted or empty, the access tokens
+	// are not restricted.
+	Permissions []string `json:"permissions" msgpack:"permissions" bson:"permissions" mapstructure:"permissions,omitempty"`
+
 	// Validity of the refresh tokens issued alongside access tokens, using
 	// Golang duration syntax. If omitted, the server default is used.
 	RefreshTokenValidity string `json:"refreshTokenValidity" msgpack:"refreshTokenValidity" bson:"refreshtokenvalidity" mapstructure:"refreshTokenValidity,omitempty"`
@@ -145,6 +152,7 @@ func NewOAuthApplication() *OAuthApplication {
 		ModelVersion:   1,
 		AllowedSources: []string{},
 		DefaultScopes:  []string{},
+		Permissions:    []string{},
 	}
 }
 
@@ -189,6 +197,7 @@ func (o *OAuthApplication) GetBSON() (any, error) {
 	s.ImportLabel = o.ImportLabel
 	s.Name = o.Name
 	s.Namespace = o.Namespace
+	s.Permissions = o.Permissions
 	s.RefreshTokenValidity = o.RefreshTokenValidity
 	s.UpdateTime = o.UpdateTime
 	s.ZHash = o.ZHash
@@ -221,6 +230,7 @@ func (o *OAuthApplication) SetBSON(raw bson.Raw) error {
 	o.ImportLabel = s.ImportLabel
 	o.Name = s.Name
 	o.Namespace = s.Namespace
+	o.Permissions = s.Permissions
 	o.RefreshTokenValidity = s.RefreshTokenValidity
 	o.UpdateTime = s.UpdateTime
 	o.ZHash = s.ZHash
@@ -361,6 +371,7 @@ func (o *OAuthApplication) ToSparse(fields ...string) elemental.SparseIdentifiab
 			ImportLabel:          &o.ImportLabel,
 			Name:                 &o.Name,
 			Namespace:            &o.Namespace,
+			Permissions:          &o.Permissions,
 			RefreshTokenValidity: &o.RefreshTokenValidity,
 			UpdateTime:           &o.UpdateTime,
 			ZHash:                &o.ZHash,
@@ -393,6 +404,8 @@ func (o *OAuthApplication) ToSparse(fields ...string) elemental.SparseIdentifiab
 			sp.Name = &(o.Name)
 		case "namespace":
 			sp.Namespace = &(o.Namespace)
+		case "permissions":
+			sp.Permissions = &(o.Permissions)
 		case "refreshTokenValidity":
 			sp.RefreshTokenValidity = &(o.RefreshTokenValidity)
 		case "updateTime":
@@ -446,6 +459,9 @@ func (o *OAuthApplication) Patch(sparse elemental.SparseIdentifiable) {
 	}
 	if so.Namespace != nil {
 		o.Namespace = *so.Namespace
+	}
+	if so.Permissions != nil {
+		o.Permissions = *so.Permissions
 	}
 	if so.RefreshTokenValidity != nil {
 		o.RefreshTokenValidity = *so.RefreshTokenValidity
@@ -577,6 +593,8 @@ func (o *OAuthApplication) ValueForAttribute(name string) any {
 		return o.Name
 	case "namespace":
 		return o.Namespace
+	case "permissions":
+		return o.Permissions
 	case "refreshTokenValidity":
 		return o.RefreshTokenValidity
 	case "updateTime":
@@ -732,6 +750,21 @@ same import operation.`,
 		Setter:         true,
 		Stored:         true,
 		Type:           "string",
+	},
+	"Permissions": {
+		AllowedChoices: []string{},
+		BSONFieldName:  "permissions",
+		ConvertedName:  "Permissions",
+		Description: `Optional list of permissions the access tokens of the application are
+restricted to. When set, the access tokens are also restricted to the
+namespace of the application. They reduce what the policy engine grants
+the bearer, and never extend it. If omitted or empty, the access tokens
+are not restricted.`,
+		Exposed: true,
+		Name:    "permissions",
+		Stored:  true,
+		SubType: "string",
+		Type:    "list",
 	},
 	"RefreshTokenValidity": {
 		AllowedChoices: []string{},
@@ -931,6 +964,21 @@ same import operation.`,
 		Stored:         true,
 		Type:           "string",
 	},
+	"permissions": {
+		AllowedChoices: []string{},
+		BSONFieldName:  "permissions",
+		ConvertedName:  "Permissions",
+		Description: `Optional list of permissions the access tokens of the application are
+restricted to. When set, the access tokens are also restricted to the
+namespace of the application. They reduce what the policy engine grants
+the bearer, and never extend it. If omitted or empty, the access tokens
+are not restricted.`,
+		Exposed: true,
+		Name:    "permissions",
+		Stored:  true,
+		SubType: "string",
+		Type:    "list",
+	},
 	"refreshtokenvalidity": {
 		AllowedChoices: []string{},
 		BSONFieldName:  "refreshtokenvalidity",
@@ -1086,6 +1134,13 @@ type SparseOAuthApplication struct {
 	// The namespace of the object.
 	Namespace *string `json:"namespace,omitempty" msgpack:"namespace,omitempty" bson:"namespace,omitempty" mapstructure:"namespace,omitempty"`
 
+	// Optional list of permissions the access tokens of the application are
+	// restricted to. When set, the access tokens are also restricted to the
+	// namespace of the application. They reduce what the policy engine grants
+	// the bearer, and never extend it. If omitted or empty, the access tokens
+	// are not restricted.
+	Permissions *[]string `json:"permissions,omitempty" msgpack:"permissions,omitempty" bson:"permissions,omitempty" mapstructure:"permissions,omitempty"`
+
 	// Validity of the refresh tokens issued alongside access tokens, using
 	// Golang duration syntax. If omitted, the server default is used.
 	RefreshTokenValidity *string `json:"refreshTokenValidity,omitempty" msgpack:"refreshTokenValidity,omitempty" bson:"refreshtokenvalidity,omitempty" mapstructure:"refreshTokenValidity,omitempty"`
@@ -1175,6 +1230,9 @@ func (o *SparseOAuthApplication) GetBSON() (any, error) {
 	if o.Namespace != nil {
 		s.Namespace = o.Namespace
 	}
+	if o.Permissions != nil {
+		s.Permissions = o.Permissions
+	}
 	if o.RefreshTokenValidity != nil {
 		s.RefreshTokenValidity = o.RefreshTokenValidity
 	}
@@ -1236,6 +1294,9 @@ func (o *SparseOAuthApplication) SetBSON(raw bson.Raw) error {
 	if s.Namespace != nil {
 		o.Namespace = s.Namespace
 	}
+	if s.Permissions != nil {
+		o.Permissions = s.Permissions
+	}
 	if s.RefreshTokenValidity != nil {
 		o.RefreshTokenValidity = s.RefreshTokenValidity
 	}
@@ -1294,6 +1355,9 @@ func (o *SparseOAuthApplication) ToPlain() elemental.PlainIdentifiable {
 	}
 	if o.Namespace != nil {
 		out.Namespace = *o.Namespace
+	}
+	if o.Permissions != nil {
+		out.Permissions = *o.Permissions
 	}
 	if o.RefreshTokenValidity != nil {
 		out.RefreshTokenValidity = *o.RefreshTokenValidity
@@ -1471,6 +1535,7 @@ type mongoAttributesOAuthApplication struct {
 	ImportLabel          string        `bson:"importlabel,omitempty"`
 	Name                 string        `bson:"name"`
 	Namespace            string        `bson:"namespace,omitempty"`
+	Permissions          []string      `bson:"permissions"`
 	RefreshTokenValidity string        `bson:"refreshtokenvalidity"`
 	UpdateTime           time.Time     `bson:"updatetime"`
 	ZHash                int           `bson:"zhash"`
@@ -1488,6 +1553,7 @@ type mongoAttributesSparseOAuthApplication struct {
 	ImportLabel          *string       `bson:"importlabel,omitempty"`
 	Name                 *string       `bson:"name,omitempty"`
 	Namespace            *string       `bson:"namespace,omitempty"`
+	Permissions          *[]string     `bson:"permissions,omitempty"`
 	RefreshTokenValidity *string       `bson:"refreshtokenvalidity,omitempty"`
 	UpdateTime           *time.Time    `bson:"updatetime,omitempty"`
 	ZHash                *int          `bson:"zhash,omitempty"`

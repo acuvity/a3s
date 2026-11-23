@@ -1643,6 +1643,17 @@
             "readOnly": true,
             "type": "string"
           },
+          "permissions": {
+            "description": "Optional list of permissions the access tokens of the application are\nrestricted to. When set, the access tokens are also restricted to the\nnamespace of the application. They reduce what the policy engine grants\nthe bearer, and never extend it. If omitted or empty, the access tokens\nare not restricted.",
+            "example": [
+              "namespace:retrieve,retrieve-many",
+              "authorization:retrieve"
+            ],
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
           "refreshTokenValidity": {
             "description": "Validity of the refresh tokens issued alongside access tokens, using\nGolang duration syntax. If omitted, the server default is used.",
             "example": "1440h",
