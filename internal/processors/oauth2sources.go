@@ -4,6 +4,7 @@ import (
 	"go.acuvity.ai/a3s/pkgs/api"
 	"go.acuvity.ai/a3s/pkgs/crud"
 	"go.acuvity.ai/bahamut"
+	"go.acuvity.ai/elemental"
 	"go.acuvity.ai/manipulate"
 )
 
@@ -21,7 +22,11 @@ func NewOAuth2SourcesProcessor(manipulator manipulate.Manipulator) *OAuth2Source
 
 // ProcessCreate handles the creates requests for OAuth2Source.
 func (p *OAuth2SourcesProcessor) ProcessCreate(bctx bahamut.Context) error {
-	return crud.Create(bctx, p.manipulator, bctx.InputData().(*api.OAuth2Source))
+	return crud.Create(bctx, p.manipulator, bctx.InputData().(*api.OAuth2Source),
+		crud.OptionPreWriteHook(func(obj elemental.Identifiable, _ elemental.Identifiable) error {
+			return validateOAuth2SourceSecrets(obj.(*api.OAuth2Source))
+		}),
+	)
 }
 
 // ProcessRetrieveMany handles the retrieve many requests for OAuth2Source.
@@ -36,7 +41,11 @@ func (p *OAuth2SourcesProcessor) ProcessRetrieve(bctx bahamut.Context) error {
 
 // ProcessUpdate handles the update requests for OAuth2Source.
 func (p *OAuth2SourcesProcessor) ProcessUpdate(bctx bahamut.Context) error {
-	return crud.Update(bctx, p.manipulator, bctx.InputData().(*api.OAuth2Source))
+	return crud.Update(bctx, p.manipulator, bctx.InputData().(*api.OAuth2Source),
+		crud.OptionPreWriteHook(func(obj elemental.Identifiable, _ elemental.Identifiable) error {
+			return validateOAuth2SourceSecrets(obj.(*api.OAuth2Source))
+		}),
+	)
 }
 
 // ProcessDelete handles the delete requests for OAuth2Source.
@@ -47,4 +56,12 @@ func (p *OAuth2SourcesProcessor) ProcessDelete(bctx bahamut.Context) error {
 // ProcessInfo handles the info request for OAuth2Source.
 func (p *OAuth2SourcesProcessor) ProcessInfo(bctx bahamut.Context) error {
 	return crud.Info(bctx, p.manipulator, api.OAuth2SourceIdentity)
+}
+
+// validateOAuth2SourceSecrets checks the secret attributes of the given source.
+// The attributes are transient, so elemental does not generate validation for
+// them. This runs as a pre-write hook, after crud.Update has backported the
+// stored secrets, so omitting them on update keeps the stored value.
+func validateOAuth2SourceSecrets(src *api.OAuth2Source) error {
+	return elemental.ValidateRequiredString("clientSecret", src.ClientSecret)
 }
