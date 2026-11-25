@@ -18,10 +18,12 @@
     },
     "clientSecret": {
       "$friendlyName": "Client Secret",
-      "$required": true,
-      "description": "Client secret associated with the client ID. This may be required for autologin, depending on the mode.",
+      "description": "Client secret associated with the client ID. This may be required for autologin, depending on the mode. Required on creation.",
       "title": "clientSecret",
-      "type": "string"
+      "type": [
+        "string",
+        "null"
+      ]
     },
     "clientTenantID": {
       "$friendlyName": "Client Tenant ID",
@@ -42,7 +44,6 @@
   },
   "required": [
     "clientID",
-    "clientSecret",
     "clientTenantID"
   ],
   "title": "MTLSSourceEntra",

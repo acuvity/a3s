@@ -112,10 +112,12 @@
     },
     "key": {
       "$friendlyName": "Key",
-      "$required": true,
-      "description": "Key associated to the client certificate.",
+      "description": "Key associated to the client certificate. Required on creation.",
       "title": "key",
-      "type": "string"
+      "type": [
+        "string",
+        "null"
+      ]
     },
     "modifier": {
       "$friendlyName": "Modifier",
@@ -164,7 +166,6 @@
     "CA",
     "URL",
     "certificate",
-    "key",
     "name"
   ],
   "title": "HTTPSource",

@@ -19,7 +19,7 @@ type MTLSSourceEntra struct {
 	ClientID string `json:"clientID,omitempty" msgpack:"clientID,omitempty" bson:"clientid,omitempty" mapstructure:"clientID,omitempty"`
 
 	// Client secret associated with the client ID. This may be required for autologin,
-	// depending on the mode.
+	// depending on the mode. Required on creation.
 	ClientSecret string `json:"clientSecret" msgpack:"clientSecret" bson:"clientsecret" mapstructure:"clientSecret,omitempty"`
 
 	// ID of the tenant for the identity provider, if any. This may be required for
@@ -279,11 +279,10 @@ mode.`,
 		BSONFieldName:  "clientsecret",
 		ConvertedName:  "ClientSecret",
 		Description: `Client secret associated with the client ID. This may be required for autologin,
-depending on the mode.`,
+depending on the mode. Required on creation.`,
 		Encrypted: true,
 		Exposed:   true,
 		Name:      "clientSecret",
-		Required:  true,
 		Secret:    true,
 		Stored:    true,
 		Transient: true,
@@ -380,11 +379,10 @@ mode.`,
 		BSONFieldName:  "clientsecret",
 		ConvertedName:  "ClientSecret",
 		Description: `Client secret associated with the client ID. This may be required for autologin,
-depending on the mode.`,
+depending on the mode. Required on creation.`,
 		Encrypted: true,
 		Exposed:   true,
 		Name:      "clientSecret",
-		Required:  true,
 		Secret:    true,
 		Stored:    true,
 		Transient: true,

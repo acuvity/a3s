@@ -464,7 +464,7 @@
             "type": "array"
           },
           "key": {
-            "description": "Key associated to the client certificate.",
+            "description": "Key associated to the client certificate. Required on creation.",
             "example": "-----BEGIN PRIVATE KEY-----\nMIIBPzCB5qADAgECAhEAwbx3c+QW24ePXyD94geytzAKBggqhkjOPQQDAjAPMQ0w\nCwYDVQQDEwR0b3RvMB4XDTE5MDIyMjIzNDA1MFoXDTI4MTIzMTIzNDA1MFowDzEN\nMAsGA1UEAxMEdG90bzBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABJi6CwRDeKks\nXb3pDEslmFGR7k9Aeh5RK+XmdqKKPGb3NQWEFPGolnqOR34iVuf7KSxTuzaaVWfu\nXEa94faUQEqjIzAhMA4GA1UdDwEB/wQEAwIBBjAPBgNVHRMBAf8EBTADAQH/MAoG\nCCqGSM49BAMCA0gAMEUCIQD+nL9RF9EvQXHyYuJ31Lz9yWd9hsK91stnpAs890gS\n/AIgQIKjBBpiyQNZZWso5H04qke9QYMVPegiQQufFFBj32c=\n-----END PRIVATE KEY-----",
             "type": "string"
           },
@@ -497,7 +497,6 @@
           "CA",
           "URL",
           "certificate",
-          "key",
           "name"
         ],
         "type": "object"
@@ -1057,7 +1056,7 @@
             "type": "string"
           },
           "bindPassword": {
-            "description": "Password to be used with the `bindDN` to authenticate to the LDAP server.",
+            "description": "Password to be used with the `bindDN` to authenticate to the LDAP server.\nRequired on creation.",
             "example": "s3cr3t",
             "type": "string"
           },
@@ -1136,7 +1135,6 @@
           "address",
           "baseDN",
           "bindDN",
-          "bindPassword",
           "name"
         ],
         "type": "object"
@@ -1283,15 +1281,14 @@
             "type": "string"
           },
           "secretKey": {
-            "description": "The secret key of the Duo Admin API application.",
+            "description": "The secret key of the Duo Admin API application. Required on creation.",
             "example": "Zh5eGmUq9zpfQnyUIu5OL9iWoMMv5ZNmk3zLJ4Ep",
             "type": "string"
           }
         },
         "required": [
           "APIHostname",
-          "integrationKey",
-          "secretKey"
+          "integrationKey"
         ],
         "type": "object"
       },
@@ -1304,7 +1301,7 @@
             "type": "string"
           },
           "clientSecret": {
-            "description": "Client secret associated with the client ID. This may be required for autologin,\ndepending on the mode.",
+            "description": "Client secret associated with the client ID. This may be required for autologin,\ndepending on the mode. Required on creation.",
             "example": "Ytgbfjtj4652jHDFGls99jF",
             "type": "string"
           },
@@ -1320,7 +1317,6 @@
         },
         "required": [
           "clientID",
-          "clientSecret",
           "clientTenantID"
         ],
         "type": "object"
@@ -1334,7 +1330,7 @@
             "type": "string"
           },
           "privateKey": {
-            "description": "The service account private key.",
+            "description": "The service account private key. Required on creation.",
             "example": "-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----",
             "type": "string"
           },
@@ -1351,7 +1347,6 @@
         },
         "required": [
           "clientEmail",
-          "privateKey",
           "privateKeyID",
           "subject"
         ],
@@ -1376,7 +1371,7 @@
             "type": "string"
           },
           "privateKey": {
-            "description": "The Application private key.",
+            "description": "The Application private key. Required on creation.",
             "example": "-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----",
             "type": "string"
           }
@@ -1384,8 +1379,7 @@
         "required": [
           "KID",
           "clientID",
-          "domain",
-          "privateKey"
+          "domain"
         ],
         "type": "object"
       },
@@ -1486,7 +1480,7 @@
             "type": "string"
           },
           "clientSecret": {
-            "description": "Client secret associated with the client ID.",
+            "description": "Client secret associated with the client ID. Required on creation.",
             "example": "Ytgbfjtj4652jHDFGls99jF",
             "type": "string"
           },
@@ -1570,7 +1564,6 @@
         },
         "required": [
           "clientID",
-          "clientSecret",
           "name",
           "provider"
         ],
@@ -1782,7 +1775,7 @@
             "type": "string"
           },
           "clientSecret": {
-            "description": "Client secret associated with the client ID.",
+            "description": "Client secret associated with the client ID. Required on creation.",
             "example": "Ytgbfjtj4652jHDFGls99jF",
             "type": "string"
           },
@@ -1861,7 +1854,6 @@
         },
         "required": [
           "clientID",
-          "clientSecret",
           "endpoint",
           "name"
         ],

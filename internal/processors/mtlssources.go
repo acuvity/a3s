@@ -38,8 +38,12 @@ func (p *MTLSSourcesProcessor) ProcessCreate(bctx bahamut.Context) error {
 	notify := p.makeNotify(elemental.OperationCreate)
 	return crud.Create(bctx, p.manipulator, bctx.InputData().(*api.MTLSSource),
 		crud.OptionPreWriteHook(func(obj elemental.Identifiable, orig elemental.Identifiable) error {
-			insertEntraSecrets(obj.(*api.MTLSSource), nil)
-			return insertTLSReferences(obj.(*api.MTLSSource))
+			src := obj.(*api.MTLSSource)
+			insertEntraSecrets(src, nil)
+			if err := validateMTLSSourceSecrets(src); err != nil {
+				return err
+			}
+			return insertTLSReferences(src)
 		}),
 		crud.OptionPostWriteHook(func(obj elemental.Identifiable) {
 			notify(obj)
@@ -62,8 +66,12 @@ func (p *MTLSSourcesProcessor) ProcessUpdate(bctx bahamut.Context) error {
 	notify := p.makeNotify(elemental.OperationUpdate)
 	return crud.Update(bctx, p.manipulator, bctx.InputData().(*api.MTLSSource),
 		crud.OptionPreWriteHook(func(obj elemental.Identifiable, orig elemental.Identifiable) error {
-			insertEntraSecrets(obj.(*api.MTLSSource), orig.(*api.MTLSSource))
-			return insertTLSReferences(obj.(*api.MTLSSource))
+			src := obj.(*api.MTLSSource)
+			insertEntraSecrets(src, orig.(*api.MTLSSource))
+			if err := validateMTLSSourceSecrets(src); err != nil {
+				return err
+			}
+			return insertTLSReferences(src)
 		}),
 		crud.OptionPostWriteHook(func(obj elemental.Identifiable) {
 			notify(obj)
@@ -117,9 +125,9 @@ func (p *MTLSSourcesProcessor) makeNotify(op elemental.Operation) crud.PostWrite
 
 func insertTLSReferences(src *api.MTLSSource) error {
 
-	// This is a manual verification of the pk in okta config. Since this is a transient,
-	// elemental skips all validation. Until we find a good fix for this (running validation on transient is not
-	// obviously easy), this will prevent inserting wrong PEM.
+	// The private keys are transient secrets, so elemental does not generate validation
+	// for them. They are checked here, on the value that will be stored (after the
+	// stored secrets were backported on update). Presence is checked by validateMTLSSourceSecrets.
 	if src.ClaimsRetrievalMode == api.MTLSSourceClaimsRetrievalModeOkta && src.OktaApplicationCredentials != nil {
 		if pk := src.OktaApplicationCredentials.PrivateKey; pk != "" {
 			if err := api.ValidatePEM("oktaApplicationCredentials/privateKey", pk); err != nil {
@@ -146,6 +154,47 @@ func insertTLSReferences(src *api.MTLSSource) error {
 	for i, cert := range certs {
 		src.Fingerprints[i] = token.Fingerprint(cert)
 		src.SubjectKeyIDs[i] = fmt.Sprintf("%02X", cert.SubjectKeyId)
+	}
+
+	return nil
+}
+
+// validateMTLSSourceSecrets checks that the secret of the credentials matching
+// the claims retrieval mode is set. The secrets are transient, so elemental does
+// not generate validation for them. This must run in the pre-write hook after
+// insertEntraSecrets: on update, crud.Update has already backported the stored
+// secrets, so an omitted secret is only missing if nothing was stored for that mode.
+func validateMTLSSourceSecrets(src *api.MTLSSource) error {
+
+	switch src.ClaimsRetrievalMode {
+
+	case api.MTLSSourceClaimsRetrievalModeCiscoDuo:
+		var v string
+		if src.CiscoDuoApplicationCredentials != nil {
+			v = src.CiscoDuoApplicationCredentials.SecretKey
+		}
+		return elemental.ValidateRequiredString("ciscoDuoApplicationCredentials/secretKey", v)
+
+	case api.MTLSSourceClaimsRetrievalModeEntra:
+		var v string
+		if src.EntraApplicationCredentials != nil {
+			v = src.EntraApplicationCredentials.ClientSecret
+		}
+		return elemental.ValidateRequiredString("entraApplicationCredentials/clientSecret", v)
+
+	case api.MTLSSourceClaimsRetrievalModeGoogleWorkspace:
+		var v string
+		if src.GoogleWorkspaceApplicationCredentials != nil {
+			v = src.GoogleWorkspaceApplicationCredentials.PrivateKey
+		}
+		return elemental.ValidateRequiredString("googleWorkspaceApplicationCredentials/privateKey", v)
+
+	case api.MTLSSourceClaimsRetrievalModeOkta:
+		var v string
+		if src.OktaApplicationCredentials != nil {
+			v = src.OktaApplicationCredentials.PrivateKey
+		}
+		return elemental.ValidateRequiredString("oktaApplicationCredentials/privateKey", v)
 	}
 
 	return nil

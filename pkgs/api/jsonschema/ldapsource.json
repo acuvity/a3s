@@ -58,10 +58,12 @@
     },
     "bindPassword": {
       "$friendlyName": "BindPassword",
-      "$required": true,
-      "description": "Password to be used with the `bindDN` to authenticate to the LDAP server.",
+      "description": "Password to be used with the `bindDN` to authenticate to the LDAP server. Required on creation.",
       "title": "bindPassword",
-      "type": "string"
+      "type": [
+        "string",
+        "null"
+      ]
     },
     "bindSearchFilter": {
       "$defaultValue": "uid={USERNAME}",
@@ -194,7 +196,6 @@
     "address",
     "baseDN",
     "bindDN",
-    "bindPassword",
     "name"
   ],
   "title": "LDAPSource",

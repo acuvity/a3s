@@ -29,11 +29,10 @@ attributes:
 
   - name: privateKey
     friendly_name: PrivateKey
-    description: The service account private key.
+    description: The service account private key. Required on creation.
     type: string
     exposed: true
     stored: true
-    required: true
     example_value: |-
       -----BEGIN PRIVATE KEY-----
       ...
@@ -41,8 +40,6 @@ attributes:
     secret: true
     transient: true
     encrypted: true
-    validations:
-    - $pem
 
   - name: privateKeyID
     friendly_name: Private Key ID

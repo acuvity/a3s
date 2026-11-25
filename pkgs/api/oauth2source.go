@@ -113,7 +113,7 @@ type OAuth2Source struct {
 	// Unique client ID.
 	ClientID string `json:"clientID" msgpack:"clientID" bson:"clientid" mapstructure:"clientID,omitempty"`
 
-	// Client secret associated with the client ID.
+	// Client secret associated with the client ID. Required on creation.
 	ClientSecret string `json:"clientSecret" msgpack:"clientSecret" bson:"clientsecret" mapstructure:"clientSecret,omitempty"`
 
 	// Creation date of the object.
@@ -769,11 +769,10 @@ cases, you don't need to set this.`,
 		AllowedChoices: []string{},
 		BSONFieldName:  "clientsecret",
 		ConvertedName:  "ClientSecret",
-		Description:    `Client secret associated with the client ID.`,
+		Description:    `Client secret associated with the client ID. Required on creation.`,
 		Encrypted:      true,
 		Exposed:        true,
 		Name:           "clientSecret",
-		Required:       true,
 		Secret:         true,
 		Stored:         true,
 		Transient:      true,
@@ -1024,11 +1023,10 @@ cases, you don't need to set this.`,
 		AllowedChoices: []string{},
 		BSONFieldName:  "clientsecret",
 		ConvertedName:  "ClientSecret",
-		Description:    `Client secret associated with the client ID.`,
+		Description:    `Client secret associated with the client ID. Required on creation.`,
 		Encrypted:      true,
 		Exposed:        true,
 		Name:           "clientSecret",
-		Required:       true,
 		Secret:         true,
 		Stored:         true,
 		Transient:      true,
@@ -1309,7 +1307,7 @@ type SparseOAuth2Source struct {
 	// Unique client ID.
 	ClientID *string `json:"clientID,omitempty" msgpack:"clientID,omitempty" bson:"clientid,omitempty" mapstructure:"clientID,omitempty"`
 
-	// Client secret associated with the client ID.
+	// Client secret associated with the client ID. Required on creation.
 	ClientSecret *string `json:"clientSecret,omitempty" msgpack:"clientSecret,omitempty" bson:"clientsecret,omitempty" mapstructure:"clientSecret,omitempty"`
 
 	// Creation date of the object.

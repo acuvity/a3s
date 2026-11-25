@@ -35,11 +35,10 @@ attributes:
     friendly_name: Client Secret
     description: |-
       Client secret associated with the client ID. This may be required for autologin,
-      depending on the mode.
+      depending on the mode. Required on creation.
     type: string
     exposed: true
     stored: true
-    required: true
     example_value: Ytgbfjtj4652jHDFGls99jF
     secret: true
     transient: true

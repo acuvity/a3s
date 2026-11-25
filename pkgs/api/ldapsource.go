@@ -117,6 +117,7 @@ type LDAPSource struct {
 	BindDN string `json:"bindDN" msgpack:"bindDN" bson:"binddn" mapstructure:"bindDN,omitempty"`
 
 	// Password to be used with the `bindDN` to authenticate to the LDAP server.
+	// Required on creation.
 	BindPassword string `json:"bindPassword" msgpack:"bindPassword" bson:"bindpassword" mapstructure:"bindPassword,omitempty"`
 
 	// The filter to use to locate the relevant user accounts. For Windows-based
@@ -816,15 +817,15 @@ certificate authority that signed the LDAP server's certificate.`,
 		AllowedChoices: []string{},
 		BSONFieldName:  "bindpassword",
 		ConvertedName:  "BindPassword",
-		Description:    `Password to be used with the ` + "`" + `bindDN` + "`" + ` to authenticate to the LDAP server.`,
-		Encrypted:      true,
-		Exposed:        true,
-		Name:           "bindPassword",
-		Required:       true,
-		Secret:         true,
-		Stored:         true,
-		Transient:      true,
-		Type:           "string",
+		Description: `Password to be used with the ` + "`" + `bindDN` + "`" + ` to authenticate to the LDAP server.
+Required on creation.`,
+		Encrypted: true,
+		Exposed:   true,
+		Name:      "bindPassword",
+		Secret:    true,
+		Stored:    true,
+		Transient: true,
+		Type:      "string",
 	},
 	"BindSearchFilter": {
 		AllowedChoices: []string{},
@@ -1096,15 +1097,15 @@ certificate authority that signed the LDAP server's certificate.`,
 		AllowedChoices: []string{},
 		BSONFieldName:  "bindpassword",
 		ConvertedName:  "BindPassword",
-		Description:    `Password to be used with the ` + "`" + `bindDN` + "`" + ` to authenticate to the LDAP server.`,
-		Encrypted:      true,
-		Exposed:        true,
-		Name:           "bindPassword",
-		Required:       true,
-		Secret:         true,
-		Stored:         true,
-		Transient:      true,
-		Type:           "string",
+		Description: `Password to be used with the ` + "`" + `bindDN` + "`" + ` to authenticate to the LDAP server.
+Required on creation.`,
+		Encrypted: true,
+		Exposed:   true,
+		Name:      "bindPassword",
+		Secret:    true,
+		Stored:    true,
+		Transient: true,
+		Type:      "string",
 	},
 	"bindsearchfilter": {
 		AllowedChoices: []string{},
@@ -1391,6 +1392,7 @@ type SparseLDAPSource struct {
 	BindDN *string `json:"bindDN,omitempty" msgpack:"bindDN,omitempty" bson:"binddn,omitempty" mapstructure:"bindDN,omitempty"`
 
 	// Password to be used with the `bindDN` to authenticate to the LDAP server.
+	// Required on creation.
 	BindPassword *string `json:"bindPassword,omitempty" msgpack:"bindPassword,omitempty" bson:"bindpassword,omitempty" mapstructure:"bindPassword,omitempty"`
 
 	// The filter to use to locate the relevant user accounts. For Windows-based

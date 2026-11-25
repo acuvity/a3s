@@ -22,7 +22,7 @@ type MTLSSourceOkta struct {
 	// Your custom okta domain.
 	Domain string `json:"domain" msgpack:"domain" bson:"domain" mapstructure:"domain,omitempty"`
 
-	// The Application private key.
+	// The Application private key. Required on creation.
 	PrivateKey string `json:"privateKey" msgpack:"privateKey" bson:"privatekey" mapstructure:"privateKey,omitempty"`
 
 	ModelVersion int `json:"-" msgpack:"-" bson:"_modelversion"`
@@ -255,11 +255,10 @@ var MTLSSourceOktaAttributesMap = map[string]elemental.AttributeSpecification{
 		AllowedChoices: []string{},
 		BSONFieldName:  "privatekey",
 		ConvertedName:  "PrivateKey",
-		Description:    `The Application private key.`,
+		Description:    `The Application private key. Required on creation.`,
 		Encrypted:      true,
 		Exposed:        true,
 		Name:           "privateKey",
-		Required:       true,
 		Secret:         true,
 		Stored:         true,
 		Transient:      true,
@@ -306,11 +305,10 @@ var MTLSSourceOktaLowerCaseAttributesMap = map[string]elemental.AttributeSpecifi
 		AllowedChoices: []string{},
 		BSONFieldName:  "privatekey",
 		ConvertedName:  "PrivateKey",
-		Description:    `The Application private key.`,
+		Description:    `The Application private key. Required on creation.`,
 		Encrypted:      true,
 		Exposed:        true,
 		Name:           "privateKey",
-		Required:       true,
 		Secret:         true,
 		Stored:         true,
 		Transient:      true,

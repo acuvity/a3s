@@ -16,7 +16,7 @@ type MTLSSourceGoogle struct {
 	// The email of the service account used to call the Directory API.
 	ClientEmail string `json:"clientEmail" msgpack:"clientEmail" bson:"clientemail" mapstructure:"clientEmail,omitempty"`
 
-	// The service account private key.
+	// The service account private key. Required on creation.
 	PrivateKey string `json:"privateKey" msgpack:"privateKey" bson:"privatekey" mapstructure:"privateKey,omitempty"`
 
 	// The identifier of the service account private key.
@@ -238,11 +238,10 @@ var MTLSSourceGoogleAttributesMap = map[string]elemental.AttributeSpecification{
 		AllowedChoices: []string{},
 		BSONFieldName:  "privatekey",
 		ConvertedName:  "PrivateKey",
-		Description:    `The service account private key.`,
+		Description:    `The service account private key. Required on creation.`,
 		Encrypted:      true,
 		Exposed:        true,
 		Name:           "privateKey",
-		Required:       true,
 		Secret:         true,
 		Stored:         true,
 		Transient:      true,
@@ -290,11 +289,10 @@ var MTLSSourceGoogleLowerCaseAttributesMap = map[string]elemental.AttributeSpeci
 		AllowedChoices: []string{},
 		BSONFieldName:  "privatekey",
 		ConvertedName:  "PrivateKey",
-		Description:    `The service account private key.`,
+		Description:    `The service account private key. Required on creation.`,
 		Encrypted:      true,
 		Exposed:        true,
 		Name:           "privateKey",
-		Required:       true,
 		Secret:         true,
 		Stored:         true,
 		Transient:      true,

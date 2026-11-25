@@ -97,11 +97,10 @@ attributes:
 
   - name: key
     friendly_name: Key
-    description: Key associated to the client certificate.
+    description: Key associated to the client certificate. Required on creation.
     type: string
     exposed: true
     stored: true
-    required: true
     example_value: |-
       -----BEGIN PRIVATE KEY-----
       MIIBPzCB5qADAgECAhEAwbx3c+QW24ePXyD94geytzAKBggqhkjOPQQDAjAPMQ0w
@@ -115,8 +114,6 @@ attributes:
     secret: true
     transient: true
     encrypted: true
-    validations:
-    - $pem
 
   - name: modifier
     friendly_name: Modifier

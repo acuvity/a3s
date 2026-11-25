@@ -19,7 +19,7 @@ type MTLSSourceCiscoDuo struct {
 	// The integration key of the Duo Admin API application.
 	IntegrationKey string `json:"integrationKey" msgpack:"integrationKey" bson:"integrationkey" mapstructure:"integrationKey,omitempty"`
 
-	// The secret key of the Duo Admin API application.
+	// The secret key of the Duo Admin API application. Required on creation.
 	SecretKey string `json:"secretKey" msgpack:"secretKey" bson:"secretkey" mapstructure:"secretKey,omitempty"`
 
 	ModelVersion int `json:"-" msgpack:"-" bson:"_modelversion"`
@@ -240,11 +240,10 @@ var MTLSSourceCiscoDuoAttributesMap = map[string]elemental.AttributeSpecificatio
 		AllowedChoices: []string{},
 		BSONFieldName:  "secretkey",
 		ConvertedName:  "SecretKey",
-		Description:    `The secret key of the Duo Admin API application.`,
+		Description:    `The secret key of the Duo Admin API application. Required on creation.`,
 		Encrypted:      true,
 		Exposed:        true,
 		Name:           "secretKey",
-		Required:       true,
 		Secret:         true,
 		Stored:         true,
 		Transient:      true,
@@ -280,11 +279,10 @@ var MTLSSourceCiscoDuoLowerCaseAttributesMap = map[string]elemental.AttributeSpe
 		AllowedChoices: []string{},
 		BSONFieldName:  "secretkey",
 		ConvertedName:  "SecretKey",
-		Description:    `The secret key of the Duo Admin API application.`,
+		Description:    `The secret key of the Duo Admin API application. Required on creation.`,
 		Encrypted:      true,
 		Exposed:        true,
 		Name:           "secretKey",
-		Required:       true,
 		Secret:         true,
 		Stored:         true,
 		Transient:      true,
