@@ -18,10 +18,12 @@
     },
     "privateKey": {
       "$friendlyName": "PrivateKey",
-      "$required": true,
-      "description": "The service account private key.",
+      "description": "The service account private key. Required on creation.",
       "title": "privateKey",
-      "type": "string"
+      "type": [
+        "string",
+        "null"
+      ]
     },
     "privateKeyID": {
       "$friendlyName": "Private Key ID",
@@ -40,7 +42,6 @@
   },
   "required": [
     "clientEmail",
-    "privateKey",
     "privateKeyID",
     "subject"
   ],

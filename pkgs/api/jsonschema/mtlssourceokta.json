@@ -32,17 +32,18 @@
     },
     "privateKey": {
       "$friendlyName": "PrivateKey",
-      "$required": true,
-      "description": "The Application private key.",
+      "description": "The Application private key. Required on creation.",
       "title": "privateKey",
-      "type": "string"
+      "type": [
+        "string",
+        "null"
+      ]
     }
   },
   "required": [
     "KID",
     "clientID",
-    "domain",
-    "privateKey"
+    "domain"
   ],
   "title": "MTLSSourceOkta",
   "type": "object"

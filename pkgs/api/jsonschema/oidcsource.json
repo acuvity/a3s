@@ -44,10 +44,12 @@
     },
     "clientSecret": {
       "$friendlyName": "Client Secret",
-      "$required": true,
-      "description": "Client secret associated with the client ID.",
+      "description": "Client secret associated with the client ID. Required on creation.",
       "title": "clientSecret",
-      "type": "string"
+      "type": [
+        "string",
+        "null"
+      ]
     },
     "createTime": {
       "$friendlyName": "CreateTime",
@@ -176,7 +178,6 @@
   },
   "required": [
     "clientID",
-    "clientSecret",
     "endpoint",
     "name"
   ],

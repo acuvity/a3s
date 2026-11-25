@@ -124,7 +124,7 @@ type HTTPSource struct {
 	// includedKeys list. This runs after ignoreddKeys computation.
 	IncludedKeys []string `json:"includedKeys" msgpack:"includedKeys" bson:"includedkeys" mapstructure:"includedKeys,omitempty"`
 
-	// Key associated to the client certificate.
+	// Key associated to the client certificate. Required on creation.
 	Key string `json:"key" msgpack:"key" bson:"key" mapstructure:"key,omitempty"`
 
 	// Contains optional information about a remote service that can be used to modify
@@ -845,11 +845,10 @@ includedKeys list. This runs after ignoreddKeys computation.`,
 		AllowedChoices: []string{},
 		BSONFieldName:  "key",
 		ConvertedName:  "Key",
-		Description:    `Key associated to the client certificate.`,
+		Description:    `Key associated to the client certificate. Required on creation.`,
 		Encrypted:      true,
 		Exposed:        true,
 		Name:           "key",
-		Required:       true,
 		Secret:         true,
 		Stored:         true,
 		Transient:      true,
@@ -1092,11 +1091,10 @@ includedKeys list. This runs after ignoreddKeys computation.`,
 		AllowedChoices: []string{},
 		BSONFieldName:  "key",
 		ConvertedName:  "Key",
-		Description:    `Key associated to the client certificate.`,
+		Description:    `Key associated to the client certificate. Required on creation.`,
 		Encrypted:      true,
 		Exposed:        true,
 		Name:           "key",
-		Required:       true,
 		Secret:         true,
 		Stored:         true,
 		Transient:      true,
@@ -1302,7 +1300,7 @@ type SparseHTTPSource struct {
 	// includedKeys list. This runs after ignoreddKeys computation.
 	IncludedKeys *[]string `json:"includedKeys,omitempty" msgpack:"includedKeys,omitempty" bson:"includedkeys,omitempty" mapstructure:"includedKeys,omitempty"`
 
-	// Key associated to the client certificate.
+	// Key associated to the client certificate. Required on creation.
 	Key *string `json:"key,omitempty" msgpack:"key,omitempty" bson:"key,omitempty" mapstructure:"key,omitempty"`
 
 	// Contains optional information about a remote service that can be used to modify

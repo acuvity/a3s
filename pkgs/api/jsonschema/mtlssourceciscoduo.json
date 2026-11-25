@@ -25,16 +25,17 @@
     },
     "secretKey": {
       "$friendlyName": "Secret Key",
-      "$required": true,
-      "description": "The secret key of the Duo Admin API application.",
+      "description": "The secret key of the Duo Admin API application. Required on creation.",
       "title": "secretKey",
-      "type": "string"
+      "type": [
+        "string",
+        "null"
+      ]
     }
   },
   "required": [
     "APIHostname",
-    "integrationKey",
-    "secretKey"
+    "integrationKey"
   ],
   "title": "MTLSSourceCiscoDuo",
   "type": "object"
