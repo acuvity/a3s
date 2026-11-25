@@ -79,12 +79,12 @@ attributes:
 
   - name: bindPassword
     friendly_name: BindPassword
-    description: Password to be used with the `bindDN` to authenticate to the LDAP
-      server.
+    description: |-
+      Password to be used with the `bindDN` to authenticate to the LDAP server.
+      Required on creation.
     type: string
     exposed: true
     stored: true
-    required: true
     example_value: s3cr3t
     secret: true
     transient: true

@@ -53,11 +53,10 @@ attributes:
 
   - name: clientSecret
     friendly_name: Client Secret
-    description: Client secret associated with the client ID.
+    description: Client secret associated with the client ID. Required on creation.
     type: string
     exposed: true
     stored: true
-    required: true
     example_value: Ytgbfjtj4652jHDFGls99jF
     secret: true
     transient: true

@@ -39,11 +39,10 @@ attributes:
 
   - name: secretKey
     friendly_name: Secret Key
-    description: The secret key of the Duo Admin API application.
+    description: The secret key of the Duo Admin API application. Required on creation.
     type: string
     exposed: true
     stored: true
-    required: true
     example_value: Zh5eGmUq9zpfQnyUIu5OL9iWoMMv5ZNmk3zLJ4Ep
     secret: true
     transient: true
