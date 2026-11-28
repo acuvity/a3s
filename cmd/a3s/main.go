@@ -1017,26 +1017,23 @@ func initData(ctx context.Context, m manipulate.Manipulator, dataPath string, h 
 		}
 	}
 
+	lists := make([]importing.List, 0, len(values))
 	for _, lst := range values {
 
 		if len(lst.List()) == 0 {
 			continue
 		}
 
-		if err := importing.Import(
-			ctx,
-			api.Manager(),
-			m,
-			m,
-			"/",
-			"a3s:init:data",
-			lst,
-			false,
-			false,
-			h,
-		); err != nil {
-			return false, fmt.Errorf("unable to import '%s': %w", lst.Identity().Name, err)
-		}
+		lists = append(lists, importing.List{
+			Objects:           lst,
+			Manager:           api.Manager(),
+			Manipulator:       m,
+			SystemManipulator: m,
+		})
+	}
+
+	if err := importing.ImportLists(ctx, "/", "a3s:init:data", lists, false, h); err != nil {
+		return false, fmt.Errorf("unable to import: %w", err)
 	}
 
 	return true, nil
