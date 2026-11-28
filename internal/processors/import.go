@@ -98,27 +98,16 @@ func (p *ImportProcessor) ProcessCreate(bctx bahamut.Context) error {
 		)
 	}
 
+	lists := make([]importing.List, 0, len(values))
 	for _, lst := range values {
-
-		// if len(lst.List()) == 0 {
-		// 	continue
-		// }
-
-		if err := importing.Import(
-			bctx.Context(),
-			api.Manager(),
-			p.bmanipMaker(bctx),
-			p.sm,
-			ns,
-			req.Label,
-			lst,
-			deleteMode,
-			updateMode,
-			p.hasher,
-		); err != nil {
-			return err
-		}
+		lists = append(lists, importing.List{
+			Objects:           lst,
+			Manager:           api.Manager(),
+			Manipulator:       p.bmanipMaker(bctx),
+			SystemManipulator: p.sm,
+			UpdateMode:        updateMode,
+		})
 	}
 
-	return nil
+	return importing.ImportLists(bctx.Context(), ns, req.Label, lists, deleteMode, p.hasher)
 }

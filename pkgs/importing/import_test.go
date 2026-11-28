@@ -20,7 +20,7 @@ import (
 )
 
 // testHasher is a sharder.Hasher that computes the zhash of an
-// Authorization from its name only
+// Authorization, an HTTPSource or a test List from its name only
 type testHasher struct{}
 
 func (testHasher) Zone(elemental.Identity) int { return 0 }
@@ -30,6 +30,8 @@ func (h testHasher) Hash(z sharder.Shardable) error {
 	key := z.Identifier()
 	switch a := z.(type) {
 	case *api.Authorization:
+		key = a.Name
+	case *api.HTTPSource:
 		key = a.Name
 	case *testmodel.List:
 		key = a.Name
@@ -1461,4 +1463,233 @@ func TestImport(t *testing.T) {
 		})
 	})
 
+}
+
+// opRecorder records the writes of a manipulator in order, as "op kind/name".
+type opRecorder struct {
+	ops []string
+}
+
+func (r *opRecorder) record(op string, o elemental.Identifiable) {
+	name := ""
+	switch obj := o.(type) {
+	case *api.Authorization:
+		name = obj.Name
+	case *api.HTTPSource:
+		name = obj.Name
+	}
+	r.ops = append(r.ops, op+" "+o.Identity().Name+"/"+name)
+}
+
+// newListsManipulator returns a manipulator holding the given existing
+// objects, which records its writes in r.
+func newListsManipulator(t *testing.T, r *opRecorder, sources api.HTTPSourcesList, authorizations api.AuthorizationsList) maniptest.TestManipulator {
+
+	m := maniptest.NewTestManipulator()
+	m.MockRetrieveMany(t, func(_ manipulate.Context, dest elemental.Identifiables) error {
+		switch d := dest.(type) {
+		case *api.HTTPSourcesList:
+			*d = append(*d, sources...)
+		case *api.AuthorizationsList:
+			*d = append(*d, authorizations...)
+		}
+		return nil
+	})
+	m.MockCreate(t, func(_ manipulate.Context, o elemental.Identifiable) error {
+		r.record("create", o)
+		return nil
+	})
+	m.MockUpdate(t, func(_ manipulate.Context, o elemental.Identifiable) error {
+		r.record("update", o)
+		return nil
+	})
+	m.MockDelete(t, func(_ manipulate.Context, o elemental.Identifiable) error {
+		r.record("delete", o)
+		return nil
+	})
+
+	return m
+}
+
+// existingSource returns an HTTP source carrying the label.
+func existingSource(t *testing.T, id string, name string) *api.HTTPSource {
+	s := api.NewHTTPSource()
+	s.ID, s.Name, s.Namespace, s.ImportLabel = id, name, "/ns", "label"
+	h, err := Hash(s, api.Manager())
+	if err != nil {
+		t.Fatal(err)
+	}
+	s.ImportHash = h
+	return s
+}
+
+// existingAuthorization returns an authorization carrying the label.
+func existingAuthorization(t *testing.T, id string, name string, subject string) *api.Authorization {
+	a := api.NewAuthorization()
+	a.ID, a.Name, a.Namespace, a.ImportLabel = id, name, "/ns", "label"
+	a.Subject = [][]string{{subject}}
+	h, err := Hash(a, api.Manager())
+	if err != nil {
+		t.Fatal(err)
+	}
+	a.ImportHash = h
+	return a
+}
+
+func TestImportLists(t *testing.T) {
+
+	// The authorizations come after the sources in the lists, as an object
+	// that references another comes after it.
+	lists := func(m manipulate.Manipulator, sources api.HTTPSourcesList, authorizations api.AuthorizationsList, update bool) []List {
+		return []List{
+			{Objects: sources, Manager: api.Manager(), Manipulator: m, SystemManipulator: m, UpdateMode: update},
+			{Objects: authorizations, Manager: api.Manager(), Manipulator: m, SystemManipulator: m, UpdateMode: update},
+		}
+	}
+
+	Convey("Given objects of two kinds carrying the label", t, func() {
+
+		r := &opRecorder{}
+		m := newListsManipulator(t, r,
+			api.HTTPSourcesList{existingSource(t, "s1", "kept"), existingSource(t, "s2", "gone")},
+			api.AuthorizationsList{existingAuthorization(t, "a1", "auth", "@source:name=gone")},
+		)
+
+		Convey("When I import in update mode without one of the sources, which the authorization no longer references", func() {
+
+			kept := api.NewHTTPSource()
+			kept.Name = "kept"
+			auth := api.NewAuthorization()
+			auth.Name = "auth"
+			auth.Subject = [][]string{{"@source:name=kept"}}
+
+			err := ImportLists(context.Background(), "/ns", "label", lists(m, api.HTTPSourcesList{kept}, api.AuthorizationsList{auth}, true), false, testHasher{})
+
+			So(err, ShouldBeNil)
+			Convey("Then the authorization is updated before the source is deleted", func() {
+				So(r.ops, ShouldResemble, []string{
+					"update authorization/auth",
+					"delete httpsource/gone",
+				})
+			})
+		})
+
+		Convey("When I import in update mode with the kinds of objects emptied", func() {
+
+			err := ImportLists(context.Background(), "/ns", "label", lists(m, api.HTTPSourcesList{}, api.AuthorizationsList{}, true), false, testHasher{})
+
+			So(err, ShouldBeNil)
+			Convey("Then the objects are deleted in reverse order of the lists", func() {
+				So(r.ops[0], ShouldEqual, "delete authorization/auth")
+				So(r.ops[1:], ShouldHaveLength, 2)
+				So(r.ops[1:], ShouldContain, "delete httpsource/kept")
+				So(r.ops[1:], ShouldContain, "delete httpsource/gone")
+			})
+		})
+
+		Convey("When I import in remove mode", func() {
+
+			err := ImportLists(context.Background(), "/ns", "label", lists(m, api.HTTPSourcesList{}, api.AuthorizationsList{}, false), true, testHasher{})
+
+			So(err, ShouldBeNil)
+			Convey("Then everything is deleted in reverse order of the lists", func() {
+				So(r.ops, ShouldHaveLength, 3)
+				So(r.ops[0], ShouldEqual, "delete authorization/auth")
+			})
+		})
+
+		Convey("When I import in replace mode with a source changed and the other gone", func() {
+
+			kept := api.NewHTTPSource()
+			kept.Name = "kept"
+			kept.Description = "changed"
+			auth := api.NewAuthorization()
+			auth.Name = "auth"
+			auth.Subject = [][]string{{"@source:name=kept"}}
+
+			err := ImportLists(context.Background(), "/ns", "label", lists(m, api.HTTPSourcesList{kept}, api.AuthorizationsList{auth}, false), false, testHasher{})
+
+			So(err, ShouldBeNil)
+			Convey("Then the changed source is replaced in place and the gone one deleted last", func() {
+				So(r.ops, ShouldResemble, []string{
+					"delete httpsource/kept",
+					"create httpsource/kept",
+					"delete authorization/auth",
+					"create authorization/auth",
+					"delete httpsource/gone",
+				})
+			})
+		})
+
+		Convey("When I import in replace mode without a hasher", func() {
+
+			kept := api.NewHTTPSource()
+			kept.Name = "kept"
+			kept.Description = "changed"
+
+			err := ImportLists(context.Background(), "/ns", "label", lists(m, api.HTTPSourcesList{kept}, api.AuthorizationsList{}, false), false, nil)
+
+			So(err, ShouldBeNil)
+			Convey("Then every existing source that does not match is deleted before the creation", func() {
+				So(r.ops[:2], ShouldContain, "delete httpsource/kept")
+				So(r.ops[:2], ShouldContain, "delete httpsource/gone")
+				So(r.ops[2], ShouldEqual, "create httpsource/kept")
+			})
+		})
+
+		Convey("When the deletion of a gone object fails", func() {
+
+			m.MockDelete(t, func(_ manipulate.Context, o elemental.Identifiable) error {
+				return fmt.Errorf("boom")
+			})
+
+			err := ImportLists(context.Background(), "/ns", "label", lists(m, api.HTTPSourcesList{}, api.AuthorizationsList{}, true), false, testHasher{})
+
+			Convey("Then it fails", func() {
+				So(err, ShouldNotBeNil)
+				So(err.Error(), ShouldContainSubstring, "boom")
+			})
+		})
+
+		Convey("When the deletion of a gone object answers not found", func() {
+
+			m.MockDelete(t, func(_ manipulate.Context, o elemental.Identifiable) error {
+				return elemental.NewError("Not Found", "not found", "test", http.StatusNotFound)
+			})
+
+			err := ImportLists(context.Background(), "/ns", "label", lists(m, api.HTTPSourcesList{}, api.AuthorizationsList{}, true), false, testHasher{})
+
+			Convey("Then it succeeds", func() {
+				So(err, ShouldBeNil)
+			})
+		})
+
+		Convey("When a list has no manager", func() {
+
+			l := lists(m, api.HTTPSourcesList{}, api.AuthorizationsList{}, true)
+			l[1].Manager = nil
+
+			err := ImportLists(context.Background(), "/ns", "label", l, false, testHasher{})
+
+			Convey("Then it fails before writing anything", func() {
+				So(err, ShouldNotBeNil)
+				So(err.Error(), ShouldEqual, "manager must not be nil")
+				So(r.ops, ShouldBeEmpty)
+			})
+		})
+
+		Convey("When a list has no system manipulator", func() {
+
+			l := lists(m, api.HTTPSourcesList{}, api.AuthorizationsList{}, true)
+			l[0].SystemManipulator = nil
+
+			err := ImportLists(context.Background(), "/ns", "label", l, false, testHasher{})
+
+			Convey("Then it fails before writing anything", func() {
+				So(err, ShouldNotBeNil)
+				So(err.Error(), ShouldEqual, "system manipulator must not be nil")
+				So(r.ops, ShouldBeEmpty)
+			})
+		})
+	})
 }
